@@ -1,0 +1,26 @@
+[jupiter.server.http]
+    port = 20105
+[jupiter.server.grpc]
+    port = 20102
+
+[jupiter.etcdv3.default]
+   endpoints=["127.0.0.1:2379"]
+   secure = false
+
+[jupiter.registry.wh01]
+    configKey="jupiter.etcdv3.default"
+    timeout = "1s"
+
+[jupiter.registry.wh02]
+    configKey="jupiter.etcdv3.default"
+    timeout = "1s"
+[jupiter.cron.demo]
+    immediatelyRun = true
+    concurrentDelay = -1
+
+[jupiter.grpc.default]
+    configKey="jupiter.etcdv3.default"
+
+[jupiter.logger.default]
+    level = "info"
+    debug = true

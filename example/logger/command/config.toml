@@ -1,0 +1,3 @@
+[jupiter.logger.default]
+    debug = true  # 是否在命令行输出
+    enableConsole = true # 是否按命令行格式输出

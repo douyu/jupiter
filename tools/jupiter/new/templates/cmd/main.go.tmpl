@@ -1,0 +1,14 @@
+package main
+
+import (
+	"log"
+	"{{.ModPrefix}}{{.Name}}/internal/app/engine"
+)
+
+func main() {
+	eng := engine.NewEngine()
+	if err := eng.Run(); err != nil {
+		log.Fatal(err)
+	}
+}
+
