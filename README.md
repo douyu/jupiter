@@ -27,3 +27,10 @@ For bug report, questions and discussions please submit GitHub Issues.
 Contributions are always welcomed! Please see [CONTRIBUTING](CONTRIBUTING.md) for detailed guidelines.
 
 You can start with the issues labeled with good first issue.
+
+## Contact
+
+- DingTalk: 
+    ![DingTalk](doc/dingtalk.png)
+- Wechat:
+    ![Wechat](doc/wechat.png)
