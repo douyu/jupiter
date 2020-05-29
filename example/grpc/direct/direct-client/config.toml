@@ -1,0 +1,5 @@
+[jupiter.client.directserver]
+    address = "127.0.0.1:9091"
+    balancerName = "round_robin" # 默认值
+    block =  false # 默认值
+    dialTimeout = "0s" # 默认值

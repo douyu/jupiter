@@ -1,0 +1,4 @@
+[jupiter.redis.myredis.stub]
+    addr = "127.0.0.1:6379"
+[jupiter.redis.myredis.cluster]
+    addrs =["127.0.0.1:6379","127.0.0.1:6380","127.0.0.1:6381"]

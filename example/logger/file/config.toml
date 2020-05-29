@@ -1,0 +1,5 @@
+[jupiter.logger.default]
+    debug = false  # 是否在命令行输出
+    enableConsole = false # 是否按命令行格式输出
+    name = "default.json" #日志名称
+    dir = "."  # 日志路径

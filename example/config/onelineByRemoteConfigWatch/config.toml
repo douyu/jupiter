@@ -1,0 +1,10 @@
+[people]
+    name = "jupiter123"
+[jupiter.logger.default]
+    debug = true
+    enableConsole = true
+[jupiter.server.http]
+    host = "0.0.0.0"
+    port = 8200
+
+

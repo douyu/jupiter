@@ -1,0 +1,9 @@
+[jupiter.registry.wh]
+    connectTimeout = "1s"
+    endpoints=["127.0.0.1:2379"]
+    secure = false
+[jupiter.client.etcdserver]
+    address = "etcd:///main"
+    balancerName = "round_robin" # 默认值
+    block =  false # 默认值
+    dialTimeout = "0s" # 默认值

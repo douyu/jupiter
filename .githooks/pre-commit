@@ -1,0 +1,69 @@
+#!/bin/sh
+test -z "$GIT_HOOK_NO_GOFMT" || exit 0
+function die {
+  echo "FATAL: $@" 1>&2 
+  exit 128 
+}
+
+files=()
+hash gofmt 2>&- || { echo >&2 "gofmt not in PATH."; exit 1; }
+IFS='
+'
+for file in `git diff --cached --name-only --diff-filter=ACM | grep '\.go$'`; do
+	output=`git cat-file -p :$file | gofmt -l 2>&1`
+	if test $? -ne 0; then
+		output=`echo "$output" | sed "s,<standard input>,$file,"`
+		syntaxerrors="${list}${output}"
+	elif test -n "$output"; then
+		files+=($file)
+		list="${list}${file}"
+	fi
+	if grep -q "git.dz11" "$file"; then
+		invalidimports+=($file)
+	fi
+	if grep -q -v "LICENSE-2.0" "$file"; then
+		unlicenses+=($file)
+	fi
+done
+
+# check invalid imports
+if test -n "$invalidimports"; then
+	echo >&2 "invalid imports: "
+	for f in "$invalidimports"; do
+		printf "$f\n"
+		grep -n 'git.dz11' -n "$file"
+	done
+	exit 1
+fi
+
+# check invalid imports
+if test -n "$unlicenses"; then
+	echo >&2 "found code files unlicensed"
+	for f in "$unlicenses"; do
+		printf "$f\n"
+	done
+	printf "run 'make license' to add license header\n"
+fi
+
+
+# check syntax
+if test -n "$syntaxerrors"; then
+	echo >&2 "gofmt found syntax errors:"
+	printf "$syntaxerrors"
+	exit 1
+fi
+
+# format code
+if test -n "$list"; then
+	echo >&2 "gofmt will format these files: $files"
+	for f in "$files"; do
+		set -x
+		gofmt -w $f || die "gofmt $f failed"
+		git add $f || die "git add $f failed"
+	done
+fi
+
+# tidy go mod
+go mod tidy
+git add go.mod
+git add go.sum
