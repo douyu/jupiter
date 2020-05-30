@@ -12,7 +12,7 @@
 
 JUPITER is a governance-oriented microservice framework, and used for many years in [Douyu](https://www.douyu.com).
 
-## Documention
+## Documentation
 
 See the [中文文档](http://jupiter.douyu.com/) for document in Chinese.
 

@@ -19,7 +19,7 @@ We are very glad to accept improvements for these aspects.
 
 ### GitHub workflow
 
-We use the `master` branch as the development branch, which indicates that this is a unstable branch.
+We use the `master` branch as the development branch, which indicates that this is an unstable branch.
 
 Here are the workflow for contributors:
 
@@ -44,7 +44,7 @@ The final commit message should be clear and concise.
 
 We use [GitHub Issues](https://github.com/douyu/jupiter/issues) and [Pull Requests](https://github.com/douyu/jupiter/pulls) for trackers.
 
-If you find a typo in document, find a bug in code, or want new features, or want to give suggestions,
+If you find a typo in a document, find a bug in code, or want new features, or want to give suggestions,
 you can [open an issue on GitHub](https://github.com/douyu/jupiter/issues/new) to report it.
 Please follow the guideline message in the issue template.
 
@@ -60,7 +60,7 @@ to a few individual PRs.
 All code should be well reviewed by one or more committers. Some principles:
 
 - Readability: Important code should be well-documented. Comply with our code style.
-- Elegance: New functions, classes or components should be well designed.
+- Elegance: New functions, classes or components should be well-designed.
 - Testability: Important code should be well-tested (high unit test coverage).
 
 ## Community
