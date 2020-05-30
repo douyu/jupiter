@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 package etcdv3
 
 import (
@@ -21,17 +20,16 @@ import (
 	"time"
 )
 
-func TestDefaultConfig(t *testing.T)  {
+func TestDefaultConfig(t *testing.T) {
 	defaultConfig := DefaultConfig()
-	assert.Equal(t, time.Second * 5, defaultConfig.ConnectTimeout)
+	assert.Equal(t, time.Second*5, defaultConfig.ConnectTimeout)
 	assert.Equal(t, false, defaultConfig.BasicAuth)
 	assert.Equal(t, []string(nil), defaultConfig.Endpoints)
 	assert.Equal(t, false, defaultConfig.Secure)
 }
 
-func TestConfigSet(t *testing.T)  {
+func TestConfigSet(t *testing.T) {
 	config := DefaultConfig()
 	config.Endpoints = []string{"127.0.0.1"}
 	assert.Equal(t, []string{"127.0.0.1"}, config.Endpoints)
 }
-
