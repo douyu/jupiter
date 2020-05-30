@@ -143,7 +143,7 @@ func (c *Config) grpcLoggerWithTracer(trace *xlog.Tracer, ctx context.Context, m
 		}
 	}
 	trace.Info(zap.String("method", method))
-	cost := time.Since(trace.BeginTime).Milliseconds()
+	cost := int64(time.Since(trace.BeginTime)) / 1e6
 	if cost > 500 {
 		trace.Warn(zap.Int64("slow", cost))
 	} else {
