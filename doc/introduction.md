@@ -1,4 +1,4 @@
-# 斗鱼Golang微服务框架-Jupiter开源# 斗鱼Golang微服务框架-Jupiter开源
+# 斗鱼Golang微服务框架-Jupiter开源
 
 Jupiter 是斗鱼开源的，面向服务治理的Golang微服务框架，以开发效率和治理效率为核心目标，从统一开发规范、
 完善监控埋点、降低开发难度等多个维度来帮助Gopher开发高性能、高可靠性的微服务框架。
@@ -82,10 +82,10 @@ Web开发和运维技术在不断的发展，短短几年已涌现出了非常�
 ## 结语
 以上是Jupiter对微服务架构实践的一些核心关注点和功能的介绍。详细的介绍，欢迎大家访问 [GitHub - douyu/jupiter: Jupiter是douyu开源的面向服务治理的Golang微服务框架](https://github.com/douyu/jupiter)来了解。
 
-鉴于治理平台开源Juno还在做开源前的整理准备，这里放上几张截图供大家了解。
+Jupiter Go正在快速迭代，v0.5.0包含了基本的架构骨架，更多的功能也在逐步整理，并将尽快释放出来。我们非常欢迎感兴趣的开发者参与贡献，一起来丰富Jupiter的功能、推动未来版本的演进。
+
+鉴于治理平台开源Juno还在做开源前的整理准备，这里放上几张截图供大家提前了解。
 
 ![monitor panel](monitor_panel.png)
 ![config_panel](config_panel.png)
 ![pprof_panel](pprof_panel.png)
-
-Jupiter Go正在快速迭代，v0.5.0包含了基本的架构骨架，更多的功能也在逐步整理，并将尽快释放出来。我们非常欢迎感兴趣的开发者参与贡献，一起来丰富Jupiter的功能、推动未来版本的演进。
