@@ -18,6 +18,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 )
 
@@ -155,6 +156,9 @@ func substr(s string, pos, length int) string {
 }
 
 func getParentDirectory(dirctory string) string {
+	if runtime.GOOS == "windows" {
+		dirctory = strings.Replace(dirctory, "\\", "/", -1)
+	}
 	return substr(dirctory, 0, strings.LastIndex(dirctory, "/"))
 }
 
