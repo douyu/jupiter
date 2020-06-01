@@ -2,11 +2,11 @@ package engine
 
 import (
 	"github.com/douyu/jupiter"
-	"{{.ModPrefix}}{{.Name}}/internal/app/greeter"
-	"github.com/douyu/jupiter/server/xecho"
-	"github.com/douyu/jupiter/server/xgrpc"
-	"github.com/douyu/jupiter/util/xgo"
-	"github.com/douyu/jupiter/xlog"
+	"{{.ModPrefix}}{{.Name}}/internal/demo/greeter"
+	"github.com/douyu/jupiter/pkg/server/xecho"
+	"github.com/douyu/jupiter/pkg/server/xgrpc"
+	"github.com/douyu/jupiter/pkg/util/xgo"
+	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/labstack/echo/v4"
 	"google.golang.org/grpc/examples/helloworld/helloworld"
 )
@@ -17,7 +17,6 @@ type Engine struct {
 
 func NewEngine() *Engine {
 	eng := &Engine{}
-	eng.SetName("jupiter")
 	if err := eng.Startup(
     	xgo.ParallelWithError(
     			eng.serveHTTP,
