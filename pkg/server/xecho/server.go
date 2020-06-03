@@ -43,9 +43,6 @@ func (s *Server) Serve() error {
 	s.Echo.Debug = s.config.Debug
 	s.Echo.HideBanner = true
 	s.Echo.StdLogger = xlog.JupiterLogger.StdLog()
-	//s.Use(s.config.RecoverMiddleware())
-	//s.Use(s.config.AccessLogger())
-	//s.Use(s.config.PrometheusServerInterceptor())
 	for _, route := range s.Echo.Routes() {
 		s.config.logger.Info("echo add route", xlog.FieldMethod(route.Method), xlog.String("path", route.Path))
 	}

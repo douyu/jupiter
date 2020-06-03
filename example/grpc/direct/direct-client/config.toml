@@ -1,5 +1,12 @@
 [jupiter.client.directserver]
-    address = "127.0.0.1:9091"
+    address = "127.0.0.1:20102"
     balancerName = "round_robin" # 默认值
     block =  false # 默认值
     dialTimeout = "0s" # 默认值
+    debug = true # 开启Debug信息
+    disableTrace = false # 开启链路追踪
+[jupiter.trace.jaeger]
+    enableRPCMetrics = false
+    [jupiter.trace.jaeger.sampler]
+        type = "const"
+        param = 0.001

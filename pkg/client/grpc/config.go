@@ -33,11 +33,15 @@ type Config struct {
 	Block        bool
 	DialTimeout  time.Duration
 	Direct       bool
-	OnDialError  string
+	OnDialError  string // panic | error
 	KeepAlive    *keepalive.ClientParameters
 	logger       *xlog.Logger
 	dialOptions  []grpc.DialOption
 	// resolver     resolver.Builder
+
+	Debug         bool
+	DisableTrace  bool
+	DisableMetric bool
 }
 
 // DefaultConfig ...
@@ -84,6 +88,17 @@ func (config *Config) WithDialOption(opts ...grpc.DialOption) *Config {
 
 // Build ...
 func (config *Config) Build() *grpc.ClientConn {
+	if config.Debug {
+		config.dialOptions = append(config.dialOptions,
+			grpc.WithChainUnaryInterceptor(debugUnaryClientInterceptor(config.Address)),
+		)
+	}
+	if !config.DisableTrace {
+		config.dialOptions = append(config.dialOptions,
+			grpc.WithChainUnaryInterceptor(traceUnaryClientInterceptor()),
+		)
+	}
+
 	client := newGRPCClient(*config)
 	return client
 }

@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/douyu/jupiter/pkg/metric"
+	"github.com/douyu/jupiter/pkg/trace"
 
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/labstack/echo/v4"
@@ -31,15 +32,14 @@ func (s *Config) extractAID(c echo.Context) string {
 }
 
 // RecoverMiddleware ...
-func (invoker *Config) RecoverMiddleware() echo.MiddlewareFunc {
+func (invoker *Config) recoverMiddleware() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(ctx echo.Context) (err error) {
 			var beg = time.Now()
-			var trace = &xlog.Tracer{}
-			xlog.InjectTraceMD(ctx, trace)
+			var fields = make([]xlog.Field, 0, 8)
 
 			defer func() {
-				trace.Info(zap.Float64("cost", time.Since(beg).Seconds()))
+				fields = append(fields, zap.Float64("cost", time.Since(beg).Seconds()))
 				if rec := recover(); rec != nil {
 					switch rec := rec.(type) {
 					case error:
@@ -50,41 +50,32 @@ func (invoker *Config) RecoverMiddleware() echo.MiddlewareFunc {
 
 					stack := make([]byte, 4096)
 					length := runtime.Stack(stack, true)
-					trace.Error(zap.ByteString("stack", stack[:length]))
+					fields = append(fields, zap.ByteString("stack", stack[:length]))
+				}
+				fields = append(fields,
+					zap.String("method", ctx.Request().Method),
+					zap.Int("code", ctx.Response().Status),
+					zap.String("host", ctx.Request().Host),
+				)
+				if invoker.SlowQueryThresholdInMilli > 0 {
+					if cost := int64(time.Since(beg)) / 1e6; cost > invoker.SlowQueryThresholdInMilli {
+						fields = append(fields, zap.Int64("slow", cost))
+					}
 				}
 				if err != nil {
-					trace.Error(zap.String("err", err.Error()))
+					fields = append(fields, zap.String("err", err.Error()))
+					invoker.logger.Error("access", fields...)
+					return
 				}
-				trace.Flush("access", invoker.logger)
+				invoker.logger.Info("access", fields...)
 			}()
 
-			err = next(ctx)
-			return err
+			return next(ctx)
 		}
 	}
 }
 
-// AccessLogger ...
-func (invoker *Config) AccessLogger() echo.MiddlewareFunc {
-	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(ctx echo.Context) (err error) {
-			err = next(ctx)
-			if trace, ok := xlog.ExtractTraceMD(ctx); ok {
-				trace.Info(zap.String("method", ctx.Request().Method))
-				trace.Info(zap.Int("code", ctx.Response().Status))
-				trace.Info(zap.String("host", ctx.Request().Host))
-
-				if cost := int64(time.Since(trace.BeginTime)) / 1e6; cost > 500 {
-					trace.Warn(zap.Int64("slow", cost))
-				}
-			}
-			return err
-		}
-	}
-}
-
-// PrometheusServerInterceptor ...
-func (invoker *Config) PrometheusServerInterceptor() echo.MiddlewareFunc {
+func (invoker *Config) metricServerInterceptor() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) (err error) {
 			beg := time.Now()
@@ -94,6 +85,25 @@ func (invoker *Config) PrometheusServerInterceptor() echo.MiddlewareFunc {
 			metric.ServerMetricsHandler.GetHandlerCounter().
 				WithLabelValues(metric.TypeServerHttp, c.Request().Method+"."+c.Path(), invoker.extractAID(c), statusText[c.Response().Status]).Inc()
 			return err
+		}
+	}
+}
+func (invoker *Config) traceServerInterceptor() echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) (err error) {
+			span, ctx := trace.StartSpanFromContext(
+				c.Request().Context(),
+				c.Request().Method+" "+c.Path(),
+				trace.TagComponent("http"),
+				trace.TagSpanKind("server"),
+				trace.HeaderExtractor(c.Request().Header),
+				trace.CustomTag("http.url", c.Path()),
+				trace.CustomTag("http.method", c.Request().Method),
+				trace.CustomTag("peer.ipv4", c.RealIP()),
+			)
+			c.SetRequest(c.Request().WithContext(ctx))
+			defer span.Finish()
+			return next(c)
 		}
 	}
 }

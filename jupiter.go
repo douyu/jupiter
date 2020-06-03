@@ -33,6 +33,8 @@ import (
 	"github.com/douyu/jupiter/pkg/govern"
 	"github.com/douyu/jupiter/pkg/registry"
 	"github.com/douyu/jupiter/pkg/server"
+	"github.com/douyu/jupiter/pkg/trace"
+	"github.com/douyu/jupiter/pkg/trace/jaeger"
 	"github.com/douyu/jupiter/pkg/util/xcolor"
 	"github.com/douyu/jupiter/pkg/util/xgo"
 	"github.com/douyu/jupiter/pkg/util/xstring"
@@ -86,6 +88,7 @@ func (app *Application) startup() (err error) {
 			app.loadConfig,
 			app.initLogger,
 			app.initMaxProcs,
+			app.initTracer,
 		)()
 	})
 	return
@@ -265,7 +268,7 @@ func (app *Application) parseFlags() error {
 		Name:    "config",
 		Usage:   "--config",
 		EnvVar:  "JUPITER_CONFIG",
-		Default: "config.toml",
+		Default: "",
 		Action:  func(name string, fs *flag.FlagSet) {},
 	})
 
@@ -341,6 +344,14 @@ func (app *Application) initLogger() error {
 
 	xlog.JupiterLogger.AutoLevel("jupiter.logger.jupiter")
 
+	return nil
+}
+
+func (app *Application) initTracer() error {
+	if conf.Get("jupiter.trace.jaeger") != nil {
+		var config = jaeger.RawConfig("jupiter.trace.jaeger")
+		trace.SetGlobalTracer(config.Build())
+	}
 	return nil
 }
 
