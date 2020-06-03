@@ -91,7 +91,13 @@ func TestTime_BeginOfYear(t *testing.T) {
 		fields fields
 		want   *Time
 	}{
-		// TODO: Add test cases.
+		{
+			name: "beg of year",
+			fields: fields{
+				Time: time.Date(2020, 6, 3, 12, 13, 11, 189, time.Local),
+			},
+			want: &Time{time.Date(2020, 1, 1, 0, 0, 0, 0, time.Local)},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -114,7 +120,13 @@ func TestTime_EndOfYear(t *testing.T) {
 		fields fields
 		want   *Time
 	}{
-		// TODO: Add test cases.
+		{
+			name: "end of year",
+			fields: fields{
+				Time: time.Date(2020, 6, 3, 12, 13, 11, 189, time.Local),
+			},
+			want: &Time{time.Date(2020, 12, 31, 23, 59, 59, 999999999, time.Local)},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -137,7 +149,13 @@ func TestTime_BeginOfMonth(t *testing.T) {
 		fields fields
 		want   *Time
 	}{
-		// TODO: Add test cases.
+		{
+			name: "beg of month",
+			fields: fields{
+				Time: time.Date(2020, 6, 3, 12, 13, 11, 189, time.Local),
+			},
+			want: &Time{time.Date(2020, 6, 1, 0, 0, 0, 0, time.Local)},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -160,7 +178,13 @@ func TestTime_EndOfMonth(t *testing.T) {
 		fields fields
 		want   *Time
 	}{
-		// TODO: Add test cases.
+		{
+			name: "end of month",
+			fields: fields{
+				Time: time.Date(2020, 6, 3, 12, 13, 11, 189, time.Local),
+			},
+			want: &Time{time.Date(2020, 6, 30, 23, 59, 59, 999999999, time.Local)},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -183,7 +207,13 @@ func TestTime_BeginOfWeek(t *testing.T) {
 		fields fields
 		want   *Time
 	}{
-		// TODO: Add test cases.
+		{
+			name: "beg of week",
+			fields: fields{
+				Time: time.Date(2020, 6, 3, 12, 13, 11, 189, time.Local),
+			},
+			want: &Time{time.Date(2020, 5, 31, 0, 0, 0, 0, time.Local)},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -206,7 +236,13 @@ func TestTime_EndOfWeek(t *testing.T) {
 		fields fields
 		want   *Time
 	}{
-		// TODO: Add test cases.
+		{
+			name: "end of week",
+			fields: fields{
+				Time: time.Date(2020, 6, 3, 12, 13, 11, 189, time.Local),
+			},
+			want: &Time{time.Date(2020, 6, 6, 23, 59, 59, 999999999, time.Local)},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -229,7 +265,13 @@ func TestTime_BeginOfDay(t *testing.T) {
 		fields fields
 		want   *Time
 	}{
-		// TODO: Add test cases.
+		{
+			name: "beg of day",
+			fields: fields{
+				Time: time.Date(2020, 6, 3, 12, 13, 11, 189, time.Local),
+			},
+			want: &Time{time.Date(2020, 6, 3, 0, 0, 0, 0, time.Local)},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -252,7 +294,13 @@ func TestTime_EndOfDay(t *testing.T) {
 		fields fields
 		want   *Time
 	}{
-		// TODO: Add test cases.
+		{
+			name: "end of day",
+			fields: fields{
+				Time: time.Date(2020, 6, 3, 12, 13, 11, 189, time.Local),
+			},
+			want: &Time{time.Date(2020, 6, 3, 23, 59, 59, 999999999, time.Local)},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -275,7 +323,13 @@ func TestTime_BeginOfHour(t *testing.T) {
 		fields fields
 		want   *Time
 	}{
-		// TODO: Add test cases.
+		{
+			name: "begin of hour",
+			fields: fields{
+				Time: time.Date(2020, 6, 3, 12, 13, 11, 189, time.Local),
+			},
+			want: &Time{time.Date(2020, 6, 3, 12, 0, 0, 0, time.Local)},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -298,7 +352,13 @@ func TestTime_EndOfHour(t *testing.T) {
 		fields fields
 		want   *Time
 	}{
-		// TODO: Add test cases.
+		{
+			name: "end of hour",
+			fields: fields{
+				Time: time.Date(2020, 6, 3, 12, 13, 11, 189, time.Local),
+			},
+			want: &Time{time.Date(2020, 6, 3, 12, 59, 59, 999999999, time.Local)},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -321,7 +381,13 @@ func TestTime_BeginOfMinute(t *testing.T) {
 		fields fields
 		want   *Time
 	}{
-		// TODO: Add test cases.
+		{
+			name: "beg of minute",
+			fields: fields{
+				Time: time.Date(2020, 6, 3, 12, 13, 11, 189, time.Local),
+			},
+			want: &Time{time.Date(2020, 6, 3, 12, 13, 0, 0, time.Local)},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -344,7 +410,13 @@ func TestTime_EndOfMinute(t *testing.T) {
 		fields fields
 		want   *Time
 	}{
-		// TODO: Add test cases.
+		{
+			name: "end of minute",
+			fields: fields{
+				Time: time.Date(2020, 6, 3, 12, 13, 11, 189, time.Local),
+			},
+			want: &Time{time.Date(2020, 6, 3, 12, 13, 59, 999999999, time.Local)},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -65,14 +65,17 @@ func (t *Time) EndOfMonth() *Time {
 }
 
 // BeginOfWeek the day of begin of week,
-// NOTE(gorexlv) not zero time
+// NOTE: week begin from Sunday
 func (t *Time) BeginOfWeek() *Time {
-	return &Time{t.AddDate(0, 0, 0-int(t.BeginOfDay().Weekday()))}
+	y, m, d := t.AddDate(0, 0, 0-int(t.BeginOfDay().Weekday())).Date()
+	return &Time{time.Date(y, m, d, 0, 0, 0, 0, t.Location())}
 }
 
 // EndOfWeek end of week
+// NOTE: week end with Saturday
 func (t *Time) EndOfWeek() *Time {
-	return &Time{t.BeginOfWeek().AddDate(0, 0, 7).Add(-time.Nanosecond)}
+	y, m, d := t.BeginOfWeek().AddDate(0, 0, 7).Add(-time.Nanosecond).Date()
+	return &Time{time.Date(y, m, d, 23, 59, 59, int(time.Second-time.Nanosecond), t.Location())}
 }
 
 // BeginOfDay returns zero point of time's day
@@ -84,7 +87,7 @@ func (t *Time) BeginOfDay() *Time {
 // EndOfDay returns last point of time's day
 func (t *Time) EndOfDay() *Time {
 	y, m, d := t.Date()
-	return &Time{time.Date(y, m, d, 23, 23, 59, int(time.Second-time.Nanosecond), t.Location())}
+	return &Time{time.Date(y, m, d, 23, 59, 59, int(time.Second-time.Nanosecond), t.Location())}
 }
 
 // BeginOfHour returns zero point of time's day
@@ -96,7 +99,7 @@ func (t *Time) BeginOfHour() *Time {
 // EndOfHour returns last point of time's day
 func (t *Time) EndOfHour() *Time {
 	y, m, d := t.Date()
-	return &Time{time.Date(y, m, d, t.Hour(), 23, 59, int(time.Second-time.Nanosecond), t.Location())}
+	return &Time{time.Date(y, m, d, t.Hour(), 59, 59, int(time.Second-time.Nanosecond), t.Location())}
 }
 
 // BeginOfMinute returns zero point of time's day
