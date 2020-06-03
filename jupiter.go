@@ -221,20 +221,27 @@ func (app *Application) beforeStop() {
 	app.logger.Info("leaving jupiter, bye....", xlog.FieldMod(ecode.ModApp))
 }
 
-func (app *Application) startGovernor() error {
+func (app *Application) startGovernor() (err error) {
 	app.logger.Info("start governor", xlog.FieldMod(ecode.ModApp), xlog.FieldAddr("http://"+app.governor.Addr))
+	defer func() {
+		if err != nil && err != http.ErrServerClosed {
+			app.logger.Panic("start governor", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err), xlog.FieldAddr("http://"+app.governor.Addr))
+		}
+	}()
 	return app.governor.ListenAndServe()
 }
 
 func (app *Application) startServers() error {
 	var eg errgroup.Group
+	xgo.ParallelWithErrorChan()
 	// start multi servers
 	for _, s := range app.servers {
 		s := s
-		eg.Go(func() error {
+		eg.Go(func() (err error) {
 			_ = app.registerer.RegisterService(context.TODO(), s.Info())
 			defer app.registerer.DeregisterService(context.TODO(), s.Info())
 			app.logger.Info("start servers", xlog.FieldMod(ecode.ModApp), xlog.FieldAddr(s.Info().Label()))
+			defer app.logger.Info("exit server", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err), xlog.FieldAddr(s.Info().Label()))
 			return s.Serve()
 		})
 	}
