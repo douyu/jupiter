@@ -5,3 +5,11 @@
    level = "panic"
    maxIdleConns = 50
    maxOpenConns = 100
+   disableTrace = false
+   disableMetric = false
+
+[jupiter.trace.jaeger]
+    enableRPCMetrics = false
+    [jupiter.trace.jaeger.sampler]
+        type = "const"
+        param = 0.001

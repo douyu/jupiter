@@ -10,6 +10,7 @@ import (
 
 var (
 	appName          string
+	hostName         string
 	buildVersion     string
 	buildGitRevision string
 	buildUser        string
@@ -25,11 +26,21 @@ func init() {
 			appName = filepath.Base(os.Args[0])
 		}
 	}
+
+	name, err := os.Hostname()
+	if err != nil {
+		name = "unknown"
+	}
+	hostName = name
 }
 
 // Name gets application name.
 func Name() string {
 	return appName
+}
+
+func HostName() string {
+	return hostName
 }
 
 // PrintVersion ...

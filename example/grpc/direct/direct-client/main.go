@@ -37,6 +37,7 @@ type Engine struct {
 
 func NewEngine() *Engine {
 	eng := &Engine{}
+	eng.SetGovernor("127.0.0.1:9999")
 	if err := eng.Startup(
 		eng.consumer,
 	); err != nil {

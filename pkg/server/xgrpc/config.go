@@ -29,6 +29,7 @@ type Config struct {
 	Host               string
 	Port               int
 	Network            string `json:"network" toml:"network"`
+	DisableTrace       bool
 	serverOptions      []grpc.ServerOption
 	streamInterceptors []grpc.StreamServerInterceptor
 	unaryInterceptors  []grpc.UnaryServerInterceptor
@@ -56,6 +57,7 @@ func DefaultConfig() *Config {
 		serverOptions: []grpc.ServerOption{},
 		Network:       "tcp4",
 		Host:          "127.0.0.1",
+		Port:          9092,
 		logger:        xlog.JupiterLogger.With(xlog.FieldMod("server.grpc")),
 	}
 }
@@ -76,6 +78,11 @@ func (config *Config) Build() *Server {
 		config.RecoveryUnaryServerInterceptor(),
 		config.LoggerUnaryServerIntercept(),
 	}
+	if !config.DisableTrace {
+		config.unaryInterceptors = append(config.unaryInterceptors, traceUnaryServerInterceptor)
+		config.streamInterceptors = append(config.streamInterceptors, traceStreamServerInterceptor)
+	}
+
 	return newServer(config)
 }
 

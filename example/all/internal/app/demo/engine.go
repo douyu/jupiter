@@ -37,8 +37,8 @@ func NewEngine() *Engine {
 
 	if err := eng.Startup(
 		eng.loadConfig,
-		eng.printLogs,
-		eng.startJobs,
+		// eng.printLogs,
+		// eng.startJobs,
 		xgo.ParallelWithError(
 			eng.serveHTTP,
 			eng.serveGRPC,
@@ -77,6 +77,9 @@ func (eng *Engine) serveHTTP() error {
 	server := xecho.StdConfig("http").Build()
 	server.GET("/ping", func(ctx echo.Context) error {
 		return ctx.JSON(200, "pong")
+	})
+	server.GET("/panic", func(ctx echo.Context) error {
+		panic("panic")
 	})
 	//this is a demo: support proxy for http to grpc controller
 	g := greeter.Greeter{}

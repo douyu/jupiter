@@ -25,9 +25,13 @@ import (
 
 // HTTP config
 type Config struct {
-	Host  string
-	Port  int
-	Debug bool
+	Host          string
+	Port          int
+	Debug         bool
+	DisableMetric bool
+	DisableTrace  bool
+
+	SlowQueryThresholdInMilli int64
 
 	logger *xlog.Logger
 }
@@ -35,10 +39,11 @@ type Config struct {
 // DefaultConfig ...
 func DefaultConfig() *Config {
 	return &Config{
-		Host:   "127.0.0.1",
-		Port:   9091,
-		Debug:  false,
-		logger: xlog.JupiterLogger.With(xlog.FieldMod("server.echo")),
+		Host:                      "127.0.0.1",
+		Port:                      9091,
+		Debug:                     false,
+		SlowQueryThresholdInMilli: 500, // 500ms
+		logger:                    xlog.JupiterLogger.With(xlog.FieldMod("server.echo")),
 	}
 }
 
@@ -75,10 +80,19 @@ func (config *Config) WithPort(port int) *Config {
 	return config
 }
 
-// Build ...
+// Build create server instance, then initialize it with necessary interceptor
 func (config *Config) Build() *Server {
+	server := newServer(config)
+	server.Use(config.recoverMiddleware())
 
-	return newServer(config)
+	if !config.DisableMetric {
+		server.Use(config.metricServerInterceptor())
+	}
+
+	if !config.DisableTrace {
+		server.Use(config.traceServerInterceptor())
+	}
+	return server
 }
 
 // Address ...
