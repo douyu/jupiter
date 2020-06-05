@@ -24,8 +24,8 @@ func main() {
 	var app jupiter.Application
 	app.Startup()
 	app.Serve(startHTTPServer())
-    app.Serve(startGRPCServer())
-    app.Schedule(startWorker())
+	app.Serve(startGRPCServer())
+	app.Schedule(startWorker())
 	app.Run()
 }
 
