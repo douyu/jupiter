@@ -16,6 +16,7 @@ package xecho
 
 import (
 	"fmt"
+	"net/http"
 	"runtime"
 	"time"
 
@@ -80,10 +81,14 @@ func (invoker *Config) metricServerInterceptor() echo.MiddlewareFunc {
 		return func(c echo.Context) (err error) {
 			beg := time.Now()
 			err = next(c)
-			metric.ServerMetricsHandler.GetHandlerHistogram().
-				WithLabelValues(metric.TypeServerHttp, c.Request().Method+"."+c.Path(), invoker.extractAID(c)).Observe(time.Since(beg).Seconds())
-			metric.ServerMetricsHandler.GetHandlerCounter().
-				WithLabelValues(metric.TypeServerHttp, c.Request().Method+"."+c.Path(), invoker.extractAID(c), statusText[c.Response().Status]).Inc()
+			method := c.Request().Method + "_" + c.Path()
+			peer := c.RealIP()
+			if aid := invoker.extractAID(c); aid != "" {
+				peer += "?aid=" + aid
+			}
+			fmt.Printf("peer => %+v\n", peer)
+			metric.ServerHandleHistogram.Observe(time.Since(beg).Seconds(), metric.TypeHTTP, method, peer)
+			metric.ServerHandleCounter.Inc(metric.TypeHTTP, method, peer, http.StatusText(c.Response().Status))
 			return err
 		}
 	}

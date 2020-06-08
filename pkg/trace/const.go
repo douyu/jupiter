@@ -54,6 +54,7 @@ func FromIncomingContext(ctx context.Context) opentracing.StartSpanOption {
 	return ext.RPCServerOption(sc)
 }
 
+// HeaderExtractor ...
 func HeaderExtractor(hdr map[string][]string) opentracing.StartSpanOption {
 	sc, err := opentracing.GlobalTracer().Extract(opentracing.HTTPHeaders, MetadataReaderWriter{MD: hdr})
 	if err != nil {
@@ -64,6 +65,7 @@ func HeaderExtractor(hdr map[string][]string) opentracing.StartSpanOption {
 
 type hdrRequestKey struct{}
 
+// HeaderInjector ...
 func HeaderInjector(ctx context.Context, hdr map[string][]string) context.Context {
 	span := opentracing.SpanFromContext(ctx)
 	err := opentracing.GlobalTracer().Inject(span.Context(), opentracing.HTTPHeaders, MetadataReaderWriter{MD: hdr})

@@ -9,9 +9,11 @@ import (
 )
 
 var (
+	// String ...
 	String = log.String
 )
 
+// SetGlobalTracer ...
 func SetGlobalTracer(tracer opentracing.Tracer) {
 	xlog.Info("set global tracer", xlog.FieldMod("trace"))
 	opentracing.SetGlobalTracer(tracer)
@@ -22,6 +24,7 @@ func StartSpanFromContext(ctx context.Context, op string, opts ...opentracing.St
 	return opentracing.StartSpanFromContext(ctx, op, opts...)
 }
 
+// SpanFromContext ...
 func SpanFromContext(ctx context.Context) opentracing.Span {
 	return opentracing.SpanFromContext(ctx)
 }

@@ -79,10 +79,8 @@ func pushConsumerDefaultInterceptor(pushConsumer *ConsumerConfig) primitive.Inte
 					xlog.String("result", result),
 				)
 			}
-			metric.ClientMetricsHandler.GetHandlerCounter().
-				WithLabelValues(metric.TypeLibRocketMq, topic, "consume", host, result).Inc()
-			metric.ClientMetricsHandler.GetHandlerHistogram().
-				WithLabelValues(metric.TypeLibRocketMq, topic, "consume", host).Observe(time.Since(beg).Seconds())
+			metric.ClientHandleCounter.Inc(metric.TypeRocketMQ, topic, "consume", host, result)
+			metric.ClientHandleHistogram.Observe(time.Since(beg).Seconds(), metric.TypeRocketMQ, topic, "consume", host)
 		}
 		if pushConsumer.RwTimeout > time.Duration(0) {
 			if time.Since(beg) > pushConsumer.RwTimeout {
@@ -138,20 +136,16 @@ func producerDefaultInterceptor(producer *ProducerConfig) primitive.Interceptor 
 				xlog.String("result", realReply.String()),
 				xlog.Any("err", err),
 			)
-			metric.ClientMetricsHandler.GetHandlerCounter().
-				WithLabelValues(metric.TypeLibRocketMq, topic, "produce", "unknown", err.Error()).Inc()
-			metric.ClientMetricsHandler.GetHandlerHistogram().
-				WithLabelValues(metric.TypeLibRocketMq, topic, "produce", "unknown").Observe(time.Since(beg).Seconds())
+			metric.ClientHandleCounter.Inc(metric.TypeRocketMQ, topic, "produce", "unknown", err.Error())
+			metric.ClientHandleHistogram.Observe(time.Since(beg).Seconds(), metric.TypeRocketMQ, topic, "produce", "unknown")
 		} else {
 			_logger.Info("produce",
 				xlog.String("topic", topic),
 				xlog.Any("queue", realReply.MessageQueue),
 				xlog.String("result", produceResultStr(realReply.Status)),
 			)
-			metric.ClientMetricsHandler.GetHandlerCounter().
-				WithLabelValues(metric.TypeLibRocketMq, topic, "produce", realReply.MessageQueue.BrokerName, produceResultStr(realReply.Status)).Inc()
-			metric.ClientMetricsHandler.GetHandlerHistogram().
-				WithLabelValues(metric.TypeLibRocketMq, topic, "produce", realReply.MessageQueue.BrokerName).Observe(time.Since(beg).Seconds())
+			metric.ClientHandleCounter.Inc(metric.TypeRocketMQ, topic, "produce", realReply.MessageQueue.BrokerName, produceResultStr(realReply.Status))
+			metric.ClientHandleHistogram.Observe(time.Since(beg).Seconds(), metric.TypeRocketMQ, topic, "produce", realReply.MessageQueue.BrokerName)
 		}
 
 		if producer.RwTimeout > time.Duration(0) {

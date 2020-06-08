@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/douyu/jupiter/pkg/metric"
+	"go.uber.org/zap"
 
 	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/xlog"
@@ -121,38 +122,34 @@ type wrappedJob struct {
 
 // Run ...
 func (wj wrappedJob) Run() {
-	tracer := xlog.NewTracer()
-	metric.WorkerMetricsHandler.GetHandlerCounter().
-		WithLabelValues("cron", wj.Name(), "begin").Inc()
+	_ = wj.run()
+}
+
+func (wj wrappedJob) run() (err error) {
+	metric.JobHandleCounter.Inc("cron", wj.Name(), "begin")
+	var fields = []xlog.Field{zap.String("name", wj.Name())}
 	var beg = time.Now()
 	defer func() {
-		if r := recover(); r != nil {
-			const size = 64 << 10
-			buf := make([]byte, size)
-			buf = buf[:runtime.Stack(buf, false)]
-			err, ok := r.(error)
-			if !ok {
-				err = fmt.Errorf("%v", r)
+		if rec := recover(); rec != nil {
+			switch rec := rec.(type) {
+			case error:
+				err = rec
+			default:
+				err = fmt.Errorf("%v", rec)
 			}
-			metric.WorkerMetricsHandler.GetHandlerCounter().
-				WithLabelValues("cron", wj.Name(), "over err").Inc()
-			tracer.Error(
-				xlog.Any("err", err),
-				xlog.String("event", "recover"),
-				xlog.String("stack", string(buf)),
-			)
-		} else {
-			metric.WorkerMetricsHandler.GetHandlerCounter().
-				WithLabelValues("cron", wj.Name(), "over suc").Inc()
-		}
-		metric.WorkerMetricsHandler.GetHandlerHistogram().
-			WithLabelValues("cron", wj.Name()).Observe(time.Since(beg).Seconds())
-		tracer.Info(
-			xlog.String("name", wj.Name()),
-		)
-		tracer.Flush("run job", wj.logger)
-	}()
-	if err := wj.NamedJob.Run(); err != nil {
 
-	}
+			stack := make([]byte, 4096)
+			length := runtime.Stack(stack, true)
+			fields = append(fields, zap.ByteString("stack", stack[:length]))
+		}
+		if err != nil {
+			fields = append(fields, xlog.String("err", err.Error()), xlog.Duration("cost", time.Since(beg)))
+			wj.logger.Error("run", fields...)
+		} else {
+			wj.logger.Info("run", fields...)
+		}
+		metric.JobHandleHistogram.Observe(time.Since(beg).Seconds(), "cron", wj.Name())
+	}()
+
+	return wj.NamedJob.Run()
 }

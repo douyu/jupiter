@@ -42,10 +42,8 @@ func metricUnaryClientInterceptor(address string) func(ctx context.Context, meth
 		codes := ecode.ExtractCodes(err)
 
 		// 只记录系统级别的详细错误码
-		metric.ClientMetricsHandler.GetHandlerCounter().
-			WithLabelValues(metric.TypeServerUnary, address, method, cc.Target(), codes.GetMessage()).Inc()
-		metric.ClientMetricsHandler.GetHandlerHistogram().
-			WithLabelValues(metric.TypeServerUnary, address, method, cc.Target()).Observe(time.Since(beg).Seconds())
+		metric.ClientHandleCounter.Inc(metric.TypeGRPCUnary, address, method, cc.Target(), codes.GetMessage())
+		metric.ClientHandleHistogram.Observe(time.Since(beg).Seconds(), metric.TypeGRPCUnary, address, method, cc.Target())
 		return err
 	}
 }
@@ -57,10 +55,8 @@ func metricStreamClientInterceptor(name string) func(ctx context.Context, desc *
 
 		// 暂时用默认的grpc的默认err收敛
 		codes := ecode.ExtractCodes(err)
-		metric.ClientMetricsHandler.GetHandlerCounter().
-			WithLabelValues(metric.TypeServerStream, name, method, cc.Target(), codes.GetMessage()).Inc()
-		metric.ClientMetricsHandler.GetHandlerHistogram().
-			WithLabelValues(metric.TypeServerStream, name, method, cc.Target()).Observe(time.Since(beg).Seconds())
+		metric.ClientHandleCounter.Inc(metric.TypeGRPCStream, name, method, cc.Target(), codes.GetMessage())
+		metric.ClientHandleHistogram.Observe(time.Since(beg).Seconds(), metric.TypeGRPCStream, name, method, cc.Target())
 		return clientStream, err
 	}
 }

@@ -39,6 +39,7 @@ func Name() string {
 	return appName
 }
 
+// HostName ...
 func HostName() string {
 	return hostName
 }

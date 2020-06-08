@@ -91,11 +91,13 @@ func DefaultConfig() *Config {
 	}
 }
 
+// WithLogger ...
 func (config *Config) WithLogger(log *xlog.Logger) *Config {
 	config.logger = log
 	return config
 }
 
+// WithInterceptor ...
 func (config *Config) WithInterceptor(intes ...Interceptor) *Config {
 	if config.interceptors == nil {
 		config.interceptors = make([]Interceptor, 0)

@@ -161,6 +161,7 @@ func (logger *Logger) Flush() error {
 	return logger.desugar.Sync()
 }
 
+// DefaultZapConfig ...
 func DefaultZapConfig() *zapcore.EncoderConfig {
 	return &zapcore.EncoderConfig{
 		TimeKey:        "ts",
@@ -177,6 +178,7 @@ func DefaultZapConfig() *zapcore.EncoderConfig {
 	}
 }
 
+// DebugEncodeLevel ...
 func DebugEncodeLevel(lv zapcore.Level, enc zapcore.PrimitiveArrayEncoder) {
 	var colorize = xcolor.Red
 	switch lv {
