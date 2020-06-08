@@ -15,9 +15,10 @@
 package etcdv3
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestDefaultConfig(t *testing.T) {
@@ -30,6 +31,6 @@ func TestDefaultConfig(t *testing.T) {
 
 func TestConfigSet(t *testing.T) {
 	config := DefaultConfig()
-	config.Endpoints = []string{"127.0.0.1"}
-	assert.Equal(t, []string{"127.0.0.1"}, config.Endpoints)
+	config.Endpoints = []string{"localhost"}
+	assert.Equal(t, []string{"localhost"}, config.Endpoints)
 }
