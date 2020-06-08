@@ -22,7 +22,7 @@ func TestRedisCluster(t *testing.T) {
 	// TODO(gorexlv): add redis ci
 	// clusterConfig := DefaultRedisClusterConfig()
 	// clusterConfig.Addrs = []string{
-	// 	"127.0.0.1:6379", "127.0.0.1:6380", "127.0.0.1:6381",
+	// 	"localhost:6379", "localhost:6380", "localhost:6381",
 	// }
 	// redisClusterClient := newRedisClusterStub(&clusterConfig)
 	// err := redisClusterClient.Client.Ping().Err()

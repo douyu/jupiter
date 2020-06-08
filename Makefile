@@ -1,7 +1,7 @@
 PROJECT_NAME := "jupiter"
 PKG := "github.com/douyu/jupiter"
-PKG_LIST := $(shell go list ${PKG}/... | grep -v /vendor/)
-GO_FILES := $(shell find . -name '*.go' | grep -v /vendor/ | grep -v _test.go)
+PKG_LIST := $(shell go list ${PKG}/... | grep /pkg/)
+GO_FILES := $(shell find . -name '*.go' | grep /pkg/ | grep -v _test.go)
 
 .DEFAULT_GOAL := default
 .PHONY: all test lint fmt fmtcheck cmt errcheck license
