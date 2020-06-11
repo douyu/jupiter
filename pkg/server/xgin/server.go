@@ -48,12 +48,11 @@ func (s *Server) Serve() error {
 	for _, route := range s.Engine.Routes() {
 		s.config.logger.Info("gin add route", xlog.FieldMethod(route.Method), xlog.String("path", route.Path))
 	}
-	// s.Server = &http.Server{
-	// 	Addr:    s.config.Address(),
-	// 	Handler: s,
-	// }
-	// return s.Server.ListenAndServe()
-	return s.Run(s.config.Address())
+	s.Server = &http.Server{
+		Addr:    s.config.Address(),
+		Handler: s,
+	}
+	return s.Server.ListenAndServe()
 }
 
 // Stop implements server.Server interface

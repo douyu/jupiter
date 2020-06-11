@@ -27,6 +27,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/douyu/jupiter/pkg/metric"
+	"github.com/douyu/jupiter/pkg/trace"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"go.uber.org/zap"
 )
@@ -155,37 +157,32 @@ func timeFormat(t time.Time) string {
 	return timeString
 }
 
-/*
-func (invoker *Config) metricServerInterceptor() echo.MiddlewareFunc {
-	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) (err error) {
-			beg := time.Now()
-			err = next(c)
-			metric.ServerMetricsHandler.GetHandlerHistogram().
-				WithLabelValues(metric.TypeServerHttp, c.Request().Method+"."+c.Path(), invoker.extractAID(c)).Observe(time.Since(beg).Seconds())
-			metric.ServerMetricsHandler.GetHandlerCounter().
-				WithLabelValues(metric.TypeServerHttp, c.Request().Method+"."+c.Path(), invoker.extractAID(c), statusText[c.Response().Status]).Inc()
-			return err
-		}
+func (config *Config) metricServerInterceptor() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		beg := time.Now()
+		c.Next()
+		metric.ServerMetricsHandler.GetHandlerHistogram().
+			WithLabelValues(metric.TypeServerHttp, c.Request.Method+"."+c.Request.URL.Path, config.extractAID(c)).Observe(time.Since(beg).Seconds())
+		metric.ServerMetricsHandler.GetHandlerCounter().
+			WithLabelValues(metric.TypeServerHttp, c.Request.Method+"."+c.Request.URL.Path, config.extractAID(c), statusText[c.Writer.Status()]).Inc()
+		return
 	}
 }
-func (invoker *Config) traceServerInterceptor() echo.MiddlewareFunc {
-	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) (err error) {
-			span, ctx := trace.StartSpanFromContext(
-				c.Request().Context(),
-				c.Request().Method+" "+c.Path(),
-				trace.TagComponent("http"),
-				trace.TagSpanKind("server"),
-				trace.HeaderExtractor(c.Request().Header),
-				trace.CustomTag("http.url", c.Path()),
-				trace.CustomTag("http.method", c.Request().Method),
-				trace.CustomTag("peer.ipv4", c.RealIP()),
-			)
-			c.SetRequest(c.Request().WithContext(ctx))
-			defer span.Finish()
-			return next(c)
-		}
+
+func (config *Config) traceServerInterceptor() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		span, ctx := trace.StartSpanFromContext(
+			c.Request.Context(),
+			c.Request.Method+" "+c.Request.URL.Path,
+			trace.TagComponent("http"),
+			trace.TagSpanKind("server"),
+			trace.HeaderExtractor(c.Request.Header),
+			trace.CustomTag("http.url", c.Request.URL.Path),
+			trace.CustomTag("http.method", c.Request.Method),
+			trace.CustomTag("peer.ipv4", c.ClientIP()),
+		)
+		c.Request.WithContext(ctx)
+		defer span.Finish()
+		c.Next()
 	}
 }
-*/

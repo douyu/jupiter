@@ -86,13 +86,13 @@ func (config *Config) Build() *Server {
 	server := newServer(config)
 	server.Use(config.recoverMiddleware())
 
-	// if !config.DisableMetric {
-	// 	server.Use(config.metricServerInterceptor())
-	// }
+	if !config.DisableMetric {
+		server.Use(config.metricServerInterceptor())
+	}
 
-	// if !config.DisableTrace {
-	// 	server.Use(config.traceServerInterceptor())
-	// }
+	if !config.DisableTrace {
+		server.Use(config.traceServerInterceptor())
+	}
 	return server
 }
 
