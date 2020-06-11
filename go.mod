@@ -12,6 +12,7 @@ require (
 	github.com/fatih/structtag v1.2.0
 	github.com/flosch/pongo2 v0.0.0-20200518135938-dfb43dbdc22a
 	github.com/fsnotify/fsnotify v1.4.9
+	github.com/gin-gonic/gin v1.6.3
 	github.com/go-redis/redis v6.15.7+incompatible
 	github.com/go-resty/resty/v2 v2.2.0
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
