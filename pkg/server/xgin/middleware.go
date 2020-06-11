@@ -51,6 +51,7 @@ func (config *Config) recoverMiddleware() gin.HandlerFunc {
 		var fields = make([]xlog.Field, 0, 8)
 		var brokenPipe bool
 		defer func() {
+			//Latency
 			fields = append(fields, zap.Float64("cost", time.Since(beg).Seconds()))
 			if config.SlowQueryThresholdInMilli > 0 {
 				if cost := int64(time.Since(beg)) / 1e6; cost > config.SlowQueryThresholdInMilli {
@@ -83,7 +84,11 @@ func (config *Config) recoverMiddleware() gin.HandlerFunc {
 			fields = append(fields,
 				zap.String("method", c.Request.Method),
 				zap.Int("code", c.Writer.Status()),
+				zap.Int("size", c.Writer.Size()),
 				zap.String("host", c.Request.Host),
+				zap.String("path", c.Request.URL.Path),
+				zap.String("ip", c.ClientIP()),
+				zap.String("err", c.Errors.ByType(gin.ErrorTypePrivate).String()),
 			)
 			config.logger.Info("access", fields...)
 		}()

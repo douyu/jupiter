@@ -41,9 +41,6 @@ func newServer(config *Config) *Server {
 // Serve implements server.Server interface.
 func (s *Server) Serve() error {
 	gin.SetMode(s.config.Mode)
-	// os.Stdout
-	// s.config.Debug
-	// s.Gin.HideBanner = true
 	// s.Gin.StdLogger = xlog.JupiterLogger.StdLog()
 	for _, route := range s.Engine.Routes() {
 		s.config.logger.Info("gin add route", xlog.FieldMethod(route.Method), xlog.String("path", route.Path))
