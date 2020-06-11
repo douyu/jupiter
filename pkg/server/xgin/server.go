@@ -46,7 +46,7 @@ func (s *Server) Serve() error {
 	// s.Gin.HideBanner = true
 	// s.Gin.StdLogger = xlog.JupiterLogger.StdLog()
 	for _, route := range s.Routes() {
-		s.config.logger.Info("echo add route", xlog.FieldMethod(route.Method), xlog.String("path", route.Path))
+		s.config.logger.Info("gin add route", xlog.FieldMethod(route.Method), xlog.String("path", route.Path))
 	}
 	s.Server = &http.Server{
 		Addr:    s.config.Address(),
