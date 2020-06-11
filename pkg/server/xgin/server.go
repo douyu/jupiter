@@ -27,7 +27,7 @@ import (
 // Server ...
 type Server struct {
 	*gin.Engine
-	*http.Server
+	Server *http.Server
 	config *Config
 }
 
@@ -45,14 +45,15 @@ func (s *Server) Serve() error {
 	// s.config.Debug
 	// s.Gin.HideBanner = true
 	// s.Gin.StdLogger = xlog.JupiterLogger.StdLog()
-	for _, route := range s.Routes() {
+	for _, route := range s.Engine.Routes() {
 		s.config.logger.Info("gin add route", xlog.FieldMethod(route.Method), xlog.String("path", route.Path))
 	}
-	s.Server = &http.Server{
-		Addr:    s.config.Address(),
-		Handler: s.Engine,
-	}
-	return s.Server.ListenAndServe()
+	// s.Server = &http.Server{
+	// 	Addr:    s.config.Address(),
+	// 	Handler: s,
+	// }
+	// return s.Server.ListenAndServe()
+	return s.Run(s.config.Address())
 }
 
 // Stop implements server.Server interface
@@ -64,7 +65,7 @@ func (s *Server) Stop() error {
 // GracefulStop implements server.Server interface
 // it will stop gin server gracefully
 func (s *Server) GracefulStop(ctx context.Context) error {
-	return s.Shutdown(ctx)
+	return s.Server.Shutdown(ctx)
 }
 
 // Info returns server info, used by governor and consumer balancer

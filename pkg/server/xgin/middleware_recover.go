@@ -50,11 +50,6 @@ func (config *Config) recoverMiddleware() gin.HandlerFunc {
 		var brokenPipe bool
 		defer func() {
 			fields = append(fields, zap.Float64("cost", time.Since(beg).Seconds()))
-			fields = append(fields,
-				zap.String("method", c.Request.Method),
-				zap.Int("code", c.Request.Response.StatusCode),
-				zap.String("host", c.Request.Host),
-			)
 			if config.SlowQueryThresholdInMilli > 0 {
 				if cost := int64(time.Since(beg)) / 1e6; cost > config.SlowQueryThresholdInMilli {
 					fields = append(fields, zap.Int64("slow", cost))
@@ -76,10 +71,18 @@ func (config *Config) recoverMiddleware() gin.HandlerFunc {
 				if brokenPipe {
 					c.Error(err) // nolint: errcheck
 					c.Abort()
-				} else {
-					c.AbortWithStatus(http.StatusInternalServerError)
+					return
 				}
+				c.AbortWithStatus(http.StatusInternalServerError)
+				return
 			}
+			// httpRequest, _ := httputil.DumpRequest(c.Request, false)
+			// fields = append(fields, zap.ByteString("request", httpRequest))
+			fields = append(fields,
+				zap.String("method", c.Request.Method),
+				zap.Int("code", c.Writer.Status()),
+				zap.String("host", c.Request.Host),
+			)
 			config.logger.Info("access", fields...)
 		}()
 		c.Next()
