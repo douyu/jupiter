@@ -16,7 +16,6 @@ package jupiter
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -41,7 +40,6 @@ func hookSignals(app *Application) {
 		var sig os.Signal
 		for {
 			sig = <-sigChan
-			fmt.Println()
 			switch sig {
 			case syscall.SIGQUIT, syscall.SIGSTOP, syscall.SIGUSR1:
 				_ = app.Stop() // graceful stop
