@@ -1,0 +1,15 @@
+package service
+
+import (
+	"{{.ModPrefix}}{{.Name}}/internal/app/model"
+	"{{.ModPrefix}}{{.Name}}/internal/app/service/user"
+	"{{.ModPrefix}}{{.Name}}/internal/app/service/user/impl"
+)
+
+var (
+	UserRepository user.Repository
+)
+//Init instantiate the service
+func Init()  {
+	UserRepository = impl.NewMysqlImpl(model.MysqlHandler)
+}
