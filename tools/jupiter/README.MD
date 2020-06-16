@@ -24,8 +24,7 @@ export GOPROXY=https://mirrors.aliyun.com/goproxy/,direct
 * windows 用户:  
   会在${GOPATH}/src/bin 目录下生成jupiter.exe 文件,若想方便的在任何地方使用jupiter命令,请将该
   命令配置在系统的环境变量中
-* Linux 用户:  
-* Mac 用户 :
+
 
 
 ## 如何使用
@@ -259,7 +258,7 @@ jupiter protoc -f ./pb/hello/hello.proto -o ./internal/app/grpc -p jupiter-demo 
 接下来 你只需要去该文件中完成对应的业务逻辑实现即可  
 
 快速测试grpc服务端代码:  
-框架内部我们支持 代理http到grpc控制器,并且在engine.go中我们也提供了相关的实例
+框架内部我们支持 代理http到grpc控制器,并且在engine.go中我们也提供了相关的示例
 ```go
 	//support proxy for http to grpc controller
 	g := greeter.Greeter{}
