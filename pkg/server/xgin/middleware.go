@@ -166,10 +166,8 @@ func (config *Config) metricServerInterceptor() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		beg := time.Now()
 		c.Next()
-		metric.ServerMetricsHandler.GetHandlerHistogram().
-			WithLabelValues(metric.TypeServerHttp, c.Request.Method+"."+c.Request.URL.Path, config.extractAID(c)).Observe(time.Since(beg).Seconds())
-		metric.ServerMetricsHandler.GetHandlerCounter().
-			WithLabelValues(metric.TypeServerHttp, c.Request.Method+"."+c.Request.URL.Path, config.extractAID(c), statusText[c.Writer.Status()]).Inc()
+		metric.ServerHandleHistogram.Observe(time.Since(beg).Seconds(), metric.TypeHTTP, c.Request.Method+"."+c.Request.URL.Path, config.extractAID(c))
+		metric.ServerHandleCounter.Inc(metric.TypeHTTP, c.Request.Method+"."+c.Request.URL.Path, config.extractAID(c), http.StatusText(c.Writer.Status()))
 		return
 	}
 }

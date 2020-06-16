@@ -38,6 +38,7 @@ var (
 	WithLocation = cron.WithLocation
 )
 
+// JobWrapper ...
 type (
 	JobWrapper = cron.JobWrapper
 	EntryID    = cron.EntryID

@@ -40,10 +40,8 @@ func prometheusUnaryServerInterceptor(ctx context.Context, req interface{}, info
 	startTime := time.Now()
 	resp, err := handler(ctx, req)
 	code := ecode.ExtractCodes(err)
-	metric.ServerMetricsHandler.GetHandlerHistogram().
-		WithLabelValues(metric.TypeServerUnary, info.FullMethod, extractAID(ctx)).Observe(time.Since(startTime).Seconds())
-	metric.ServerMetricsHandler.GetHandlerCounter().
-		WithLabelValues(metric.TypeServerUnary, info.FullMethod, extractAID(ctx), code.GetMessage()).Inc()
+	metric.ServerHandleHistogram.Observe(time.Since(startTime).Seconds(), metric.TypeGRPCUnary, info.FullMethod, extractAID(ctx))
+	metric.ServerHandleCounter.Inc(metric.TypeGRPCUnary, info.FullMethod, extractAID(ctx), code.GetMessage())
 	return resp, err
 }
 
@@ -51,10 +49,8 @@ func prometheusStreamServerInterceptor(srv interface{}, ss grpc.ServerStream, in
 	startTime := time.Now()
 	err := handler(srv, ss)
 	code := ecode.ExtractCodes(err)
-	metric.ServerMetricsHandler.GetHandlerHistogram().
-		WithLabelValues(metric.TypeServerUnary, info.FullMethod, extractAID(ss.Context())).Observe(time.Since(startTime).Seconds())
-	metric.ServerMetricsHandler.GetHandlerCounter().
-		WithLabelValues(metric.TypeServerUnary, info.FullMethod, extractAID(ss.Context()), code.GetMessage()).Inc()
+	metric.ServerHandleHistogram.Observe(time.Since(startTime).Seconds(), metric.TypeGRPCStream, info.FullMethod, extractAID(ss.Context()))
+	metric.ServerHandleCounter.Inc(metric.TypeGRPCStream, info.FullMethod, extractAID(ss.Context()), code.GetMessage())
 	return err
 }
 
@@ -88,6 +84,7 @@ type contextedServerStream struct {
 	ctx context.Context
 }
 
+// Context ...
 func (css contextedServerStream) Context() context.Context {
 	return css.ctx
 }

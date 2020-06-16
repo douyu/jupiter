@@ -11,7 +11,10 @@ import (
 	"github.com/douyu/jupiter/pkg/xlog"
 )
 
+// Handler ...
 type Handler func(*Scope)
+
+// Interceptor ...
 type Interceptor func(*DSN, string, *Config) func(next Handler) Handler
 
 func debugInterceptor(dsn *DSN, op string, options *Config) func(Handler) Handler {
