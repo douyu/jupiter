@@ -13,6 +13,7 @@ import (
 	jconfig "github.com/uber/jaeger-client-go/config"
 )
 
+// Config ...
 type Config struct {
 	ServiceName      string
 	Sampler          *jconfig.SamplerConfig
@@ -24,10 +25,12 @@ type Config struct {
 	PanicOnError     bool
 }
 
+// StdConfig ...
 func StdConfig(name string) *Config {
 	return RawConfig("jupiter.trace.jaeger")
 }
 
+// RawConfig ...
 func RawConfig(key string) *Config {
 	var config = DefaultConfig()
 	if err := conf.UnmarshalKey(key, config); err != nil {
@@ -36,6 +39,7 @@ func RawConfig(key string) *Config {
 	return config
 }
 
+// DefaultConfig ...
 func DefaultConfig() *Config {
 	agentAddr := "127.0.0.1:6831"
 	headerName := "x-trace-id"
@@ -65,6 +69,7 @@ func DefaultConfig() *Config {
 	}
 }
 
+// WithTag ...
 func (config *Config) WithTag(tags ...opentracing.Tag) *Config {
 	if config.tags == nil {
 		config.tags = make([]opentracing.Tag, 0)
@@ -73,6 +78,7 @@ func (config *Config) WithTag(tags ...opentracing.Tag) *Config {
 	return config
 }
 
+// WithOption ...
 func (config *Config) WithOption(options ...jconfig.Option) *Config {
 	if config.options == nil {
 		config.options = make([]jconfig.Option, 0)
@@ -81,6 +87,7 @@ func (config *Config) WithOption(options ...jconfig.Option) *Config {
 	return config
 }
 
+// Build ...
 func (config *Config) Build(options ...jconfig.Option) opentracing.Tracer {
 	var configuration = jconfig.Configuration{
 		ServiceName: config.ServiceName,

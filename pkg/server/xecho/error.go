@@ -15,6 +15,8 @@
 package xecho
 
 import (
+	"net/http"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -37,7 +39,7 @@ type HTTPError struct {
 
 // NewHTTPError constructs a new HTTPError instance.
 func NewHTTPError(code int, msg ...string) *HTTPError {
-	he := &HTTPError{Code: code, Message: StatusText(code)}
+	he := &HTTPError{Code: code, Message: http.StatusText(code)}
 	if len(msg) > 0 {
 		he.Message = msg[0]
 	}
@@ -52,7 +54,7 @@ func (e HTTPError) Error() string {
 
 // ErrNotFound defines StatusNotFound error.
 var ErrNotFound = HTTPError{
-	Code:    StatusNotFound,
+	Code:    http.StatusNotFound,
 	Message: "not found",
 }
 
