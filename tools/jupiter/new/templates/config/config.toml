@@ -15,4 +15,18 @@
     timeout = "1s"
 [jupiter.cron.demo]
     immediatelyRun = true
-    concurrentDelay = -1
+    concurrentDelay = 5
+[jupiter.mysql.test]
+    connMaxLifetime = "300s"
+    debug = true
+    dsn = "user:pwd@tcp(127.0.0.1:3306)/test?charset=utf8&parseTime=True&loc=Local"
+    level = "panic"
+    maxIdleConns = 50
+    maxOpenConns = 100
+    disableTrace = true
+    disableMetric = true
+[jupiter.trace.jaeger]
+    enableRPCMetrics = false
+    [jupiter.trace.jaeger.sampler]
+        type = "const"
+        param = 0.001

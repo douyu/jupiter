@@ -15,9 +15,10 @@
 package main
 
 import (
+	"github.com/douyu/jupiter/tools/jupiter/new"
+	"github.com/douyu/jupiter/tools/jupiter/protoc"
 	"os"
 
-	new "github.com/douyu/jupiter/tools/jupiter/new"
 	"github.com/urfave/cli"
 )
 
@@ -29,22 +30,8 @@ func main() {
 	app.Usage = "jupiter tools"
 	app.Version = Version
 	app.Commands = []cli.Command{
-		{
-			Name:            "new",
-			Aliases:         []string{"n"},
-			Usage:           "Create Jupiter template project",
-			Action:          new.CreateProject,
-			SkipFlagParsing: false,
-			UsageText:       new.NewProjectHelpTemplate,
-			Flags: []cli.Flag{
-				&cli.StringFlag{
-					Name:        "d",
-					Value:       "",
-					Usage:       "Specify the directory of the project",
-					Destination: &new.Project.Path,
-				},
-			},
-		},
+		new.Cmd,
+		protoc.Cmd,
 	}
 	err := app.Run(os.Args)
 	if err != nil {
