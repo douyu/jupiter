@@ -16,9 +16,11 @@ package xecho
 
 import (
 	"context"
+	"net"
 	"os"
 
 	"github.com/douyu/jupiter/pkg"
+	"github.com/douyu/jupiter/pkg/ecode"
 	"github.com/douyu/jupiter/pkg/server"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/labstack/echo/v4"
@@ -28,12 +30,19 @@ import (
 type Server struct {
 	*echo.Echo
 	config *Config
+	listener net.Listener
 }
 
 func newServer(config *Config) *Server {
+	listener, err := net.Listen("tcp", config.Address())
+	if err != nil {
+		config.logger.Panic("new xecho server err", xlog.FieldErrKind(ecode.ErrKindListenErr), xlog.FieldErr(err))
+	}
+	config.Port = listener.Addr().(*net.TCPAddr).Port
 	return &Server{
-		Echo:   echo.New(),
-		config: config,
+		Echo:     echo.New(),
+		config:   config,
+		listener: listener,
 	}
 }
 
