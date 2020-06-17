@@ -45,6 +45,7 @@ func newServer(config *Config) *Server {
 	if err != nil {
 		config.logger.Panic("new grpc server err", xlog.FieldErrKind(ecode.ErrKindListenErr), xlog.FieldErr(err))
 	}
+	config.Port = listener.Addr().(*net.TCPAddr).Port
 	return &Server{Server: newServer, listener: listener, Config: config}
 }
 
