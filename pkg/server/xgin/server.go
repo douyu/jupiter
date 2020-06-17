@@ -30,8 +30,8 @@ import (
 // Server ...
 type Server struct {
 	*gin.Engine
-	Server *http.Server
-	config *Config
+	Server   *http.Server
+	config   *Config
 	listener net.Listener
 }
 

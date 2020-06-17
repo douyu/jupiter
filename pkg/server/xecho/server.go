@@ -16,20 +16,19 @@ package xecho
 
 import (
 	"context"
-	"net"
-	"os"
-
 	"github.com/douyu/jupiter/pkg"
 	"github.com/douyu/jupiter/pkg/ecode"
 	"github.com/douyu/jupiter/pkg/server"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/labstack/echo/v4"
+	"net"
+	"os"
 )
 
 // Server ...
 type Server struct {
 	*echo.Echo
-	config *Config
+	config   *Config
 	listener net.Listener
 }
 
@@ -55,7 +54,8 @@ func (s *Server) Serve() error {
 	for _, route := range s.Echo.Routes() {
 		s.config.logger.Info("echo add route", xlog.FieldMethod(route.Method), xlog.String("path", route.Path))
 	}
-	return s.Echo.Start(s.config.Address())
+	s.Echo.Listener = s.listener
+	return s.Echo.Start("")
 }
 
 // Stop implements server.Server interface
