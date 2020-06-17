@@ -17,16 +17,15 @@ package new
 import (
 	"bytes"
 	"fmt"
+	"github.com/douyu/jupiter/pkg/util/xcolor"
 	"github.com/douyu/jupiter/tools/jupiter/common"
+	"github.com/gobuffalo/packr/v2"
+	"github.com/urfave/cli"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 	"text/template"
-
-	"github.com/douyu/jupiter/pkg/util/xcolor"
-	"github.com/gobuffalo/packr/v2"
-	"github.com/urfave/cli"
 )
 
 // CreateProject create a template project for Jupiter
@@ -62,6 +61,8 @@ func CreateProject(cli *cli.Context) (err error) {
 	fmt.Println(xcolor.Green("Project created successfully"))
 	return
 }
+
+//go:generate packr2
 func doCreateProject() (err error) {
 	box := packr.New("all", "./templates")
 	if err = os.MkdirAll(project.Path, 0755); err != nil {
