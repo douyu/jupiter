@@ -18,7 +18,10 @@ import (
 	"context"
 	"net/http"
 
+	"net"
+
 	"github.com/douyu/jupiter/pkg"
+	"github.com/douyu/jupiter/pkg/ecode"
 	"github.com/douyu/jupiter/pkg/server"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/gin-gonic/gin"
@@ -27,14 +30,21 @@ import (
 // Server ...
 type Server struct {
 	*gin.Engine
-	Server *http.Server
-	config *Config
+	Server   *http.Server
+	config   *Config
+	listener net.Listener
 }
 
 func newServer(config *Config) *Server {
+	listener, err := net.Listen("tcp", config.Address())
+	if err != nil {
+		config.logger.Panic("new xgin server err", xlog.FieldErrKind(ecode.ErrKindListenErr), xlog.FieldErr(err))
+	}
+	config.Port = listener.Addr().(*net.TCPAddr).Port
 	return &Server{
-		Engine: gin.New(),
-		config: config,
+		Engine:   gin.New(),
+		config:   config,
+		listener: listener,
 	}
 }
 
@@ -49,7 +59,7 @@ func (s *Server) Serve() error {
 		Addr:    s.config.Address(),
 		Handler: s,
 	}
-	err := s.Server.ListenAndServe()
+	err := s.Server.Serve(s.listener)
 	if err == http.ErrServerClosed {
 		s.config.logger.Info("close gin", xlog.FieldAddr(s.config.Address()))
 		return nil
