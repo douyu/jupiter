@@ -227,11 +227,17 @@ func (app *Application) beforeStop() {
 func (app *Application) startGovernor() (err error) {
 	app.logger.Info("start governor", xlog.FieldMod(ecode.ModApp), xlog.FieldAddr("http://"+app.governor.Addr))
 	defer func() {
-		if err != nil && err != http.ErrServerClosed {
-			app.logger.Panic("start governor", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err), xlog.FieldAddr("http://"+app.governor.Addr))
+		if err != nil {
+			app.logger.Panic("stop governor", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err), xlog.FieldAddr("http://"+app.governor.Addr))
 		}
 	}()
-	return app.governor.ListenAndServe()
+	err = app.governor.ListenAndServe()
+	if err == http.ErrServerClosed {
+		app.logger.Info("stop governor", xlog.FieldMod(ecode.ModApp), xlog.FieldAddr("http://"+app.governor.Addr))
+		return nil
+	}
+
+	return err
 }
 
 func (app *Application) startServers() error {
@@ -243,7 +249,7 @@ func (app *Application) startServers() error {
 		eg.Go(func() (err error) {
 			_ = app.registerer.RegisterService(context.TODO(), s.Info())
 			defer app.registerer.DeregisterService(context.TODO(), s.Info())
-			app.logger.Info("start servers", xlog.FieldMod(ecode.ModApp), xlog.FieldAddr(s.Info().Label()))
+			app.logger.Info("start servers", xlog.FieldMod(ecode.ModApp), xlog.FieldAddr(s.Info().Label()), xlog.Any("scheme", s.Info().Scheme))
 			defer app.logger.Info("exit server", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err), xlog.FieldAddr(s.Info().Label()))
 			return s.Serve()
 		})

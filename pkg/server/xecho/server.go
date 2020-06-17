@@ -16,6 +16,7 @@ package xecho
 
 import (
 	"context"
+	"net/http"
 	"os"
 
 	"github.com/douyu/jupiter/pkg"
@@ -44,9 +45,15 @@ func (s *Server) Serve() error {
 	s.Echo.HideBanner = true
 	s.Echo.StdLogger = xlog.JupiterLogger.StdLog()
 	for _, route := range s.Echo.Routes() {
-		s.config.logger.Info("echo add route", xlog.FieldMethod(route.Method), xlog.String("path", route.Path))
+		s.config.logger.Info("add route", xlog.FieldMethod(route.Method), xlog.String("path", route.Path))
 	}
-	return s.Echo.Start(s.config.Address())
+	err := s.Echo.Start(s.config.Address())
+	if err != http.ErrServerClosed {
+		return err
+	}
+
+	s.config.logger.Info("close echo", xlog.FieldAddr(s.config.Address()))
+	return nil
 }
 
 // Stop implements server.Server interface

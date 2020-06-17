@@ -16,6 +16,7 @@ package xgin
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/douyu/jupiter/pkg"
@@ -43,13 +44,20 @@ func (s *Server) Serve() error {
 	gin.SetMode(s.config.Mode)
 	// s.Gin.StdLogger = xlog.JupiterLogger.StdLog()
 	for _, route := range s.Engine.Routes() {
-		s.config.logger.Info("gin add route", xlog.FieldMethod(route.Method), xlog.String("path", route.Path))
+		s.config.logger.Info("add route", xlog.FieldMethod(route.Method), xlog.String("path", route.Path))
 	}
 	s.Server = &http.Server{
 		Addr:    s.config.Address(),
 		Handler: s,
 	}
-	return s.Server.ListenAndServe()
+	err := s.Server.ListenAndServe()
+	fmt.Printf("err => %+v\n", err)
+	if err == http.ErrServerClosed {
+		s.config.logger.Info("close gin", xlog.FieldAddr(s.config.Address()))
+		return nil
+	}
+
+	return err
 }
 
 // Stop implements server.Server interface

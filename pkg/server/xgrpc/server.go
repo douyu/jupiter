@@ -50,7 +50,11 @@ func newServer(config *Config) *Server {
 
 // Server implements server.Server interface.
 func (s *Server) Serve() error {
-	return s.Server.Serve(s.listener)
+	err := s.Server.Serve(s.listener)
+	if err == grpc.ErrServerStopped {
+		return nil
+	}
+	return err
 }
 
 // Stop implements server.Server interface
