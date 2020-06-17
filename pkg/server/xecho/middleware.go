@@ -86,7 +86,6 @@ func (invoker *Config) metricServerInterceptor() echo.MiddlewareFunc {
 			if aid := invoker.extractAID(c); aid != "" {
 				peer += "?aid=" + aid
 			}
-			fmt.Printf("peer => %+v\n", peer)
 			metric.ServerHandleHistogram.Observe(time.Since(beg).Seconds(), metric.TypeHTTP, method, peer)
 			metric.ServerHandleCounter.Inc(metric.TypeHTTP, method, peer, http.StatusText(c.Response().Status))
 			return err
