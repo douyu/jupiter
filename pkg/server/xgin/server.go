@@ -16,7 +16,6 @@ package xgin
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/douyu/jupiter/pkg"
@@ -51,7 +50,6 @@ func (s *Server) Serve() error {
 		Handler: s,
 	}
 	err := s.Server.ListenAndServe()
-	fmt.Printf("err => %+v\n", err)
 	if err == http.ErrServerClosed {
 		s.config.logger.Info("close gin", xlog.FieldAddr(s.config.Address()))
 		return nil
