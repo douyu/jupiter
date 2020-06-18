@@ -19,17 +19,14 @@ import (
 	"net"
 
 	"github.com/douyu/jupiter/pkg"
-	"github.com/douyu/jupiter/pkg/ecode"
 
 	"github.com/douyu/jupiter/pkg/server"
-	"github.com/douyu/jupiter/pkg/xlog"
 	"google.golang.org/grpc"
 )
 
 // Server ...
 type Server struct {
 	*grpc.Server
-	listener net.Listener
 	*Config
 }
 
@@ -41,17 +38,17 @@ func newServer(config *Config) *Server {
 		config.serverOptions = append(config.serverOptions, grpc.UnaryInterceptor(UnaryInterceptorChain(config.unaryInterceptors...)))
 	}
 	newServer := grpc.NewServer(config.serverOptions...)
-	listener, err := net.Listen(config.Network, config.Address())
-	if err != nil {
-		config.logger.Panic("new grpc server err", xlog.FieldErrKind(ecode.ErrKindListenErr), xlog.FieldErr(err))
-	}
-	config.Port = listener.Addr().(*net.TCPAddr).Port
-	return &Server{Server: newServer, listener: listener, Config: config}
+	return &Server{Server: newServer, Config: config}
 }
 
-// Server implements server.Server interface.
+// Serve implements server.Serve interface.
 func (s *Server) Serve() error {
-	err := s.Server.Serve(s.listener)
+	l, err := net.Listen(s.Network, s.Address())
+	if err != nil {
+		return err
+	}
+	s.Port = l.Addr().(*net.TCPAddr).Port
+	err = s.Server.Serve(l)
 	if err == grpc.ErrServerStopped {
 		return nil
 	}
