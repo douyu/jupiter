@@ -51,12 +51,12 @@ func (s *Server) Serve() error {
 		Addr:    s.config.Address(),
 		Handler: s,
 	}
-	listener, err := net.Listen("tcp", s.config.Address())
+	l, err := net.Listen("tcp", s.config.Address())
 	if err != nil {
 		return err
 	}
-	s.config.Port = listener.Addr().(*net.TCPAddr).Port
-	err = s.Server.Serve(listener)
+	s.config.Port = l.Addr().(*net.TCPAddr).Port
+	err = s.Server.Serve(l)
 	if err == http.ErrServerClosed {
 		s.config.logger.Info("close gin", xlog.FieldAddr(s.config.Address()))
 		return nil

@@ -16,34 +16,26 @@ package xecho
 
 import (
 	"context"
+	"net"
 	"net/http"
 	"os"
 
 	"github.com/douyu/jupiter/pkg"
-	"github.com/douyu/jupiter/pkg/ecode"
 	"github.com/douyu/jupiter/pkg/server"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/labstack/echo/v4"
-	"net"
 )
 
 // Server ...
 type Server struct {
 	*echo.Echo
-	config   *Config
-	listener net.Listener
+	config *Config
 }
 
 func newServer(config *Config) *Server {
-	listener, err := net.Listen("tcp", config.Address())
-	if err != nil {
-		config.logger.Panic("new xecho server err", xlog.FieldErrKind(ecode.ErrKindListenErr), xlog.FieldErr(err))
-	}
-	config.Port = listener.Addr().(*net.TCPAddr).Port
 	return &Server{
-		Echo:     echo.New(),
-		config:   config,
-		listener: listener,
+		Echo:   echo.New(),
+		config: config,
 	}
 }
 
@@ -56,12 +48,16 @@ func (s *Server) Serve() error {
 	for _, route := range s.Echo.Routes() {
 		s.config.logger.Info("add route", xlog.FieldMethod(route.Method), xlog.String("path", route.Path))
 	}
-	s.Echo.Listener = s.listener
-	err := s.Echo.Start("")
+	l, err := net.Listen("tcp", s.config.Address())
+	if err != nil {
+		return err
+	}
+	s.config.Port = l.Addr().(*net.TCPAddr).Port
+	s.Echo.Listener = l
+	err = s.Echo.StartServer(s.Echo.Server)
 	if err != http.ErrServerClosed {
 		return err
 	}
-
 	s.config.logger.Info("close echo", xlog.FieldAddr(s.config.Address()))
 	return nil
 }
