@@ -22,6 +22,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/BurntSushi/toml"
 	"github.com/douyu/jupiter/pkg"
@@ -166,57 +167,51 @@ func (app *Application) Run() error {
 	return eg.Wait()
 }
 
-// Stop application immediately after necessary cleanup
-func (app *Application) Stop() (err error) {
+// stop application after necessary cleanup
+func (app *Application) stop(stop func(s server.Server) error, mark string) (err error) {
 	app.beforeStop()
 	app.stopOnce.Do(func() {
-		err = app.registerer.Close()
-		if err != nil {
-			app.logger.Error("stop register close err", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err))
-		}
 		err = app.governor.Close()
 		if err != nil {
-			app.logger.Error("stop governor close err", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err))
+			app.logger.Error(mark+"stop governor close err", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err))
 		}
 		var eg errgroup.Group
 		for _, s := range app.servers {
 			s := s
-			eg.Go(s.Stop)
+			eg.Go(func() error {
+				app.logger.Info("stop server", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err), xlog.FieldAddr(s.Info().Label()))
+				app.registerer.DeregisterService(context.TODO(), s.Info())
+				return stop(s)
+			})
 		}
 		for _, w := range app.workers {
 			w := w
 			eg.Go(w.Stop)
+		}
+		//last close registerer
+		err = app.registerer.Close()
+		if err != nil {
+			app.logger.Error(mark+"stop register close err", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err))
 		}
 		err = eg.Wait()
 	})
 	return
 }
 
-// GracefulStop application after necessary cleanup
-func (app *Application) GracefulStop(ctx context.Context) (err error) {
-	app.beforeStop()
-	app.stopOnce.Do(func() {
-		err = app.registerer.Close()
-		if err != nil {
-			app.logger.Error("graceful stop register close err", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err))
-		}
-		err = app.governor.Close()
-		if err != nil {
-			app.logger.Error("graceful stop governor close err", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err))
-		}
-		if err != nil {
+// Stop application immediately after necessary cleanup
+func (app *Application) Stop() error {
+	stop := func(s server.Server) error {
+		return s.Stop()
+	}
+	return app.stop(stop, "")
+}
 
-		}
-		var eg errgroup.Group
-		for _, s := range app.servers {
-			s := s
-			eg.Go(func() error {
-				return s.GracefulStop(ctx)
-			})
-		}
-		err = eg.Wait()
-	})
-	return err
+// GracefulStop application after necessary cleanup
+func (app *Application) GracefulStop(ctx context.Context) error {
+	stop := func(s server.Server) error {
+		return s.GracefulStop(ctx)
+	}
+	return app.stop(stop, "graceful ")
 }
 
 func (app *Application) beforeStop() {
@@ -247,12 +242,12 @@ func (app *Application) startServers() error {
 	for _, s := range app.servers {
 		s := s
 		eg.Go(func() (err error) {
-			_ = app.registerer.RegisterService(context.TODO(), s.Info())
-			defer app.registerer.DeregisterService(context.TODO(), s.Info())
-			app.logger.Info("start servers", xlog.FieldMod(ecode.ModApp), xlog.FieldAddr(s.Info().Label()), xlog.Any("scheme", s.Info().Scheme))
-			defer app.logger.Info("exit server", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err), xlog.FieldAddr(s.Info().Label()))
+			// defer
 			return s.Serve()
 		})
+		time.Sleep(time.Millisecond)
+		app.logger.Info("start server", xlog.FieldMod(ecode.ModApp), xlog.FieldAddr(s.Info().Label()), xlog.Any("scheme", s.Info().Scheme))
+		_ = app.registerer.RegisterService(context.TODO(), s.Info())
 	}
 	return eg.Wait()
 }
