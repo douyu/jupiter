@@ -354,8 +354,12 @@ func (rc *RedisClusterStub) DelWithErr(key string) (int64, error) {
 }
 
 // HIncrBy 哈希field自增
-func (rc *RedisClusterStub) HIncrBy(key string, field string, incr int) {
-	rc.Client.HIncrBy(key, field, int64(incr))
+func (rc *RedisClusterStub) HIncrBy(key string, field string, incr int) int64 {
+	result, err := rc.Client.HIncrBy(key, field, int64(incr)).Result()
+	if err != nil {
+		return 0
+	}
+	return result
 }
 
 // HIncrBy 哈希field自增并且返回错误
