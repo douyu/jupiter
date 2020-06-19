@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/douyu/jupiter/pkg/conf"
+	"github.com/douyu/jupiter/pkg/defers"
 	"github.com/douyu/jupiter/pkg/util/xcolor"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -102,6 +103,13 @@ func newLogger(config *Config) *Logger {
 		ws = os.Stdout
 	} else {
 		ws = zapcore.AddSync(newRotate(config))
+	}
+
+	if config.Async {
+		var close CloseFunc
+		ws, close = Buffer(ws, defaultBufferSize, defaultFlushInterval)
+
+		defers.Register(close)
 	}
 
 	lv := zap.NewAtomicLevelAt(zapcore.InfoLevel)
