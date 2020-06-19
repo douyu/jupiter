@@ -122,11 +122,10 @@ func Delete(namespace, key string) {
 
 // Run mock server
 func Run() error {
-	initServer()
 	return server.server.ListenAndServe()
 }
 
-func initServer() {
+func init() {
 	server = &mockServer{
 		notifications: map[string]int{},
 		config:        map[string]map[string]string{},
