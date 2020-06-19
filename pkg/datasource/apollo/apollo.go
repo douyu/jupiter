@@ -2,6 +2,7 @@ package apollo
 
 import (
 	"github.com/douyu/jupiter/pkg/conf"
+	"github.com/douyu/jupiter/pkg/util/xgo"
 	"github.com/philchia/agollo"
 	"sync"
 )
@@ -33,9 +34,9 @@ func (ap *apolloDataSource) ReadConfig() ([]byte, error) {
 	ap.Once.Do(func() {
 		ap.client.Start()
 		changedEvent := ap.client.WatchUpdate()
-		go func() {
+		xgo.Go(func() {
 			ap.watch(changedEvent)
-		}()
+		})
 	})
 	value := ap.client.GetStringValueWithNameSpace(ap.namespace, ap.propertyKey, "")
 	return []byte(value), nil
