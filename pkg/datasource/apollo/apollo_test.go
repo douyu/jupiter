@@ -5,20 +5,10 @@ import (
 	"github.com/philchia/agollo"
 	"github.com/stretchr/testify/assert"
 	"log"
-	"os"
 	"sync"
 	"testing"
 	"time"
 )
-
-func TestMain(m *testing.M) {
-	setup()
-	time.Sleep(time.Second)
-	code := m.Run()
-	time.Sleep(time.Second * 3)
-	mockserver.Close()
-	os.Exit(code)
-}
 
 func setup() {
 	go func() {
@@ -29,6 +19,8 @@ func setup() {
 }
 
 func TestReadConfig(t *testing.T) {
+	setup()
+	time.Sleep(time.Second)
 	ds := NewDataSource(&agollo.Conf{
 		AppID:          "SampleApp",
 		Cluster:        "default",
