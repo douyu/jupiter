@@ -13,16 +13,21 @@ import (
 func TestMain(m *testing.M) {
 	setup()
 	m.Run()
+	teardown()
 }
 
 func setup() {
 	go func() {
 		if err := mockserver.Run(); err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 	}()
 	// wait for mock server to run
 	time.Sleep(time.Second)
+}
+
+func teardown() {
+	mockserver.Close()
 }
 
 func TestReadConfig(t *testing.T) {
