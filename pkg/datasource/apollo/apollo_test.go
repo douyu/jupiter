@@ -13,7 +13,6 @@ import (
 func TestMain(m *testing.M) {
 	setup()
 	m.Run()
-	teardown()
 }
 
 func setup() {
@@ -24,10 +23,6 @@ func setup() {
 	}()
 	// wait for mock server to run
 	time.Sleep(time.Second)
-}
-
-func teardown() {
-	mockserver.Close()
 }
 
 func TestReadConfig(t *testing.T) {
