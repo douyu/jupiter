@@ -21,6 +21,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// @title Demo
+// @version 0.0.1
+// @description  Demo接口描述文档
+// @BasePath /
 func main() {
 	eng := NewEngine()
 	if err := eng.Run(); err != nil {
@@ -45,9 +49,30 @@ func NewEngine() *Engine {
 // HTTP地址
 func (eng *Engine) serveHTTP() error {
 	server := xgin.StdConfig("http").Build()
-	server.GET("/hello", func(ctx *gin.Context) {
-		ctx.JSON(200, "Hello Gin")
-		return
-	})
+	server.GET("/hello", Hello)
 	return eng.Serve(server)
+}
+
+// @Summary Hello
+// @Description 详细说明Hello方法功能
+// @Accept json
+// @Produce json
+// @Success 200 {object} Response
+// @Router /hello [get]
+func Hello(ctx *gin.Context) {
+	ctx.JSON(200, NewOkResponse())
+	return
+}
+
+// Response
+type Response struct {
+	Code    int    `json:"code"`    // 错误码
+	Message string `json:"message"` // 错误信息描述
+}
+
+func NewOkResponse() *Response {
+	return &Response{
+		Code:    0,
+		Message: "succeed",
+	}
 }

@@ -41,6 +41,7 @@ func newServer(config *Config) *Server {
 		config.logger.Panic("new xgin server err", xlog.FieldErrKind(ecode.ErrKindListenErr), xlog.FieldErr(err))
 	}
 	config.Port = listener.Addr().(*net.TCPAddr).Port
+	gin.SetMode(config.Mode)
 	return &Server{
 		Engine:   gin.New(),
 		config:   config,
@@ -50,7 +51,6 @@ func newServer(config *Config) *Server {
 
 // Serve implements server.Server interface.
 func (s *Server) Serve() error {
-	gin.SetMode(s.config.Mode)
 	// s.Gin.StdLogger = xlog.JupiterLogger.StdLog()
 	for _, route := range s.Engine.Routes() {
 		s.config.logger.Info("add route", xlog.FieldMethod(route.Method), xlog.String("path", route.Path))
