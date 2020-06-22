@@ -5,7 +5,6 @@ import (
 	"github.com/philchia/agollo"
 	"github.com/stretchr/testify/assert"
 	"log"
-	"os"
 	"sync"
 	"testing"
 	"time"
@@ -24,7 +23,7 @@ func setup() {
 		}
 	}()
 	// wait for mock server to run
-	time.Sleep(time.Millisecond * 10)
+	time.Sleep(time.Second)
 }
 
 func teardown() {
