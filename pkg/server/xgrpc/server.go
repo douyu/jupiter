@@ -34,12 +34,21 @@ type Server struct {
 }
 
 func newServer(config *Config) *Server {
-	if len(config.streamInterceptors) > 0 {
-		config.serverOptions = append(config.serverOptions, grpc.StreamInterceptor(StreamInterceptorChain(config.streamInterceptors...)))
-	}
-	if len(config.unaryInterceptors) > 0 {
-		config.serverOptions = append(config.serverOptions, grpc.UnaryInterceptor(UnaryInterceptorChain(config.unaryInterceptors...)))
-	}
+	var streamInterceptors = append(
+		[]grpc.StreamServerInterceptor{defaultStreamServerInterceptor(config.logger, config.SlowQueryThresholdInMilli)},
+		config.streamInterceptors...,
+	)
+
+	var unaryInterceptors = append(
+		[]grpc.UnaryServerInterceptor{defaultUnaryServerInterceptor(config.logger, config.SlowQueryThresholdInMilli)},
+		config.unaryInterceptors...,
+	)
+
+	config.serverOptions = append(config.serverOptions,
+		grpc.StreamInterceptor(StreamInterceptorChain(streamInterceptors...)),
+		grpc.UnaryInterceptor(UnaryInterceptorChain(unaryInterceptors...)),
+	)
+
 	newServer := grpc.NewServer(config.serverOptions...)
 	listener, err := net.Listen(config.Network, config.Address())
 	if err != nil {

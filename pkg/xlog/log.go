@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"runtime"
 	"strings"
 	"time"
 
@@ -364,6 +365,7 @@ func (logger *Logger) Fatal(msg string, fields ...Field) {
 	if logger.IsDebugMode() {
 		panicDetail(msg, fields...)
 		msg = normalizeMessage(msg)
+		return
 	}
 	logger.desugar.Fatal(msg, fields...)
 }
@@ -389,9 +391,13 @@ func panicDetail(msg string, fields ...Field) {
 
 	// 控制台输出
 	fmt.Printf("%s: \n    %s: %s\n", xcolor.Red("panic"), xcolor.Red("msg"), msg)
+	if _, file, line, ok := runtime.Caller(3); ok {
+		fmt.Printf("    %s: %s:%d\n", xcolor.Red("loc"), file, line)
+	}
 	for key, val := range enc.Fields {
 		fmt.Printf("    %s: %s\n", xcolor.Red(key), fmt.Sprintf("%+v", val))
 	}
+
 }
 
 // With ...

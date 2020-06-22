@@ -32,6 +32,7 @@ import (
 	"github.com/douyu/jupiter/pkg/flag"
 	"github.com/douyu/jupiter/pkg/govern"
 	"github.com/douyu/jupiter/pkg/registry"
+	"github.com/douyu/jupiter/pkg/sentinel"
 	"github.com/douyu/jupiter/pkg/server"
 	"github.com/douyu/jupiter/pkg/trace"
 	"github.com/douyu/jupiter/pkg/trace/jaeger"
@@ -89,6 +90,7 @@ func (app *Application) startup() (err error) {
 			app.initLogger,
 			app.initMaxProcs,
 			app.initTracer,
+			app.initSentinel,
 		)()
 	})
 	return
@@ -304,8 +306,8 @@ func (app *Application) clean() {
 			xlog.Error("clean.defer", xlog.String("func", xstring.FunctionName(fn)))
 		}
 	}
-	xlog.DefaultLogger.Flush()
-	xlog.JupiterLogger.Flush()
+	_ = xlog.DefaultLogger.Flush()
+	_ = xlog.JupiterLogger.Flush()
 }
 
 func (app *Application) loadConfig() error {
@@ -354,9 +356,20 @@ func (app *Application) initLogger() error {
 }
 
 func (app *Application) initTracer() error {
+	// init tracing component jaeger
 	if conf.Get("jupiter.trace.jaeger") != nil {
 		var config = jaeger.RawConfig("jupiter.trace.jaeger")
 		trace.SetGlobalTracer(config.Build())
+	}
+	return nil
+}
+
+func (app *Application) initSentinel() error {
+	// init reliability component sentinel
+	if conf.Get("jupiter.reliability.sentinel") != nil {
+		app.logger.Info("init reliability component sentinel")
+		return sentinel.RawConfig("jupiter.reliability.sentinel").
+			InitSentinelCoreComponent()
 	}
 	return nil
 }

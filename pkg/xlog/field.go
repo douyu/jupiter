@@ -97,3 +97,8 @@ func FieldStack(value []byte) Field {
 func FieldMethod(value string) Field {
 	return String("method", value)
 }
+
+// FieldEvent ...
+func FieldEvent(value string) Field {
+	return String("event", value)
+}
