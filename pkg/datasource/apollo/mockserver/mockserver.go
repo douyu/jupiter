@@ -94,7 +94,11 @@ func (s *mockServer) Get(namespace string) map[string]string {
 	server.lock.Lock()
 	defer server.lock.Unlock()
 
-	return s.config[namespace]
+	retM := make(map[string]string)
+	for k, v := range s.config[namespace] {
+		retM[k] = v
+	}
+	return retM
 }
 
 func (s *mockServer) Delete(namespace, key string) {

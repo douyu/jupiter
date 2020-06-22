@@ -4,7 +4,6 @@ import (
 	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/util/xgo"
 	"github.com/philchia/agollo"
-	"sync"
 )
 
 type apolloDataSource struct {
@@ -13,10 +12,9 @@ type apolloDataSource struct {
 	propertyKey string
 	changed     chan struct{}
 	quit        chan struct{}
-	sync.Once
 }
 
-// NewDataSource create an apolloDataSource
+// NewDataSource creates an apolloDataSource
 func NewDataSource(conf *agollo.Conf, namespace string, key string) conf.DataSource {
 	client := agollo.NewClient(conf)
 	ap := &apolloDataSource{
@@ -26,18 +24,16 @@ func NewDataSource(conf *agollo.Conf, namespace string, key string) conf.DataSou
 		changed:     make(chan struct{}),
 		quit:        make(chan struct{}),
 	}
+	ap.client.Start()
+	changedEvent := ap.client.WatchUpdate()
+	xgo.Go(func() {
+		ap.watch(changedEvent)
+	})
 	return ap
 }
 
-// ReadConfig read config content from apollo
+// ReadConfig reads config content from apollo
 func (ap *apolloDataSource) ReadConfig() ([]byte, error) {
-	ap.Once.Do(func() {
-		ap.client.Start()
-		changedEvent := ap.client.WatchUpdate()
-		xgo.Go(func() {
-			ap.watch(changedEvent)
-		})
-	})
 	value := ap.client.GetStringValueWithNameSpace(ap.namespace, ap.propertyKey, "")
 	return []byte(value), nil
 }
@@ -53,15 +49,15 @@ func (ap *apolloDataSource) watch(changedEvent <-chan *agollo.ChangeEvent) {
 		case <-changedEvent:
 			ap.changed <- struct{}{}
 		case <-ap.quit:
+			ap.client.Stop()
 			close(ap.changed)
 			return
 		}
 	}
 }
 
-// Close stop watching the config changed
+// Close stops watching the config changed
 func (ap *apolloDataSource) Close() error {
 	ap.quit <- struct{}{}
-	ap.client.Stop()
 	return nil
 }

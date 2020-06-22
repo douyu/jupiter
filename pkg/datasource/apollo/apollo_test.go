@@ -5,10 +5,18 @@ import (
 	"github.com/philchia/agollo"
 	"github.com/stretchr/testify/assert"
 	"log"
+	"os"
 	"sync"
 	"testing"
 	"time"
 )
+
+func TestMain(m *testing.M) {
+	setup()
+	code := m.Run()
+	teardown()
+	os.Exit(code)
+}
 
 func setup() {
 	go func() {
@@ -16,11 +24,16 @@ func setup() {
 			log.Fatal(err)
 		}
 	}()
+	// wait for mock server to run
+	time.Sleep(time.Millisecond * 10)
+}
+
+func teardown() {
+	mockserver.Close()
 }
 
 func TestReadConfig(t *testing.T) {
-	setup()
-	time.Sleep(time.Second)
+	testData := []string{"value1", "value2"}
 	ds := NewDataSource(&agollo.Conf{
 		AppID:          "SampleApp",
 		Cluster:        "default",
@@ -28,27 +41,27 @@ func TestReadConfig(t *testing.T) {
 		IP:             "localhost:16852",
 	}, "application", "key_test")
 
-	mockserver.Set("application", "key_test", "value1")
-	value, err := ds.ReadConfig()
-	assert.Nil(t, err)
-	assert.Equal(t, "value1", string(value))
-	t.Logf("read: %s", value)
-
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		mockserver.Set("application", "key_test", "value2")
+		mockserver.Set("application", "key_test", testData[0])
+		time.Sleep(time.Second * 3)
+		mockserver.Set("application", "key_test", testData[1])
 		time.Sleep(time.Second * 3)
 		ds.Close()
 	}()
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
+		time.Sleep(time.Second)
+		index := 0
+
 		for range ds.IsConfigChanged() {
 			value, err := ds.ReadConfig()
 			assert.Nil(t, err)
-			assert.Equal(t, "value2", string(value))
+			assert.Equal(t, testData[index], string(value))
+			index++
 			t.Logf("read: %s", value)
 		}
 	}()
