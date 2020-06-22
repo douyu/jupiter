@@ -40,12 +40,11 @@ var (
 	slash     = []byte("/")
 )
 
-func (config *Config) extractAID(ctx *gin.Context) string {
+func extractAID(ctx *gin.Context) string {
 	return ctx.Request.Header.Get("AID")
 }
 
-// RecoverMiddleware ...
-func (config *Config) recoverMiddleware() gin.HandlerFunc {
+func recoverMiddleware(logger *xlog.Logger, slowQueryThresholdInMilli int64) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var beg = time.Now()
 		var fields = make([]xlog.Field, 0, 8)
@@ -53,8 +52,8 @@ func (config *Config) recoverMiddleware() gin.HandlerFunc {
 		defer func() {
 			//Latency
 			fields = append(fields, zap.Float64("cost", time.Since(beg).Seconds()))
-			if config.SlowQueryThresholdInMilli > 0 {
-				if cost := int64(time.Since(beg)) / 1e6; cost > config.SlowQueryThresholdInMilli {
+			if slowQueryThresholdInMilli > 0 {
+				if cost := int64(time.Since(beg)) / 1e6; cost > slowQueryThresholdInMilli {
 					fields = append(fields, zap.Int64("slow", cost))
 				}
 			}
@@ -69,7 +68,7 @@ func (config *Config) recoverMiddleware() gin.HandlerFunc {
 				var err = rec.(error)
 				fields = append(fields, zap.ByteString("stack", stack(3)))
 				fields = append(fields, zap.String("err", err.Error()))
-				config.logger.Error("access", fields...)
+				logger.Error("access", fields...)
 				// If the connection is dead, we can't write a status to it.
 				if brokenPipe {
 					c.Error(err) // nolint: errcheck
@@ -90,7 +89,7 @@ func (config *Config) recoverMiddleware() gin.HandlerFunc {
 				zap.String("ip", c.ClientIP()),
 				zap.String("err", c.Errors.ByType(gin.ErrorTypePrivate).String()),
 			)
-			config.logger.Info("access", fields...)
+			logger.Info("access", fields...)
 		}()
 		c.Next()
 	}
@@ -162,17 +161,17 @@ func timeFormat(t time.Time) string {
 	return timeString
 }
 
-func (config *Config) metricServerInterceptor() gin.HandlerFunc {
+func metricServerInterceptor() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		beg := time.Now()
 		c.Next()
-		metric.ServerHandleHistogram.Observe(time.Since(beg).Seconds(), metric.TypeHTTP, c.Request.Method+"."+c.Request.URL.Path, config.extractAID(c))
-		metric.ServerHandleCounter.Inc(metric.TypeHTTP, c.Request.Method+"."+c.Request.URL.Path, config.extractAID(c), http.StatusText(c.Writer.Status()))
+		metric.ServerHandleHistogram.Observe(time.Since(beg).Seconds(), metric.TypeHTTP, c.Request.Method+"."+c.Request.URL.Path, extractAID(c))
+		metric.ServerHandleCounter.Inc(metric.TypeHTTP, c.Request.Method+"."+c.Request.URL.Path, extractAID(c), http.StatusText(c.Writer.Status()))
 		return
 	}
 }
 
-func (config *Config) traceServerInterceptor() gin.HandlerFunc {
+func traceServerInterceptor() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		span, ctx := trace.StartSpanFromContext(
 			c.Request.Context(),
