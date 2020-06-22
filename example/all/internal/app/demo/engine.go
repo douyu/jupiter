@@ -57,9 +57,9 @@ func NewEngine() *Engine {
 func (eng *Engine) initSentinel() error {
 	var config = sentinel.DefaultConfig()
 	config.FlowRules = append(config.FlowRules, &flow.FlowRule{
-		Resource: "GET:/ping",
+		Resource:   "GET:/ping",
 		MetricType: flow.QPS,
-		Count: 1,
+		Count:      1,
 	})
 	return config.InitSentinelCoreComponent()
 }
