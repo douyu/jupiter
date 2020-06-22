@@ -272,11 +272,11 @@ func (r *etcdResolver) watch(cc resolver.ClientConn, prefix string, serviceName 
 					r.deleteAddrList(al, target, ev.Kv)
 				}
 			}
-		}
 
-		cc.UpdateState(resolver.State{
-			Addresses: al.List(),
-		})
+			cc.UpdateState(resolver.State{
+				Addresses: al.List(),
+			})
+		}
 
 		cancel()
 	}
