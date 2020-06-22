@@ -8,8 +8,10 @@ require (
 	github.com/apache/rocketmq-client-go v0.0.0-20191211114916-85ee94b43cef
 	github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd // indirect
 	github.com/codegangsta/inject v0.0.0-20150114235600-33e0aa1cb7c0
+	github.com/coreos/etcd v3.3.22+incompatible
 	github.com/coreos/go-systemd v0.0.0-20191104093116-d3cd4ed1dbcf // indirect
 	github.com/davecgh/go-spew v1.1.1
+	github.com/dustin/go-humanize v0.0.0-20171111073723-bb3d318650d4 // indirect
 	github.com/fatih/structtag v1.2.0
 	github.com/flosch/pongo2 v0.0.0-20200518135938-dfb43dbdc22a
 	github.com/fsnotify/fsnotify v1.4.9
@@ -38,7 +40,6 @@ require (
 	github.com/tidwall/pretty v1.0.1
 	github.com/uber/jaeger-client-go v2.23.1+incompatible
 	github.com/uber/jaeger-lib v2.2.0+incompatible // indirect
-	go.etcd.io/etcd v3.3.13+incompatible
 	go.uber.org/automaxprocs v1.3.0
 	go.uber.org/multierr v1.5.0
 	go.uber.org/zap v1.15.0
@@ -47,6 +48,5 @@ require (
 	golang.org/x/tools v0.0.0-20200527183253-8e7acdbce89d // indirect
 	google.golang.org/genproto v0.0.0-20190819201941-24fa4b261c55
 	google.golang.org/grpc v1.26.0
+	sigs.k8s.io/yaml v1.1.0 // indirect
 )
-
-// replace github.com/coreos/bbolt => go.etcd.io/bbolt v1.3.3

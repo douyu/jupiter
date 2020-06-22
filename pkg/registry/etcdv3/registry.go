@@ -23,10 +23,10 @@ import (
 
 	"github.com/douyu/jupiter/pkg/ecode"
 
+	"github.com/coreos/etcd/clientv3"
 	"github.com/douyu/jupiter/pkg/client/etcdv3"
 	"github.com/douyu/jupiter/pkg/server"
 	"github.com/douyu/jupiter/pkg/xlog"
-	"go.etcd.io/etcd/clientv3"
 )
 
 type etcdv3Registry struct {

@@ -25,12 +25,12 @@ import (
 
 	"github.com/douyu/jupiter/pkg/ecode"
 
+	"github.com/coreos/etcd/clientv3"
+	"github.com/coreos/etcd/mvcc/mvccpb"
 	"github.com/douyu/jupiter/pkg/client/etcdv3"
 	"github.com/douyu/jupiter/pkg/server"
 	"github.com/douyu/jupiter/pkg/xlog"
 	jsoniter "github.com/json-iterator/go"
-	"go.etcd.io/etcd/clientv3"
-	"go.etcd.io/etcd/mvcc/mvccpb"
 	"google.golang.org/grpc/attributes"
 	"google.golang.org/grpc/naming"
 	"google.golang.org/grpc/resolver"

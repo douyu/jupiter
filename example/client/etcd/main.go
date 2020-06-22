@@ -16,11 +16,12 @@ package main
 
 import (
 	"context"
+	"time"
+
+	"github.com/coreos/etcd/clientv3"
 	"github.com/douyu/jupiter"
 	"github.com/douyu/jupiter/pkg/client/etcdv3"
 	"github.com/douyu/jupiter/pkg/xlog"
-	"go.etcd.io/etcd/clientv3"
-	"time"
 )
 
 func main() {

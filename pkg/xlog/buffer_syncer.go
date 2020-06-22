@@ -89,6 +89,7 @@ func Buffer(ws zapcore.WriteSyncer, bufferSize int, flushInterval time.Duration)
 	return ws, closefunc
 }
 
+// Write ...
 func (s *bufferWriterSyncer) Write(bs []byte) (int, error) {
 	// bufio is not goroutine safe, so add lock writer here
 	s.Lock()
@@ -108,6 +109,7 @@ func (s *bufferWriterSyncer) Write(bs []byte) (int, error) {
 	return s.bufferWriter.Write(bs)
 }
 
+// Sync ...
 func (s *bufferWriterSyncer) Sync() error {
 	// bufio is not goroutine safe, so add lock writer here
 	s.Lock()

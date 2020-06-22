@@ -24,10 +24,10 @@ import (
 
 	"github.com/douyu/jupiter/pkg/ecode"
 
+	"github.com/coreos/etcd/clientv3"
+	"github.com/coreos/etcd/mvcc/mvccpb"
 	"github.com/douyu/jupiter/pkg/xlog"
 	grpcprom "github.com/grpc-ecosystem/go-grpc-prometheus"
-	"go.etcd.io/etcd/clientv3"
-	"go.etcd.io/etcd/mvcc/mvccpb"
 	"google.golang.org/grpc"
 )
 
