@@ -344,7 +344,7 @@ func UnmarshalKey(key string, rawVal interface{}, opts ...GetOption) error {
 }
 
 // ErrInvalidKey ...
-var ErrInvalidKey = errors.New("invalid key")
+var ErrInvalidKey = errors.New("invalid key, maybe not exist in config")
 
 // UnmarshalKey takes a single key and unmarshal it into a Struct.
 func (c *Configuration) UnmarshalKey(key string, rawVal interface{}, opts ...GetOption) error {
