@@ -42,7 +42,7 @@ func DefaultConfig() *Config {
 	return &Config{
 		Host:                      "127.0.0.1",
 		Port:                      9091,
-		Mode:                      gin.DebugMode,
+		Mode:                      gin.ReleaseMode,
 		SlowQueryThresholdInMilli: 500, // 500ms
 		logger:                    xlog.JupiterLogger.With(xlog.FieldMod("server.gin")),
 	}
