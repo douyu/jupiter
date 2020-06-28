@@ -19,8 +19,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/coreos/etcd/clientv3"
 	"github.com/douyu/jupiter/pkg/xlog"
-	"go.etcd.io/etcd/clientv3"
 )
 
 // Watch A watch only tells the latest revision

@@ -17,8 +17,11 @@ package demo
 import (
 	"time"
 
+	sentinel_echo "github.com/alibaba/sentinel-golang/adapter/echo"
+	"github.com/alibaba/sentinel-golang/core/flow"
 	"github.com/douyu/jupiter"
 	"github.com/douyu/jupiter/example/all/internal/app/greeter"
+	"github.com/douyu/jupiter/pkg/sentinel"
 	"github.com/douyu/jupiter/pkg/server/xecho"
 	"github.com/douyu/jupiter/pkg/server/xgrpc"
 	"github.com/douyu/jupiter/pkg/util/xgo"
@@ -26,6 +29,8 @@ import (
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/labstack/echo/v4"
 	"google.golang.org/grpc/examples/helloworld/helloworld"
+
+	sentinel_grpc "github.com/alibaba/sentinel-golang/adapter/grpc"
 )
 
 type Engine struct {
@@ -36,9 +41,8 @@ func NewEngine() *Engine {
 	eng := &Engine{}
 
 	if err := eng.Startup(
-		eng.loadConfig,
-		// eng.printLogs,
-		// eng.startJobs,
+		eng.startJobs,
+		eng.initSentinel,
 		xgo.ParallelWithError(
 			eng.serveHTTP,
 			eng.serveGRPC,
@@ -47,24 +51,17 @@ func NewEngine() *Engine {
 		xlog.Panic("startup engine", xlog.Any("err", err))
 	}
 
-	// flush logger before exit application
-	eng.Defer(eng.flushLogger)
 	return eng
 }
 
-func (eng *Engine) loadConfig() error {
-	// todo something
-	return nil
-}
-
-func (eng *Engine) startCacheMonitor() error {
-	// todo something
-	return nil
-}
-
-func (eng *Engine) flushLogger() error {
-	// todo something
-	return nil
+func (eng *Engine) initSentinel() error {
+	var config = sentinel.DefaultConfig()
+	config.FlowRules = append(config.FlowRules, &flow.FlowRule{
+		Resource:   "GET:/ping",
+		MetricType: flow.QPS,
+		Count:      1,
+	})
+	return config.InitSentinelCoreComponent()
 }
 
 func (eng *Engine) startJobs() error {
@@ -75,13 +72,30 @@ func (eng *Engine) startJobs() error {
 
 func (eng *Engine) serveHTTP() error {
 	server := xecho.StdConfig("http").Build()
+	server.Use(
+		sentinel_echo.SentinelMiddleware(
+			// customize resource extractor if required
+			// method_path by default
+			sentinel_echo.WithResourceExtractor(func(ctx echo.Context) string {
+				return ctx.Request().Method + ":" + ctx.Path()
+			}),
+			// customize block fallback if required
+			// abort with status 429 by default
+			sentinel_echo.WithBlockFallback(func(ctx echo.Context) error {
+				return ctx.JSON(400, map[string]interface{}{
+					"err":  "too many requests; the quota used up",
+					"code": 10222,
+				})
+			}),
+		),
+	)
 	server.GET("/ping", func(ctx echo.Context) error {
 		return ctx.JSON(200, "pong")
 	})
 	server.GET("/panic", func(ctx echo.Context) error {
 		panic("panic")
 	})
-	//this is a demo: support proxy for http to grpc controller
+	// this is a demo: support proxy for http to grpc controller
 	g := greeter.Greeter{}
 	server.GET("/grpc", xecho.GRPCProxyWrapper(g.SayHello))
 	server.POST("/grpc-post", xecho.GRPCProxyWrapper(g.SayHello))
@@ -89,7 +103,11 @@ func (eng *Engine) serveHTTP() error {
 }
 
 func (eng *Engine) serveGRPC() error {
-	server := xgrpc.StdConfig("grpc").Build()
+	server := xgrpc.StdConfig("grpc").
+		WithUnaryInterceptor(sentinel_grpc.NewUnaryServerInterceptor()).
+		WithStreamInterceptor(sentinel_grpc.NewStreamServerInterceptor()).
+		Build()
+
 	helloworld.RegisterGreeterServer(server.Server, new(greeter.Greeter))
 	return eng.Serve(server)
 }

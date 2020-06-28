@@ -352,8 +352,17 @@ func (r *RedisStub) DelWithErr(key string) (int64, error) {
 }
 
 // HIncrBy 哈希field自增
-func (r *RedisStub) HIncrBy(key string, field string, incr int) {
-	r.Client.HIncrBy(key, field, int64(incr))
+func (r *RedisStub) HIncrBy(key string, field string, incr int) int64 {
+	result, err := r.Client.HIncrBy(key, field, int64(incr)).Result()
+	if err != nil {
+		return 0
+	}
+	return result
+}
+
+// HIncrByWithErr 哈希field自增并且返回错误
+func (r *RedisStub) HIncrByWithErr(key string, field string, incr int) (int64, error) {
+	return r.Client.HIncrBy(key, field, int64(incr)).Result()
 }
 
 // Exists 键是否存在

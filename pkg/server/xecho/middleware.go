@@ -28,12 +28,12 @@ import (
 	"go.uber.org/zap"
 )
 
-func (s *Config) extractAID(c echo.Context) string {
+func extractAID(c echo.Context) string {
 	return c.Request().Header.Get("AID")
 }
 
 // RecoverMiddleware ...
-func (invoker *Config) recoverMiddleware() echo.MiddlewareFunc {
+func recoverMiddleware(logger *xlog.Logger, slowQueryThresholdInMilli int64) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(ctx echo.Context) (err error) {
 			var beg = time.Now()
@@ -58,17 +58,17 @@ func (invoker *Config) recoverMiddleware() echo.MiddlewareFunc {
 					zap.Int("code", ctx.Response().Status),
 					zap.String("host", ctx.Request().Host),
 				)
-				if invoker.SlowQueryThresholdInMilli > 0 {
-					if cost := int64(time.Since(beg)) / 1e6; cost > invoker.SlowQueryThresholdInMilli {
+				if slowQueryThresholdInMilli > 0 {
+					if cost := int64(time.Since(beg)) / 1e6; cost > slowQueryThresholdInMilli {
 						fields = append(fields, zap.Int64("slow", cost))
 					}
 				}
 				if err != nil {
 					fields = append(fields, zap.String("err", err.Error()))
-					invoker.logger.Error("access", fields...)
+					logger.Error("access", fields...)
 					return
 				}
-				invoker.logger.Info("access", fields...)
+				logger.Info("access", fields...)
 			}()
 
 			return next(ctx)
@@ -76,14 +76,14 @@ func (invoker *Config) recoverMiddleware() echo.MiddlewareFunc {
 	}
 }
 
-func (invoker *Config) metricServerInterceptor() echo.MiddlewareFunc {
+func metricServerInterceptor() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) (err error) {
 			beg := time.Now()
 			err = next(c)
 			method := c.Request().Method + "_" + c.Path()
 			peer := c.RealIP()
-			if aid := invoker.extractAID(c); aid != "" {
+			if aid := extractAID(c); aid != "" {
 				peer += "?aid=" + aid
 			}
 			metric.ServerHandleHistogram.Observe(time.Since(beg).Seconds(), metric.TypeHTTP, method, peer)
@@ -92,7 +92,7 @@ func (invoker *Config) metricServerInterceptor() echo.MiddlewareFunc {
 		}
 	}
 }
-func (invoker *Config) traceServerInterceptor() echo.MiddlewareFunc {
+func traceServerInterceptor() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) (err error) {
 			span, ctx := trace.StartSpanFromContext(
