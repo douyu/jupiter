@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// +build linux darwin freebsd unix
+
 package jupiter
 
 import (
@@ -30,9 +32,9 @@ func hookSignals(app *Application) {
 		syscall.SIGINT,
 		syscall.SIGTERM,
 		syscall.SIGQUIT,
-		syscall.SIGSTOP,
 		syscall.SIGUSR1,
 		syscall.SIGUSR2,
+		syscall.SIGSTOP,
 		syscall.SIGKILL,
 	)
 
@@ -41,11 +43,9 @@ func hookSignals(app *Application) {
 		for {
 			sig = <-sigChan
 			switch sig {
-			case syscall.SIGQUIT, syscall.SIGSTOP, syscall.SIGUSR1:
-				_ = app.Stop() // graceful stop
-			case syscall.SIGHUP:
-				_ = app.GracefulStop(context.TODO())
-			case syscall.SIGINT, syscall.SIGKILL, syscall.SIGUSR2, syscall.SIGTERM:
+			case syscall.SIGQUIT:
+				_ = app.GracefulStop(context.TODO()) // graceful stop
+			case syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL, syscall.SIGSTOP:
 				_ = app.Stop() // terminate now
 			}
 			time.Sleep(time.Second * 3)
