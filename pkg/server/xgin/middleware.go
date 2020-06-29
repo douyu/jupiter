@@ -183,7 +183,7 @@ func traceServerInterceptor() gin.HandlerFunc {
 			trace.CustomTag("http.method", c.Request.Method),
 			trace.CustomTag("peer.ipv4", c.ClientIP()),
 		)
-		c.Request.WithContext(ctx)
+		c.Request = c.Request.WithContext(ctx)
 		defer span.Finish()
 		c.Next()
 	}
