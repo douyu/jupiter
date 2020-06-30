@@ -1,0 +1,10 @@
+syntax = "proto3";
+package com.douyu.jupiter.proto.registry.configuration;
+
+option go_package="configuration";
+
+message Configuration {
+
+}
+
+message Route

@@ -82,16 +82,16 @@ func (s *Server) GracefulStop(ctx context.Context) error {
 // TODO(gorexlv): implements government protocol with juno
 func (s *Server) Info() *server.ServiceInfo {
 	return &server.ServiceInfo{
-		Name:      pkg.Name(),
-		Scheme:    "http",
-		IP:        s.config.Host,
-		Port:      s.config.Port,
-		Weight:    0.0,
-		Enable:    false,
-		Healthy:   false,
-		Metadata:  map[string]string{},
-		Region:    "",
-		Zone:      "",
-		GroupName: "",
+		Name:       pkg.Name(),
+		Scheme:     "http",
+		IP:         s.config.Host,
+		Port:       s.config.Port,
+		Weight:     0.0,
+		Enable:     false,
+		Healthy:    false,
+		Metadata:   map[string]string{},
+		Region:     pkg.Region(),
+		Zone:       pkg.Zone(),
+		Deployment: s.config.Deployment,
 	}
 }

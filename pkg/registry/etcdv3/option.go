@@ -72,9 +72,9 @@ func (config Config) BuildRegistry() registry.Registry {
 }
 
 // BuildResolver ...
-func (config Config) BuildResolver() *etcdResolver {
-	if config.ConfigKey != "" {
-		config.Config = etcdv3.RawConfig(config.ConfigKey)
-	}
-	return newETCDResolver(&config)
-}
+// func (config Config) BuildResolver() *etcdResolver {
+// 	if config.ConfigKey != "" {
+// 		config.Config = etcdv3.RawConfig(config.ConfigKey)
+// 	}
+// 	return newETCDResolver(&config)
+// }

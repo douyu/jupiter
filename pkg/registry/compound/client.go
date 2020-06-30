@@ -38,16 +38,21 @@ func (c compoundRegistry) RegisterService(ctx context.Context, bean *server.Serv
 	return eg.Wait()
 }
 
-// DeregisterService ...
-func (c compoundRegistry) DeregisterService(ctx context.Context, bean *server.ServiceInfo) error {
+// UnregisterService ...
+func (c compoundRegistry) UnregisterService(ctx context.Context, bean *server.ServiceInfo) error {
 	var eg errgroup.Group
 	for _, registry := range c.registries {
 		registry := registry
 		eg.Go(func() error {
-			return registry.DeregisterService(ctx, bean)
+			return registry.UnregisterService(ctx, bean)
 		})
 	}
 	return eg.Wait()
+}
+
+// ListServices list service nodes
+func (c compoundRegistry) ListServices(ctx context.Context, name string) ([]*server.ServiceInfo, error) {
+	panic("compound registry doesn't support ListServices method")
 }
 
 // Close ...

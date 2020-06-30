@@ -15,17 +15,20 @@
 package etcdv3
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"sync"
 	"time"
 
-	"github.com/douyu/jupiter/pkg/ecode"
-
 	"github.com/coreos/etcd/clientv3"
+	"github.com/coreos/etcd/mvcc/mvccpb"
 	"github.com/douyu/jupiter/pkg/client/etcdv3"
+	"github.com/douyu/jupiter/pkg/ecode"
+	"github.com/douyu/jupiter/pkg/registry"
 	"github.com/douyu/jupiter/pkg/server"
+	"github.com/douyu/jupiter/pkg/util/xgo"
 	"github.com/douyu/jupiter/pkg/xlog"
 )
 
@@ -34,6 +37,7 @@ type etcdv3Registry struct {
 	lease  clientv3.LeaseID
 	kvs    sync.Map
 	*Config
+	cancel context.CancelFunc
 }
 
 func newETCDRegistry(config *Config) *etcdv3Registry {
@@ -49,7 +53,7 @@ func newETCDRegistry(config *Config) *etcdv3Registry {
 	return res
 }
 
-// RegisterService ...
+// RegisterService register service to registry
 func (e *etcdv3Registry) RegisterService(ctx context.Context, info *server.ServiceInfo) error {
 	opOptions := make([]clientv3.OpOption, 0)
 	if e.lease != 0 {
@@ -62,31 +66,159 @@ func (e *etcdv3Registry) RegisterService(ctx context.Context, info *server.Servi
 		defer cancel()
 	}
 
-	key := fmt.Sprintf("/%s/%s/providers/%s://%s:%d", e.Prefix, info.Name, info.Scheme, info.IP, info.Port)
-	val, err := json.Marshal(info)
+	key := e.providerKey(info)
+	val := e.providerValue(info)
 
-	if err != nil {
-		return err
-	}
-
-	_, err = e.client.Put(ctx, key, string(val), opOptions...)
+	_, err := e.client.Put(ctx, key, string(val), opOptions...)
 	if err != nil {
 		e.logger.Error("register service", xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err), xlog.FieldKeyAny(key), xlog.FieldValueAny(info))
 		return err
 	}
-	// xdebug.PrintKVWithPrefix("registry", "register key", key)
+
 	e.logger.Info("register service", xlog.FieldKeyAny(key), xlog.FieldValueAny(info))
 	e.kvs.Store(key, val)
 	return err
 }
 
-// DeregisterService ...
-func (e *etcdv3Registry) DeregisterService(ctx context.Context, info *server.ServiceInfo) error {
-	key := fmt.Sprintf("/%s/%s/providers/%s://%s:%d", e.Prefix, info.Name, info.Scheme, info.IP, info.Port)
-	return e.deregister(ctx, key)
+// UnregisterService unregister service from registry
+func (e *etcdv3Registry) UnregisterService(ctx context.Context, info *server.ServiceInfo) error {
+	return e.unregister(ctx, e.providerKey(info))
 }
 
-func (e *etcdv3Registry) deregister(ctx context.Context, key string) error {
+// ListServices list service registered in registry with name `name`
+func (e *etcdv3Registry) ListServices(ctx context.Context, name string, scheme string) (services []*server.ServiceInfo, err error) {
+	target := fmt.Sprintf("/%s/%s/providers/%s://", e.Prefix, name, scheme)
+	getResp, getErr := e.client.Get(ctx, target, clientv3.WithPrefix())
+	if getErr != nil {
+		e.logger.Error(ecode.MsgWatchRequestErr, xlog.FieldErrKind(ecode.ErrKindRequestErr), xlog.FieldErr(getErr), xlog.FieldAddr(target))
+		return nil, getErr
+	}
+
+	for _, kv := range getResp.Kvs {
+		var service server.ServiceInfo
+		if err := json.Unmarshal(kv.Value, &service); err != nil {
+			e.logger.Warnf("invalid service", xlog.FieldErr(err))
+			continue
+		}
+		services = append(services, &service)
+	}
+
+	return
+}
+
+func (e *etcdv3Registry) filterKey(name string, scheme string, key []byte) bool {
+	// standard key format: /{prefix}/{app_name}/providers/{scheme}://{ip}:{port}
+	// or: /{prefix}/{app_name}/configurators/{scheme}:///
+	// or: /{prefix}/{app_name}/consumers/{scheme}://
+	target := fmt.Sprintf("/%s/%s/", e.Prefix, name)
+	return bytes.HasPrefix(key, []byte(target+"/providers/"+scheme+"://")) ||
+		bytes.HasPrefix(key, []byte(target+"/configurators/"+scheme+"://")) ||
+		bytes.HasPrefix(key, []byte(target+"/consumers/"+scheme+"://"))
+}
+
+// WatchServices list services then watch service change event
+func (e *etcdv3Registry) WatchServices(ctx context.Context, name string, scheme string) (services []*server.ServiceInfo, messages chan *registry.EventMessage, err error) {
+	target := fmt.Sprintf("/%s/%s/", e.Prefix, name)
+	messages = make(chan *registry.EventMessage, 8)
+	getResp, getErr := e.client.Get(ctx, target, clientv3.WithPrefix())
+	if getErr != nil {
+		e.logger.Error(ecode.MsgWatchRequestErr, xlog.FieldErrKind(ecode.ErrKindRequestErr), xlog.FieldErr(getErr), xlog.FieldAddr(target))
+		return nil, nil, getErr
+	}
+
+	lastRevision := getResp.Header.Revision
+
+	for _, kv := range getResp.Kvs {
+		if !e.filterKey(name, scheme, kv.Key) {
+			continue
+		}
+		var service server.ServiceInfo
+		if err := json.Unmarshal(kv.Value, &service); err != nil {
+			e.logger.Warnf("invalid service", xlog.FieldErr(err))
+			continue
+		}
+		services = append(services, &service)
+	}
+
+	xgo.Go(func() {
+		ctx, cancel := context.WithCancel(context.Background())
+		e.cancel = cancel
+
+		rch := e.client.Watch(ctx, target, clientv3.WithPrefix(), clientv3.WithCreatedNotify(), clientv3.WithRev(lastRevision))
+		for {
+			for n := range rch {
+				if n.CompactRevision > lastRevision {
+					lastRevision = n.CompactRevision
+				}
+				if n.Header.GetRevision() > lastRevision {
+					lastRevision = n.Header.GetRevision()
+				}
+				if err := n.Err(); err != nil {
+					e.logger.Error(ecode.MsgWatchRequestErr, xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err), xlog.FieldAddr(target))
+					continue
+				}
+				for _, ev := range n.Events {
+					if !e.filterKey(name, scheme, ev.Kv.Key) {
+						continue
+					}
+					msg, err := extractEventMessage(target, ev)
+					if err != nil {
+						e.logger.Error(ecode.MsgWatchRequestErr, xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err), xlog.FieldAddr(target))
+						continue
+					}
+					messages <- msg
+				}
+			}
+			ctx, cancel := context.WithCancel(context.Background())
+			e.cancel = cancel
+			if lastRevision > 0 {
+				rch = e.client.Watch(ctx, target, clientv3.WithPrefix(), clientv3.WithCreatedNotify(), clientv3.WithRev(lastRevision))
+			} else {
+				rch = e.client.Watch(ctx, target, clientv3.WithPrefix(), clientv3.WithCreatedNotify())
+			}
+		}
+	})
+	return services, messages, nil
+}
+
+func extractEventMessage(target string, event *clientv3.Event) (*registry.EventMessage, error) {
+	var em = &registry.EventMessage{
+		Event: registry.EventUnknown,
+		Kind:  registry.KindUnknown,
+	}
+	registryKey, err := ToRegistryKey(string(event.Kv.Key))
+	if err != nil {
+		return nil, err
+	}
+
+	em.Name = registryKey.AppName
+	em.Address = registryKey.Host
+	em.Scheme = registryKey.Scheme
+	em.Kind = registryKey.Kind
+
+	switch event.Type {
+	case mvccpb.PUT:
+		em.Event = registry.EventUpdate
+		if em.Kind == registry.KindProvider {
+			var configuration registry.Configuration
+			if err := json.Unmarshal(event.Kv.Value, &configuration); err != nil { return nil, err }
+			em.Message = configuration
+		}
+		if em.Kind == registry.KindConfigurator {
+			var serviceInfo server.ServiceInfo
+			if err := json.Unmarshal(event.Kv.Value, &serviceInfo); err != nil {
+				return nil, err
+			}
+			em.Message = serviceInfo
+		}
+	case mvccpb.DELETE:
+		em.Event = registry.EventDelete
+	}
+
+	return em, nil
+}
+
+func (e *etcdv3Registry) unregister(ctx context.Context, key string) error {
 	if _, ok := ctx.Deadline(); !ok {
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithTimeout(ctx, e.ReadTimeout)
@@ -101,17 +233,20 @@ func (e *etcdv3Registry) deregister(ctx context.Context, key string) error {
 
 // Close ...
 func (e *etcdv3Registry) Close() error {
+	if e.cancel != nil {
+		e.cancel()
+	}
 	var wg sync.WaitGroup
 	e.kvs.Range(func(k, v interface{}) bool {
 		wg.Add(1)
 		go func(k interface{}) {
 			defer wg.Done()
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-			err := e.deregister(ctx, k.(string))
+			err := e.unregister(ctx, k.(string))
 			if err != nil {
-				e.logger.Error("deregister service", xlog.FieldErrKind(ecode.ErrKindRequestErr), xlog.FieldErr(err), xlog.FieldErr(err), xlog.FieldKeyAny(k), xlog.FieldValueAny(v))
+				e.logger.Error("unregister service", xlog.FieldErrKind(ecode.ErrKindRequestErr), xlog.FieldErr(err), xlog.FieldErr(err), xlog.FieldKeyAny(k), xlog.FieldValueAny(v))
 			} else {
-				e.logger.Info("deregister service", xlog.FieldKeyAny(k), xlog.FieldValueAny(v))
+				e.logger.Info("unregister service", xlog.FieldKeyAny(k), xlog.FieldValueAny(v))
 			}
 			cancel()
 		}(k)
@@ -127,4 +262,13 @@ func (e *etcdv3Registry) Close() error {
 		return err
 	}
 	return nil
+}
+
+func (e *etcdv3Registry) providerKey(info *server.ServiceInfo) string {
+	return fmt.Sprintf("/%s/%s/providers/%s://%s", e.Prefix, info.Name, info.Scheme, info.Address)
+}
+
+func (e *etcdv3Registry) providerValue(info *server.ServiceInfo) string {
+	val, _ := json.Marshal(info)
+	return string(val)
 }

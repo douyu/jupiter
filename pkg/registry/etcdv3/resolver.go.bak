@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"github.com/douyu/jupiter/pkg/ecode"
+	"google.golang.org/grpc/resolver"
 
 	"github.com/coreos/etcd/clientv3"
 	"github.com/coreos/etcd/mvcc/mvccpb"
@@ -32,8 +33,6 @@ import (
 	"github.com/douyu/jupiter/pkg/xlog"
 	jsoniter "github.com/json-iterator/go"
 	"google.golang.org/grpc/attributes"
-	"google.golang.org/grpc/naming"
-	"google.golang.org/grpc/resolver"
 )
 
 // etcdResolver implement grpc resolve.Builder
@@ -73,7 +72,7 @@ func (r etcdResolver) ResolveNow(rn resolver.ResolveNowOption) {
 
 // close closes the resolver.
 func (r etcdResolver) Close() {
-	r.client.Close()
+	_ = r.client.Close()
 	r.logger.Info("close")
 }
 
@@ -95,24 +94,24 @@ func (r *etcdResolver) deleteAddrList(al *AddressList, prefix string, kvs ...*mv
 			delete(al.regInfos, host)
 		}
 
-		if strings.HasPrefix(addr, "configurators/grpc://") {
-			// 解析服务配置键
-			addr = strings.TrimPrefix(addr, "configurators/")
-			if addr == "" {
-				continue
-			}
-			host, _, err := parseURI(addr)
-			if err != nil {
-				r.logger.Error("parse uri", xlog.FieldErrKind(ecode.ErrKindUriErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)))
-			}
-			delete(al.cfgInfos, host)
-		}
-
-		if isIPPort(addr) {
-			// 直接删除addr 因为Delete操作的value值为空
-			delete(al.cfgInfos, addr)
-			delete(al.regInfos, addr)
-		}
+		// if strings.HasPrefix(addr, "configurators/grpc://") {
+		// 	// 解析服务配置键
+		// 	addr = strings.TrimPrefix(addr, "configurators/")
+		// 	if addr == "" {
+		// 		continue
+		// 	}
+		// 	host, _, err := parseURI(addr)
+		// 	if err != nil {
+		// 		r.logger.Error("parse uri", xlog.FieldErrKind(ecode.ErrKindUriErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)))
+		// 	}
+		// 	delete(al.cfgInfos, host)
+		// }
+		//
+		// if isIPPort(addr) {
+		// 	// 直接删除addr 因为Delete操作的value值为空
+		// 	delete(al.cfgInfos, addr)
+		// 	delete(al.regInfos, addr)
+		// }
 	}
 }
 
@@ -126,6 +125,8 @@ func (r *etcdResolver) updateAddrList(al *AddressList, prefix string, kvs ...*mv
 	defer al.mtx.Unlock()
 	for _, kv := range kvs {
 		var addr = strings.TrimPrefix(string(kv.Key), prefix)
+		fmt.Printf("addr => %+v\n", addr)
+		fmt.Printf("string(kv.Key) => %+v\n", string(kv.Key))
 		switch {
 		// 解析服务注册键
 		case strings.HasPrefix(addr, "providers/grpc://"):
@@ -142,41 +143,22 @@ func (r *etcdResolver) updateAddrList(al *AddressList, prefix string, kvs ...*mv
 			}
 			al.regInfos[host] = &meta
 		case strings.HasPrefix(addr, "configurators/grpc://"):
+			// /testing/demo/providers/grpc:///?deployGroup=red
+			// /testing/demo/providers/grpc://127.0.0.1:9091
 			addr = strings.TrimPrefix(addr, "configurators/")
 			host, meta, err := parseURI(addr)
 			if err != nil {
 				r.logger.Error("parse uri", xlog.FieldErrKind(ecode.ErrKindUriErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)))
 				continue
 			}
+			fmt.Printf("host = %+v\n", host)
 			if sm, err := parseValue(kv.Value); err == nil {
 				for key, val := range sm.Metadata {
 					meta.Set(key, val)
 				}
 			}
-			al.cfgInfos[host] = &meta
-		case isIPPort(addr): // v1 协议
-			var meta naming.Update
-			if err := jsoniter.Unmarshal(kv.Value, &meta); err != nil {
-				r.logger.Error("unmarshal metadata", xlog.FieldErrKind(ecode.ErrKindUnmarshalConfigErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)), xlog.FieldValue(string(kv.Value)))
-				continue
-			}
-
-			if _, ok := al.cfgInfos[addr]; !ok {
-				al.cfgInfos[addr] = &url.Values{}
-			}
-
-			// 解析value
-			switch meta.Op {
-			case naming.Add:
-				al.regInfos[addr] = &url.Values{}
-				al.cfgInfos[addr].Set("enable", "true")
-				al.cfgInfos[addr].Set("weight", "100")
-			case naming.Delete:
-				al.regInfos[addr] = &url.Values{}
-				al.cfgInfos[addr].Set("enable", "false")
-				al.cfgInfos[addr].Set("weight", "0")
-			}
-
+			// al.cfgInfos[host] = &meta
+			al.cfgInfos = append(al.cfgInfos, &meta)
 		}
 	}
 	r.logger.Info("update addr list", xlog.Any("reg_info", al.regInfos), xlog.Any("cfg_info", al.cfgInfos))
@@ -188,10 +170,22 @@ type AddressList struct {
 
 	// TODO 2019/9/10 gorexlv: need lock
 	regInfos map[string]*url.Values // 注册信息
-	cfgInfos map[string]*url.Values // 配置信息
+	cfgInfos []*url.Values          // 配置信息
 
 	mtx sync.RWMutex
 }
+
+func newAddressList(serverName string) *AddressList {
+	return &AddressList{
+		serverName: serverName,
+		regInfos:   make(map[string]*url.Values),
+		cfgInfos:   make([]*url.Values, 0),
+	}
+}
+
+// func (al *AddressList) String() string{
+// 	return ""
+// }
 
 // List ...
 func (al *AddressList) List() []resolver.Address {
@@ -206,12 +200,12 @@ func (al *AddressList) List() []resolver.Address {
 			ServerName: al.serverName,
 			Attributes: attributes.New(),
 		}
-		if infos, ok := al.cfgInfos[addr]; ok {
-			for cfg := range *infos {
-				metadata.Set(cfg, infos.Get(cfg))
-				// address.Attributes.WithValues(cfg, infos.Get(cfg))
-			}
-		}
+		// if infos, ok := al.cfgInfos[addr]; ok {
+		// 	for cfg := range *infos {
+		// 		metadata.Set(cfg, infos.Get(cfg))
+		// 		// address.Attributes.WithValues(cfg, infos.Get(cfg))
+		// 	}
+		// }
 		if enable := metadata.Get("enable"); enable != "" && enable != "true" {
 			continue
 		}
@@ -237,12 +231,7 @@ func (r *etcdResolver) watch(cc resolver.ClientConn, prefix string, serviceName 
 	cli := r.client
 	target := fmt.Sprintf("/%s/%s/", prefix, serviceName)
 	for {
-		var al = &AddressList{
-			serverName: serviceName,
-			regInfos:   make(map[string]*url.Values),
-			cfgInfos:   make(map[string]*url.Values),
-			mtx:        sync.RWMutex{},
-		}
+		var al = newAddressList(serviceName)
 
 		getResp, err := cli.Get(context.Background(), target, clientv3.WithPrefix())
 		if err != nil {
@@ -308,3 +297,10 @@ func parseValue(raw []byte) (*server.ServiceInfo, error) {
 
 	return &meta, nil
 }
+
+type Rule struct {
+	Group string `json:"group" toml:"group"`
+	Weight float64 `json:"weight" toml:"weight"` 
+	Enable bool `json:"enable" toml:"enable"`
+}
+

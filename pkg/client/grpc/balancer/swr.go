@@ -15,19 +15,15 @@
 package balancer
 
 import (
-	"context"
 	"errors"
-	"net/url"
-	"strconv"
+	"fmt"
 	"sync"
 
 	"github.com/douyu/jupiter/pkg/util/xrand"
+	"github.com/smallnest/weighted"
+	"google.golang.org/grpc/attributes"
 	"google.golang.org/grpc/balancer"
 	"google.golang.org/grpc/balancer/base"
-	"google.golang.org/grpc/resolver"
-
-	"github.com/douyu/jupiter/pkg/xlog"
-	"github.com/smallnest/weighted"
 )
 
 const (
@@ -36,9 +32,7 @@ const (
 )
 
 func newGWRBuilder(policy string) balancer.Builder {
-	return base.NewBalancerBuilderWithConfig(policy, &groupPickerBuilder{
-		policy: policy,
-	}, base.Config{HealthCheck: true})
+	return base.NewBalancerBuilderV2(policy, &groupPickerBuilder{}, base.Config{HealthCheck: true})
 }
 
 func init() {
@@ -50,73 +44,81 @@ type groupPickerBuilder struct {
 }
 
 // Build ...
-func (gpb *groupPickerBuilder) Build(readySCs map[resolver.Address]balancer.SubConn) balancer.Picker {
-	if len(readySCs) == 0 {
-		return base.NewErrPicker(balancer.ErrNoSubConnAvailable)
-	}
-	var scs []balancer.SubConn
-	for _, sc := range readySCs {
-		scs = append(scs, sc)
+func (gpb *groupPickerBuilder) Build(info base.PickerBuildInfo) balancer.V2Picker {
+	if len(info.ReadySCs) == 0 {
+		return base.NewErrPickerV2(balancer.ErrNoSubConnAvailable)
 	}
 
-	switch gpb.policy {
-	case NameSmoothWeightRoundRobin:
-		return newWeightPicker(readySCs)
-	default:
-		panic("balance invalid pick policy " + gpb.policy)
-	}
+	return newWeightPicker(info.ReadySCs)
+}
+
+type weightGroup struct {
+	name    string
+	buckets *weighted.RandW
 }
 
 type weightPicker struct {
-	subConns []balancer.SubConn
-	readySCs map[resolver.Address]balancer.SubConn
-
-	mu     sync.Mutex
-	next   int
-	logger *xlog.Logger
-	bucket *weighted.SW
+	mu      sync.Mutex
+	next    int
+	buckets *weighted.SW
 }
 
-func newWeightPicker(readySCs map[resolver.Address]balancer.SubConn) *weightPicker {
+func newWeightPicker(readySCs map[balancer.SubConn]base.SubConnInfo) *weightPicker {
 	wp := &weightPicker{
-		readySCs: readySCs,
-		next:     xrand.Intn(len(readySCs)),
-		bucket:   &weighted.SW{},
+		next:    xrand.Intn(len(readySCs)),
+		buckets: &weighted.SW{},
+	}
+	/*
+		if group name is provided by client, check all ready sub connection:
+		1. if these is no attribute, drop  it
+		2. if no group info in attribute, drop it
+		3. if no weight info in attribute, drop it
+		if no group name provided, degrade to round_robin balance
+	*/
+	var groups map[string]*attributes.Attributes
+	for subConn, info := range readySCs {
+		attributes := info.Address.Attributes
+		if attributes == nil {
+			continue
+		}
+
+		config, ok := attributes.Value("meta").(*Config)
+		if !ok {
+			continue
+		}
+
+		if config.Group == "" || !config.Enable {
+			continue
+		}
+
 	}
 
-	for addr, sub := range readySCs {
-		meta, ok := addr.Metadata.(*url.Values)
-		if !ok {
-			xlog.Error("metadata assert", xlog.Any("metadata", addr.Metadata))
-			continue
-		}
-		// v1 版grpc没有weight字段，默认100
-		weightStr := meta.Get("weight")
-		if weightStr == "" {
-			weightStr = "100"
-		}
-
-		weight, err := strconv.Atoi(weightStr)
-		if err != nil {
-			xlog.Error("metadata weight", xlog.Any("metadata", addr.Metadata))
-			continue
-		}
-
-		wp.bucket.Add(sub, weight)
+	for group, attributes := range groups {
+		fmt.Printf("group = %+v\n", group)
+		wp.buckets.Add(attributes, weight)
 	}
 
 	return wp
 }
 
 // Pick ...
-func (p *weightPicker) Pick(ctx context.Context, opts balancer.PickOptions) (balancer.SubConn, func(balancer.DoneInfo), error) {
+func (p *weightPicker) Pick(opts balancer.PickInfo) (balancer.PickResult, error) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
 	sub, ok := p.bucket.Next().(balancer.SubConn)
 	if ok {
-		return sub, nil, nil
+		return balancer.PickResult{
+			SubConn: sub,
+		}, nil
 	}
 
-	return nil, nil, errors.New("pick failed")
+	return balancer.PickResult{}, errors.New("pick failed")
+}
+
+// Config ...
+type Config struct {
+	Group  string
+	Weight int
+	Enable bool
 }

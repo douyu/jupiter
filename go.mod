@@ -30,6 +30,7 @@ require (
 	github.com/mitchellh/mapstructure v1.3.2
 	github.com/modern-go/reflect2 v1.0.1
 	github.com/onsi/ginkgo v1.12.3 // indirect
+	github.com/opencontainers/runc v0.1.1
 	github.com/opentracing/opentracing-go v1.1.0
 	github.com/philchia/agollo v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1

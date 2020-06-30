@@ -18,6 +18,9 @@ import (
 	"fmt"
 	"net/url"
 	"testing"
+
+	"github.com/coreos/etcd/mvcc/mvccpb"
+	"github.com/douyu/jupiter/pkg/xlog"
 )
 
 func Test_parseurl(t *testing.T) {
@@ -30,4 +33,25 @@ func Test_parseurl(t *testing.T) {
 
 	t.Logf("uri.Host: %s", uri.Host)
 	// fmt.Printf("uri.Host => %+v\n", uri.Host)
+}
+
+func Test_updateAddrList(t *testing.T) {
+	r := &etcdResolver{
+		Config: &Config{
+			logger: xlog.DefaultLogger,
+		},
+	}
+	al := newAddressList("demo")
+	prefix := "/testing/demo/"
+	kvs := []*mvccpb.KeyValue{
+		{
+			Key:   []byte("/testing/demo/providers/grpc://127.0.0.1:9091"),
+			Value: []byte(`{"name":"demo","scheme":"grpc","ip":"127.0.0.1","port":9091,"weight":0,"enable":true,"healthy":true,"metadata":{},"region":"","zone":"","deployment":""}`),
+		},
+		{
+			Key:   []byte("/testing/demo/configurators/grpc:///?deployment=openapi"),
+			Value: []byte(`{"metadata": {"color":"red"}`),
+		},
+	}
+	r.updateAddrList(al, prefix, kvs...)
 }

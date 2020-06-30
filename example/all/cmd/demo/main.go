@@ -19,6 +19,8 @@ import (
 	"log"
 
 	"github.com/douyu/jupiter/example/all/internal/app/demo"
+	"github.com/douyu/jupiter/pkg/registry/etcdv3"
+	"github.com/douyu/jupiter/pkg/registry/compound"
 )
 
 func main() {
@@ -29,11 +31,11 @@ func main() {
 		return nil
 	})
 
-	// eng.SetRegistry( // 多注册中心
-	// 	compound.New(
-	// 		etcdv3.StdConfig("wh01").BuildRegistry(),
-	// 	),
-	// )
+	eng.SetRegistry( // 多注册中心
+		compound.New(
+			etcdv3.StdConfig("wh01").BuildRegistry(),
+		),
+	)
 
 	if err := eng.Run(); err != nil {
 		log.Fatal(err)

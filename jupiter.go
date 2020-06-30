@@ -250,7 +250,7 @@ func (app *Application) startServers() error {
 		s := s
 		eg.Go(func() (err error) {
 			_ = app.registerer.RegisterService(context.TODO(), s.Info())
-			defer app.registerer.DeregisterService(context.TODO(), s.Info())
+			defer app.registerer.UnregisterService(context.TODO(), s.Info())
 			app.logger.Info("start servers", xlog.FieldMod(ecode.ModApp), xlog.FieldAddr(s.Info().Label()), xlog.Any("scheme", s.Info().Scheme))
 			defer app.logger.Info("exit server", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err), xlog.FieldAddr(s.Info().Label()))
 			return s.Serve()

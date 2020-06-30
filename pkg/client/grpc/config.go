@@ -37,7 +37,6 @@ type Config struct {
 	KeepAlive    *keepalive.ClientParameters
 	logger       *xlog.Logger
 	dialOptions  []grpc.DialOption
-	// resolver     resolver.Builder
 
 	Debug         bool
 	DisableTrace  bool
@@ -51,7 +50,7 @@ func DefaultConfig() *Config {
 			grpc.WithInsecure(),
 		},
 		logger:       xlog.JupiterLogger.With(xlog.FieldMod(ecode.ModClientGrpc)),
-		BalancerName: roundrobin.Name, // roundrobin by default
+		BalancerName: roundrobin.Name, // round robin by default
 		DialTimeout:  time.Second * 3,
 		OnDialError:  "panic",
 	}

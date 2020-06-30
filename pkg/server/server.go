@@ -19,24 +19,28 @@ import (
 	"fmt"
 )
 
-// ServiceInfo ...
+// ServiceConfigurator represents service configurator
+type ServiceConfigurator struct {
+	Routes []Route
+}
+
+// ServiceInfo represents service info
 type ServiceInfo struct {
-	Name      string
-	Scheme    string
-	IP        string
-	Port      int
-	Weight    float64
-	Enable    bool
-	Healthy   bool
-	Metadata  map[string]string
-	Region    string
-	Zone      string
-	GroupName string
+	Name       string            `json:"name"`
+	Scheme     string            `json:"scheme"`
+	Address    string            `json:"address" toml:"address"`
+	Weight     float64           `json:"weight"`
+	Enable     bool              `json:"enable"`
+	Healthy    bool              `json:"healthy"`
+	Metadata   map[string]string `json:"metadata"`
+	Region     string            `json:"region"`
+	Zone       string            `json:"zone"`
+	Deployment string            `json:"deployment"`
 }
 
 // Label ...
 func (si ServiceInfo) Label() string {
-	return fmt.Sprintf("%s://%s:%d", si.Scheme, si.IP, si.Port)
+	return fmt.Sprintf("%s://%s", si.Scheme, si.Address)
 }
 
 // Server ...
@@ -45,4 +49,18 @@ type Server interface {
 	Stop() error
 	GracefulStop(ctx context.Context) error
 	Info() *ServiceInfo
+}
+
+// Route ...
+type Route struct {
+	// 权重组，按照
+	WeightGroups []WeightGroup
+	// 方法名
+	Method string
+}
+
+// WeightGroup ...
+type WeightGroup struct {
+	Group  string
+	Weight int
 }
