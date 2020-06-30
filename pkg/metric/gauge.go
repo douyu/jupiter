@@ -30,6 +30,15 @@ func (opts GaugeVecOpts) Build() *gaugeVec {
 	}
 }
 
+func NewGaugeVec(name string, labels []string) *gaugeVec {
+	return GaugeVecOpts{
+		Namespace: DefaultNamespace,
+		Name:      name,
+		Help: name,
+		Labels:    labels,
+	}.Build()
+}
+
 // Inc ...
 func (gv *gaugeVec) Inc(labels ...string) {
 	gv.WithLabelValues(labels...).Inc()

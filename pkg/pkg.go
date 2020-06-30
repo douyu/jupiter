@@ -9,6 +9,9 @@ import (
 	"github.com/douyu/jupiter/pkg/util/xcolor"
 )
 
+/*
+
+ */
 var (
 	appName          string
 	hostName         string
@@ -58,6 +61,10 @@ func Region() string {
 // Zone ...
 func Zone() string {
 	return zone
+}
+
+func BuildVersion() string {
+	return buildVersion
 }
 
 // PrintVersion ...

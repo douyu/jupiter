@@ -28,6 +28,15 @@ func (opts CounterVecOpts) Build() *counterVec {
 	}
 }
 
+func NewCounterVec(name string, labels []string) *counterVec {
+	return CounterVecOpts{
+		Namespace: DefaultNamespace,
+		Name:      name,
+		Help: name,
+		Labels:    labels,
+	}.Build()
+}
+
 type counterVec struct {
 	*prometheus.CounterVec
 }

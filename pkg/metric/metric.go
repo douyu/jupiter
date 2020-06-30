@@ -16,7 +16,9 @@ package metric
 
 import (
 	"net/http"
+	"time"
 
+	"github.com/douyu/jupiter/pkg"
 	"github.com/douyu/jupiter/pkg/govern"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
@@ -32,6 +34,10 @@ var (
 	TypeRedis = "redis"
 	// TypeRocketMQ ...
 	TypeRocketMQ = "rocketmq"
+	// TypeWebsocket ...
+	TypeWebsocket = "ws"
+	// TypeMySQL
+	TypeMySQL = "mysql"
 
 	// CodeJob
 	CodeJobSuccess = "ok"
@@ -92,15 +98,52 @@ var (
 		Labels:    []string{"type", "name"},
 	}.Build()
 
+	// CacheHandleCounter ...
+	CacheHandleCounter = CounterVecOpts{
+		Namespace: DefaultNamespace,
+		Name:      "cache_handle_total",
+		Labels:    []string{"type", "name", "action", "code"},
+	}.Build()
+
+	// CacheHandleHistogram ...
+	CacheHandleHistogram = HistogramVecOpts{
+		Namespace: DefaultNamespace,
+		Name:      "cache_handle_seconds",
+		Labels:    []string{"type", "name", "action"},
+	}.Build()
+
+	// LibHandleCounter ...
+	LibHandleCounter = CounterVecOpts{
+		Namespace: DefaultNamespace,
+		Name:      "cache_handle_total",
+		Labels:    []string{"type", "name", "action", "code"},
+	}.Build()
+
+	// LibHandleHistogram ...
+	LibHandleHistogram = HistogramVecOpts{
+		Namespace: DefaultNamespace,
+		Name:      "cache_handle_seconds",
+		Labels:    []string{"type", "name", "action"},
+	}.Build()
+
 	// BuildInfoGauge ...
 	BuildInfoGauge = GaugeVecOpts{
 		Namespace: DefaultNamespace,
 		Name:      "build_info",
-		Labels:    []string{"name", "id", "env", "zone", "region", "version"},
+		Labels:    []string{"name", "env", "region", "zone", "version"},
 	}.Build()
 )
 
 func init() {
+	BuildInfoGauge.Set(
+		float64(time.Now().UnixNano()/1e6),
+		pkg.Name(),
+		"unknown",
+		pkg.Region(),
+		pkg.Zone(),
+		pkg.BuildVersion(),
+	)
+
 	govern.HandleFunc("/metrics", func(w http.ResponseWriter, r *http.Request) {
 		promhttp.Handler().ServeHTTP(w, r)
 	})
