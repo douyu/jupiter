@@ -13,30 +13,12 @@
 // limitations under the License.
 
 
-// +build linux
+package constant
 
-package rotate_test
+const (
+	// KeyRouteConfig ...
+	KeyRouteConfig = "_route_config_"
 
-import (
-	"log"
-	"os"
-	"os/signal"
-	"syscall"
-
-	"github.com/douyu/jupiter/pkg/xlog/rotate"
+	// KeyRouteGroup ...
+	KeyRouteGroup = "_route_group_"
 )
-
-// Example of how to rotate in response to SIGHUP.
-func ExampleLogger_Rotate() {
-	l := &rotate.Logger{}
-	log.SetOutput(l)
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, syscall.SIGHUP)
-
-	go func() {
-		for {
-			<-c
-			l.Rotate()
-		}
-	}()
-}

@@ -12,14 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+
 package balancer
 
 import (
 	"errors"
-	"fmt"
 	"sync"
 
-	"github.com/douyu/jupiter/pkg/util/xrand"
+	"github.com/douyu/jupiter/pkg/constant"
+	"github.com/douyu/jupiter/pkg/registry"
 	"github.com/smallnest/weighted"
 	"google.golang.org/grpc/attributes"
 	"google.golang.org/grpc/balancer"
@@ -31,94 +32,112 @@ const (
 	NameSmoothWeightRoundRobin = "swr"
 )
 
-func newGWRBuilder(policy string) balancer.Builder {
-	return base.NewBalancerBuilderV2(policy, &groupPickerBuilder{}, base.Config{HealthCheck: true})
+// PickerBuildInfo ...
+type PickerBuildInfo struct {
+	// ReadySCs is a map from all ready SubConns to the Addresses used to
+	// create them.
+	ReadySCs map[balancer.SubConn]base.SubConnInfo
+	*attributes.Attributes
+}
+
+// PickerBuilder ...
+type PickerBuilder interface {
+	Build(info PickerBuildInfo) balancer.V2Picker
 }
 
 func init() {
-	balancer.Register(newGWRBuilder(NameSmoothWeightRoundRobin))
+	balancer.Register(
+		NewBalancerBuilderV2(NameSmoothWeightRoundRobin, &swrPickerBuilder{}, base.Config{HealthCheck: true}),
+	)
 }
 
-type groupPickerBuilder struct {
-	policy string
-}
+type swrPickerBuilder struct{}
 
 // Build ...
-func (gpb *groupPickerBuilder) Build(info base.PickerBuildInfo) balancer.V2Picker {
-	if len(info.ReadySCs) == 0 {
-		return base.NewErrPickerV2(balancer.ErrNoSubConnAvailable)
-	}
-
-	return newWeightPicker(info.ReadySCs)
+func (s swrPickerBuilder) Build(info PickerBuildInfo) balancer.V2Picker {
+	return newSWRPicker(info)
 }
 
-type weightGroup struct {
-	name    string
-	buckets *weighted.RandW
+type swrPicker struct {
+	readySCs map[balancer.SubConn]base.SubConnInfo
+	mu       sync.Mutex
+	next     int
+	buckets  *weighted.SW
+	*attributes.Attributes
+	routeBuckets map[string]*weighted.SW
 }
 
-type weightPicker struct {
-	mu      sync.Mutex
-	next    int
-	buckets *weighted.SW
-}
-
-func newWeightPicker(readySCs map[balancer.SubConn]base.SubConnInfo) *weightPicker {
-	wp := &weightPicker{
-		next:    xrand.Intn(len(readySCs)),
-		buckets: &weighted.SW{},
+func newSWRPicker(info PickerBuildInfo) *swrPicker {
+	picker := &swrPicker{
+		buckets:      &weighted.SW{},
+		readySCs:     info.ReadySCs,
+		routeBuckets: map[string]*weighted.SW{},
 	}
-	/*
-		if group name is provided by client, check all ready sub connection:
-		1. if these is no attribute, drop  it
-		2. if no group info in attribute, drop it
-		3. if no weight info in attribute, drop it
-		if no group name provided, degrade to round_robin balance
-	*/
-	var groups map[string]*attributes.Attributes
-	for subConn, info := range readySCs {
-		attributes := info.Address.Attributes
-		if attributes == nil {
-			continue
-		}
-
-		config, ok := attributes.Value("meta").(*Config)
-		if !ok {
-			continue
-		}
-
-		if config.Group == "" || !config.Enable {
-			continue
-		}
-
-	}
-
-	for group, attributes := range groups {
-		fmt.Printf("group = %+v\n", group)
-		wp.buckets.Add(attributes, weight)
-	}
-
-	return wp
+	picker.parseBuildInfo(info)
+	return picker
 }
 
 // Pick ...
-func (p *weightPicker) Pick(opts balancer.PickInfo) (balancer.PickResult, error) {
+func (p *swrPicker) Pick(info balancer.PickInfo) (balancer.PickResult, error) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	sub, ok := p.bucket.Next().(balancer.SubConn)
+	var buckets = p.buckets
+	if bs, ok := p.routeBuckets[info.FullMethodName]; ok {
+		// 根据URI进行流量分组路由
+		buckets = bs
+	}
+
+	sub, ok := buckets.Next().(balancer.SubConn)
 	if ok {
-		return balancer.PickResult{
-			SubConn: sub,
-		}, nil
+		return balancer.PickResult{SubConn: sub}, nil
 	}
 
 	return balancer.PickResult{}, errors.New("pick failed")
 }
 
-// Config ...
-type Config struct {
-	Group  string
-	Weight int
-	Enable bool
+func (p *swrPicker) parseBuildInfo(info PickerBuildInfo) {
+	var hostedSubConns = map[string]balancer.SubConn{}
+	var groupedSubConns = map[string][]balancer.SubConn{}
+
+	for subConn, info := range info.ReadySCs {
+		p.buckets.Add(subConn, 1)
+		if info.Address.Attributes != nil {
+			if group, ok := info.Address.Attributes.Value(constant.KeyRouteGroup).(string); ok {
+				if _, ok := groupedSubConns[group]; !ok {
+					groupedSubConns[group] = make([]balancer.SubConn, 0)
+				}
+				groupedSubConns[group] = append(groupedSubConns[group], subConn)
+			}
+		}
+		host := info.Address.Addr
+		hostedSubConns[host] = subConn
+		p.buckets.Add(subConn, 1)
+	}
+
+	if info.Attributes == nil {
+		return
+	}
+
+	if configs, ok := info.Attributes.Value(constant.KeyRouteConfig).(map[string]registry.RouteConfig); ok {
+		for _, config := range configs {
+			if _, ok := p.routeBuckets[config.URI]; !ok {
+				p.routeBuckets[config.URI] = &weighted.SW{}
+			}
+
+			for node, weight := range config.Upstream.Nodes {
+				if sConn, ok := hostedSubConns[node]; ok {
+					p.routeBuckets[config.URI].Add(sConn, weight)
+				}
+			}
+
+			for group, weight := range config.Upstream.Groups {
+				if sConns, ok := groupedSubConns[group]; ok {
+					for _, sConn := range sConns {
+						p.routeBuckets[config.URI].Add(sConn, weight)
+					}
+				}
+			}
+		}
+	}
 }

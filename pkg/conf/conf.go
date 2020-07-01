@@ -106,9 +106,9 @@ func (c *Configuration) LoadFromDataSource(ds DataSource, unmarshaller Unmarshal
 }
 
 // Load ...
-func (c *Configuration) Load(content []byte, unmarshaller Unmarshaller) error {
+func (c *Configuration) Load(content []byte, unmarshal Unmarshaller) error {
 	configuration := make(map[string]interface{})
-	if err := unmarshaller(content, &configuration); err != nil {
+	if err := unmarshal(content, &configuration); err != nil {
 		return err
 	}
 	return c.apply(configuration)

@@ -84,8 +84,7 @@ func (s *Server) Info() *server.ServiceInfo {
 	return &server.ServiceInfo{
 		Name:       pkg.Name(),
 		Scheme:     "http",
-		IP:         s.config.Host,
-		Port:       s.config.Port,
+		Address:    s.listener.Addr().String(),
 		Weight:     0.0,
 		Enable:     false,
 		Healthy:    false,

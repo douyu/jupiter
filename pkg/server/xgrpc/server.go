@@ -87,8 +87,7 @@ func (s *Server) Info() *server.ServiceInfo {
 	return &server.ServiceInfo{
 		Name:       pkg.Name(),
 		Scheme:     "grpc",
-		IP:         s.Host,
-		Port:       s.Port,
+		Address:    s.Address(),
 		Weight:     0.0,
 		Enable:     true,
 		Healthy:    true,

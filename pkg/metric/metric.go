@@ -36,7 +36,8 @@ var (
 	TypeRocketMQ = "rocketmq"
 	// TypeWebsocket ...
 	TypeWebsocket = "ws"
-	// TypeMySQL
+
+	// TypeMySQL ...
 	TypeMySQL = "mysql"
 
 	// CodeJob
@@ -115,14 +116,14 @@ var (
 	// LibHandleCounter ...
 	LibHandleCounter = CounterVecOpts{
 		Namespace: DefaultNamespace,
-		Name:      "cache_handle_total",
+		Name:      "lib_handle_total",
 		Labels:    []string{"type", "name", "action", "code"},
 	}.Build()
 
 	// LibHandleHistogram ...
 	LibHandleHistogram = HistogramVecOpts{
 		Namespace: DefaultNamespace,
-		Name:      "cache_handle_seconds",
+		Name:      "lib_handle_seconds",
 		Labels:    []string{"type", "name", "action"},
 	}.Build()
 

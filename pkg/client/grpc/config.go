@@ -17,9 +17,8 @@ package grpc
 import (
 	"time"
 
-	"github.com/douyu/jupiter/pkg/ecode"
-
 	"github.com/douyu/jupiter/pkg/conf"
+	"github.com/douyu/jupiter/pkg/ecode"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/balancer/roundrobin"
@@ -98,6 +97,5 @@ func (config *Config) Build() *grpc.ClientConn {
 		)
 	}
 
-	client := newGRPCClient(*config)
-	return client
+	return newGRPCClient(config)
 }
