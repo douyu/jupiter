@@ -120,6 +120,8 @@ func (config *Config) Build(options ...jconfig.Option) opentracing.Tracer {
 			xlog.Error("new jaeger", xlog.FieldMod("jaeger"), xlog.FieldErr(err))
 		}
 	}
-	defers.Register(closer.Close)
+	defers.Register(func() {
+		_ = closer.Close()
+	})
 	return tracer
 }

@@ -23,12 +23,12 @@ import (
 )
 
 var (
-	globalDefers = make([]func() error, 0)
+	globalDefers = make([]func(), 0)
 	mu           = sync.RWMutex{}
 )
 
 // Register 注册一个defer函数
-func Register(fns ...func() error) {
+func Register(fns ...func()) {
 	mu.Lock()
 	defer mu.Unlock()
 

@@ -110,7 +110,9 @@ func newLogger(config *Config) *Logger {
 		var close CloseFunc
 		ws, close = Buffer(ws, defaultBufferSize, defaultFlushInterval)
 
-		defers.Register(close)
+		defers.Register(func(){
+			_ = close()
+		})
 	}
 
 	lv := zap.NewAtomicLevelAt(zapcore.InfoLevel)
