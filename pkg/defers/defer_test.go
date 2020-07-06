@@ -3,6 +3,7 @@ package defers
 import (
 	"testing"
 
+	"github.com/douyu/jupiter/pkg/util/xdefer"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -38,12 +39,13 @@ func TestRegister(t *testing.T) {
 
 func TestClean(t *testing.T) {
 	var str string
-	globalDefers = []func() error{
+	globalDefers = xdefer.NewStack()
+	globalDefers.Push(
 		func() error { str += "1,"; return nil },
 		func() error { str += "2,"; return nil },
 		func() error { str += "3,"; return nil },
 		func() error { str += "4,"; return nil },
-	}
+	)
 
 	tests := []struct {
 		name string
