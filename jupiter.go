@@ -39,6 +39,7 @@ import (
 	"github.com/douyu/jupiter/pkg/util/xcolor"
 	"github.com/douyu/jupiter/pkg/util/xgo"
 	"github.com/douyu/jupiter/pkg/util/xstring"
+	"github.com/douyu/jupiter/pkg/util/xwaitgroup"
 	"github.com/douyu/jupiter/pkg/worker"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"go.uber.org/automaxprocs/maxprocs"
@@ -61,7 +62,8 @@ type Application struct {
 	signalHooker func(*Application)
 	defers       []func() error
 
-	governor *http.Server
+	governor  *http.Server
+	waitGroup xwaitgroup.XWaitGroup
 }
 
 // initialize application
@@ -141,31 +143,56 @@ func (app *Application) SetGovernor(addr string) {
 	}
 }
 
-// Run run application
-func (app *Application) Run() error {
-	defer app.clean()
-	if app.signalHooker == nil {
-		app.signalHooker = hookSignals
-	}
+func (app *Application) run() error {
 	if app.governor == nil {
 		app.governor = &http.Server{
 			Handler: govern.DefaultServeMux,
 			Addr:    "127.0.0.1:9990", // 默认治理端口
 		}
 	}
-
 	if app.registerer == nil {
 		app.registerer = registry.Nop{}
 	}
-
-	app.signalHooker(app)
-
+	var err error
+	exitCh := make(chan error)
 	// start govern
-	var eg errgroup.Group
-	eg.Go(app.startGovernor)
-	eg.Go(app.startServers)
-	eg.Go(app.startWorkers)
-	return eg.Wait()
+	app.waitGroup.Wrap(func() {
+		if err = app.startGovernor(); err != nil {
+			exitCh <- err
+		}
+	})
+	app.waitGroup.Wrap(func() {
+		if err = app.startServers(); err != nil {
+			exitCh <- err
+		}
+	})
+
+	app.waitGroup.Wrap(func() {
+		if err = app.startWorkers(); err != nil {
+			exitCh <- err
+		}
+	})
+
+	err = <-exitCh
+	return err
+}
+
+// Run run application
+func (app *Application) Run() error {
+	defer app.clean()
+	if app.signalHooker == nil {
+		app.signalHooker = hookSignals
+	}
+
+	go func() {
+		err := app.run()
+		if err != nil {
+			app.Stop()
+			os.Exit(1)
+		}
+	}()
+	app.signalHooker(app)
+	return nil
 }
 
 // Stop application immediately after necessary cleanup
@@ -191,6 +218,7 @@ func (app *Application) Stop() (err error) {
 		}
 		err = eg.Wait()
 	})
+	app.waitGroup.Wait()
 	return
 }
 
@@ -218,7 +246,8 @@ func (app *Application) GracefulStop(ctx context.Context) (err error) {
 		}
 		err = eg.Wait()
 	})
-	return err
+	app.waitGroup.Wait()
+	return
 }
 
 func (app *Application) beforeStop() {

@@ -21,7 +21,6 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 )
 
 func hookSignals(app *Application) {
@@ -38,17 +37,14 @@ func hookSignals(app *Application) {
 		syscall.SIGKILL,
 	)
 
-	go func() {
-		var sig os.Signal
-		for {
-			sig = <-sigChan
-			switch sig {
-			case syscall.SIGQUIT:
-				_ = app.GracefulStop(context.TODO()) // graceful stop
-			case syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL, syscall.SIGSTOP:
-				_ = app.Stop() // terminate now
-			}
-			time.Sleep(time.Second * 3)
-		}
-	}()
+	var sig os.Signal
+
+	sig = <-sigChan
+	switch sig {
+	case syscall.SIGQUIT:
+		_ = app.GracefulStop(context.TODO()) // graceful stop
+	case syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL, syscall.SIGSTOP:
+		_ = app.Stop() // terminate now
+	}
+
 }
