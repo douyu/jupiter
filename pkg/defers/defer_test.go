@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 package defers
 
 import (
@@ -24,7 +23,7 @@ import (
 func TestRegister(t *testing.T) {
 	var str string
 	type args struct {
-		fns []func() error
+		fns []func()
 	}
 	tests := []struct {
 		name string
@@ -34,11 +33,11 @@ func TestRegister(t *testing.T) {
 		{
 			name: "register",
 			args: args{
-				fns: []func() error{
-					func() error { str += "1,"; return nil },
-					func() error { str += "2,"; return nil },
-					func() error { str += "3,"; return nil },
-					func() error { str += "4,"; return nil },
+				fns: []func(){
+					func() { str += "1," },
+					func() { str += "2," },
+					func() { str += "3," },
+					func() { str += "4," },
 					nil,
 				},
 			},
@@ -53,11 +52,11 @@ func TestRegister(t *testing.T) {
 
 func TestClean(t *testing.T) {
 	var str string
-	globalDefers = []func() error{
-		func() error { str += "1,"; return nil },
-		func() error { str += "2,"; return nil },
-		func() error { str += "3,"; return nil },
-		func() error { str += "4,"; return nil },
+	globalDefers = []func(){
+		func() { str += "1," },
+		func() { str += "2," },
+		func() { str += "3," },
+		func() { str += "4," },
 	}
 
 	tests := []struct {
