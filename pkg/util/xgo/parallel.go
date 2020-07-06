@@ -74,6 +74,10 @@ func RestrictParallelWithErrorChan(concurrency int, fns ...func() error) chan er
 
 	errs := make(chan error, total)
 	sem := make(chan struct{}, concurrency)
+	for i := 0; i < cap(sem); i++ {
+		sem <- struct{}{}
+	}
+
 	go func(sem chan struct{}, errs chan error) {
 		wg.Wait()
 		close(errs)
@@ -87,10 +91,6 @@ func RestrictParallelWithErrorChan(concurrency int, fns ...func() error) chan er
 			errs <- try(fn, nil)
 			sem <- struct{}{}
 		}(fn, sem, errs)
-	}
-
-	for i := 0; i < cap(sem); i++ {
-		sem <- struct{}{}
 	}
 
 	return errs

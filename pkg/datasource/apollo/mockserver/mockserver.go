@@ -28,6 +28,7 @@ type mockServer struct {
 	config        map[string]map[string]string
 }
 
+// NotificationHandler ...
 func (s *mockServer) NotificationHandler(rw http.ResponseWriter, req *http.Request) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
@@ -56,6 +57,7 @@ func (s *mockServer) NotificationHandler(rw http.ResponseWriter, req *http.Reque
 	rw.Write(bts)
 }
 
+// ConfigHandler ...
 func (s *mockServer) ConfigHandler(rw http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
 
@@ -74,6 +76,7 @@ func (s *mockServer) ConfigHandler(rw http.ResponseWriter, req *http.Request) {
 
 var server *mockServer
 
+// Set ...
 func (s *mockServer) Set(namespace, key, value string) {
 	server.lock.Lock()
 	defer server.lock.Unlock()
@@ -90,6 +93,7 @@ func (s *mockServer) Set(namespace, key, value string) {
 	s.config[namespace] = kv
 }
 
+// Get ...
 func (s *mockServer) Get(namespace string) map[string]string {
 	server.lock.Lock()
 	defer server.lock.Unlock()
@@ -101,6 +105,7 @@ func (s *mockServer) Get(namespace string) map[string]string {
 	return retM
 }
 
+// Delete ...
 func (s *mockServer) Delete(namespace, key string) {
 	server.lock.Lock()
 	defer server.lock.Unlock()
