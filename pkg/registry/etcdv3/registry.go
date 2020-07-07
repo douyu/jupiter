@@ -280,6 +280,30 @@ func updateAddrList(al *registry.Endpoints, prefix, scheme string, kvs ...*mvccp
 				routeConfig.Host = uri.Host
 				al.RouteConfigs[uri.String()] = routeConfig
 			}
+
+			if strings.HasPrefix(uri.Path, "/providers/") {
+				var providerConfig registry.ProviderConfig
+				if err := json.Unmarshal(kv.Value, &providerConfig); err != nil {
+					xlog.Error("parse uri", xlog.FieldErrKind(ecode.ErrKindUriErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)))
+					continue
+				}
+				providerConfig.ID = strings.TrimPrefix(uri.Path, "/providers/")
+				providerConfig.Scheme = uri.Scheme
+				providerConfig.Host = uri.Host
+				al.ProviderConfigs[uri.String()] = providerConfig
+			}
+
+			if strings.HasPrefix(uri.Path, "/consumers/") {
+				var consumerConfig registry.ConsumerConfig
+				if err := json.Unmarshal(kv.Value, &consumerConfig); err != nil {
+					xlog.Error("parse uri", xlog.FieldErrKind(ecode.ErrKindUriErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)))
+					continue
+				}
+				consumerConfig.ID = strings.TrimPrefix(uri.Path, "/consumers/")
+				consumerConfig.Scheme = uri.Scheme
+				consumerConfig.Host = uri.Host
+				al.ConsumerConfigs[uri.String()] = consumerConfig
+			}
 		}
 	}
 }
@@ -291,31 +315,42 @@ func isIPPort(addr string) bool {
 
 /*
 key: /jupiter/main/configurator/grpc:///routes/1
-val: {
-"upstream": { // 客户端配置
-"nodes": { // 按照node负载均衡
-"127.0.0.1:1980": 1
-},
-"group": { // 按照group负载均衡
-"red": 1,
-"green": 2
-}
-},
-"uri": "/hello",
-"deployment": "open_api"
-}
-key: /jupiter/main/configurator/grpc://127.0.0.1/routes/2
-val: {
+val:
+{
 	"upstream": { // 客户端配置
 		"nodes": { // 按照node负载均衡
-		"127.0.0.1:1980": 1
+			"127.0.0.1:1980": 1,
+			"127.0.0.1:1981": 4
+		},
+		"group": { // 按照group负载均衡
+			"red": 2,
+			"green": 1
+		}
 	},
-	"group": { // 按照group负载均衡
-		"red": 1,
-		"green": 2
-	}
-},
-"uri": "/hello",
-"deployment": "core_api" // 部署组
+	"uri": "/hello",
+	"deployment": "open_api"
+}
+
+key: /jupiter/main/configurator/grpc://127.0.0.1/routes/2
+val:
+{
+	"upstream": { // 客户端配置
+		"nodes": { // 按照node负载均衡
+			"127.0.0.1:1980": 1,
+			"127.0.0.1:1981": 1
+		},
+		"group": { // 按照group负载均衡
+			"red": 1,
+			"green": 2
+		}
+	},
+	"uri": "/hello",
+	"deployment": "core_api" // 部署组
+}
+
+key: /jupiter/main/configurator/grpc:///consumers/client-demo
+val:
+{
+
 }
 */

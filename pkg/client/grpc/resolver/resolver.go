@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 package resolver
 
 import (
@@ -51,22 +50,20 @@ func (b *baseBuilder) Build(target resolver.Target, cc resolver.ClientConn, opts
 			select {
 			case endpoint := <-endpoints:
 				var state = resolver.State{
-					Addresses:  make([]resolver.Address, 0),
-					Attributes: attributes.New(constant.KeyRouteConfig, endpoint.RouteConfigs),
+					Addresses: make([]resolver.Address, 0),
+					Attributes: attributes.New(
+						constant.KeyRouteConfig, endpoint.RouteConfigs, // 路由配置
+						constant.KeyProviderConfig, endpoint.ProviderConfig, // 服务提供方元信息
+						constant.KeyConsumerConfig, endpoint.ConsumerConfigs, // 服务消费方配置信息
+					),
 				}
 				for _, node := range endpoint.Nodes {
 					var address resolver.Address
 					address.Addr = node.Address
 					address.ServerName = target.Endpoint
+					address.Attributes = attributes.New(constant.KeyServiceInfo, node)
 					state.Addresses = append(state.Addresses, address)
 				}
-				// for _, rc := range endpoint.RouteConfigs {
-				// 	if rc.Host == "" { // 对所有路由
-				//
-				// 	}
-				// }
-				// fmt.Printf("state = %+v\n", state)
-				// fmt.Printf("endpoint.RouteConfigs = %+v\n", endpoint.RouteConfigs)
 				cc.UpdateState(state)
 			case <-stop:
 				return

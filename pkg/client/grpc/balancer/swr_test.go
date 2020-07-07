@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 package balancer
 
 import (
@@ -41,30 +40,45 @@ var weightNodes = map[string]int{
 	"127.0.0.1:9099": 9,
 }
 
-var groupedNodes = map[string]int {
-	"red": 1,
+var groupedNodes = map[string]int{
+	"red":   1,
 	"green": 2,
 }
 
+// func Test_swrPicker_parseBuildInfo(t *testing.T) {
+// 	buildInfo := PickerBuildInfo{
+// 		ReadySCs: map[balancer.SubConn]base.SubConnInfo{},
+// 		Attributes: attributes.New(
+// 			constant.KeyRouteConfig,
+// 			map[string]registry.RouteConfig{
+// 				"/routes/1": {URI: "/hello", Upstream: registry.Upstream{}},
+// 				"/routes/2": {URI: "/ping", Upstream: registry.Upstream{}},
+// 				"/routes/3": {Upstream: registry.Upstream{}},
+// 			},
+// 		),
+// 	}
+// 	picker := newSWRPicker(buildInfo)
+// }
+
 func Test_swrPicker(t *testing.T) {
-	buildInfo:=PickerBuildInfo{
-		ReadySCs:   map[balancer.SubConn]base.SubConnInfo{},
+	buildInfo := PickerBuildInfo{
+		ReadySCs: map[balancer.SubConn]base.SubConnInfo{},
 	}
 
-	t.Run("with node upstream attributes", func(t *testing.T){
+	t.Run("with node upstream attributes", func(t *testing.T) {
 		buildInfo.Attributes = attributes.New(
 			constant.KeyRouteConfig,
 			map[string]registry.RouteConfig{
 				"/routes/1": {
-					URI:        "/hello",
-					Upstream:   registry.Upstream{ Nodes:  weightNodes },
+					URI:      "/hello",
+					Upstream: registry.Upstream{Nodes: weightNodes},
 				},
 			},
 		)
 
 		t.Run("pick first", func(t *testing.T) {
 			address := "127.0.0.1:9091"
-			subConn := &mockSubConn{addr:address}
+			subConn := &mockSubConn{addr: address}
 			buildInfo.ReadySCs[subConn] = base.SubConnInfo{
 				Address: resolver.Address{
 					Addr:       address,
@@ -79,10 +93,10 @@ func Test_swrPicker(t *testing.T) {
 			assert.NotNil(t, result)
 		})
 
-		t. Run("weight pick", func(t *testing.T) {
+		t.Run("weight pick", func(t *testing.T) {
 			buildInfo.ReadySCs = map[balancer.SubConn]base.SubConnInfo{}
 			for addr := range weightNodes {
-				subConn := &mockSubConn{addr:addr}
+				subConn := &mockSubConn{addr: addr}
 				buildInfo.ReadySCs[subConn] = base.SubConnInfo{
 					Address: resolver.Address{
 						Addr:       addr,
@@ -93,7 +107,7 @@ func Test_swrPicker(t *testing.T) {
 			var picker = newSWRPicker(buildInfo)
 			t.Run("grouped route", func(t *testing.T) {
 				var nodeCount = map[string]int{}
-				for i:=0;i<45;i++{
+				for i := 0; i < 45; i++ {
 					result, err := picker.Pick(balancer.PickInfo{
 						FullMethodName: "/hello",
 						Ctx:            context.Background(),
@@ -105,7 +119,7 @@ func Test_swrPicker(t *testing.T) {
 				assert.Equal(t, nodeCount, weightNodes)
 			})
 			t.Run("ungrouped route", func(t *testing.T) {
-				for i:=0;i<45;i++{
+				for i := 0; i < 45; i++ {
 					result, err := picker.Pick(balancer.PickInfo{
 						FullMethodName: "/ungrouped_route",
 						Ctx:            context.Background(),
@@ -117,11 +131,11 @@ func Test_swrPicker(t *testing.T) {
 		})
 	})
 
-	t.Run("no attributes", func(t *testing.T){
+	t.Run("no attributes", func(t *testing.T) {
 		buildInfo.Attributes = nil
 		t.Run("pick first", func(t *testing.T) {
 			address := "127.0.0.1:9091"
-			subConn := &mockSubConn{addr:address}
+			subConn := &mockSubConn{addr: address}
 			buildInfo.ReadySCs[subConn] = base.SubConnInfo{
 				Address: resolver.Address{
 					Addr:       address,

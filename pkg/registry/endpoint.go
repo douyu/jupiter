@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 package registry
 
 import (
@@ -28,6 +27,34 @@ type Endpoints struct {
 
 	// 路由配置
 	RouteConfigs map[string]RouteConfig
+
+	// 消费者元数据
+	ConsumerConfigs map[string]ConsumerConfig
+
+	// 服务元信息
+	ProviderConfigs map[string]ProviderConfig
+}
+
+// ProviderConfig config of provider
+// 通过这个配置，修改provider的属性
+type ProviderConfig struct {
+	ID     string `json:"id"`
+	Scheme string `json:"scheme"`
+	Host   string `json:"host"`
+
+	Region     string            `json:"region"`
+	Zone       string            `json:"zone"`
+	Deployment string            `json:"deployment"`
+	Metadata   map[string]string `json:"metadata"`
+	Enable     bool              `json:"enable"`
+}
+
+// ConsumerConfig config of consumer
+// 客户端调用app的配置
+type ConsumerConfig struct {
+	ID     string `json:"id"`
+	Scheme string `json:"scheme"`
+	Host   string `json:"host"`
 }
 
 // RouteConfig ...
@@ -47,7 +74,7 @@ func (config RouteConfig) String() string {
 	return string(bs)
 }
 
-// Upstream ...
+// Upstream represents upstream balancing config
 type Upstream struct {
 	Nodes  map[string]int `json:"nodes"`
 	Groups map[string]int `json:"groups"`

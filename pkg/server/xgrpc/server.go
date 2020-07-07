@@ -88,7 +88,6 @@ func (s *Server) Info() *server.ServiceInfo {
 		Name:       pkg.Name(),
 		Scheme:     "grpc",
 		Address:    s.Address(),
-		Weight:     0.0,
 		Enable:     true,
 		Healthy:    true,
 		Metadata:   map[string]string{},

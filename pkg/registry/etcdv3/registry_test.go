@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 package etcdv3
 
 import (
@@ -35,17 +34,16 @@ func Test_etcdv3Registry(t *testing.T) {
 		Config:      etcdConfig,
 		ReadTimeout: time.Second * 10,
 		Prefix:      "jupiter",
-		logger: xlog.DefaultLogger,
+		logger:      xlog.DefaultLogger,
 	})
 
 	assert.Nil(t, registry.RegisterService(context.Background(), &server.ServiceInfo{
 		Name:       "service_1",
 		Scheme:     "grpc",
-		Address:         "10.10.10.1:9091",
-		Weight:     40,
+		Address:    "10.10.10.1:9091",
 		Enable:     true,
 		Healthy:    true,
-		Metadata: map[string]string{},
+		Metadata:   map[string]string{},
 		Region:     "default",
 		Zone:       "default",
 		Deployment: "default",
@@ -61,11 +59,10 @@ func Test_etcdv3Registry(t *testing.T) {
 		si := &server.ServiceInfo{
 			Name:       "service_1",
 			Scheme:     "grpc",
-			Weight:     40,
-			Address:         "10.10.10.1:9092",
+			Address:    "10.10.10.1:9092",
 			Enable:     true,
 			Healthy:    true,
-			Metadata: map[string]string{},
+			Metadata:   map[string]string{},
 			Region:     "default",
 			Zone:       "default",
 			Deployment: "default",
@@ -81,7 +78,7 @@ func Test_etcdv3Registry(t *testing.T) {
 		assert.Nil(t, err)
 		for msg := range endpoints {
 			t.Logf("watch service: %+v\n", msg)
-		// 	assert.Equal(t, "10.10.10.2:9092", msg)
+			// 	assert.Equal(t, "10.10.10.2:9092", msg)
 		}
 	}()
 
@@ -98,7 +95,7 @@ func Test_etcdv3registry_UpdateAddressList(t *testing.T) {
 		Config:      etcdConfig,
 		ReadTimeout: time.Second * 10,
 		Prefix:      "jupiter",
-		logger: xlog.DefaultLogger,
+		logger:      xlog.DefaultLogger,
 	})
 
 	var routeConfig = registry.RouteConfig{
@@ -107,16 +104,16 @@ func Test_etcdv3registry_UpdateAddressList(t *testing.T) {
 		Host:       "",
 		Deployment: "openapi",
 		URI:        "/hello",
-		Upstream:   registry.Upstream{
+		Upstream: registry.Upstream{
 			Nodes: map[string]int{
-				"10.10.10.1:9091":1,
-				"10.10.10.1:9092":10,
+				"10.10.10.1:9091": 1,
+				"10.10.10.1:9092": 10,
 			},
 		},
 	}
 	_, err := reg.client.Put(context.Background(), "/jupiter/service_1/configurators/grpc:///routes/1", routeConfig.String())
 	assert.Nil(t, err)
-	
+
 	services, err := reg.WatchServices(context.Background(), "service_1", "grpc")
 	assert.Nil(t, err)
 	fmt.Printf("len(services) = %+v\n", len(services))
@@ -124,4 +121,3 @@ func Test_etcdv3registry_UpdateAddressList(t *testing.T) {
 		fmt.Printf("service = %+v\n", service)
 	}
 }
-

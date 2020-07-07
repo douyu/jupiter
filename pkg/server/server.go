@@ -26,17 +26,20 @@ type ConfigInfo struct {
 
 // ServiceInfo represents service info
 type ServiceInfo struct {
-	Name       string              `json:"name"`
-	Scheme     string              `json:"scheme"`
-	Address    string              `json:"address" toml:"address"`
-	Weight     float64             `json:"weight"`
-	Enable     bool                `json:"enable"`
-	Healthy    bool                `json:"healthy"`
-	Metadata   map[string]string   `json:"metadata"`
-	Region     string              `json:"region"`
-	Zone       string              `json:"zone"`
-	Deployment string              `json:"deployment"`
-	Services   map[string]*Service `json:"services" toml:"services"`
+	Name     string            `json:"name"`
+	Scheme   string            `json:"scheme"`
+	Address  string            `json:"address" toml:"address"`
+	Enable   bool              `json:"enable"`
+	Healthy  bool              `json:"healthy"`
+	Metadata map[string]string `json:"metadata"`
+	Region   string            `json:"region"`
+	Zone     string            `json:"zone"`
+	// Deployment 部署组: 不同组的流量隔离
+	// 比如某些服务给内部调用和第三方调用，可以配置不同的deployment,进行流量隔离
+	Deployment string `json:"deployment"`
+	// Group 流量组: 流量在Group之间进行负载均衡
+	Group    string              `json:"group"`
+	Services map[string]*Service `json:"services" toml:"services"`
 }
 
 // Service ...
