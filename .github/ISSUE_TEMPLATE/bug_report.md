@@ -32,5 +32,18 @@ Type: *bug report*
 
 ### Tell us your environment
 
+#### What version of Go are you using (`go version`)?
+
+<pre>
+$ go version
+
+</pre>
+
+#### What operating system and processor architecture are you using (`go env`)?
+
+<details><summary><code>go env</code> Output</summary><br><pre>
+$ go env
+
+</pre></details>
 
 ### Anything else we need to know?
