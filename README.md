@@ -70,6 +70,6 @@ You can start with the issues labeled with good first issue.
 ## Contact
 
 - DingTalk: 
-    ![DingTalk](doc/dingtalk.png)
+   <img src="doc/dingtalk.png" width = "200" height = "200" alt="" align=center />
 - Wechat:
-    ![Wechat](doc/wechat.png)
+   <img src="doc/wechat.png" width = "200" height = "200" alt="" align=center />
