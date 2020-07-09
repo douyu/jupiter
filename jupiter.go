@@ -34,9 +34,11 @@ import (
 	"github.com/douyu/jupiter/pkg/registry"
 	"github.com/douyu/jupiter/pkg/sentinel"
 	"github.com/douyu/jupiter/pkg/server"
+	"github.com/douyu/jupiter/pkg/signals"
 	"github.com/douyu/jupiter/pkg/trace"
 	"github.com/douyu/jupiter/pkg/trace/jaeger"
 	"github.com/douyu/jupiter/pkg/util/xcolor"
+	"github.com/douyu/jupiter/pkg/util/xcycle"
 	"github.com/douyu/jupiter/pkg/util/xgo"
 	"github.com/douyu/jupiter/pkg/util/xstring"
 	"github.com/douyu/jupiter/pkg/worker"
@@ -57,11 +59,11 @@ type Application struct {
 	startupOnce sync.Once
 
 	registerer registry.Registry
-
-	signalHooker func(*Application)
-	defers       []func() error
+	defers     []func() error
 
 	governor *http.Server
+
+	cycle *xcycle.Cycle
 }
 
 // initialize application
@@ -70,8 +72,8 @@ func (app *Application) initialize() {
 		app.servers = make([]server.Server, 0)
 		app.workers = make([]worker.Worker, 0)
 		app.logger = xlog.JupiterLogger
-		app.signalHooker = hookSignals
 		app.defers = []func() error{}
+		app.cycle = xcycle.NewCycle()
 	})
 }
 
@@ -96,6 +98,7 @@ func (app *Application) startup() (err error) {
 	return
 }
 
+//Startup ..
 func (app *Application) Startup(fns ...func() error) error {
 	app.initialize()
 	if err := app.startup(); err != nil {
@@ -104,6 +107,7 @@ func (app *Application) Startup(fns ...func() error) error {
 	return xgo.SerialUntilError(fns...)()
 }
 
+// Defer ..
 func (app *Application) Defer(fns ...func() error) {
 	app.initialize()
 	if app.defers == nil {
@@ -112,11 +116,13 @@ func (app *Application) Defer(fns ...func() error) {
 	app.defers = append(app.defers, fns...)
 }
 
+// Serve start a server
 func (app *Application) Serve(s server.Server) error {
 	app.servers = append(app.servers, s)
 	return nil
 }
 
+// Schedule ..
 func (app *Application) Schedule(w worker.Worker) error {
 	app.workers = append(app.workers, w)
 	return nil
@@ -125,11 +131,6 @@ func (app *Application) Schedule(w worker.Worker) error {
 // SetRegistry set customize registry
 func (app *Application) SetRegistry(reg registry.Registry) {
 	app.registerer = reg
-}
-
-// SetSignalHooker set signal hooker
-func (app *Application) SetSignalHooker(hook func(*Application)) {
-	app.signalHooker = hook
 }
 
 // SetGovernor governor
@@ -143,29 +144,24 @@ func (app *Application) SetGovernor(addr string) {
 
 // Run run application
 func (app *Application) Run() error {
+	app.waitSignals() //start signal listen task in goroutine
 	defer app.clean()
-	if app.signalHooker == nil {
-		app.signalHooker = hookSignals
-	}
 	if app.governor == nil {
-		app.governor = &http.Server{
-			Handler: govern.DefaultServeMux,
-			Addr:    "127.0.0.1:9990", // 默认治理端口
-		}
+		app.SetGovernor("127.0.0.1:9990") // 默认治理端口
 	}
 
 	if app.registerer == nil {
-		app.registerer = registry.Nop{}
+		app.SetRegistry(registry.Nop{})
 	}
 
-	app.signalHooker(app)
-
 	// start govern
-	var eg errgroup.Group
-	eg.Go(app.startGovernor)
-	eg.Go(app.startServers)
-	eg.Go(app.startWorkers)
-	return eg.Wait()
+	app.cycle.Run(app.startGovernor)
+	app.cycle.Run(app.startServers)
+	app.cycle.Run(app.startWorkers)
+
+	<-app.cycle.Wait()
+	app.logger.Info("shutdown jupiter, bye!", xlog.FieldMod(ecode.ModApp))
+	return nil
 }
 
 // Stop application immediately after necessary cleanup
@@ -180,16 +176,20 @@ func (app *Application) Stop() (err error) {
 		if err != nil {
 			app.logger.Error("stop governor close err", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err))
 		}
-		var eg errgroup.Group
 		for _, s := range app.servers {
-			s := s
-			eg.Go(s.Stop)
+			func(s server.Server) {
+				app.cycle.Run(s.Stop)
+			}(s)
 		}
 		for _, w := range app.workers {
-			w := w
-			eg.Go(w.Stop)
+			func(w worker.Worker) {
+				app.cycle.Run(w.Stop)
+			}(w)
 		}
-		err = eg.Wait()
+		select {
+		case <-app.cycle.Done():
+			app.cycle.Close()
+		}
 	})
 	return
 }
@@ -206,24 +206,42 @@ func (app *Application) GracefulStop(ctx context.Context) (err error) {
 		if err != nil {
 			app.logger.Error("graceful stop governor close err", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err))
 		}
-		if err != nil {
-
-		}
-		var eg errgroup.Group
 		for _, s := range app.servers {
-			s := s
-			eg.Go(func() error {
-				return s.GracefulStop(ctx)
-			})
+			func(s server.Server) {
+				app.cycle.Run(func() error {
+					return s.GracefulStop(ctx)
+				})
+			}(s)
 		}
-		err = eg.Wait()
+		for _, w := range app.workers {
+			func(w worker.Worker) {
+				app.cycle.Run(w.Stop)
+			}(w)
+		}
+		select {
+		case <-app.cycle.Done():
+			app.cycle.Close()
+		}
 	})
 	return err
 }
 
+// waitSignals wait signal
+func (app *Application) waitSignals() {
+	app.logger.Info("init listen signal", xlog.FieldMod(ecode.ModApp))
+	signals.Shutdown(func(grace bool) { //when get shutdown signal
+		//todo: suport timeout
+		if grace {
+			app.GracefulStop(context.TODO())
+		} else {
+			app.Stop()
+		}
+	})
+}
+
 func (app *Application) beforeStop() {
 	// todo(gorexlv): before stop hooks
-	app.logger.Info("leaving jupiter, bye....", xlog.FieldMod(ecode.ModApp))
+	app.logger.Info("leaving jupiter...", xlog.FieldMod(ecode.ModApp))
 }
 
 func (app *Application) startGovernor() (err error) {
@@ -244,7 +262,6 @@ func (app *Application) startGovernor() (err error) {
 
 func (app *Application) startServers() error {
 	var eg errgroup.Group
-	xgo.ParallelWithErrorChan()
 	// start multi servers
 	for _, s := range app.servers {
 		s := s
