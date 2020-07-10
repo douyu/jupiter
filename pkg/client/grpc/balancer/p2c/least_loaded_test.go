@@ -12,7 +12,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/peer"
 	"google.golang.org/grpc/resolver"
 	"google.golang.org/grpc/resolver/manual"
@@ -67,8 +66,6 @@ func startTestServers(count int) (_ *test, err error) {
 			s.Serve(l)
 		}(s, lis)
 	}
-
-	grpclog.V(99)
 
 	return t, nil
 }
