@@ -19,7 +19,7 @@ const (
 	Name = "p2c_least_loaded"
 )
 
-// newBuilder creates a new roundrobin balancer builder.
+// newBuilder creates a new balance builder.
 func newBuilder() balancer.Builder {
 	return base.NewBalancerBuilderWithConfig(Name, &p2cPickerBuilder{}, base.Config{HealthCheck: true})
 }
@@ -40,10 +40,8 @@ func (*p2cPickerBuilder) Build(readySCs map[resolver.Address]balancer.SubConn) b
 
 	for _, sc := range readySCs {
 		sc := &subConn{
-			conn: sc,
-			st: stats{
-				inflight: 0,
-			},
+			conn:     sc,
+			inflight: 0,
 		}
 
 		scs = append(scs, sc)
@@ -56,11 +54,8 @@ func (*p2cPickerBuilder) Build(readySCs map[resolver.Address]balancer.SubConn) b
 }
 
 type subConn struct {
-	conn balancer.SubConn // grpc conn
-	st   stats            // conn统计信息
-}
+	conn balancer.SubConn
 
-type stats struct {
 	// grpc client inflight count
 	inflight int64
 }
@@ -97,14 +92,14 @@ func (p *p2cPicker) Pick(ctx context.Context, opts balancer.PickOptions) (balanc
 		sc, backsc = p.subConns[a], p.subConns[b]
 
 		// 根据inflight选择更优节点
-		if sc.st.inflight > backsc.st.inflight {
+		if sc.inflight > backsc.inflight {
 			sc, backsc = backsc, sc
 		}
 	}
 
-	atomic.AddInt64(&sc.st.inflight, 1)
+	atomic.AddInt64(&sc.inflight, 1)
 
 	return sc.conn, func(di balancer.DoneInfo) {
-		atomic.AddInt64(&sc.st.inflight, -1)
+		atomic.AddInt64(&sc.inflight, -1)
 	}, nil
 }
