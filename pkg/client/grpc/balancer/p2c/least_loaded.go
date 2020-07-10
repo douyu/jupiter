@@ -80,7 +80,7 @@ func (p *p2cPicker) Pick(ctx context.Context, opts balancer.PickOptions) (balanc
 		sc = p.subConns[0]
 	} else {
 
-		// rand需要加锁
+		// rand needs lock
 		p.mu.Lock()
 		a := p.rand.Intn(len(p.subConns))
 		b := p.rand.Intn(len(p.subConns) - 1)
@@ -91,7 +91,7 @@ func (p *p2cPicker) Pick(ctx context.Context, opts balancer.PickOptions) (balanc
 		}
 		sc, backsc = p.subConns[a], p.subConns[b]
 
-		// 根据inflight选择更优节点
+		// choose the least loaded conn based on inflight
 		if sc.inflight > backsc.inflight {
 			sc, backsc = backsc, sc
 		}
