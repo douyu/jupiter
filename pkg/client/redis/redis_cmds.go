@@ -71,10 +71,7 @@ func (r *RedisStub) MGets(keys []string) ([]interface{}, error) {
 // Set 设置redis的string
 func (r *RedisStub) Set(key string, value interface{}, expire time.Duration) bool {
 	err := r.Client.Set(key, value, expire).Err()
-	if err != nil {
-		return false
-	}
-	return true
+	return err == nil
 }
 
 // HGetAll 从redis获取hash的所有键值对
@@ -139,10 +136,7 @@ func (r *RedisStub) HMSet(key string, hash map[string]interface{}, expire time.D
 // HSet hset
 func (r *RedisStub) HSet(key string, field string, value interface{}) bool {
 	err := r.Client.HSet(key, field, value).Err()
-	if err != nil {
-		return false
-	}
-	return true
+	return err == nil
 }
 
 // HDel ...
@@ -182,10 +176,7 @@ func (r *RedisStub) SetNxWithErr(key string, value interface{}, expiration time.
 // Incr redis自增
 func (r *RedisStub) Incr(key string) bool {
 	err := r.Client.Incr(key).Err()
-	if err != nil {
-		return false
-	}
-	return true
+	return err == nil
 }
 
 // IncrWithErr ...
@@ -206,10 +197,7 @@ func (r *RedisStub) IncrBy(key string, increment int64) (int64, error) {
 // Decr redis自减
 func (r *RedisStub) Decr(key string) bool {
 	err := r.Client.Decr(key).Err()
-	if err != nil {
-		return false
-	}
-	return true
+	return err == nil
 }
 
 // Type ...

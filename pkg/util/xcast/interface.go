@@ -476,9 +476,7 @@ func ToSliceE(i interface{}) ([]interface{}, error) {
 
 	switch v := i.(type) {
 	case []interface{}:
-		for _, u := range v {
-			s = append(s, u)
-		}
+		s = append(s, v...)
 		return s, nil
 	case []map[string]interface{}:
 		for _, u := range v {
@@ -501,9 +499,7 @@ func ToSliceStringMapE(i interface{}) ([]map[string]interface{}, error) {
 		}
 		return s, nil
 	case []map[string]interface{}:
-		for _, u := range v {
-			s = append(s, u)
-		}
+		s = append(s, v...)
 		return s, nil
 	default:
 		return s, fmt.Errorf("Unable to Cast %#v of type %v to []map[string]interface{}", i, reflect.TypeOf(i))
