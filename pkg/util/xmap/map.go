@@ -67,11 +67,11 @@ func ToMapStringInterface(src map[interface{}]interface{}) map[string]interface{
 // InsensitiviseMap insensitivise map
 func InsensitiviseMap(m map[string]interface{}) {
 	for key, val := range m {
-		switch val.(type) {
+		switch v := val.(type) {
 		case map[interface{}]interface{}:
-			InsensitiviseMap(xcast.ToStringMap(val))
+			InsensitiviseMap(xcast.ToStringMap(v))
 		case map[string]interface{}:
-			InsensitiviseMap(val.(map[string]interface{}))
+			InsensitiviseMap(v)
 		}
 
 		lower := strings.ToLower(key)

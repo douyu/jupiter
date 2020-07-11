@@ -74,15 +74,8 @@ func RestrictParallelWithErrorChan(concurrency int, fns ...func() error) chan er
 		//consumer
 		go func(jobs chan func() error, errs chan error) {
 			defer wg.Done()
-			for {
-				select {
-				case fn, ok := <-jobs:
-					if !ok {
-						return
-					}
-					errs <- try(fn, nil)
-				}
-
+			for fn := range jobs {
+				errs <- try(fn, nil)
 			}
 		}(jobs, errs)
 	}
