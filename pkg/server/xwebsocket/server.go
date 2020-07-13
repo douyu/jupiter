@@ -16,64 +16,80 @@ package xgrpc
 
 import (
 	"context"
+	"net"
+	"net/http"
 
 	"github.com/douyu/jupiter/pkg"
 	"github.com/gorilla/websocket"
 
+	"github.com/douyu/jupiter/pkg/ecode"
 	"github.com/douyu/jupiter/pkg/server"
-	"google.golang.org/grpc"
+	"github.com/douyu/jupiter/pkg/xlog"
 )
 
 // Server ...
 type Server struct {
-	Upgrader *websocket.Upgrader
 	config   *Config
+	listener net.Listener
+	upgrader *websocket.Upgrader
 }
 
 func newServer(config *Config) *Server {
 	upgrader := &websocket.Upgrader{}
-	// listener, err := net.Listen(config.Network, config.Address())
-	// if err != nil {
-	// 	config.logger.Panic("new grpc server err", xlog.FieldErrKind(ecode.ErrKindListenErr), xlog.FieldErr(err))
-	// }
-	// config.Port = listener.Addr().(*net.TCPAddr).Port
-	return &Server{Upgrader: upgrader, config: config}
+	listener, err := net.Listen("tcp", config.Address())
+	if err != nil {
+		config.logger.Panic("new websockt server err", xlog.FieldErrKind(ecode.ErrKindListenErr), xlog.FieldErr(err))
+	}
+	config.Port = listener.Addr().(*net.TCPAddr).Port
+	return &Server{upgrader: upgrader, listener: listener, config: config}
 }
 
-// Serve implements server.Server interface.
+// Serve implements server.Serve interface.
 func (s *Server) Serve() error {
-	err := s.Server.Serve(s.listener)
-	if err == grpc.ErrServerStopped {
+	s.Server = &http.Server{}
+	err := http.Serve(s.listener)
+	if err == http.ErrServerClosed {
 		return nil
 	}
 	return err
 }
 
-// Stop implements server.Server interface
-// it will terminate echo server immediately
+//Upgrade get upgrage request
+func (s *Server) Upgrade(uri string, fn func(*websocket.Conn, error)) error {
+	http.HandleFunc(uri, func(w http.ResponseWriter, r *http.Request) {
+		ctx, err := s.upgrader.Upgrade(w, r, nil)
+		if err == nil {
+			defer ctx.Close()
+		}
+		fn(ctx, err)
+	})
+
+}
+
+// Stop implements server.Stop interface
+// it will terminate websocket server immediately
 func (s *Server) Stop() error {
-	s.Server.Stop()
+	s.listener.Close()
 	return nil
 }
 
-// GracefulStop implements server.Server interface
-// it will stop echo server gracefully
+// GracefulStop implements server.GracefulStop interface
+// it will stop websocket server gracefully
 func (s *Server) GracefulStop(ctx context.Context) error {
-	s.Server.GracefulStop()
+	s.listener.Close()
 	return nil
 }
 
 // Info returns server info, used by governor and consumer balancer
-// TODO(gorexlv): implements government protocol with juno
 func (s *Server) Info() *server.ServiceInfo {
 	return &server.ServiceInfo{
 		Name:      pkg.Name(),
-		Scheme:    "grpc",
-		IP:        s.Host,
-		Port:      s.Port,
+		Scheme:    "http",
+		IP:        s.config.Host,
+		Port:      s.config.Port,
 		Weight:    0.0,
-		Enable:    true,
-		Healthy:   true,
+		Enable:    false,
+		Healthy:   false,
 		Metadata:  map[string]string{},
 		Region:    "",
 		Zone:      "",
