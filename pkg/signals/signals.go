@@ -31,6 +31,6 @@ func Shutdown(stop func(grace bool)) {
 		s := <-sig
 		go stop(s != syscall.SIGQUIT)
 		<-sig
-		os.Exit(1) // second signal. Exit directly.
+		os.Exit(128 + int(s.(syscall.Signal))) // second signal. Exit directly.
 	}()
 }
