@@ -14,41 +14,31 @@
 
 package redis
 
-import (
-	"github.com/douyu/jupiter/pkg/xlog"
-	"github.com/go-redis/redis"
-)
+import "github.com/go-redis/redis"
 
-// RedisStub is an unit that handles master and slave.
-type RedisStub struct {
-	conf   *RedisConfig
-	Client *redis.Client
+type Redis struct {
+	Config *Config
+	Client IRedis
 }
 
-func newRedisStub(config *RedisConfig) *RedisStub {
-	stub := &RedisStub{
-		conf: config,
+type IRedis interface {
+	redis.Cmdable
+}
+
+var _ IRedis = (*redis.Client)(nil)
+var _ IRedis = (*redis.ClusterClient)(nil)
+
+// TODO 引入redis统一错误码
+func (r *Redis) Cluster() *redis.ClusterClient {
+	if c, ok := r.Client.(*redis.ClusterClient); ok {
+		return c
 	}
-	client := redis.NewClient(&redis.Options{
-		Addr:         config.Addr,
-		Password:     config.Password,
-		DB:           config.DB,
-		MaxRetries:   config.MaxRetries,
-		DialTimeout:  config.DialTimeout,
-		ReadTimeout:  config.ReadTimeout,
-		WriteTimeout: config.WriteTimeout,
-		PoolSize:     config.PoolSize,
-		MinIdleConns: config.MinIdleConns,
-		IdleTimeout:  config.IdleTimeout,
-	})
-	if err := client.Ping().Err(); err != nil {
-		switch config.OnDialError {
-		case "panic":
-			config.logger.Panic("start redis", xlog.Any("err", err), xlog.Any("config", config))
-		default:
-			config.logger.Error("start redis", xlog.Any("err", err), xlog.Any("config", config))
-		}
+	return nil
+}
+
+func (r *Redis) Stub() *redis.Client {
+	if c, ok := r.Client.(*redis.Client); ok {
+		return c
 	}
-	stub.Client = client
-	return stub
+	return nil
 }
