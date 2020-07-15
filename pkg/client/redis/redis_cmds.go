@@ -15,8 +15,9 @@
 package redis
 
 import (
-	"github.com/go-redis/redis"
 	"time"
+
+	"github.com/go-redis/redis"
 )
 
 // Get 从redis获取string
@@ -346,7 +347,7 @@ func (r *Redis) HIncrBy(key string, field string, incr int) int64 {
 	return result
 }
 
-// HIncrBy 哈希field自增并且返回错误
+// HIncrByWithErr 哈希field自增并且返回错误
 func (r *Redis) HIncrByWithErr(key string, field string, incr int) (int64, error) {
 	return r.Client.HIncrBy(key, field, int64(incr)).Result()
 }
@@ -541,7 +542,7 @@ func (r *Redis) GeoRadius(key string, longitude, latitude float64, query *redis.
 	return res, nil
 }
 
-// Ttl 查询过期时间
+// TTL 查询过期时间
 func (r *Redis) TTL(key string) (int64, error) {
 	if result, err := r.Client.TTL(key).Result(); err != nil {
 		return 0, err
@@ -556,7 +557,6 @@ func (r *Redis) TTL(key string) (int64, error) {
 // to be long-lived and shared between many goroutines.
 func (r *Redis) Close() (err error) {
 	err = nil
-
 	if r.Client != nil {
 		if r.Cluster() != nil {
 			err = r.Cluster().Close()

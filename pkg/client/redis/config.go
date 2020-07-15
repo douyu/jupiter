@@ -15,29 +15,30 @@
 package redis
 
 import (
-	"github.com/go-redis/redis"
 	"time"
+
+	"github.com/go-redis/redis"
 
 	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/util/xtime"
 	"github.com/douyu/jupiter/pkg/xlog"
 )
 
-type Mode string
-
 const (
-	ClusterMode Mode = "cluster"
-	StubMode    Mode = "stub"
+	//ClusterMode using clusterClient
+	ClusterMode string = "cluster"
+	//StubMode using reidsClient
+	StubMode string = "stub"
 )
 
-// Config redis通用配置, 需要兼容RedisStubConfig RedisClusterConfig
+// Config for redis, contains RedisStubConfig and RedisClusterConfig
 type Config struct {
 	// Addrs 实例配置地址
 	Addrs []string `json:"addrs"`
 	// Addr stubConfig 实例配置地址
 	Addr string `json:"addr"`
 	// Mode Redis模式 cluster|stub
-	Mode Mode `json:"mode"`
+	Mode string `json:"mode"`
 	// Password 密码
 	Password string `json:"password"`
 	// DB，默认为0, 一般应用不推荐使用DB分片
@@ -69,7 +70,7 @@ type Config struct {
 	logger      *xlog.Logger
 }
 
-// Default Config ...
+// DefaultRedisConfig default config ...
 func DefaultRedisConfig() Config {
 	return Config{
 		DB:            0,
@@ -109,32 +110,38 @@ func RawRedisConfig(key string) Config {
 
 // Build ...
 func (config Config) Build() *Redis {
-	if len(config.Addrs) == 0 {
+	count := len(config.Addrs)
+	if count < 1 {
 		config.logger.Panic("no address in redis config", xlog.Any("config", config))
 	}
-	var client IRedis
-
-	if len(config.Addrs) == 1 && (config.Mode == "" || config.Mode == StubMode) {
-		client = config.buildStub()
-	} else if len(config.Addrs) > 1 && config.Mode == StubMode {
-		config.logger.Warn("redis config has more than 1 address but with stub mode")
-		client = config.buildStub()
-	} else if len(config.Addrs) > 1 && (config.Mode == "" || config.Mode == ClusterMode) {
+	if len(config.Mode) == 0 {
+		config.Mode = StubMode
+		if count > 1 {
+			config.Mode = ClusterMode
+		}
+	}
+	var client redis.Cmdable
+	switch config.Mode {
+	case ClusterMode:
+		if count == 1 {
+			config.logger.Warn("redis config has only 1 address but with cluster mode")
+		}
 		client = config.buildCluster()
-	} else if len(config.Addrs) == 1 && config.Mode == ClusterMode {
-		config.logger.Warn("redis config has only 1 address but with cluster mode")
-		client = config.buildCluster()
-	} else {
+	case StubMode:
+		if count > 1 {
+			config.logger.Warn("redis config has more than 1 address but with stub mode")
+		}
+		client = config.buildStub()
+	default:
 		config.logger.Panic("redis mode must be one of (stub, cluster)")
 	}
-
 	return &Redis{
 		Config: &config,
 		Client: client,
 	}
 }
 
-func (config Config) buildStub() IRedis {
+func (config Config) buildStub() *redis.Client {
 	stubClient := redis.NewClient(&redis.Options{
 		Addr:         config.Addrs[0],
 		Password:     config.Password,
@@ -161,7 +168,7 @@ func (config Config) buildStub() IRedis {
 
 }
 
-func (config Config) buildCluster() IRedis {
+func (config Config) buildCluster() *redis.ClusterClient {
 	clusterClient := redis.NewClusterClient(&redis.ClusterOptions{
 		Addrs:        config.Addrs,
 		MaxRedirects: config.MaxRetries,
@@ -210,7 +217,7 @@ func StdRedisClusterConfig(name string) Config {
 	return RawRedisClusterConfig("jupiter.redis." + name + ".cluster")
 }
 
-// RawRedisStubConfig ...
+// RawRedisClusterConfig ...
 func RawRedisClusterConfig(key string) Config {
 	var config = DefaultRedisConfig()
 	if err := conf.UnmarshalKey(key, &config); err != nil {
