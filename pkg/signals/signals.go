@@ -12,43 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// +build linux darwin freebsd unix
-
-package jupiter
+package signals
 
 import (
-	"context"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 )
 
-func hookSignals(app *Application) {
-	sigChan := make(chan os.Signal)
+//Shutdown suport twice signal must exit
+func Shutdown(stop func(grace bool)) {
+	sig := make(chan os.Signal, 2)
 	signal.Notify(
-		sigChan,
-		syscall.SIGHUP,
-		syscall.SIGINT,
-		syscall.SIGTERM,
-		syscall.SIGQUIT,
-		syscall.SIGUSR1,
-		syscall.SIGUSR2,
-		syscall.SIGSTOP,
-		syscall.SIGKILL,
+		sig,
+		shutdownSignals...,
 	)
-
 	go func() {
-		var sig os.Signal
-		for {
-			sig = <-sigChan
-			switch sig {
-			case syscall.SIGQUIT:
-				_ = app.GracefulStop(context.TODO()) // graceful stop
-			case syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL, syscall.SIGSTOP:
-				_ = app.Stop() // terminate now
-			}
-			time.Sleep(time.Second * 3)
-		}
+		s := <-sig
+		go stop(s != syscall.SIGQUIT)
+		<-sig
+		os.Exit(128 + int(s.(syscall.Signal))) // second signal. Exit directly.
 	}()
 }

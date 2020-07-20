@@ -12,40 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// +build windows
+// +build !windows
 
-package jupiter
+package signals
 
 import (
-	"context"
 	"os"
-	"os/signal"
 	"syscall"
-	"time"
 )
 
-func hookSignals(app *Application) {
-	sigChan := make(chan os.Signal)
-	signal.Notify(
-		sigChan,
-		syscall.SIGHUP,
-		syscall.SIGINT,
-		syscall.SIGTERM,
-		syscall.SIGQUIT,
-		syscall.SIGKILL,
-	)
-
-	go func() {
-		var sig os.Signal
-		for {
-			sig = <-sigChan
-			switch sig {
-			case syscall.SIGQUIT:
-				_ = app.GracefulStop(context.TODO())
-			case syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL:
-				_ = app.Stop() // terminate now
-			}
-			time.Sleep(time.Second * 3)
-		}
-	}()
-}
+var shutdownSignals = []os.Signal{syscall.SIGQUIT, os.Interrupt, syscall.SIGTERM}
