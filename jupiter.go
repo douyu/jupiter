@@ -17,6 +17,7 @@ package jupiter
 import (
 	"context"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 	"runtime"
@@ -26,6 +27,7 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/douyu/jupiter/pkg"
 	"github.com/douyu/jupiter/pkg/conf"
+	"github.com/douyu/jupiter/pkg/constant"
 	file_datasource "github.com/douyu/jupiter/pkg/datasource/file"
 	http_datasource "github.com/douyu/jupiter/pkg/datasource/http"
 	"github.com/douyu/jupiter/pkg/ecode"
@@ -37,6 +39,7 @@ import (
 	"github.com/douyu/jupiter/pkg/trace"
 	"github.com/douyu/jupiter/pkg/trace/jaeger"
 	"github.com/douyu/jupiter/pkg/util/xcolor"
+	"github.com/douyu/jupiter/pkg/util/xdefer"
 	"github.com/douyu/jupiter/pkg/util/xgo"
 	"github.com/douyu/jupiter/pkg/util/xstring"
 	"github.com/douyu/jupiter/pkg/worker"
@@ -59,9 +62,12 @@ type Application struct {
 	registerer registry.Registry
 
 	signalHooker func(*Application)
-	defers       []func() error
+	afterStop  *xdefer.DeferStack
+	beforeStop *xdefer.DeferStack
 
-	governor *http.Server
+	defers []func() error
+
+	governorAddr string
 }
 
 // initialize application
@@ -71,7 +77,10 @@ func (app *Application) initialize() {
 		app.workers = make([]worker.Worker, 0)
 		app.logger = xlog.JupiterLogger
 		app.signalHooker = hookSignals
-		app.defers = []func() error{}
+		// app.defers = []func() error{}
+		app.governorAddr = "127.0.0.1:0"
+		app.afterStop = xdefer.NewStack()
+		app.beforeStop = xdefer.NewStack()
 	})
 }
 
@@ -104,12 +113,25 @@ func (app *Application) Startup(fns ...func() error) error {
 	return xgo.SerialUntilError(fns...)()
 }
 
+// Deprecated, use AfterStop instead
 func (app *Application) Defer(fns ...func() error) {
+	app.AfterStop(fns...)
+}
+
+func (app *Application) BeforeStop(fns ...func() error) {
 	app.initialize()
-	if app.defers == nil {
-		app.defers = make([]func() error, 0)
+	if app.beforeStop == nil {
+		app.beforeStop = xdefer.NewStack()
 	}
-	app.defers = append(app.defers, fns...)
+	app.beforeStop.Push(fns...)
+}
+
+func (app *Application) AfterStop(fns ...func() error) {
+	app.initialize()
+	if app.afterStop == nil {
+		app.afterStop = xdefer.NewStack()
+	}
+	app.afterStop.Push(fns...)
 }
 
 func (app *Application) Serve(s server.Server) error {
@@ -135,10 +157,7 @@ func (app *Application) SetSignalHooker(hook func(*Application)) {
 // SetGovernor governor
 // 127.0.0.1:9990 as default governor addr
 func (app *Application) SetGovernor(addr string) {
-	app.governor = &http.Server{
-		Handler: govern.DefaultServeMux,
-		Addr:    addr,
-	}
+	app.governorAddr = addr
 }
 
 // Run run application
@@ -146,12 +165,6 @@ func (app *Application) Run() error {
 	defer app.clean()
 	if app.signalHooker == nil {
 		app.signalHooker = hookSignals
-	}
-	if app.governor == nil {
-		app.governor = &http.Server{
-			Handler: govern.DefaultServeMux,
-			Addr:    "127.0.0.1:9990", // 默认治理端口
-		}
 	}
 
 	if app.registerer == nil {
@@ -170,16 +183,16 @@ func (app *Application) Run() error {
 
 // Stop application immediately after necessary cleanup
 func (app *Application) Stop() (err error) {
-	app.beforeStop()
 	app.stopOnce.Do(func() {
+		app.beforeStop.Clean()
 		err = app.registerer.Close()
 		if err != nil {
 			app.logger.Error("stop register close err", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err))
 		}
-		err = app.governor.Close()
-		if err != nil {
-			app.logger.Error("stop governor close err", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err))
-		}
+		// err = app.governor.Close()
+		// if err != nil {
+		// 	app.logger.Error("stop governor close err", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err))
+		// }
 		var eg errgroup.Group
 		for _, s := range app.servers {
 			s := s
@@ -196,19 +209,19 @@ func (app *Application) Stop() (err error) {
 
 // GracefulStop application after necessary cleanup
 func (app *Application) GracefulStop(ctx context.Context) (err error) {
-	app.beforeStop()
 	app.stopOnce.Do(func() {
+		app.beforeStop.Clean()
 		err = app.registerer.Close()
 		if err != nil {
 			app.logger.Error("graceful stop register close err", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err))
 		}
-		err = app.governor.Close()
-		if err != nil {
-			app.logger.Error("graceful stop governor close err", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err))
-		}
-		if err != nil {
-
-		}
+		// err = app.governor.Close()
+		// if err != nil {
+		// 	app.logger.Error("graceful stop governor close err", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err))
+		// }
+		// if err != nil {
+		//
+		// }
 		var eg errgroup.Group
 		for _, s := range app.servers {
 			s := s
@@ -221,30 +234,53 @@ func (app *Application) GracefulStop(ctx context.Context) (err error) {
 	return err
 }
 
-func (app *Application) beforeStop() {
-	// todo(gorexlv): before stop hooks
-	app.logger.Info("leaving jupiter, bye....", xlog.FieldMod(ecode.ModApp))
-}
-
-func (app *Application) startGovernor() (err error) {
-	app.logger.Info("start governor", xlog.FieldMod(ecode.ModApp), xlog.FieldAddr("http://"+app.governor.Addr))
-	defer func() {
-		if err != nil {
-			app.logger.Panic("stop governor", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err), xlog.FieldAddr("http://"+app.governor.Addr))
-		}
-	}()
-	err = app.governor.ListenAndServe()
-	if err == http.ErrServerClosed {
-		app.logger.Info("stop governor", xlog.FieldMod(ecode.ModApp), xlog.FieldAddr("http://"+app.governor.Addr))
-		return nil
+func (app *Application) startGovernor() error {
+	var governorAddr = app.governorAddr
+	if governorAddr == "" {
+		governorAddr = conf.GetString("jupiter.governor.addr")
+	}
+	if governorAddr == "" {
+		governorAddr = ":0"
 	}
 
-	return err
+	var governor = &http.Server{
+		Addr: governorAddr,
+		Handler: govern.DefaultServeMux,
+	}
+
+	var listener, err = net.Listen("tcp4", governorAddr)
+	if err != nil {
+		xlog.Panic("start governor", xlog.FieldErr(err))
+	}
+
+	app.BeforeStop(func() error {
+		app.logger.Info("stop governor", xlog.FieldMod(ecode.ModApp), xlog.FieldAddr("http://"+listener.Addr().String()))
+		return listener.Close()
+	})
+
+	app.logger.Info("start governor", xlog.FieldMod(ecode.ModApp), xlog.FieldAddr("http://"+listener.Addr().String()))
+	serviceInfo := &server.ServiceInfo{
+		Name:      pkg.Name(),
+		Scheme:    "http",
+		Address: listener.Addr().String(),
+		Kind:      constant.ServiceGovernor,
+	}
+
+	if err := app.registerer.RegisterService(context.Background(), serviceInfo); err == nil {
+		app.BeforeStop(func() error { return app.registerer.DeregisterService(context.Background(), serviceInfo) })
+	}
+	if err := governor.Serve(listener); err != nil {
+		if err == http.ErrServerClosed {
+			app.logger.Info("stop governor", xlog.FieldMod(ecode.ModApp), xlog.FieldAddr("http://"+listener.Addr().String()))
+			return nil
+		}
+	}
+
+	return nil
 }
 
 func (app *Application) startServers() error {
 	var eg errgroup.Group
-	xgo.ParallelWithErrorChan()
 	// start multi servers
 	for _, s := range app.servers {
 		s := s
@@ -367,7 +403,7 @@ func (app *Application) initTracer() error {
 func (app *Application) initSentinel() error {
 	// init reliability component sentinel
 	if conf.Get("jupiter.reliability.sentinel") != nil {
-		app.logger.Info("init reliability component sentinel")
+		app.logger.Info("init sentinel")
 		return sentinel.RawConfig("jupiter.reliability.sentinel").
 			InitSentinelCoreComponent()
 	}

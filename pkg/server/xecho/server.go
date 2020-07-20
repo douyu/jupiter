@@ -20,6 +20,7 @@ import (
 	"os"
 
 	"github.com/douyu/jupiter/pkg"
+	"github.com/douyu/jupiter/pkg/constant"
 	"github.com/douyu/jupiter/pkg/ecode"
 	"github.com/douyu/jupiter/pkg/server"
 	"github.com/douyu/jupiter/pkg/xlog"
@@ -84,8 +85,7 @@ func (s *Server) Info() *server.ServiceInfo {
 	return &server.ServiceInfo{
 		Name:      pkg.Name(),
 		Scheme:    "http",
-		IP:        s.config.Host,
-		Port:      s.config.Port,
+		Address:   s.listener.Addr().String(),
 		Weight:    0.0,
 		Enable:    false,
 		Healthy:   false,
@@ -93,5 +93,6 @@ func (s *Server) Info() *server.ServiceInfo {
 		Region:    "",
 		Zone:      "",
 		GroupName: "",
+		Kind:      constant.ServiceProvider,
 	}
 }

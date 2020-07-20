@@ -25,7 +25,6 @@ var (
 	// DefaultServeMux ...
 	DefaultServeMux = http.NewServeMux()
 	routes          = []string{}
-	buildInfo       *debug.BuildInfo
 )
 
 func init() {
@@ -46,14 +45,13 @@ func init() {
 			if r.URL.Query().Get("pretty") == "true" {
 				encoder.SetIndent("", "    ")
 			}
-			encoder.Encode(info)
+			_ = encoder.Encode(info)
 		})
-		buildInfo = info
 	}
 }
 
 // HandleFunc ...
-func HandleFunc(pattern string, handler func(http.ResponseWriter, *http.Request)) {
+func HandleFunc(pattern string, handler http.HandlerFunc) {
 	// todo: 增加安全管控
 	DefaultServeMux.HandleFunc(pattern, handler)
 	routes = append(routes, pattern)

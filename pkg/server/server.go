@@ -17,14 +17,15 @@ package server
 import (
 	"context"
 	"fmt"
+
+	"github.com/douyu/jupiter/pkg/constant"
 )
 
 // ServiceInfo ...
 type ServiceInfo struct {
 	Name      string
 	Scheme    string
-	IP        string
-	Port      int
+	Address   string
 	Weight    float64
 	Enable    bool
 	Healthy   bool
@@ -32,11 +33,12 @@ type ServiceInfo struct {
 	Region    string
 	Zone      string
 	GroupName string
+	Kind      constant.ServiceKind
 }
 
 // Label ...
 func (si ServiceInfo) Label() string {
-	return fmt.Sprintf("%s://%s:%d", si.Scheme, si.IP, si.Port)
+	return fmt.Sprintf("%s://%s", si.Scheme, si.Address)
 }
 
 // Server ...
