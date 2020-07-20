@@ -395,7 +395,7 @@ func lookup(prefix string, target map[string]interface{}, data map[string]interf
 	for k, v := range target {
 		pp := fmt.Sprintf("%s%s%s", prefix, sep, k)
 		if prefix == "" {
-			pp = fmt.Sprintf("%s", k)
+			pp = k
 		}
 		if dd, err := xcast.ToStringMapE(v); err == nil {
 			lookup(pp, dd, data, sep)

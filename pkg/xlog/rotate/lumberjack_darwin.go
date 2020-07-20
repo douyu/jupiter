@@ -184,14 +184,11 @@ var _asyncBufferPool = sync.Pool{
 // Take care of reopen, I am not sure if there need no lock
 func (l *Logger) run() {
 	var err error
-	for {
-		select {
-		case b := <-l.queue:
-			if _, err = l.file.Write(b); err != nil {
-				panic(err)
-			}
-			_asyncBufferPool.Put(b)
+	for b := range l.queue {
+		if _, err = l.file.Write(b); err != nil {
+			panic(err)
 		}
+		_asyncBufferPool.Put(b)
 	}
 }
 

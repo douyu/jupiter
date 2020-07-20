@@ -19,6 +19,7 @@ import (
 	"net"
 
 	"github.com/douyu/jupiter/pkg"
+	"github.com/douyu/jupiter/pkg/constant"
 	"github.com/douyu/jupiter/pkg/ecode"
 
 	"github.com/douyu/jupiter/pkg/server"
@@ -87,8 +88,7 @@ func (s *Server) Info() *server.ServiceInfo {
 	return &server.ServiceInfo{
 		Name:      pkg.Name(),
 		Scheme:    "grpc",
-		IP:        s.Host,
-		Port:      s.Port,
+		Address:   s.listener.Addr().String(),
 		Weight:    0.0,
 		Enable:    true,
 		Healthy:   true,
@@ -96,5 +96,6 @@ func (s *Server) Info() *server.ServiceInfo {
 		Region:    "",
 		Zone:      "",
 		GroupName: "",
+		Kind:      constant.ServiceProvider,
 	}
 }

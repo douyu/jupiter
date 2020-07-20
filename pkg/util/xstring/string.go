@@ -40,7 +40,7 @@ func Addr2Hex(str string) (string, error) {
 	binary.BigEndian.PutUint16(buf, uint16(port))
 	ip = append(ip, buf...)
 
-	return fmt.Sprintf("%s", hex.EncodeToString(ip)), nil
+	return hex.EncodeToString(ip), nil
 }
 
 // Hex2Addr converts hex string to address.

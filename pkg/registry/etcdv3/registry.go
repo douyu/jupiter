@@ -62,7 +62,7 @@ func (e *etcdv3Registry) RegisterService(ctx context.Context, info *server.Servi
 		defer cancel()
 	}
 
-	key := fmt.Sprintf("/%s/%s/providers/%s://%s:%d", e.Prefix, info.Name, info.Scheme, info.IP, info.Port)
+	key := fmt.Sprintf("/%s/%s/%s/%s://%s", e.Prefix, info.Name, info.Kind.String(), info.Scheme, info.Address)
 	val, err := json.Marshal(info)
 
 	if err != nil {
@@ -82,7 +82,7 @@ func (e *etcdv3Registry) RegisterService(ctx context.Context, info *server.Servi
 
 // DeregisterService ...
 func (e *etcdv3Registry) DeregisterService(ctx context.Context, info *server.ServiceInfo) error {
-	key := fmt.Sprintf("/%s/%s/providers/%s://%s:%d", e.Prefix, info.Name, info.Scheme, info.IP, info.Port)
+	key := fmt.Sprintf("/%s/%s/%s/%s://%s", e.Prefix, info.Name, info.Kind.String(), info.Scheme, info.Address)
 	return e.deregister(ctx, key)
 }
 
