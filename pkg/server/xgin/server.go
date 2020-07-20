@@ -50,6 +50,13 @@ func newServer(config *Config) *Server {
 	}
 }
 
+//Upgrade protocol to WebSocket
+func (s *Server) Upgrade(ws *WebSocket) gin.IRoutes {
+	return s.GET(ws.Pattern, func(c *gin.Context) {
+		ws.Upgrade(c.Writer, c.Request)
+	})
+}
+
 // Serve implements server.Server interface.
 func (s *Server) Serve() error {
 	// s.Gin.StdLogger = xlog.JupiterLogger.StdLog()

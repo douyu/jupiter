@@ -15,6 +15,8 @@
 package main
 
 import (
+	"log"
+
 	"github.com/douyu/jupiter"
 	"github.com/douyu/jupiter/pkg/server/xgin"
 	"github.com/douyu/jupiter/pkg/xlog"
@@ -49,5 +51,26 @@ func (eng *Engine) serveHTTP() error {
 		ctx.JSON(200, "Hello Gin")
 		return
 	})
+	//Upgrade to websocket
+	server.Upgrade(xgin.WebSocketOptions("/ws", func(ws xgin.WebSocketConn, err error) {
+		if err != nil {
+			log.Print("upgrade:", err)
+			return
+		}
+		for {
+			mt, message, err := ws.ReadMessage()
+			if err != nil {
+				log.Println("read:", err)
+				break
+			}
+			log.Printf("recv: %s", message)
+			err = ws.WriteMessage(mt, message)
+			if err != nil {
+				log.Println("write:", err)
+				break
+			}
+		}
+		return
+	}))
 	return eng.Serve(server)
 }
