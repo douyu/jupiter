@@ -87,6 +87,7 @@ func (config *Config) WithParser(parser Parser) Config {
 
 // Build ...
 func (config Config) Build() *Cron {
+	config.parser = cron.NewParser(cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow | cron.Descriptor)
 	if config.WithSeconds {
 		config.parser = cron.NewParser(cron.Second | cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow | cron.Descriptor)
 	}
