@@ -1,4 +1,8 @@
 [jupiter.cron.test]
     withSeconds = false
-    concurrentDelay= "10s"
+    concurrentDelay= "1s"
     immediatelyRun = false
+    # 分布式任务的开发
+    distributedTask = true
+    endpoints = ["127.0.0.1:2379"]
+    connectTimeout = "10s"

@@ -38,7 +38,6 @@ var (
 	WithLocation = cron.WithLocation
 )
 
-// JobWrapper ...
 type (
 	JobWrapper = cron.JobWrapper
 	EntryID    = cron.EntryID
@@ -93,8 +92,10 @@ func (c *Cron) Schedule(schedule Schedule, job NamedJob) EntryID {
 		}
 	}
 	innnerJob := &wrappedJob{
-		NamedJob: job,
-		logger:   c.logger,
+		NamedJob:        job,
+		logger:          c.logger,
+		distributedTask: c.DistributedTask,
+		lock:            c.Config.jLock,
 	}
 	// xdebug.PrintKVWithPrefix("worker", "add job", job.Name())
 	c.logger.Info("add job", xlog.String("name", job.Name()))
