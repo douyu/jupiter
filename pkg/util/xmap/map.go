@@ -35,7 +35,6 @@ func MergeStringMap(dest, src map[string]interface{}) {
 		svType := reflect.TypeOf(sv)
 		tvType := reflect.TypeOf(tv)
 		if svType != tvType {
-			fmt.Println("continue, type is different")
 			continue
 		}
 

@@ -49,7 +49,6 @@ func (eng *Engine) serveHTTP() error {
 	server := xgin.StdConfig("http").Build()
 	server.GET("/hello", func(ctx *gin.Context) {
 		ctx.JSON(200, "Hello Gin")
-		return
 	})
 	//Upgrade to websocket
 	server.Upgrade(xgin.WebSocketOptions("/ws", func(ws xgin.WebSocketConn, err error) {
@@ -70,7 +69,6 @@ func (eng *Engine) serveHTTP() error {
 				break
 			}
 		}
-		return
 	}))
 	return eng.Serve(server)
 }

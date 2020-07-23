@@ -17,23 +17,79 @@ package server
 import (
 	"context"
 	"fmt"
-
+	"github.com/douyu/jupiter/pkg"
 	"github.com/douyu/jupiter/pkg/constant"
 )
 
+type Option func(c *ServiceInfo)
+
 // ServiceInfo ...
 type ServiceInfo struct {
-	Name      string
-	Scheme    string
-	Address   string
-	Weight    float64
-	Enable    bool
-	Healthy   bool
-	Metadata  map[string]string
-	Region    string
-	Zone      string
-	GroupName string
-	Kind      constant.ServiceKind
+	Name      string               `json:"name"`
+	AppID     string               `json:"appId"`
+	Scheme    string               `json:"scheme"`
+	Address   string               `json:"address"`
+	Weight    float64              `json:"weight"`
+	Enable    bool                 `json:"enable"`
+	Healthy   bool                 `json:"healthy"`
+	Metadata  map[string]string    `json:"metadata"`
+	Region    string               `json:"region"`
+	Zone      string               `json:"zone"`
+	GroupName string               `json:"groupName"`
+	Kind      constant.ServiceKind `json:"kind"`
+}
+
+func ApplyOptions(options ...Option) ServiceInfo {
+	info := defaultServiceInfo()
+	for _, option := range options {
+		option(&info)
+	}
+	return info
+}
+
+func WithMetaData(key, value string) Option {
+	return func(c *ServiceInfo) {
+		c.Metadata[key] = value
+	}
+}
+
+func WithScheme(scheme string) Option {
+	return func(c *ServiceInfo) {
+		c.Scheme = scheme
+	}
+}
+
+func WithAddress(address string) Option {
+	return func(c *ServiceInfo) {
+		c.Address = address
+	}
+}
+
+func WithKind(kind constant.ServiceKind) Option {
+	return func(c *ServiceInfo) {
+		c.Kind = kind
+	}
+}
+
+func defaultServiceInfo() ServiceInfo {
+	si := ServiceInfo{
+		Name:      pkg.Name(),
+		AppID:     pkg.AppID(),
+		Weight:    100,
+		Enable:    true,
+		Healthy:   true,
+		Metadata:  make(map[string]string),
+		Region:    pkg.AppRegion(),
+		Zone:      pkg.AppZone(),
+		GroupName: "default",
+	}
+	si.Metadata["appMode"] = pkg.AppMode()
+	si.Metadata["appHost"] = pkg.AppHost()
+	si.Metadata["startTime"] = pkg.StartTime()
+	si.Metadata["buildTime"] = pkg.BuildTime()
+	si.Metadata["appVersion"] = pkg.AppVersion()
+	si.Metadata["jupiterVersion"] = pkg.JupiterVersion()
+	return si
 }
 
 // Label ...

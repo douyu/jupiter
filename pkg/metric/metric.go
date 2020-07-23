@@ -15,10 +15,11 @@
 package metric
 
 import (
-	"net/http"
-
-	"github.com/douyu/jupiter/pkg/govern"
+	"github.com/douyu/jupiter/pkg"
+	"github.com/douyu/jupiter/pkg/server/governor"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"net/http"
+	"time"
 )
 
 var (
@@ -96,12 +97,25 @@ var (
 	BuildInfoGauge = GaugeVecOpts{
 		Namespace: DefaultNamespace,
 		Name:      "build_info",
-		Labels:    []string{"name", "id", "env", "zone", "region", "version"},
+		Labels:    []string{"name", "aid", "mode", "region", "zone", "app_version", "jupiter_version", "start_time", "build_time", "go_version"},
 	}.Build()
 )
 
 func init() {
-	govern.HandleFunc("/metrics", func(w http.ResponseWriter, r *http.Request) {
+	BuildInfoGauge.WithLabelValues(
+		pkg.Name(),
+		pkg.AppID(),
+		pkg.AppMode(),
+		pkg.AppRegion(),
+		pkg.AppZone(),
+		pkg.AppVersion(),
+		pkg.JupiterVersion(),
+		pkg.StartTime(),
+		pkg.BuildTime(),
+		pkg.GoVersion(),
+	).Set(float64(time.Now().UnixNano() / 1e6))
+
+	governor.HandleFunc("/metrics", func(w http.ResponseWriter, r *http.Request) {
 		promhttp.Handler().ServeHTTP(w, r)
 	})
 }

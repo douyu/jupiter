@@ -16,9 +16,9 @@ package xgrpc
 
 import (
 	"context"
+	"errors"
 	"net"
 
-	"github.com/douyu/jupiter/pkg"
 	"github.com/douyu/jupiter/pkg/constant"
 	"github.com/douyu/jupiter/pkg/ecode"
 
@@ -61,6 +61,8 @@ func newServer(config *Config) *Server {
 
 // Server implements server.Server interface.
 func (s *Server) Serve() error {
+	return errors.New("test111")
+
 	err := s.Server.Serve(s.listener)
 	if err == grpc.ErrServerStopped {
 		return nil
@@ -83,19 +85,11 @@ func (s *Server) GracefulStop(ctx context.Context) error {
 }
 
 // Info returns server info, used by governor and consumer balancer
-// TODO(gorexlv): implements government protocol with juno
 func (s *Server) Info() *server.ServiceInfo {
-	return &server.ServiceInfo{
-		Name:      pkg.Name(),
-		Scheme:    "grpc",
-		Address:   s.listener.Addr().String(),
-		Weight:    0.0,
-		Enable:    true,
-		Healthy:   true,
-		Metadata:  map[string]string{},
-		Region:    "",
-		Zone:      "",
-		GroupName: "",
-		Kind:      constant.ServiceProvider,
-	}
+	info := server.ApplyOptions(
+		server.WithScheme("grpc"),
+		server.WithAddress(s.listener.Addr().String()),
+		server.WithKind(constant.ServiceProvider),
+	)
+	return &info
 }

@@ -27,7 +27,6 @@ func main() {
 	eng := demo.NewEngine()
 
 	eng.AfterStop(func() error {
-		fmt.Println("exit...")
 		return nil
 	})
 

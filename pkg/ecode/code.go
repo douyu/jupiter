@@ -22,7 +22,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/douyu/jupiter/pkg/govern"
+	"github.com/douyu/jupiter/pkg/server/governor"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/golang/protobuf/ptypes/any"
 	spb "google.golang.org/genproto/googleapis/rpc/status"
@@ -38,7 +38,7 @@ var (
 
 func init() {
 	// status code list
-	govern.HandleFunc("/status/code/list", func(w http.ResponseWriter, r *http.Request) {
+	governor.HandleFunc("/status/code/list", func(w http.ResponseWriter, r *http.Request) {
 		var rets = make(map[int]*spbStatus)
 		_codes.Range(func(key, val interface{}) bool {
 			code := key.(int)
