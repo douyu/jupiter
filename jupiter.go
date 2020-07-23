@@ -172,7 +172,9 @@ func (app *Application) Run() error {
 	app.cycle.Run(app.startServers)
 	app.cycle.Run(app.startWorkers)
 
-	<-app.cycle.Wait()
+	if err := <-app.cycle.Wait(); err != nil {
+		app.logger.Error("jupiter shutdown with error", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err))
+	}
 	app.logger.Info("shutdown jupiter, bye!", xlog.FieldMod(ecode.ModApp))
 	return nil
 }

@@ -17,42 +17,44 @@ package xcycle
 import (
 	"sync"
 	"sync/atomic"
-
-	"golang.org/x/sync/errgroup"
 )
 
 //Cycle ..
 type Cycle struct {
 	mu uint32
 	sync.Once
-	eg   *errgroup.Group
-	quit chan struct{}
+	wg   *sync.WaitGroup
+	quit chan error
 }
 
 //NewCycle new a cycle life
 func NewCycle() *Cycle {
 	return &Cycle{
 		mu:   0,
-		eg:   &errgroup.Group{},
-		quit: make(chan struct{}),
+		wg:   &sync.WaitGroup{},
+		quit: make(chan error),
 	}
 }
 
 //Run a new goroutine
 func (c *Cycle) Run(fn func() error) {
-	c.eg.Go(fn)
+	c.wg.Add(1)
+	go func(c *Cycle) {
+		defer c.wg.Done()
+		if err := fn(); err != nil {
+			c.quit <- err
+		}
+	}(c)
+
 }
 
 //Done block and return a chan error
 func (c *Cycle) Done() <-chan error {
-	errCh := make(chan error)
 	go func() {
-		if err := c.eg.Wait(); err != nil {
-			errCh <- err
-		}
-		close(errCh)
+		c.wg.Wait()
+		c.Close()
 	}()
-	return errCh
+	return c.quit
 }
 
 //DoneAndClose ..
@@ -71,6 +73,6 @@ func (c *Cycle) Close() {
 }
 
 // Wait blocked for a life cycle
-func (c *Cycle) Wait() <-chan struct{} {
+func (c *Cycle) Wait() <-chan error {
 	return c.quit
 }
