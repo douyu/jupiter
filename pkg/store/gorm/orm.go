@@ -17,8 +17,6 @@ package gorm
 import (
 	"context"
 	"errors"
-	"strings"
-
 	"github.com/douyu/jupiter/pkg/util/xdebug"
 
 	"github.com/jinzhu/gorm"
@@ -104,16 +102,11 @@ func Open(dialect string, options *Config) (*DB, error) {
 		inner.LogMode(true)
 	}
 
-	d, err := ParseDSN(options.DSN)
-	if err != nil {
-		return nil, err
-	}
-
 	replace := func(processor func() *gorm.CallbackProcessor, callbackName string, interceptors ...Interceptor) {
 		old := processor().Get(callbackName)
 		var handler = old
 		for _, inte := range interceptors {
-			handler = inte(d, callbackName, options)(handler)
+			handler = inte(options.dsnCfg, callbackName, options)(handler)
 		}
 		processor().Replace(callbackName, handler)
 	}
@@ -145,18 +138,4 @@ func Open(dialect string, options *Config) (*DB, error) {
 	)
 
 	return inner, err
-}
-
-// 收敛status，避免prometheus日志太多
-func getStatement(err string) string {
-	if !strings.HasPrefix(err, "Errord") {
-		return "Unknown"
-	}
-	slice := strings.Split(err, ":")
-	if len(slice) < 2 {
-		return "Unknown"
-	}
-
-	// 收敛错误
-	return slice[0]
 }

@@ -182,10 +182,6 @@ func (app *Application) Stop() (err error) {
 		if err != nil {
 			app.logger.Error("stop register close err", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err))
 		}
-		// err = app.governor.Close()
-		// if err != nil {
-		// 	app.logger.Error("stop governor close err", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err))
-		// }
 		//stop servers
 		for _, s := range app.servers {
 			func(s server.Server) {
@@ -216,10 +212,7 @@ func (app *Application) GracefulStop(ctx context.Context) (err error) {
 		if err != nil {
 			app.logger.Error("graceful stop register close err", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err))
 		}
-		// err = app.governor.Close()
-		// if err != nil {
-		// 	app.logger.Error("graceful stop governor close err", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err))
-		// }
+
 		for _, s := range app.servers {
 			func(s server.Server) {
 				app.cycle.Run(func() error {
@@ -246,7 +239,7 @@ func (app *Application) GracefulStop(ctx context.Context) (err error) {
 func (app *Application) waitSignals() {
 	app.logger.Info("init listen signal", xlog.FieldMod(ecode.ModApp))
 	signals.Shutdown(func(grace bool) { //when get shutdown signal
-		//todo: suport timeout
+		//todo: support timeout
 		if grace {
 			app.GracefulStop(context.TODO())
 		} else {

@@ -31,6 +31,7 @@ var (
 	TypeGRPCStream = "stream"
 	// TypeRedis ...
 	TypeRedis = "redis"
+	TypeGorm  = "gorm"
 	// TypeRocketMQ ...
 	TypeRocketMQ = "rocketmq"
 
@@ -91,6 +92,24 @@ var (
 		Namespace: DefaultNamespace,
 		Name:      "job_handle_seconds",
 		Labels:    []string{"type", "name"},
+	}.Build()
+
+	LibHandleHistogram = HistogramVecOpts{
+		Namespace: DefaultNamespace,
+		Name:      "lib_handle_seconds",
+		Labels:    []string{"type", "method", "address"},
+	}.Build()
+	// LibHandleCounter ...
+	LibHandleCounter = CounterVecOpts{
+		Namespace: DefaultNamespace,
+		Name:      "lib_handle_total",
+		Labels:    []string{"type", "method", "address", "code"},
+	}.Build()
+
+	LibHandleSummary = SummaryVecOpts{
+		Namespace: DefaultNamespace,
+		Name:      "lib_handle_stats",
+		Labels:    []string{"name", "status"},
 	}.Build()
 
 	// BuildInfoGauge ...
