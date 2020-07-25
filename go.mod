@@ -51,4 +51,5 @@ require (
 	google.golang.org/genproto v0.0.0-20190819201941-24fa4b261c55
 	google.golang.org/grpc v1.26.0
 	sigs.k8s.io/yaml v1.1.0 // indirect
+	go.mongodb.org/mongo-driver v1.3.5
 )
