@@ -15,9 +15,7 @@
 package mongodb
 
 import (
-	"context"
 	"github.com/douyu/jupiter/pkg/conf"
-	"github.com/douyu/jupiter/pkg/ecode"
 	"github.com/douyu/jupiter/pkg/util/xtime"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -79,14 +77,9 @@ func (config *Config) WithLogger(log *xlog.Logger) *Config {
 
 // build connect mongodb
 func (config *Config) Build() *mongo.Client {
-
-	ctx, cancel := context.WithTimeout(context.Background(), config.ConnectTimeout*time.Second)
-	defer cancel()
-	c := options.Client()
-	client, err := mongo.Connect(ctx, c.ApplyURI(config.URI))
+	client, err := mongo.NewClient(options.Client().ApplyURI(config.URI))
 	if err != nil {
-		config.logger.Panic("connect mongodb", xlog.FieldMod("mongodb"), xlog.FieldErrKind(ecode.ErrKindRequestErr), xlog.FieldErr(err), xlog.FieldValueAny(config))
+		config.logger.Panic("connect mongodb", xlog.FieldMod("mongodb"), xlog.FieldErr(err), xlog.FieldValueAny(config))
 	}
-	//client.Database("").Collection()
 	return client
 }

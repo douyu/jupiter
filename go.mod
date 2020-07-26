@@ -42,14 +42,15 @@ require (
 	github.com/tidwall/pretty v1.0.1
 	github.com/uber/jaeger-client-go v2.23.1+incompatible
 	github.com/uber/jaeger-lib v2.2.0+incompatible // indirect
+	go.mongodb.org/mongo-driver v1.3.5
 	go.uber.org/automaxprocs v1.3.0
 	go.uber.org/multierr v1.5.0
 	go.uber.org/zap v1.15.0
+	golang.org/x/net v0.0.0-20200520004742-59133d7f0dd7
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
 	golang.org/x/sys v0.0.0-20200523222454-059865788121 // indirect
 	golang.org/x/tools v0.0.0-20200527183253-8e7acdbce89d // indirect
 	google.golang.org/genproto v0.0.0-20190819201941-24fa4b261c55
 	google.golang.org/grpc v1.26.0
 	sigs.k8s.io/yaml v1.1.0 // indirect
-	go.mongodb.org/mongo-driver v1.3.5
 )
