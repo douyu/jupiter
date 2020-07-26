@@ -15,10 +15,11 @@
 package metric
 
 import (
-	"net/http"
-
-	"github.com/douyu/jupiter/pkg/govern"
+	"github.com/douyu/jupiter/pkg"
+	"github.com/douyu/jupiter/pkg/server/governor"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"net/http"
+	"time"
 )
 
 var (
@@ -30,6 +31,7 @@ var (
 	TypeGRPCStream = "stream"
 	// TypeRedis ...
 	TypeRedis = "redis"
+	TypeGorm  = "gorm"
 	// TypeRocketMQ ...
 	TypeRocketMQ = "rocketmq"
 
@@ -92,16 +94,47 @@ var (
 		Labels:    []string{"type", "name"},
 	}.Build()
 
+	LibHandleHistogram = HistogramVecOpts{
+		Namespace: DefaultNamespace,
+		Name:      "lib_handle_seconds",
+		Labels:    []string{"type", "method", "address"},
+	}.Build()
+	// LibHandleCounter ...
+	LibHandleCounter = CounterVecOpts{
+		Namespace: DefaultNamespace,
+		Name:      "lib_handle_total",
+		Labels:    []string{"type", "method", "address", "code"},
+	}.Build()
+
+	LibHandleSummary = SummaryVecOpts{
+		Namespace: DefaultNamespace,
+		Name:      "lib_handle_stats",
+		Labels:    []string{"name", "status"},
+	}.Build()
+
 	// BuildInfoGauge ...
 	BuildInfoGauge = GaugeVecOpts{
 		Namespace: DefaultNamespace,
 		Name:      "build_info",
-		Labels:    []string{"name", "id", "env", "zone", "region", "version"},
+		Labels:    []string{"name", "aid", "mode", "region", "zone", "app_version", "jupiter_version", "start_time", "build_time", "go_version"},
 	}.Build()
 )
 
 func init() {
-	govern.HandleFunc("/metrics", func(w http.ResponseWriter, r *http.Request) {
+	BuildInfoGauge.WithLabelValues(
+		pkg.Name(),
+		pkg.AppID(),
+		pkg.AppMode(),
+		pkg.AppRegion(),
+		pkg.AppZone(),
+		pkg.AppVersion(),
+		pkg.JupiterVersion(),
+		pkg.StartTime(),
+		pkg.BuildTime(),
+		pkg.GoVersion(),
+	).Set(float64(time.Now().UnixNano() / 1e6))
+
+	governor.HandleFunc("/metrics", func(w http.ResponseWriter, r *http.Request) {
 		promhttp.Handler().ServeHTTP(w, r)
 	})
 }

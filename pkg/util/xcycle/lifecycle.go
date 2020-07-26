@@ -15,10 +15,9 @@
 package xcycle
 
 import (
+	"golang.org/x/sync/errgroup"
 	"sync"
 	"sync/atomic"
-
-	"golang.org/x/sync/errgroup"
 )
 
 //Cycle ..

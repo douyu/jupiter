@@ -117,13 +117,3 @@ func (eng *Engine) execJob() error {
 	xlog.Warn("exec job", xlog.String("warn", "print warning"))
 	return nil
 }
-
-func (eng *Engine) printLogs() error {
-	go func() {
-		for {
-			xlog.Info("hello", xlog.String("a", "b"))
-			time.Sleep(time.Second)
-		}
-	}()
-	return nil
-}

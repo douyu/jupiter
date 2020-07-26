@@ -46,7 +46,6 @@ func startGRPCServer() server.Server {
 func startWorker() worker.Worker {
 	cron := xcron.DefaultConfig().Build()
 	cron.Schedule(xcron.Every(time.Second*10), xcron.FuncJob(func() error {
-		fmt.Println("now: ", time.Now().Local().String())
 		return nil
 	}))
 	return cron
