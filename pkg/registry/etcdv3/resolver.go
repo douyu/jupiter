@@ -32,7 +32,6 @@ import (
 	"github.com/douyu/jupiter/pkg/xlog"
 	jsoniter "github.com/json-iterator/go"
 	"google.golang.org/grpc/attributes"
-	"google.golang.org/grpc/naming"
 	"google.golang.org/grpc/resolver"
 )
 
@@ -55,7 +54,7 @@ func newETCDResolver(config *Config) *etcdResolver {
 }
 
 // Build ...
-func (r *etcdResolver) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOption) (resolver.Resolver, error) {
+func (r *etcdResolver) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOptions) (resolver.Resolver, error) {
 	r.logger.Info("build etcd resolver", xlog.String("watchFullKey", "/"+r.Prefix+"/"+target.Endpoint))
 	go r.watch(cc, r.Prefix, target.Endpoint)
 	return r, nil
@@ -67,7 +66,7 @@ func (r etcdResolver) Scheme() string {
 }
 
 // ResolveNow ...
-func (r etcdResolver) ResolveNow(rn resolver.ResolveNowOption) {
+func (r etcdResolver) ResolveNow(rn resolver.ResolveNowOptions) {
 	r.logger.Info("resolve now")
 }
 
@@ -154,29 +153,6 @@ func (r *etcdResolver) updateAddrList(al *AddressList, prefix string, kvs ...*mv
 				}
 			}
 			al.cfgInfos[host] = &meta
-		case isIPPort(addr): // v1 协议
-			var meta naming.Update
-			if err := jsoniter.Unmarshal(kv.Value, &meta); err != nil {
-				r.logger.Error("unmarshal metadata", xlog.FieldErrKind(ecode.ErrKindUnmarshalConfigErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)), xlog.FieldValue(string(kv.Value)))
-				continue
-			}
-
-			if _, ok := al.cfgInfos[addr]; !ok {
-				al.cfgInfos[addr] = &url.Values{}
-			}
-
-			// 解析value
-			switch meta.Op {
-			case naming.Add:
-				al.regInfos[addr] = &url.Values{}
-				al.cfgInfos[addr].Set("enable", "true")
-				al.cfgInfos[addr].Set("weight", "100")
-			case naming.Delete:
-				al.regInfos[addr] = &url.Values{}
-				al.cfgInfos[addr].Set("enable", "false")
-				al.cfgInfos[addr].Set("weight", "0")
-			}
-
 		}
 	}
 	r.logger.Info("update addr list", xlog.Any("reg_info", al.regInfos), xlog.Any("cfg_info", al.cfgInfos))
