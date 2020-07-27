@@ -15,12 +15,12 @@
 package mongodb
 
 import (
+	"context"
+
 	"github.com/douyu/jupiter/pkg/conf"
-	"github.com/douyu/jupiter/pkg/util/xtime"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"time"
 )
 
 // StdConfig 配置
@@ -35,37 +35,29 @@ func RawConfig(key string) *Config {
 	if err := conf.UnmarshalKey(key, cfg, conf.TagName("toml")); err != nil {
 		xlog.Panic("unmarshal key", xlog.FieldMod("mongodb"), xlog.FieldErr(err), xlog.FieldKey(key))
 	}
+	xlog.Info("unmarshal", xlog.Any("unmarshal", cfg))
 	return cfg
 }
 
-// 配置
+// 配置结构
 type Config struct {
 	// mongodb uri 链接地址
 	// mongodb://[username:password@]host1[:port1][,host2[:port2],...[,hostN[:portN]]][/[database][?options]]
-	URI             string        `json:"uri" toml:"uri"`
-	Debug           bool          `json:"debug" toml:"debug"`                           // debug 模式
-	ConnectTimeout  time.Duration `json:"connect_timeout" toml:"connect_timeout"`       // 连接超时时间
-	MaxConnIdleTime time.Duration `json:"max_conn_idle_time" toml:"max_conn_idle_time"` // 最大空闲连接时间
-	MaxPoolSize     uint64        `json:"max_pool_size" toml:"max_pool_size"`           // 连接池最大连接数
-	MinPoolSize     uint64        `json:"min_pool_size" toml:"min_pool_size"`           // 连接池最小连接数
-	DisableMetric   bool          `json:"disable_metric" toml:"disable_metric"`         // 关闭指标采集
-	DisableTrace    bool          `json:"disable_trace" toml:"disable_trace"`           // 关闭链路追踪
-	logger          *xlog.Logger  // logger
+	URI           string       `json:"uri" toml:"uri"`
+	Debug         bool         `json:"debug" toml:"debug"`                   // debug 模式
+	DisableMetric bool         `json:"disable_metric" toml:"disable_metric"` // 关闭指标采集 todo 没有做具体的实现
+	DisableTrace  bool         `json:"disable_trace" toml:"disable_trace"`   // 关闭链路追踪 todo 没有做具体的实现
+	logger        *xlog.Logger // logger
 }
 
 // 默认配置
-
 func DefaultConfig() *Config {
 	return &Config{
-		URI:             "", // 空的uri
-		Debug:           false,
-		MaxConnIdleTime: xtime.Duration("60s"), //  60s
-		MaxPoolSize:     100,                   // 100个链接
-		MinPoolSize:     10,                    // 10个链接
-		ConnectTimeout:  xtime.Duration("10s"), // 10s
-		DisableMetric:   false,
-		DisableTrace:    false,
-		logger:          xlog.DefaultLogger,
+		URI:           "", // 空的uri
+		Debug:         false,
+		DisableMetric: false,
+		DisableTrace:  false,
+		logger:        xlog.DefaultLogger,
 	}
 }
 
@@ -76,10 +68,18 @@ func (config *Config) WithLogger(log *xlog.Logger) *Config {
 }
 
 // build connect mongodb
-func (config *Config) Build() *mongo.Client {
-	client, err := mongo.NewClient(options.Client().ApplyURI(config.URI))
+func (config *Config) Build() *MongoDB {
+	// set config
+	if config.Debug {
+		xlog.Info("start load mongodb config", xlog.Any("config", config))
+	}
+	clientOpts := options.Client().ApplyURI(config.URI)
+	if config.Debug {
+		xlog.Info("start load mongodb clientOpts", xlog.Any("clientOpts", clientOpts))
+	}
+	client, err := mongo.Connect(context.TODO(), clientOpts)
 	if err != nil {
 		config.logger.Panic("connect mongodb", xlog.FieldMod("mongodb"), xlog.FieldErr(err), xlog.FieldValueAny(config))
 	}
-	return client
+	return &MongoDB{Client: client, Config: config}
 }

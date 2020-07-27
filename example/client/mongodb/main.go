@@ -16,6 +16,7 @@ package main
 
 import (
 	"context"
+
 	"github.com/douyu/jupiter"
 	"github.com/douyu/jupiter/pkg/client/mongodb"
 	"github.com/douyu/jupiter/pkg/xlog"
@@ -50,7 +51,7 @@ func (eng *Engine) exampleMongoDBInsertOne() (err error) {
 	var doc = bson.M{"_id": primitive.NewObjectID(), "hometown": "Atlanta"}
 	ctx := context.Background()
 	defer client.Disconnect(ctx)
-	collection := client.Database("admin").Collection("user")
+	collection := client.Database("hawk").Collection("user")
 	result, err := collection.InsertOne(ctx, doc)
 
 	xlog.Info("insert one success", xlog.Any("insertID", result.InsertedID))

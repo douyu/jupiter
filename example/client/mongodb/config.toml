@@ -1,2 +1,6 @@
 [jupiter.mongodb.mymongo]
-    uri = "mongodb://127.0.0.1:27017"
+    uri = "mongodb://root:root@127.0.0.1:27017/?authSource=admin;minPoolSize=11;maxPoolSize=111;connectTimeoutMS=60;maxIdleTimeMS=60"
+    debug = false
+    async = false
+    disable_metric = false
+    disable_trace = false
