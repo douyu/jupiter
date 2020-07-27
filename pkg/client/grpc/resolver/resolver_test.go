@@ -12,22 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package etcdv3
+package resolver
 
-import (
-	"fmt"
-	"net/url"
-	"testing"
-)
+import "testing"
 
-func Test_parseurl(t *testing.T) {
-	uriStr := "grpc:///?app=name"
-	uri, err := url.Parse(uriStr)
-	if err != nil {
-		fmt.Printf("err => %+v\n", err)
-		panic(err)
-	}
+func Test_baseResolver(t *testing.T) {
 
-	t.Logf("uri.Host: %s", uri.Host)
-	// fmt.Printf("uri.Host => %+v\n", uri.Host)
 }

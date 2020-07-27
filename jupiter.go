@@ -58,7 +58,7 @@ type Application struct {
 	beforeStop  *xdefer.DeferStack
 	defers      []func() error
 
-	governorAddr string
+	//governorAddr string
 
 	servers    []server.Server
 	workers    []worker.Worker
@@ -152,9 +152,10 @@ func (app *Application) SetRegistry(reg registry.Registry) {
 }
 
 // SetGovernor set governor addr (default 127.0.0.1:0)
-func (app *Application) SetGovernor(addr string) {
-	app.governorAddr = addr
-}
+// Deprecated
+//func (app *Application) SetGovernor(addr string) {
+//	app.governorAddr = addr
+//}
 
 // Run run application
 func (app *Application) Run() error {
@@ -250,6 +251,7 @@ func (app *Application) waitSignals() {
 
 func (app *Application) initGovernor() error {
 	config := governor.StdConfig("governor")
+	fmt.Println("config.Enable------>", config.Enable)
 	if !config.Enable {
 		return nil
 	}
@@ -258,12 +260,14 @@ func (app *Application) initGovernor() error {
 
 func (app *Application) startServers() error {
 	var eg errgroup.Group
+	fmt.Println("startServers====>")
+	fmt.Println("app.servers", len(app.servers))
 	// start multi servers
 	for _, s := range app.servers {
 		s := s
 		eg.Go(func() (err error) {
 			_ = app.registerer.RegisterService(context.TODO(), s.Info())
-			defer app.registerer.DeregisterService(context.TODO(), s.Info())
+			defer app.registerer.UnregisterService(context.TODO(), s.Info())
 			app.logger.Info("start servers", xlog.FieldMod(ecode.ModApp), xlog.FieldAddr(s.Info().Label()), xlog.Any("scheme", s.Info().Scheme))
 			defer app.logger.Info("exit server", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err), xlog.FieldAddr(s.Info().Label()))
 			return s.Serve()

@@ -17,9 +17,8 @@ package grpc
 import (
 	"time"
 
-	"github.com/douyu/jupiter/pkg/ecode"
-
 	"github.com/douyu/jupiter/pkg/conf"
+	"github.com/douyu/jupiter/pkg/ecode"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/balancer/roundrobin"
@@ -37,7 +36,6 @@ type Config struct {
 	KeepAlive    *keepalive.ClientParameters
 	logger       *xlog.Logger
 	dialOptions  []grpc.DialOption
-	// resolver     resolver.Builder
 
 	Debug         bool
 	DisableTrace  bool
@@ -51,7 +49,7 @@ func DefaultConfig() *Config {
 			grpc.WithInsecure(),
 		},
 		logger:       xlog.JupiterLogger.With(xlog.FieldMod(ecode.ModClientGrpc)),
-		BalancerName: roundrobin.Name, // roundrobin by default
+		BalancerName: roundrobin.Name, // round robin by default
 		DialTimeout:  time.Second * 3,
 		OnDialError:  "panic",
 	}
@@ -99,6 +97,5 @@ func (config *Config) Build() *grpc.ClientConn {
 		)
 	}
 
-	client := newGRPCClient(*config)
-	return client
+	return newGRPCClient(config)
 }

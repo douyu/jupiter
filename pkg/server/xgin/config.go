@@ -28,6 +28,7 @@ import (
 type Config struct {
 	Host          string
 	Port          int
+	Deployment    string
 	Mode          string
 	DisableMetric bool
 	DisableTrace  bool

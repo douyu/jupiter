@@ -28,6 +28,7 @@ func StdConfig(name string) *Config {
 func RawConfig(key string) *Config {
 	var config = DefaultConfig()
 	if conf.Get(key) == nil {
+		config.Enable = true
 		return config
 	}
 	if err := conf.UnmarshalKey(key, &config); err != nil {

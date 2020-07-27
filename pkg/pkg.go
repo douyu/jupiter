@@ -1,3 +1,17 @@
+// Copyright 2020 Douyu
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package pkg
 
 import (
@@ -9,6 +23,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/douyu/jupiter/pkg/constant"
 	"github.com/douyu/jupiter/pkg/util/xcolor"
 )
 
@@ -20,6 +35,9 @@ var (
 )
 
 // build info
+/*
+
+ */
 var (
 	appName         string
 	appID           string
@@ -29,11 +47,13 @@ var (
 	buildHost       string
 	buildStatus     string
 	buildTime       string
+	region          string
+	zone            string
 )
 
 func init() {
 	if appName == "" {
-		appName = os.Getenv("APP_NAME")
+		appName = os.Getenv(constant.EnvAppName)
 		if appName == "" {
 			appName = filepath.Base(os.Args[0])
 		}
@@ -44,6 +64,9 @@ func init() {
 		name = "unknown"
 	}
 	hostName = name
+
+	initMetadata(&region, constant.EnvRegion, constant.DefaultRegion)
+	initMetadata(&zone, constant.EnvZone, constant.DefaultZone)
 	startTime = xtime.TS.Format(time.Now())
 	goVersion = runtime.Version()
 	InitEnv()
@@ -115,10 +138,22 @@ func GoVersion() string {
 func PrintVersion() {
 	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", xcolor.Red("name"), xcolor.Blue(appName))
 	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", xcolor.Red("appID"), xcolor.Blue(appID))
+	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", xcolor.Red("region"), xcolor.Blue(region))
+	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", xcolor.Red("zone"), xcolor.Blue(zone))
 	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", xcolor.Red("appVersion"), xcolor.Blue(buildAppVersion))
 	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", xcolor.Red("jupiterVersion"), xcolor.Blue(jupiterVersion))
 	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", xcolor.Red("buildUser"), xcolor.Blue(buildUser))
 	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", xcolor.Red("buildHost"), xcolor.Blue(buildHost))
 	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", xcolor.Red("buildTime"), xcolor.Blue(BuildTime()))
 	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", xcolor.Red("buildStatus"), xcolor.Blue(buildStatus))
+}
+
+func initMetadata(val *string, envKey string, defaultValue string) {
+	if *val == "" {
+		*val = os.Getenv(envKey)
+	}
+
+	if *val == "" {
+		*val = defaultValue
+	}
 }

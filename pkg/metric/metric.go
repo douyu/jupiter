@@ -34,6 +34,11 @@ var (
 	TypeGorm  = "gorm"
 	// TypeRocketMQ ...
 	TypeRocketMQ = "rocketmq"
+	// TypeWebsocket ...
+	TypeWebsocket = "ws"
+
+	// TypeMySQL ...
+	TypeMySQL = "mysql"
 
 	// CodeJob
 	CodeJobSuccess = "ok"
@@ -110,6 +115,20 @@ var (
 		Namespace: DefaultNamespace,
 		Name:      "lib_handle_stats",
 		Labels:    []string{"name", "status"},
+	}.Build()
+
+	// CacheHandleCounter ...
+	CacheHandleCounter = CounterVecOpts{
+		Namespace: DefaultNamespace,
+		Name:      "cache_handle_total",
+		Labels:    []string{"type", "name", "action", "code"},
+	}.Build()
+
+	// CacheHandleHistogram ...
+	CacheHandleHistogram = HistogramVecOpts{
+		Namespace: DefaultNamespace,
+		Name:      "cache_handle_seconds",
+		Labels:    []string{"type", "name", "action"},
 	}.Build()
 
 	// BuildInfoGauge ...

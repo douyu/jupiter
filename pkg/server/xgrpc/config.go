@@ -17,6 +17,7 @@ package xgrpc
 import (
 	"fmt"
 
+	"github.com/douyu/jupiter/pkg/constant"
 	"github.com/douyu/jupiter/pkg/ecode"
 	"github.com/douyu/jupiter/pkg/xlog"
 
@@ -26,8 +27,9 @@ import (
 
 // Config ...
 type Config struct {
-	Host string
-	Port int
+	Host       string
+	Port       int
+	Deployment string
 	// Network network type, tcp4 by default
 	Network string `json:"network" toml:"network"`
 	// DisableTrace disbale Trace Interceptor, false by default
@@ -70,6 +72,7 @@ func DefaultConfig() *Config {
 		Network:                   "tcp4",
 		Host:                      "127.0.0.1",
 		Port:                      9092,
+		Deployment:                constant.DefaultDeployment,
 		DisableMetric:             false,
 		DisableTrace:              false,
 		SlowQueryThresholdInMilli: 500,

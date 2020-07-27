@@ -18,14 +18,20 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/douyu/jupiter/pkg/constant"
+	"net"
+	"net/url"
+	"strings"
 	"sync"
 	"time"
 
-	"github.com/douyu/jupiter/pkg/ecode"
-
 	"github.com/coreos/etcd/clientv3"
+	"github.com/coreos/etcd/mvcc/mvccpb"
 	"github.com/douyu/jupiter/pkg/client/etcdv3"
+	"github.com/douyu/jupiter/pkg/ecode"
+	"github.com/douyu/jupiter/pkg/registry"
 	"github.com/douyu/jupiter/pkg/server"
+	"github.com/douyu/jupiter/pkg/util/xgo"
 	"github.com/douyu/jupiter/pkg/xlog"
 )
 
@@ -34,6 +40,7 @@ type etcdv3Registry struct {
 	lease  clientv3.LeaseID
 	kvs    sync.Map
 	*Config
+	cancel context.CancelFunc
 }
 
 func newETCDRegistry(config *Config) *etcdv3Registry {
@@ -49,69 +56,128 @@ func newETCDRegistry(config *Config) *etcdv3Registry {
 	return res
 }
 
-// RegisterService ...
-func (e *etcdv3Registry) RegisterService(ctx context.Context, info *server.ServiceInfo) error {
+// RegisterService register service to registry
+func (reg *etcdv3Registry) RegisterService(ctx context.Context, info *server.ServiceInfo) error {
 	opOptions := make([]clientv3.OpOption, 0)
-	if e.lease != 0 {
-		opOptions = append(opOptions, clientv3.WithLease(e.lease), clientv3.WithSerializable())
+	if reg.lease != 0 {
+		opOptions = append(opOptions, clientv3.WithLease(reg.lease), clientv3.WithSerializable())
 	}
 
 	if _, ok := ctx.Deadline(); !ok {
 		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(ctx, e.ReadTimeout)
+		ctx, cancel = context.WithTimeout(ctx, reg.ReadTimeout)
 		defer cancel()
 	}
 
-	key := fmt.Sprintf("/%s/%s/%s/%s://%s", e.Prefix, info.Name, info.Kind.String(), info.Scheme, info.Address)
-	val, err := json.Marshal(info)
-
+	key := reg.registerKey(info)
+	val := reg.registerValue(info)
+	fmt.Println(key, val)
+	_, err := reg.client.Put(ctx, key, val, opOptions...)
 	if err != nil {
+		reg.logger.Error("register service", xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err), xlog.FieldKeyAny(key), xlog.FieldValueAny(info))
 		return err
 	}
 
-	_, err = e.client.Put(ctx, key, string(val), opOptions...)
-	if err != nil {
-		e.logger.Error("register service", xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err), xlog.FieldKeyAny(key), xlog.FieldValueAny(info))
-		return err
-	}
-	// xdebug.PrintKVWithPrefix("registry", "register key", key)
-	e.logger.Info("register service", xlog.FieldKeyAny(key), xlog.FieldValueAny(info))
-	e.kvs.Store(key, val)
+	reg.logger.Info("register service", xlog.FieldKeyAny(key), xlog.FieldValueAny(info))
+	reg.kvs.Store(key, val)
 	return err
 }
 
-// DeregisterService ...
-func (e *etcdv3Registry) DeregisterService(ctx context.Context, info *server.ServiceInfo) error {
-	key := fmt.Sprintf("/%s/%s/%s/%s://%s", e.Prefix, info.Name, info.Kind.String(), info.Scheme, info.Address)
-	return e.deregister(ctx, key)
+// UnregisterService unregister service from registry
+func (reg *etcdv3Registry) UnregisterService(ctx context.Context, info *server.ServiceInfo) error {
+	return reg.unregister(ctx, reg.registerKey(info))
 }
 
-func (e *etcdv3Registry) deregister(ctx context.Context, key string) error {
+// ListServices list service registered in registry with name `name`
+func (reg *etcdv3Registry) ListServices(ctx context.Context, name string, scheme string) (services []*server.ServiceInfo, err error) {
+	target := fmt.Sprintf("/%s/%s/providers/%s://", reg.Prefix, name, scheme)
+	getResp, getErr := reg.client.Get(ctx, target, clientv3.WithPrefix())
+	if getErr != nil {
+		reg.logger.Error(ecode.MsgWatchRequestErr, xlog.FieldErrKind(ecode.ErrKindRequestErr), xlog.FieldErr(getErr), xlog.FieldAddr(target))
+		return nil, getErr
+	}
+
+	for _, kv := range getResp.Kvs {
+		var service server.ServiceInfo
+		if err := json.Unmarshal(kv.Value, &service); err != nil {
+			reg.logger.Warnf("invalid service", xlog.FieldErr(err))
+			continue
+		}
+		services = append(services, &service)
+	}
+
+	return
+}
+
+// WatchServices watch service change event, then return address list
+func (reg *etcdv3Registry) WatchServices(ctx context.Context, name string, scheme string) (chan registry.Endpoints, error) {
+	prefix := fmt.Sprintf("/%s/%s/", reg.Prefix, name)
+	watch, err := reg.client.WatchPrefix(context.Background(), prefix)
+	if err != nil {
+		return nil, err
+	}
+
+	var addresses = make(chan registry.Endpoints, 10)
+	var al = &registry.Endpoints{
+		Nodes:        make(map[string]server.ServiceInfo),
+		RouteConfigs: make(map[string]registry.RouteConfig),
+	}
+
+	for _, kv := range watch.IncipientKeyValues() {
+		updateAddrList(al, prefix, scheme, kv)
+	}
+
+	addresses <- *al
+
+	xgo.Go(func() {
+		for event := range watch.C() {
+			switch event.Type {
+			case mvccpb.PUT:
+				updateAddrList(al, prefix, scheme, event.Kv)
+			case mvccpb.DELETE:
+				deleteAddrList(al, prefix, scheme, event.Kv)
+			}
+
+			select {
+			case addresses <- *al:
+			default:
+				xlog.Warnf("invalid")
+			}
+		}
+	})
+
+	return addresses, nil
+}
+
+func (reg *etcdv3Registry) unregister(ctx context.Context, key string) error {
 	if _, ok := ctx.Deadline(); !ok {
 		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(ctx, e.ReadTimeout)
+		ctx, cancel = context.WithTimeout(ctx, reg.ReadTimeout)
 		defer cancel()
 	}
-	_, err := e.client.Delete(ctx, key)
+	_, err := reg.client.Delete(ctx, key)
 	if err == nil {
-		e.kvs.Delete(key)
+		reg.kvs.Delete(key)
 	}
 	return err
 }
 
 // Close ...
-func (e *etcdv3Registry) Close() error {
+func (reg *etcdv3Registry) Close() error {
+	if reg.cancel != nil {
+		reg.cancel()
+	}
 	var wg sync.WaitGroup
-	e.kvs.Range(func(k, v interface{}) bool {
+	reg.kvs.Range(func(k, v interface{}) bool {
 		wg.Add(1)
 		go func(k interface{}) {
 			defer wg.Done()
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-			err := e.deregister(ctx, k.(string))
+			err := reg.unregister(ctx, k.(string))
 			if err != nil {
-				e.logger.Error("deregister service", xlog.FieldErrKind(ecode.ErrKindRequestErr), xlog.FieldErr(err), xlog.FieldErr(err), xlog.FieldKeyAny(k), xlog.FieldValueAny(v))
+				reg.logger.Error("unregister service", xlog.FieldErrKind(ecode.ErrKindRequestErr), xlog.FieldErr(err), xlog.FieldErr(err), xlog.FieldKeyAny(k), xlog.FieldValueAny(v))
 			} else {
-				e.logger.Info("deregister service", xlog.FieldKeyAny(k), xlog.FieldValueAny(v))
+				reg.logger.Info("unregister service", xlog.FieldKeyAny(k), xlog.FieldValueAny(v))
 			}
 			cancel()
 		}(k)
@@ -119,12 +185,179 @@ func (e *etcdv3Registry) Close() error {
 	})
 	wg.Wait()
 
-	if e.lease > 0 {
+	if reg.lease > 0 {
 		// revoke 有一些延迟，考虑直接删除
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-		_, err := e.client.Revoke(ctx, e.lease)
+		_, err := reg.client.Revoke(ctx, reg.lease)
 		cancel()
 		return err
 	}
 	return nil
 }
+
+func (reg *etcdv3Registry) registerKey(info *server.ServiceInfo) string {
+	switch info.Kind {
+	case constant.ServiceProvider:
+		return fmt.Sprintf("/%s/%s/providers/%s://%s", reg.Prefix, info.Name, info.Scheme, info.Address)
+	case constant.ServiceGovernor:
+		return fmt.Sprintf("/%s/%s/governors/%s://%s", reg.Prefix, info.Name, info.Scheme, info.Address)
+	}
+	return fmt.Sprintf("/%s/%s/unknown/%s://%s", reg.Prefix, info.Name, info.Scheme, info.Address)
+}
+
+func (reg *etcdv3Registry) registerValue(info *server.ServiceInfo) string {
+	val, _ := json.Marshal(info)
+	return string(val)
+}
+
+func deleteAddrList(al *registry.Endpoints, prefix, scheme string, kvs ...*mvccpb.KeyValue) {
+	for _, kv := range kvs {
+		var addr = strings.TrimPrefix(string(kv.Key), prefix)
+		if strings.HasPrefix(addr, "providers/"+scheme) {
+			// 解析服务注册键
+			addr = strings.TrimPrefix(addr, "providers/")
+			if addr == "" {
+				continue
+			}
+			uri, err := url.Parse(addr)
+			if err != nil {
+				xlog.Error("parse uri", xlog.FieldErrKind(ecode.ErrKindUriErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)))
+				continue
+			}
+			delete(al.Nodes, uri.String())
+		}
+
+		if strings.HasPrefix(addr, "configurators/"+scheme) {
+			// 解析服务配置键
+			addr = strings.TrimPrefix(addr, "configurators/")
+			if addr == "" {
+				continue
+			}
+			uri, err := url.Parse(addr)
+			if err != nil {
+				xlog.Error("parse uri", xlog.FieldErrKind(ecode.ErrKindUriErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)))
+				continue
+			}
+			delete(al.RouteConfigs, uri.String())
+		}
+
+		if isIPPort(addr) {
+			// 直接删除addr 因为Delete操作的value值为空
+			delete(al.Nodes, addr)
+			delete(al.RouteConfigs, addr)
+		}
+	}
+}
+
+func updateAddrList(al *registry.Endpoints, prefix, scheme string, kvs ...*mvccpb.KeyValue) {
+	for _, kv := range kvs {
+		var addr = strings.TrimPrefix(string(kv.Key), prefix)
+		switch {
+		// 解析服务注册键
+		case strings.HasPrefix(addr, "providers/"+scheme):
+			addr = strings.TrimPrefix(addr, "providers/")
+			uri, err := url.Parse(addr)
+			if err != nil {
+				xlog.Error("parse uri", xlog.FieldErrKind(ecode.ErrKindUriErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)))
+				continue
+			}
+			var serviceInfo server.ServiceInfo
+			if err := json.Unmarshal(kv.Value, &serviceInfo); err != nil {
+				xlog.Error("parse uri", xlog.FieldErrKind(ecode.ErrKindUriErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)))
+				continue
+			}
+			al.Nodes[uri.String()] = serviceInfo
+		case strings.HasPrefix(addr, "configurators/"+scheme):
+			addr = strings.TrimPrefix(addr, "configurators/")
+
+			uri, err := url.Parse(addr)
+			if err != nil {
+				xlog.Error("parse uri", xlog.FieldErrKind(ecode.ErrKindUriErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)))
+				continue
+			}
+
+			if strings.HasPrefix(uri.Path, "/routes/") { // 路由配置
+				var routeConfig registry.RouteConfig
+				if err := json.Unmarshal(kv.Value, &routeConfig); err != nil {
+					xlog.Error("parse uri", xlog.FieldErrKind(ecode.ErrKindUriErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)))
+					continue
+				}
+				routeConfig.ID = strings.TrimPrefix(uri.Path, "/routes/")
+				routeConfig.Scheme = uri.Scheme
+				routeConfig.Host = uri.Host
+				al.RouteConfigs[uri.String()] = routeConfig
+			}
+
+			if strings.HasPrefix(uri.Path, "/providers/") {
+				var providerConfig registry.ProviderConfig
+				if err := json.Unmarshal(kv.Value, &providerConfig); err != nil {
+					xlog.Error("parse uri", xlog.FieldErrKind(ecode.ErrKindUriErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)))
+					continue
+				}
+				providerConfig.ID = strings.TrimPrefix(uri.Path, "/providers/")
+				providerConfig.Scheme = uri.Scheme
+				providerConfig.Host = uri.Host
+				al.ProviderConfigs[uri.String()] = providerConfig
+			}
+
+			if strings.HasPrefix(uri.Path, "/consumers/") {
+				var consumerConfig registry.ConsumerConfig
+				if err := json.Unmarshal(kv.Value, &consumerConfig); err != nil {
+					xlog.Error("parse uri", xlog.FieldErrKind(ecode.ErrKindUriErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)))
+					continue
+				}
+				consumerConfig.ID = strings.TrimPrefix(uri.Path, "/consumers/")
+				consumerConfig.Scheme = uri.Scheme
+				consumerConfig.Host = uri.Host
+				al.ConsumerConfigs[uri.String()] = consumerConfig
+			}
+		}
+	}
+}
+
+func isIPPort(addr string) bool {
+	_, _, err := net.SplitHostPort(addr)
+	return err == nil
+}
+
+/*
+key: /jupiter/main/configurator/grpc:///routes/1
+val:
+{
+	"upstream": { // 客户端配置
+		"nodes": { // 按照node负载均衡
+			"127.0.0.1:1980": 1,
+			"127.0.0.1:1981": 4
+		},
+		"group": { // 按照group负载均衡
+			"red": 2,
+			"green": 1
+		}
+	},
+	"uri": "/hello",
+	"deployment": "open_api"
+}
+
+key: /jupiter/main/configurator/grpc://127.0.0.1/routes/2
+val:
+{
+	"upstream": { // 客户端配置
+		"nodes": { // 按照node负载均衡
+			"127.0.0.1:1980": 1,
+			"127.0.0.1:1981": 1
+		},
+		"group": { // 按照group负载均衡
+			"red": 1,
+			"green": 2
+		}
+	},
+	"uri": "/hello",
+	"deployment": "core_api" // 部署组
+}
+
+key: /jupiter/main/configurator/grpc:///consumers/client-demo
+val:
+{
+
+}
+*/
