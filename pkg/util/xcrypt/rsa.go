@@ -36,7 +36,6 @@ func RsaEncrypt(ori, publicKey []byte) ([]byte, error) {
 	}
 
 	pub := pubInterface.(*rsa.PublicKey)
-
 	return rsa.EncryptPKCS1v15(rand.Reader, pub, ori)
 }
 
@@ -52,6 +51,5 @@ func RsaDecrypt(cipherText, privateKey []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	return rsa.DecryptPKCS1v15(rand.Reader, private, cipherText)
 }

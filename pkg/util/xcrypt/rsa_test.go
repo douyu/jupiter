@@ -14,7 +14,10 @@
 
 package xcrypt
 
-import "testing"
+import (
+	"encoding/base64"
+	"testing"
+)
 
 // 私钥生成
 //openssl genrsa -out rsa_private_key.pem 1024
@@ -53,9 +56,18 @@ func TestRsaEncrypt(t *testing.T) {
 	if err != nil {
 		t.Error(err.Error())
 	}
-	t.Log(string(b))
+	t.Log(base64.StdEncoding.EncodeToString(b))
 }
 
 func TestRsaDecrypt(t *testing.T) {
-
+	str := "jupiter"
+	b, err := RsaEncrypt([]byte(str), publicKey)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	ss, err := RsaDecrypt(b, privateKey)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	t.Log(string(ss))
 }
