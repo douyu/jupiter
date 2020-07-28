@@ -125,54 +125,11 @@ graph LR
 1. etcdproxy, 代理etcd请求。最直观的优势是应用不再需要关心和配置etcd地址。  
 2. healthcheck, 对同机的app做健康检查，判定应用不可用时，主动注销服务。理论上应用不在需要使用 etcd lease 保证异常状态下的服务正常注销。  
 
-### 1.1 v1注册协议
-    
-v1注册协议基于etcd naming包，提供的功能有限，使用该协议的应用需要尽快迁移到v2注册协议。
-    
-注册名: {scheme}:{app_name}:v1:{env}/{ip}:{port}  
-注册值: {"Op": 0, "Addr": "{ip}:{port}", "Metadata": null}
-eg: http:wsd-live-srv-roombase-go:v1:live/127.0.0.1:8888
-
-
-### 1.2 v2注册协议
-
-v2注册协议增加了对服务治理的支持，在修改原有注册键的同时，增加配置键。
-
-- 服务注册键
-注册键: /wsd-reg/{app_name}/providers/{scheme}://{ip}:{port}  
-eg: /wsd-reg/wsd-live-srv-roombase-go/grpc://127.0.0.1:8889  
-
-注册值: 
-```json
-{
-  "region": "bj",
-  "zone": "zw",
-  "env": "live",
-  "app_id": "12345",
-  "app_name": "wsd-live-srv-roombase-go",
-  "hostname": "127.0.0.1",
-  "up_ts": 1099098918,
-  "metadata": {
-    "ver": "1.0.0",
-    "enable": "true",
-    "weight": 100,
-    "group": "default,red"
-  }
-}
-```
-
 其中:
 1. enable: 服务是否被客户端发现（即是否导入流量)
 2. weight: 流量权重，客户端按照该权重配发流量
 3. group: 流量分组, 多个分组使用','分隔
 
-- 配置键
-配置键: /wsd-reg/{app_name}/configurators/{scheme}://{ip}:{port}
-配置值: 
-```json
-{
-}
-```
     
  
 ## 2 服务发现
@@ -205,7 +162,6 @@ naming.etcdResolver 实现了grpc.Resolver接口，相比etcdv3.GRPCResolver：
 
 naming.groupPickerBuilder 实现了balancer.Builder接口，并向balancer包注入group_weight负载均衡器。
 
-在使用上, git.dz11.com/vega/minerva/client/gusty内置了resolver注入:
 
 ```go
 // 服务发现
@@ -224,16 +180,6 @@ cc, err := grpc.DialContext(
 )
 ```
 
-在调用请求时:
-```go
-c := pb.NewRoomBaseClient(conn)
-ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-ctx = context.WithValue(ctx, "_group", "default")   // 必须注入_group value, 用于表明请求组
-r, err := c.GetHot(ctx, &pb.GetReq{
-    Rid: 77580089,
-})
-cancel()
-```
 
 如注释行所述，发起调用的时候必须在context中写入_group, 用于表明请求的服务组。否则会退化为 __全局随机的负载均衡策略__。
 

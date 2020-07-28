@@ -118,14 +118,17 @@ func WithKind(kind constant.ServiceKind) Option {
 
 func defaultServiceInfo() ServiceInfo {
 	si := ServiceInfo{
-		Name:     pkg.Name(),
-		AppID:    pkg.AppID(),
-		Weight:   100,
-		Enable:   true,
-		Healthy:  true,
-		Metadata: make(map[string]string),
-		Region:   pkg.AppRegion(),
-		Zone:     pkg.AppZone(),
+		Name:       pkg.Name(),
+		AppID:      pkg.AppID(),
+		Weight:     100,
+		Enable:     true,
+		Healthy:    true,
+		Metadata:   make(map[string]string),
+		Region:     pkg.AppRegion(),
+		Zone:       pkg.AppZone(),
+		Kind:       0,
+		Deployment: "",
+		Group:      "",
 	}
 	si.Metadata["appMode"] = pkg.AppMode()
 	si.Metadata["appHost"] = pkg.AppHost()

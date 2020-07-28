@@ -251,7 +251,6 @@ func (app *Application) waitSignals() {
 
 func (app *Application) initGovernor() error {
 	config := governor.StdConfig("governor")
-	fmt.Println("config.Enable------>", config.Enable)
 	if !config.Enable {
 		return nil
 	}
@@ -260,8 +259,6 @@ func (app *Application) initGovernor() error {
 
 func (app *Application) startServers() error {
 	var eg errgroup.Group
-	fmt.Println("startServers====>")
-	fmt.Println("app.servers", len(app.servers))
 	// start multi servers
 	for _, s := range app.servers {
 		s := s

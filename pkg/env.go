@@ -3,6 +3,7 @@ package pkg
 import (
 	"crypto/md5"
 	"fmt"
+	"github.com/douyu/jupiter/pkg/constant"
 	"os"
 )
 
@@ -15,22 +16,13 @@ var (
 	appInstance string
 )
 
-var (
-	EnvAppLogDir   = "APP_LOG_DIR"
-	EnvAppMode     = "APP_MODE"
-	EnvAppRegion   = "APP_REGION"
-	EnvAppZone     = "APP_ZONE"
-	EnvAppHost     = "APP_HOST"
-	EnvAppInstance = "APP_INSTANCE" // application unique instance id.
-)
-
 func InitEnv() {
-	appLogDir = os.Getenv(EnvAppLogDir)
-	appMode = os.Getenv(EnvAppMode)
-	appRegion = os.Getenv(EnvAppRegion)
-	appZone = os.Getenv(EnvAppZone)
-	appHost = os.Getenv(EnvAppHost)
-	appInstance = os.Getenv(EnvAppInstance)
+	appLogDir = os.Getenv(constant.EnvAppLogDir)
+	appMode = os.Getenv(constant.EnvAppMode)
+	appRegion = os.Getenv(constant.EnvAppRegion)
+	appZone = os.Getenv(constant.EnvAppZone)
+	appHost = os.Getenv(constant.EnvAppHost)
+	appInstance = os.Getenv(constant.EnvAppInstance)
 	if appInstance == "" {
 		appInstance = fmt.Sprintf("%x", md5.Sum([]byte(fmt.Sprintf("%s:%s", HostName(), AppID()))))
 	}

@@ -26,10 +26,13 @@ const (
 	EnvAppName = "APP_NAME"
 	// EnvDeployment ...
 	EnvDeployment = "APP_DEPLOYMENT"
-	// EnvRegion ...
-	EnvRegion = "APP_REGION"
-	// EnvZone ...
-	EnvZone = "APP_ZONE"
+
+	EnvAppLogDir   = "APP_LOG_DIR"
+	EnvAppMode     = "APP_MODE"
+	EnvAppRegion   = "APP_REGION"
+	EnvAppZone     = "APP_ZONE"
+	EnvAppHost     = "APP_HOST"
+	EnvAppInstance = "APP_INSTANCE" // application unique instance id.
 )
 
 const (

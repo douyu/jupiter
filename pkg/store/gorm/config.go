@@ -90,7 +90,7 @@ func DefaultConfig() *Config {
 		DisableMetric:   false,
 		DisableTrace:    false,
 		raw:             nil,
-		logger:          xlog.DefaultLogger,
+		logger:          xlog.JupiterLogger,
 	}
 }
 

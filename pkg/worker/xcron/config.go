@@ -45,7 +45,7 @@ func RawConfig(key string) Config {
 // DefaultConfig ...
 func DefaultConfig() Config {
 	return Config{
-		logger:          xlog.DefaultLogger,
+		logger:          xlog.JupiterLogger,
 		wrappers:        []JobWrapper{},
 		WithSeconds:     false,
 		ImmediatelyRun:  false,

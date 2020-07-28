@@ -45,7 +45,7 @@ type etcdv3Registry struct {
 
 func newETCDRegistry(config *Config) *etcdv3Registry {
 	if config.logger == nil {
-		config.logger = xlog.DefaultLogger
+		config.logger = xlog.JupiterLogger
 	}
 	config.logger = config.logger.With(xlog.FieldMod(ecode.ModRegistryETCD), xlog.FieldAddrAny(config.Config.Endpoints))
 	res := &etcdv3Registry{
@@ -71,7 +71,6 @@ func (reg *etcdv3Registry) RegisterService(ctx context.Context, info *server.Ser
 
 	key := reg.registerKey(info)
 	val := reg.registerValue(info)
-	fmt.Println(key, val)
 	_, err := reg.client.Put(ctx, key, val, opOptions...)
 	if err != nil {
 		reg.logger.Error("register service", xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err), xlog.FieldKeyAny(key), xlog.FieldValueAny(info))

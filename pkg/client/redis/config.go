@@ -86,7 +86,7 @@ func DefaultRedisConfig() Config {
 		EnableTrace:   false,
 		SlowThreshold: xtime.Duration("250ms"),
 		OnDialError:   "panic",
-		logger:        xlog.DefaultLogger,
+		logger:        xlog.JupiterLogger,
 	}
 }
 

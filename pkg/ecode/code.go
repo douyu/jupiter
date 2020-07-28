@@ -28,6 +28,9 @@ import (
 	spb "google.golang.org/genproto/googleapis/rpc/status"
 )
 
+// EcodeNum 低于10000均为系统错误码，业务错误码请使用10000以上
+const EcodeNum int32 = 9999
+
 var (
 	aid              int
 	maxCustomizeCode = 9999
@@ -55,6 +58,7 @@ func Add(code int, message string) *spbStatus {
 	if code > maxCustomizeCode {
 		xlog.Panic("customize code must less than 9999", xlog.Any("code", code))
 	}
+
 	return add(aid*10000+code, message)
 }
 

@@ -47,8 +47,6 @@ var (
 	buildHost       string
 	buildStatus     string
 	buildTime       string
-	region          string
-	zone            string
 )
 
 func init() {
@@ -64,9 +62,6 @@ func init() {
 		name = "unknown"
 	}
 	hostName = name
-
-	initMetadata(&region, constant.EnvRegion, constant.DefaultRegion)
-	initMetadata(&zone, constant.EnvZone, constant.DefaultZone)
 	startTime = xtime.TS.Format(time.Now())
 	goVersion = runtime.Version()
 	InitEnv()
@@ -138,22 +133,12 @@ func GoVersion() string {
 func PrintVersion() {
 	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", xcolor.Red("name"), xcolor.Blue(appName))
 	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", xcolor.Red("appID"), xcolor.Blue(appID))
-	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", xcolor.Red("region"), xcolor.Blue(region))
-	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", xcolor.Red("zone"), xcolor.Blue(zone))
+	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", xcolor.Red("region"), xcolor.Blue(AppRegion()))
+	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", xcolor.Red("zone"), xcolor.Blue(AppZone()))
 	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", xcolor.Red("appVersion"), xcolor.Blue(buildAppVersion))
 	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", xcolor.Red("jupiterVersion"), xcolor.Blue(jupiterVersion))
 	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", xcolor.Red("buildUser"), xcolor.Blue(buildUser))
 	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", xcolor.Red("buildHost"), xcolor.Blue(buildHost))
 	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", xcolor.Red("buildTime"), xcolor.Blue(BuildTime()))
 	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", xcolor.Red("buildStatus"), xcolor.Blue(buildStatus))
-}
-
-func initMetadata(val *string, envKey string, defaultValue string) {
-	if *val == "" {
-		*val = os.Getenv(envKey)
-	}
-
-	if *val == "" {
-		*val = defaultValue
-	}
 }
