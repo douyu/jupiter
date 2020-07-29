@@ -25,6 +25,7 @@ import (
 	"github.com/douyu/jupiter/pkg"
 	"github.com/douyu/jupiter/pkg/conf"
 
+	//go-lint
 	_ "github.com/douyu/jupiter/pkg/datasource/file"
 	_ "github.com/douyu/jupiter/pkg/datasource/http"
 	"github.com/douyu/jupiter/pkg/datasource/manager"
