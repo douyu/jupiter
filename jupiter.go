@@ -17,6 +17,11 @@ package jupiter
 import (
 	"context"
 	"fmt"
+	"net/url"
+	"os"
+	"runtime"
+	"sync"
+
 	"github.com/BurntSushi/toml"
 	"github.com/douyu/jupiter/pkg"
 	"github.com/douyu/jupiter/pkg/conf"
@@ -41,10 +46,6 @@ import (
 	"github.com/douyu/jupiter/pkg/xlog"
 	"go.uber.org/automaxprocs/maxprocs"
 	"golang.org/x/sync/errgroup"
-	"net/url"
-	"os"
-	"runtime"
-	"sync"
 )
 
 // Application is the framework's instance, it contains the servers, workers, client and configuration settings.
