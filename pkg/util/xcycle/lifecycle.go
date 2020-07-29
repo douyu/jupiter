@@ -15,7 +15,6 @@
 package xcycle
 
 import (
-	"golang.org/x/sync/errgroup"
 	"sync"
 	"sync/atomic"
 )
