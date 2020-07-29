@@ -16,6 +16,7 @@ package jupiter
 
 import (
 	"context"
+	"errors"
 	"sync"
 	"testing"
 	"time"
@@ -31,6 +32,89 @@ import (
 	"github.com/douyu/jupiter/pkg/xlog"
 	. "github.com/smartystreets/goconvey/convey"
 )
+
+type testServer struct {
+	ServeBlockTime time.Duration
+	ServeErr       error
+
+	StopBlockTime time.Duration
+	StopErr       error
+
+	GstopBlockTime time.Duration
+	GstopErr       error
+}
+
+func (s *testServer) Serve() error {
+	time.Sleep(s.ServeBlockTime)
+	return s.ServeErr
+}
+func (s *testServer) Stop() error {
+	time.Sleep(s.StopBlockTime)
+	return s.StopErr
+}
+func (s *testServer) GracefulStop(ctx context.Context) error {
+	time.Sleep(s.GstopBlockTime)
+	return s.GstopErr
+}
+func (s *testServer) Info() *server.ServiceInfo {
+	return &server.ServiceInfo{}
+}
+func TestApplication_Run_1(t *testing.T) {
+	Convey("test application run serve", t, func(c C) {
+		srv := &testServer{
+			ServeErr: errors.New("when server call serve error"),
+		}
+		app := &Application{}
+		app.initialize()
+		err := app.Serve(srv)
+		So(err, ShouldBeNil)
+		go func() {
+			// make sure Serve() is called
+			time.Sleep(time.Millisecond * 1500)
+			err = app.Stop()
+			c.So(err, ShouldBeNil)
+		}()
+		err = app.Run()
+		So(err, ShouldEqual, srv.ServeErr)
+	})
+	Convey("test application run serve block", t, func(c C) {
+		srv := &testServer{
+			ServeBlockTime: time.Second,
+			ServeErr:       errors.New("when server call serve error"),
+		}
+		app := &Application{}
+		app.initialize()
+		err := app.Serve(srv)
+		So(err, ShouldBeNil)
+		go func() {
+			// make sure Serve() is called
+			time.Sleep(time.Millisecond * 1500)
+			err = app.Stop()
+			c.So(err, ShouldBeNil)
+		}()
+		err = app.Run()
+		So(err, ShouldEqual, srv.ServeErr)
+	})
+	Convey("test application run stop", t, func(c C) {
+		srv := &testServer{
+			ServeBlockTime: time.Second * 2,
+			StopBlockTime:  time.Second,
+			StopErr:        errors.New("when server call stop error"),
+		}
+		app := &Application{}
+		app.initialize()
+		err := app.Serve(srv)
+		So(err, ShouldBeNil)
+		go func() {
+			// make sure Serve() is called
+			time.Sleep(time.Millisecond * 1500)
+			err = app.Stop()
+			c.So(err, ShouldBeNil)
+		}()
+		err = app.Run()
+		So(err, ShouldEqual, srv.StopErr)
+	})
+}
 
 func TestApplication_initialize(t *testing.T) {
 	Convey("test application initialize", t, func() {
