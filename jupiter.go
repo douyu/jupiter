@@ -57,13 +57,11 @@ type Application struct {
 	afterStop   *xdefer.DeferStack
 	beforeStop  *xdefer.DeferStack
 	defers      []func() error
-
-	//governorAddr string
-
-	servers    []server.Server
-	workers    []worker.Worker
-	logger     *xlog.Logger
-	registerer registry.Registry
+	jobCnt      int // job cnt, server and worker
+	servers     []server.Server
+	workers     []worker.Worker
+	logger      *xlog.Logger
+	registerer  registry.Registry
 }
 
 // initialize application
@@ -119,29 +117,25 @@ func (app *Application) Defer(fns ...func() error) {
 //BeforeStop hook
 func (app *Application) BeforeStop(fns ...func() error) {
 	app.initialize()
-	if app.beforeStop == nil {
-		app.beforeStop = xdefer.NewStack()
-	}
 	app.beforeStop.Push(fns...)
 }
 
 //AfterStop hook
 func (app *Application) AfterStop(fns ...func() error) {
 	app.initialize()
-	if app.afterStop == nil {
-		app.afterStop = xdefer.NewStack()
-	}
 	app.afterStop.Push(fns...)
 }
 
 // Serve start a server
 func (app *Application) Serve(s server.Server) error {
+	app.jobCnt++
 	app.servers = append(app.servers, s)
 	return nil
 }
 
 // Schedule ..
 func (app *Application) Schedule(w worker.Worker) error {
+	app.jobCnt++
 	app.workers = append(app.workers, w)
 	return nil
 }
@@ -166,6 +160,12 @@ func (app *Application) Run() error {
 		app.SetRegistry(registry.Nop{}) //default nop without registry
 	}
 
+	// todo not graceful
+	// server and worker empty
+	if app.jobCnt == 0 {
+		return app.Stop()
+	}
+
 	// start govern
 	app.cycle.Run(app.startServers)
 	app.cycle.Run(app.startWorkers)
@@ -179,10 +179,13 @@ func (app *Application) Run() error {
 func (app *Application) Stop() (err error) {
 	app.stopOnce.Do(func() {
 		app.beforeStop.Clean()
-		err = app.registerer.Close()
-		if err != nil {
-			app.logger.Error("stop register close err", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err))
+		if app.registerer != nil {
+			err = app.registerer.Close()
+			if err != nil {
+				app.logger.Error("stop register close err", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err))
+			}
 		}
+
 		//stop servers
 		for _, s := range app.servers {
 			func(s server.Server) {
@@ -199,7 +202,10 @@ func (app *Application) Stop() (err error) {
 		err = <-app.cycle.Done()
 		if err != nil {
 			app.logger.Error("stop app", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err))
+		} else {
+			app.logger.Info("stop app", xlog.FieldMod(ecode.ModApp))
 		}
+		app.afterStop.Clean()
 		app.cycle.Close()
 	})
 	return
@@ -261,7 +267,6 @@ func (app *Application) startServers() error {
 	var eg errgroup.Group
 	// start multi servers
 	for _, s := range app.servers {
-		s := s
 		eg.Go(func() (err error) {
 			_ = app.registerer.RegisterService(context.TODO(), s.Info())
 			defer app.registerer.UnregisterService(context.TODO(), s.Info())

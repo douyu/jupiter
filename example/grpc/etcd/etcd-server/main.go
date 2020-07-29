@@ -16,8 +16,6 @@ package main
 
 import (
 	"context"
-	"fmt"
-
 	"github.com/douyu/jupiter"
 	compound_registry "github.com/douyu/jupiter/pkg/registry/compound"
 	etcdv3_registry "github.com/douyu/jupiter/pkg/registry/etcdv3"
@@ -54,14 +52,10 @@ func NewEngine() *Engine {
 }
 
 func (eng *Engine) serveGRPC() error {
-	fmt.Println(1112222)
 	server := xgrpc.StdConfig("grpc").Build()
 	helloworld.RegisterGreeterServer(server.Server, &Greeter{
 		server: server,
 	})
-
-	fmt.Println(3333)
-
 	return eng.Serve(server)
 }
 

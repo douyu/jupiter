@@ -60,7 +60,7 @@ func DefaultConfig() *Config {
 		logger:                 xlog.JupiterLogger.With(xlog.FieldMod(ecode.ModClientGrpc)),
 		BalancerName:           roundrobin.Name, // round robin by default
 		DialTimeout:            time.Second * 3,
-		ReadTimeout:            xtime.Duration(" 1s"),
+		ReadTimeout:            xtime.Duration("1s"),
 		SlowThreshold:          xtime.Duration("600ms"),
 		OnDialError:            "panic",
 		AccessInterceptorLevel: "info",
@@ -130,7 +130,7 @@ func (config *Config) Build() *grpc.ClientConn {
 
 	if !config.DisableMetricInterceptor {
 		config.dialOptions = append(config.dialOptions,
-			grpc.WithChainUnaryInterceptor(metricUnaryClientInterceptor()),
+			grpc.WithChainUnaryInterceptor(metricUnaryClientInterceptor(config.Name)),
 		)
 	}
 
