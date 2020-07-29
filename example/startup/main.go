@@ -15,7 +15,6 @@
 package main
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/douyu/jupiter"
