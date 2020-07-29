@@ -19,7 +19,7 @@ func init() {
 }
 
 // Register registers a dataSource creator function to the registry
-func Register(scheme string, creator func() conf.DataSource) {
+func Register(scheme string, creator DataSourceCreatorFunc) {
 	registry[scheme] = creator
 }
 
