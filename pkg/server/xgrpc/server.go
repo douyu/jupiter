@@ -16,8 +16,9 @@ package xgrpc
 
 import (
 	"context"
-	"github.com/douyu/jupiter/pkg/constant"
 	"net"
+
+	"github.com/douyu/jupiter/pkg/constant"
 
 	"github.com/douyu/jupiter/pkg/ecode"
 
@@ -73,7 +74,8 @@ func newServer(config *Config) *Server {
 
 // Server implements server.Server interface.
 func (s *Server) Serve() error {
-	return s.Server.Serve(s.listener)
+	err := s.Server.Serve(s.listener)
+	return err
 }
 
 // Stop implements server.Server interface
