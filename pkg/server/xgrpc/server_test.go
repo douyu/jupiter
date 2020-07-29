@@ -16,15 +16,16 @@ package xgrpc
 
 import (
 	"context"
+	"net"
+	"testing"
+	"time"
+
 	"github.com/douyu/jupiter/pkg/constant"
 	"github.com/douyu/jupiter/pkg/server"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/smartystreets/goconvey/convey"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/status"
-	"net"
-	"testing"
-	"time"
 )
 
 func TestServer_Serve(t *testing.T) {
@@ -56,7 +57,7 @@ func TestServer_Serve(t *testing.T) {
 	}
 }
 
-func TestServer_Stop(t *testing.T) {
+func TestServer_Closed(t *testing.T) {
 	convey.Convey("test server stop", t, func() {
 		config := DefaultConfig()
 		config.Port = 0
@@ -71,7 +72,37 @@ func TestServer_Stop(t *testing.T) {
 		convey.So(errorDesc(err), convey.ShouldContainSubstring, "use of closed")
 	})
 }
+func TestServer_Stop(t *testing.T) {
+	convey.Convey("test server graceful stop", t, func(c convey.C) {
+		ns := newServer(&Config{
+			Network:                   "tcp4",
+			Host:                      "127.0.0.1",
+			Port:                      0,
+			Deployment:                constant.DefaultDeployment,
+			DisableMetric:             false,
+			DisableTrace:              false,
+			SlowQueryThresholdInMilli: 500,
+			logger:                    xlog.JupiterLogger.With(xlog.FieldMod("server.grpc")),
+			serverOptions:             []grpc.ServerOption{},
+			streamInterceptors:        []grpc.StreamServerInterceptor{},
+			unaryInterceptors:         []grpc.UnaryServerInterceptor{},
+		})
+		//
+		go func() {
+			// make sure Serve() is called
+			time.Sleep(time.Millisecond * 500)
+			err := ns.Stop()
+			c.So(err, convey.ShouldBeNil)
+		}()
 
+		err := ns.Serve()
+		convey.So(err, convey.ShouldBeNil)
+		// server.Serve is responsible for closing the listener, even if the
+		// server was already stopped.
+		err = ns.listener.Close()
+		convey.So(errorDesc(err), convey.ShouldContainSubstring, "use of closed")
+	})
+}
 func TestServer_GracefulStop(t *testing.T) {
 	convey.Convey("test server graceful stop", t, func(c convey.C) {
 		ns := newServer(&Config{
