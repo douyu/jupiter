@@ -17,16 +17,12 @@ package jupiter
 import (
 	"context"
 	"fmt"
-	"os"
-	"runtime"
-	"strings"
-	"sync"
-
 	"github.com/BurntSushi/toml"
 	"github.com/douyu/jupiter/pkg"
 	"github.com/douyu/jupiter/pkg/conf"
 	file_datasource "github.com/douyu/jupiter/pkg/datasource/file"
-	http_datasource "github.com/douyu/jupiter/pkg/datasource/http"
+	_ "github.com/douyu/jupiter/pkg/datasource/http"
+	"github.com/douyu/jupiter/pkg/datasource/manager"
 	"github.com/douyu/jupiter/pkg/ecode"
 	"github.com/douyu/jupiter/pkg/flag"
 	"github.com/douyu/jupiter/pkg/registry"
@@ -45,6 +41,10 @@ import (
 	"github.com/douyu/jupiter/pkg/xlog"
 	"go.uber.org/automaxprocs/maxprocs"
 	"golang.org/x/sync/errgroup"
+	"net/url"
+	"os"
+	"runtime"
+	"sync"
 )
 
 // Application is the framework's instance, it contains the servers, workers, client and configuration settings.
@@ -333,29 +333,23 @@ func (app *Application) clean() {
 
 func (app *Application) loadConfig() error {
 	var (
-		watchConfig = flag.Bool("watch")
-		configAddr  = flag.String("config")
+		configAddr = flag.String("config")
 	)
-
 	if configAddr == "" {
 		app.logger.Warn("no config ...")
 		return nil
 	}
-	switch {
-	case strings.HasPrefix(configAddr, "http://"),
-		strings.HasPrefix(configAddr, "https://"):
-		provider := http_datasource.NewDataSource(configAddr, watchConfig)
-		if err := conf.LoadFromDataSource(provider, toml.Unmarshal); err != nil {
-			app.logger.Panic("load remote config", xlog.FieldMod(ecode.ModConfig), xlog.FieldErrKind(ecode.ErrKindUnmarshalConfigErr), xlog.FieldErr(err))
-		}
-		app.logger.Info("load remote config", xlog.FieldMod(ecode.ModConfig), xlog.FieldAddr(configAddr))
-	default:
-		provider := file_datasource.NewDataSource(configAddr, watchConfig)
-
-		if err := conf.LoadFromDataSource(provider, toml.Unmarshal); err != nil {
-			app.logger.Panic("load local file", xlog.FieldMod(ecode.ModConfig), xlog.FieldErrKind(ecode.ErrKindUnmarshalConfigErr), xlog.FieldErr(err))
-		}
-		app.logger.Info("load local file", xlog.FieldMod(ecode.ModConfig), xlog.FieldAddr(configAddr))
+	dataSourceScheme := file_datasource.DataSourceFile
+	urlObj, err := url.Parse(configAddr)
+	if err == nil && len(urlObj.Scheme) > 1 {
+		dataSourceScheme = urlObj.Scheme
+	}
+	provider, err := manager.CreateDataSource(dataSourceScheme)
+	if err != nil {
+		app.logger.Panic("create data source", xlog.FieldMod(ecode.ModConfig), xlog.FieldErr(err))
+	}
+	if err := conf.LoadFromDataSource(provider, toml.Unmarshal); err != nil {
+		app.logger.Panic("load remote config", xlog.FieldMod(ecode.ModConfig), xlog.FieldErrKind(ecode.ErrKindUnmarshalConfigErr), xlog.FieldErr(err))
 	}
 	return nil
 }
