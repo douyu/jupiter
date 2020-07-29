@@ -17,7 +17,6 @@ package jupiter
 import (
 	"context"
 	"fmt"
-	"net/url"
 	"os"
 	"runtime"
 	"sync"
@@ -25,7 +24,8 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/douyu/jupiter/pkg"
 	"github.com/douyu/jupiter/pkg/conf"
-	file_datasource "github.com/douyu/jupiter/pkg/datasource/file"
+
+	_ "github.com/douyu/jupiter/pkg/datasource/file"
 	_ "github.com/douyu/jupiter/pkg/datasource/http"
 	"github.com/douyu/jupiter/pkg/datasource/manager"
 	"github.com/douyu/jupiter/pkg/ecode"
@@ -334,24 +334,13 @@ func (app *Application) clean() {
 }
 
 func (app *Application) loadConfig() error {
-	var (
-		configAddr = flag.String("config")
-	)
-	if configAddr == "" {
-		app.logger.Warn("no config ...")
-		return nil
-	}
-	dataSourceScheme := file_datasource.DataSourceFile
-	urlObj, err := url.Parse(configAddr)
-	if err == nil && len(urlObj.Scheme) > 1 {
-		dataSourceScheme = urlObj.Scheme
-	}
-	provider, err := manager.CreateDataSource(dataSourceScheme)
+	var configAddr = flag.String("config")
+	provider, err := manager.NewDataSource(configAddr)
 	if err != nil {
-		app.logger.Panic("create data source", xlog.FieldMod(ecode.ModConfig), xlog.FieldErr(err))
+		app.logger.Panic("data source: provider error", xlog.FieldMod(ecode.ModConfig), xlog.FieldErr(err))
 	}
 	if err := conf.LoadFromDataSource(provider, toml.Unmarshal); err != nil {
-		app.logger.Panic("load remote config", xlog.FieldMod(ecode.ModConfig), xlog.FieldErrKind(ecode.ErrKindUnmarshalConfigErr), xlog.FieldErr(err))
+		app.logger.Panic("data source: load config", xlog.FieldMod(ecode.ModConfig), xlog.FieldErrKind(ecode.ErrKindUnmarshalConfigErr), xlog.FieldErr(err))
 	}
 	return nil
 }
