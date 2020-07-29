@@ -10,7 +10,6 @@ require (
 	github.com/codegangsta/inject v0.0.0-20150114235600-33e0aa1cb7c0
 	github.com/coreos/etcd v3.3.22+incompatible
 	github.com/coreos/go-systemd v0.0.0-20191104093116-d3cd4ed1dbcf // indirect
-	github.com/cweill/gotests v1.5.3 // indirect
 	github.com/davecgh/go-spew v1.1.1
 	github.com/dustin/go-humanize v0.0.0-20171111073723-bb3d318650d4 // indirect
 	github.com/fatih/structtag v1.2.0
@@ -32,7 +31,6 @@ require (
 	github.com/mitchellh/mapstructure v1.3.2
 	github.com/modern-go/reflect2 v1.0.1
 	github.com/onsi/ginkgo v1.12.3 // indirect
-	github.com/opencontainers/runc v0.1.1
 	github.com/opentracing/opentracing-go v1.1.0
 	github.com/philchia/agollo v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
