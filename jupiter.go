@@ -162,9 +162,9 @@ func (app *Application) Run() error {
 
 	// todo not graceful
 	// server and worker empty
-	if app.jobCnt == 0 {
-		return app.Stop()
-	}
+	// if app.jobCnt == 0 {
+	// 	return app.Stop()
+	// }
 
 	// start govern
 	app.cycle.Run(app.startServers)
@@ -172,6 +172,7 @@ func (app *Application) Run() error {
 
 	if err := <-app.cycle.Wait(); err != nil {
 		app.logger.Error("jupiter shutdown with error", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err))
+		return err
 	}
 	app.logger.Info("shutdown jupiter, bye!", xlog.FieldMod(ecode.ModApp))
 	return nil
@@ -200,7 +201,6 @@ func (app *Application) Stop() (err error) {
 				app.cycle.Run(w.Stop)
 			}(w)
 		}
-
 		err = <-app.cycle.Done()
 		if err != nil {
 			app.logger.Error("stop app", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err))

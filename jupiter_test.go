@@ -16,11 +16,12 @@ package jupiter
 
 import (
 	"context"
-	"github.com/douyu/jupiter/pkg/server/xgrpc"
-	"google.golang.org/grpc"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/douyu/jupiter/pkg/server/xgrpc"
+	"google.golang.org/grpc"
 
 	"github.com/douyu/jupiter/pkg/registry"
 	"github.com/douyu/jupiter/pkg/server"
