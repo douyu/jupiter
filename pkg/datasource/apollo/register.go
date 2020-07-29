@@ -34,6 +34,6 @@ func init() {
 			NameSpaceNames: []string{urlObj.Query().Get("namespaceName")},
 			IP:             urlObj.Host,
 		}
-		return NewDataSource(&apolloConf, urlObj.Query().Get("namespaceName"), urlObj.Query().Get("key"), )
+		return NewDataSource(&apolloConf, urlObj.Query().Get("namespaceName"), urlObj.Query().Get("key"))
 	})
 }
