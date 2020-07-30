@@ -2,3 +2,10 @@
     withSeconds = false
     concurrentDelay= "10s"
     immediatelyRun = false
+    # 分布式任务的开关
+    distributedTask = false
+    # etcd配置相关
+    endpoints = ["127.0.0.1:2379"]
+    connectTimeout = "10s"
+    # 设置ETCD租约
+    ttl="5s"

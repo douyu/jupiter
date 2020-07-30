@@ -15,7 +15,9 @@
 package xcron
 
 import (
+	"context"
 	"fmt"
+	"github.com/douyu/jupiter/pkg/client/etcdv3"
 	"runtime"
 	"time"
 
@@ -37,6 +39,10 @@ func RawConfig(key string) Config {
 	var config = DefaultConfig()
 	if err := conf.UnmarshalKey(key, &config); err != nil {
 		xlog.Panic("unmarshal", xlog.String("key", key))
+	}
+
+	if config.DistributedTask {
+		config.Config = etcdv3.RawConfig(key)
 	}
 
 	return config
@@ -62,6 +68,11 @@ type Config struct {
 	wrappers []JobWrapper
 	logger   *xlog.Logger
 	parser   cron.Parser
+
+	// Distributed task
+	DistributedTask bool
+	jLock           *jobLock
+	*etcdv3.Config
 }
 
 // WithChain ...
@@ -98,6 +109,12 @@ func (config Config) Build() *Cron {
 	} else {
 		// 默认不延迟也不跳过
 	}
+
+	if config.DistributedTask {
+		// 创建 Etcd Lock
+		newETCDXcron(&config)
+	}
+
 	return newCron(&config)
 }
 
@@ -115,13 +132,28 @@ func (wl *wrappedLogger) Error(err error, msg string, keysAndValues ...interface
 	wl.Errorw("cron "+msg, append(keysAndValues, "err", err)...)
 }
 
+type lock interface {
+	TryLock(context.Context, string) error
+	Unlock()
+}
+
 type wrappedJob struct {
 	NamedJob
 	logger *xlog.Logger
+
+	lock
+	distributedTask bool
 }
 
 // Run ...
 func (wj wrappedJob) Run() {
+	if wj.distributedTask {
+		err := wj.TryLock(context.TODO(), wj.Name())
+		if err != nil {
+			return
+		}
+		defer wj.Unlock()
+	}
 	_ = wj.run()
 }
 

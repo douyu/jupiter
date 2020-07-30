@@ -213,3 +213,38 @@ func (client *Client) GetValues(ctx context.Context, keys ...string) (map[string
 	}
 	return vars, nil
 }
+
+func (client *Client) GetLease(ctx context.Context) (leaseId clientv3.LeaseID, err error) {
+
+	cancelCtx, _ := context.WithCancel(ctx)
+
+	leaseGrant, err := client.Lease.Grant(cancelCtx, int64(client.config.TTL.Seconds()))
+	if err != nil {
+		return
+	}
+	leaseId = leaseGrant.ID
+
+	keepRespChan, err := client.Lease.KeepAlive(cancelCtx, leaseId)
+	if err != nil {
+		return
+	}
+
+	go func() {
+		var (
+			keepResp *clientv3.LeaseKeepAliveResponse
+		)
+		for {
+			select {
+			case keepResp = <-keepRespChan: // 自动续租的应答
+				if keepResp == nil {
+					goto END
+				}
+			}
+		}
+	END:
+		//cancelFunc() // 外部调用cancel取消租约
+		client.Lease.Revoke(context.TODO(), leaseId) // 此处是为使得key立即delete
+	}()
+
+	return
+}
