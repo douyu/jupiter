@@ -44,11 +44,17 @@ import (
 	"github.com/douyu/jupiter/pkg/util/xcycle"
 	"github.com/douyu/jupiter/pkg/util/xdefer"
 	"github.com/douyu/jupiter/pkg/util/xgo"
-	"github.com/douyu/jupiter/pkg/util/xstring"
 	"github.com/douyu/jupiter/pkg/worker"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"go.uber.org/automaxprocs/maxprocs"
 	"golang.org/x/sync/errgroup"
+)
+
+const (
+	//StageAfterStop after app stop
+	StageAfterStop uint32 = iota + 1
+	//StageBeforeStop before app stop
+	StageBeforeStop
 )
 
 // Application is the framework's instance, it contains the servers, workers, client and configuration settings.
@@ -58,14 +64,15 @@ type Application struct {
 	stopOnce    sync.Once
 	initOnce    sync.Once
 	startupOnce sync.Once
-	afterStop   *xdefer.DeferStack
-	beforeStop  *xdefer.DeferStack
-	defers      []func() error
-	servers     []server.Server
-	workers     []worker.Worker
-	jobs        map[string]job.Runner
-	logger      *xlog.Logger
-	registerer  registry.Registry
+	// afterStop   *xdefer.DeferStack
+	// beforeStop  *xdefer.DeferStack
+	// defers     []func() error
+	servers    []server.Server
+	workers    []worker.Worker
+	jobs       map[string]job.Runner
+	logger     *xlog.Logger
+	registerer registry.Registry
+	hooks      map[uint32]*xdefer.DeferStack
 }
 
 //NewApplication new a app
@@ -77,6 +84,32 @@ func NewApplication(fns ...func() error) (*Application, error) {
 	return app, nil
 }
 
+//init hooks
+func (app *Application) initHooks(hookKeys ...uint32) {
+	app.hooks = make(map[uint32]*xdefer.DeferStack, len(hookKeys))
+	for _, k := range hookKeys {
+		app.hooks[k] = xdefer.NewStack()
+	}
+}
+
+//run hooks
+func (app *Application) runHooks(k uint32) {
+	hooks, ok := app.hooks[k]
+	if ok {
+		hooks.Clean()
+	}
+}
+
+//RegisterHooks register a stage Hook
+func (app *Application) RegisterHooks(k uint32, fns ...func() error) error {
+	hooks, ok := app.hooks[k]
+	if ok {
+		hooks.Push(fns...)
+		return nil
+	}
+	return fmt.Errorf("hook stage not found")
+}
+
 // initialize application
 func (app *Application) initialize() {
 	app.initOnce.Do(func() {
@@ -85,13 +118,11 @@ func (app *Application) initialize() {
 		app.workers = make([]worker.Worker, 0)
 		app.jobs = make(map[string]job.Runner)
 		app.logger = xlog.JupiterLogger
-		// app.defers = []func() error{}
-		app.afterStop = xdefer.NewStack()
-		app.beforeStop = xdefer.NewStack()
+		// app.afterStop = xdefer.NewStack()
+		// app.beforeStop = xdefer.NewStack()
 
-		if app.registerer == nil {
-			app.SetRegistry(registry.Nop{}) //default nop without registry
-		}
+		app.initHooks(StageBeforeStop, StageAfterStop)
+		app.SetRegistry(registry.Nop{}) //default nop without registry
 	})
 }
 
@@ -128,19 +159,19 @@ func (app *Application) Startup(fns ...func() error) error {
 
 // Defer ..
 // Deprecated: use AfterStop instead
-func (app *Application) Defer(fns ...func() error) {
-	app.AfterStop(fns...)
-}
+// func (app *Application) Defer(fns ...func() error) {
+// 	app.AfterStop(fns...)
+// }
 
-//BeforeStop hook
-func (app *Application) BeforeStop(fns ...func() error) {
-	app.beforeStop.Push(fns...)
-}
+// //BeforeStop hook
+// func (app *Application) BeforeStop(fns ...func() error) {
+// 	app.beforeStop.Push(fns...)
+// }
 
-//AfterStop hook
-func (app *Application) AfterStop(fns ...func() error) {
-	app.afterStop.Push(fns...)
-}
+// //AfterStop hook
+// func (app *Application) AfterStop(fns ...func() error) {
+// 	app.afterStop.Push(fns...)
+// }
 
 // Serve start a server
 func (app *Application) Serve(s server.Server) error {
@@ -208,6 +239,7 @@ func (app *Application) Run() error {
 	app.cycle.Run(app.startServers)
 	app.cycle.Run(app.startWorkers)
 
+	//blocking and wait quit
 	if err := <-app.cycle.Wait(); err != nil {
 		app.logger.Error("jupiter shutdown with error", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err))
 		return err
@@ -216,17 +248,23 @@ func (app *Application) Run() error {
 	return nil
 }
 
+//clean after app quit
+func (app *Application) clean() {
+	_ = xlog.DefaultLogger.Flush()
+	_ = xlog.JupiterLogger.Flush()
+}
+
 // Stop application immediately after necessary cleanup
 func (app *Application) Stop() (err error) {
 	app.stopOnce.Do(func() {
-		app.beforeStop.Clean()
+		app.runHooks(StageBeforeStop)
+
 		if app.registerer != nil {
 			err = app.registerer.Close()
 			if err != nil {
 				app.logger.Error("stop register close err", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err))
 			}
 		}
-
 		//stop servers
 		for _, s := range app.servers {
 			func(s server.Server) {
@@ -240,7 +278,7 @@ func (app *Application) Stop() (err error) {
 			}(w)
 		}
 		<-app.cycle.Done()
-		app.afterStop.Clean()
+		app.runHooks(StageAfterStop)
 		app.cycle.Close()
 	})
 	return
@@ -249,12 +287,15 @@ func (app *Application) Stop() (err error) {
 // GracefulStop application after necessary cleanup
 func (app *Application) GracefulStop(ctx context.Context) (err error) {
 	app.stopOnce.Do(func() {
-		app.beforeStop.Clean()
-		err = app.registerer.Close()
-		if err != nil {
-			app.logger.Error("graceful stop register close err", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err))
-		}
+		app.runHooks(StageBeforeStop)
 
+		if app.registerer != nil {
+			err = app.registerer.Close()
+			if err != nil {
+				app.logger.Error("stop register close err", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err))
+			}
+		}
+		//stop servers
 		for _, s := range app.servers {
 			func(s server.Server) {
 				app.cycle.Run(func() error {
@@ -262,13 +303,14 @@ func (app *Application) GracefulStop(ctx context.Context) (err error) {
 				})
 			}(s)
 		}
+		//stop workers
 		for _, w := range app.workers {
 			func(w worker.Worker) {
 				app.cycle.Run(w.Stop)
 			}(w)
 		}
 		<-app.cycle.Done()
-		app.afterStop.Clean()
+		app.runHooks(StageAfterStop)
 		app.cycle.Close()
 	})
 	return err
@@ -276,7 +318,7 @@ func (app *Application) GracefulStop(ctx context.Context) (err error) {
 
 // waitSignals wait signal
 func (app *Application) waitSignals() {
-	app.logger.Info("init listen signal", xlog.FieldMod(ecode.ModApp))
+	app.logger.Info("init listen signal", xlog.FieldMod(ecode.ModApp), xlog.FieldEvent("init"))
 	signals.Shutdown(func(grace bool) { //when get shutdown signal
 		//todo: support timeout
 		if grace {
@@ -302,7 +344,7 @@ func (app *Application) startServers() error {
 		eg.Go(func() (err error) {
 			_ = app.registerer.RegisterService(context.TODO(), s.Info())
 			defer app.registerer.UnregisterService(context.TODO(), s.Info())
-			app.logger.Info("start servers", xlog.FieldMod(ecode.ModApp), xlog.FieldAddr(s.Info().Label()), xlog.Any("scheme", s.Info().Scheme))
+			app.logger.Info("start servers", xlog.FieldMod(ecode.ModApp), xlog.FieldEvent("init"), xlog.FieldAddr(s.Info().Label()), xlog.Any("scheme", s.Info().Scheme))
 			defer app.logger.Info("exit server", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err), xlog.FieldAddr(s.Info().Label()))
 			err = s.Serve()
 			return
@@ -337,6 +379,7 @@ func (app *Application) startJobs() error {
 	return nil
 }
 
+//parseFlags init
 func (app *Application) parseFlags() error {
 	flag.Register(&flag.StringFlag{
 		Name:    "config",
@@ -365,17 +408,7 @@ func (app *Application) parseFlags() error {
 	return flag.Parse()
 }
 
-func (app *Application) clean() {
-	for i := len(app.defers) - 1; i >= 0; i-- {
-		fn := app.defers[i]
-		if err := fn(); err != nil {
-			xlog.Error("clean.defer", xlog.String("func", xstring.FunctionName(fn)))
-		}
-	}
-	_ = xlog.DefaultLogger.Flush()
-	_ = xlog.JupiterLogger.Flush()
-}
-
+//loadConfig init
 func (app *Application) loadConfig() error {
 	var configAddr = flag.String("config")
 	provider, err := manager.NewDataSource(configAddr)
@@ -392,22 +425,22 @@ func (app *Application) loadConfig() error {
 	return nil
 }
 
+//initLogger init
 func (app *Application) initLogger() error {
 	if conf.Get("jupiter.logger.default") != nil {
 		xlog.DefaultLogger = xlog.RawConfig("jupiter.logger.default").Build()
 	}
-
 	xlog.DefaultLogger.AutoLevel("jupiter.logger.default")
 
 	if conf.Get("jupiter.logger.jupiter") != nil {
 		xlog.JupiterLogger = xlog.RawConfig("jupiter.logger.jupiter").Build()
 	}
-
 	xlog.JupiterLogger.AutoLevel("jupiter.logger.jupiter")
 
 	return nil
 }
 
+//initTracer init
 func (app *Application) initTracer() error {
 	// init tracing component jaeger
 	if conf.Get("jupiter.trace.jaeger") != nil {
@@ -417,6 +450,7 @@ func (app *Application) initTracer() error {
 	return nil
 }
 
+//initSentinel init
 func (app *Application) initSentinel() error {
 	// init reliability component sentinel
 	if conf.Get("jupiter.reliability.sentinel") != nil {
@@ -427,6 +461,7 @@ func (app *Application) initSentinel() error {
 	return nil
 }
 
+//initMaxProcs init
 func (app *Application) initMaxProcs() error {
 	if maxProcs := conf.GetInt("maxProc"); maxProcs != 0 {
 		runtime.GOMAXPROCS(maxProcs)
@@ -435,11 +470,11 @@ func (app *Application) initMaxProcs() error {
 			app.logger.Panic("auto max procs", xlog.FieldMod(ecode.ModProc), xlog.FieldErrKind(ecode.ErrKindAny), xlog.FieldErr(err))
 		}
 	}
-
 	app.logger.Info("auto max procs", xlog.FieldMod(ecode.ModProc), xlog.Int64("procs", int64(runtime.GOMAXPROCS(-1))))
 	return nil
 }
 
+//printBanner init
 func (app *Application) printBanner() error {
 	const banner = `
    (_)_   _ _ __ (_) |_ ___ _ __
