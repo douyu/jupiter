@@ -78,8 +78,5 @@ func (c *Cycle) Close() {
 
 // Wait blocked for a life cycle
 func (c *Cycle) Wait() <-chan error {
-	// go func() {
-	// 	c.DoneAndClose()
-	// }()
 	return c.quit
 }

@@ -17,10 +17,11 @@ package jupiter
 import (
 	"context"
 	"fmt"
-	"github.com/douyu/jupiter/pkg/worker/xjob"
 	"os"
 	"runtime"
 	"sync"
+
+	job "github.com/douyu/jupiter/pkg/worker/xjob"
 
 	"github.com/BurntSushi/toml"
 	"github.com/douyu/jupiter/pkg"
@@ -60,11 +61,11 @@ type Application struct {
 	afterStop   *xdefer.DeferStack
 	beforeStop  *xdefer.DeferStack
 	defers      []func() error
-	servers    []server.Server
-	workers    []worker.Worker
-	jobs       map[string]job.Runner
-	logger     *xlog.Logger
-	registerer registry.Registry
+	servers     []server.Server
+	workers     []worker.Worker
+	jobs        map[string]job.Runner
+	logger      *xlog.Logger
+	registerer  registry.Registry
 }
 
 // initialize application
@@ -78,6 +79,10 @@ func (app *Application) initialize() {
 		// app.defers = []func() error{}
 		app.afterStop = xdefer.NewStack()
 		app.beforeStop = xdefer.NewStack()
+
+		if app.registerer == nil {
+			app.SetRegistry(registry.Nop{}) //default nop without registry
+		}
 	})
 }
 
@@ -186,10 +191,6 @@ func (app *Application) SetRegistry(reg registry.Registry) {
 func (app *Application) Run() error {
 	app.waitSignals() //start signal listen task in goroutine
 	defer app.clean()
-
-	if app.registerer == nil {
-		app.SetRegistry(registry.Nop{}) //default nop without registry
-	}
 
 	// todo jobs not graceful
 	if len(app.jobs) > 0 {
