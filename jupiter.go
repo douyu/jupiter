@@ -197,12 +197,7 @@ func (app *Application) Stop() (err error) {
 				app.cycle.Run(w.Stop)
 			}(w)
 		}
-		err = <-app.cycle.Done()
-		if err != nil {
-			app.logger.Error("stop app", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err))
-		} else {
-			app.logger.Info("stop app", xlog.FieldMod(ecode.ModApp))
-		}
+		<-app.cycle.Done()
 		app.afterStop.Clean()
 		app.cycle.Close()
 	})
@@ -230,12 +225,8 @@ func (app *Application) GracefulStop(ctx context.Context) (err error) {
 				app.cycle.Run(w.Stop)
 			}(w)
 		}
-		err := <-app.cycle.Done()
-		if err != nil {
-			app.logger.Error("graceful stop app", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err))
-		}
+		<-app.cycle.Done()
 		app.cycle.Close()
-
 	})
 	return err
 }
