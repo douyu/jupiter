@@ -22,5 +22,5 @@ func init() {
 		}
 		return NewDataSource(configAddr, watchConfig)
 	})
-	manager.DefaultSchame = DataSourceFile
+	manager.DefaultScheme = DataSourceFile
 }

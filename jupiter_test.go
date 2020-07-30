@@ -17,14 +17,18 @@ package jupiter
 import (
 	"context"
 	"errors"
+	"github.com/coreos/etcd/clientv3"
+	"github.com/douyu/jupiter/pkg"
+	"github.com/douyu/jupiter/pkg/client/etcdv3"
+	"github.com/douyu/jupiter/pkg/server/xgrpc"
+	"google.golang.org/grpc"
 	"sync"
 	"testing"
 	"time"
 
-	"github.com/douyu/jupiter/pkg/server/xgrpc"
-	"google.golang.org/grpc"
-
 	"github.com/douyu/jupiter/pkg/registry"
+	compound_registry "github.com/douyu/jupiter/pkg/registry/compound"
+	etcdv3_registry "github.com/douyu/jupiter/pkg/registry/etcdv3"
 	"github.com/douyu/jupiter/pkg/server"
 	"github.com/douyu/jupiter/pkg/util/xcycle"
 	"github.com/douyu/jupiter/pkg/util/xdefer"
@@ -252,7 +256,6 @@ func TestApplication_Serve(t *testing.T) {
 		}()
 		err = app.Run()
 		So(err, ShouldEqual, grpc.ErrServerStopped)
-
 	})
 }
 
@@ -988,4 +991,51 @@ func TestApplication_printBanner(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestRegister(t *testing.T) {
+	Convey("test application register", t, func(c C) {
+		app := &Application{}
+		grpcConfig := xgrpc.DefaultConfig()
+		grpcConfig.Port = 0
+		app.initialize()
+		grpcServer := grpcConfig.Build()
+		err := app.Serve(grpcServer)
+		So(err, ShouldBeNil)
+		etcdv3_registryConfig := etcdv3_registry.DefaultConfig()
+		etcdv3_registryConfig.Endpoints = []string{"127.0.0.1:2379"}
+		etcdConfig := etcdv3.DefaultConfig()
+		etcdConfig.Endpoints = []string{"127.0.0.1:2379"}
+		etcdctl := etcdConfig.Build()
+		app.SetRegistry(
+			compound_registry.New(
+				etcdv3_registryConfig.Build(),
+			),
+		)
+
+		app.BeforeStop(func() error {
+			resp, err := etcdctl.Get(context.Background(), "/jupiter/"+pkg.Name()+"/providers/grpc://", clientv3.WithPrefix())
+			c.So(err, ShouldBeNil)
+			c.So(len(resp.Kvs), ShouldEqual, 1)
+			for _, value := range resp.Kvs {
+				c.So(string(value.Key), ShouldEqual, "/jupiter/"+pkg.Name()+"/providers/grpc://"+grpcServer.Address())
+				c.So(string(value.Value), ShouldContainSubstring, pkg.Name())
+			}
+			return nil
+		})
+
+		app.AfterStop(func() error {
+			//resp,err := etcdctl.Get(context.Background(),"/jupiter/"+pkg.Name()+"/providers/grpc://",clientv3.WithPrefix())
+			return nil
+		})
+
+		go func() {
+			// make sure Serve() is called
+			time.Sleep(time.Millisecond * 3000)
+			err = app.Stop()
+			c.So(err, ShouldBeNil)
+		}()
+		err = app.Run()
+		So(err, ShouldBeNil)
+	})
 }

@@ -39,7 +39,7 @@ var configText = `
 
 func initTestData() {
 	etcdCfg := clientv3.Config{
-		Endpoints: []string{"10.0.101.68:2379"},
+		Endpoints: []string{"127.0.0.1:2379"},
 	}
 	cli, _ := clientv3.New(etcdCfg)
 	cli.Put(context.Background(), "test", configText)

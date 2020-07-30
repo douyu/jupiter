@@ -13,8 +13,8 @@ var (
 	// ErrInvalidDataSource defines an error that the scheme has been registered
 	ErrInvalidDataSource = errors.New("invalid data source, please make sure the scheme has been registered")
 	registry             map[string]DataSourceCreatorFunc
-	//DefaultSchame ..
-	DefaultSchame string
+	//DefaultScheme ..
+	DefaultScheme string
 )
 
 // DataSourceCreatorFunc represents a dataSource creator function
@@ -45,10 +45,10 @@ func NewDataSource(configAddr string) (conf.DataSource, error) {
 	}
 	urlObj, err := url.Parse(configAddr)
 	if err == nil && len(urlObj.Scheme) > 1 {
-		DefaultSchame = urlObj.Scheme
+		DefaultScheme = urlObj.Scheme
 	}
 
-	creatorFunc, exist := registry[DefaultSchame]
+	creatorFunc, exist := registry[DefaultScheme]
 	if !exist {
 		return nil, ErrInvalidDataSource
 	}
