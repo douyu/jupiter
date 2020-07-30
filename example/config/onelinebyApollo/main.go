@@ -24,7 +24,7 @@ import (
 // apollo: http://106.54.227.205/config.html#/appid=jupiter&env=DEV&cluster=default
 // account/password: apollo/admin
 
-//  go run main.go --config=apollo://106.54.227.205:8080?appId=jupiter&cluster=default&namespaceName=application&key=jupiter-test
+//  go run main.go --config="apollo://106.54.227.205:8080?appId=jupiter&cluster=default&namespaceName=application&key=jupiter-test"
 func main() {
 	app := NewEngine()
 	if err := app.Run(); err != nil {
