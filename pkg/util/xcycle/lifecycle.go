@@ -21,10 +21,11 @@ import (
 
 //Cycle ..
 type Cycle struct {
-	mu uint32
-	sync.Once
+	mu   uint32
 	wg   *sync.WaitGroup
+	done chan struct{}
 	quit chan error
+	once *sync.Once
 }
 
 //NewCycle new a cycle life
@@ -32,7 +33,9 @@ func NewCycle() *Cycle {
 	return &Cycle{
 		mu:   0,
 		wg:   &sync.WaitGroup{},
+		done: make(chan struct{}),
 		quit: make(chan error),
+		once: &sync.Once{},
 	}
 }
 
@@ -45,17 +48,17 @@ func (c *Cycle) Run(fn func() error) {
 			c.quit <- err
 		}
 	}(c)
-
 }
 
 //Done block and return a chan error
 func (c *Cycle) Done() <-chan struct{} {
-	done := make(chan struct{})
-	go func(done chan struct{}) {
-		c.wg.Wait()
-		close(done)
-	}(done)
-	return done
+	c.once.Do(func() {
+		go func() {
+			c.wg.Wait()
+			close(c.done)
+		}()
+	})
+	return c.done
 }
 
 //DoneAndClose ..
@@ -75,5 +78,8 @@ func (c *Cycle) Close() {
 
 // Wait blocked for a life cycle
 func (c *Cycle) Wait() <-chan error {
+	go func() {
+		c.DoneAndClose()
+	}()
 	return c.quit
 }

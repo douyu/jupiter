@@ -59,7 +59,6 @@ type Application struct {
 	afterStop   *xdefer.DeferStack
 	beforeStop  *xdefer.DeferStack
 	defers      []func() error
-	jobCnt      int // job cnt, server and worker
 	servers     []server.Server
 	workers     []worker.Worker
 	logger      *xlog.Logger
@@ -130,14 +129,12 @@ func (app *Application) AfterStop(fns ...func() error) {
 
 // Serve start a server
 func (app *Application) Serve(s server.Server) error {
-	app.jobCnt++
 	app.servers = append(app.servers, s)
 	return nil
 }
 
 // Schedule ..
 func (app *Application) Schedule(w worker.Worker) error {
-	app.jobCnt++
 	app.workers = append(app.workers, w)
 	return nil
 }
