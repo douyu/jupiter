@@ -162,12 +162,6 @@ func (app *Application) Run() error {
 		app.SetRegistry(registry.Nop{}) //default nop without registry
 	}
 
-	// todo not graceful
-	// server and worker empty
-	// if app.jobCnt == 0 {
-	// 	return app.Stop()
-	// }
-
 	// start govern
 	app.cycle.Run(app.startServers)
 	app.cycle.Run(app.startWorkers)

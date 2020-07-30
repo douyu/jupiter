@@ -208,6 +208,10 @@ func TestApplication_BeforeStop(t *testing.T) {
 		app.BeforeStop(si.Stop)
 		err := app.Run()
 		So(err, ShouldBeNil)
+		So(si.state, ShouldEqual, false)
+
+		err = app.Stop()
+		So(err, ShouldBeNil)
 		So(si.state, ShouldEqual, true)
 	})
 }
