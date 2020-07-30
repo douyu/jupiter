@@ -1,6 +1,8 @@
 package xdefer
 
-import "sync"
+import (
+	"sync"
+)
 
 func NewStack() *DeferStack {
 	return &DeferStack{
@@ -23,7 +25,6 @@ func (ds *DeferStack) Push(fns ...func() error) {
 func (ds *DeferStack) Clean() {
 	ds.mu.Lock()
 	defer ds.mu.Unlock()
-
 	for i := len(ds.fns) - 1; i >= 0; i-- {
 		_ = ds.fns[i]()
 	}

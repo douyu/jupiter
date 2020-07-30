@@ -17,6 +17,7 @@ package jupiter
 import (
 	"context"
 	"fmt"
+	"github.com/douyu/jupiter/pkg/worker/xjob"
 	"os"
 	"runtime"
 	"sync"
@@ -59,11 +60,12 @@ type Application struct {
 	afterStop   *xdefer.DeferStack
 	beforeStop  *xdefer.DeferStack
 	defers      []func() error
-	jobCnt      int // job cnt, server and worker
-	servers     []server.Server
-	workers     []worker.Worker
-	logger      *xlog.Logger
-	registerer  registry.Registry
+	//jobCnt      int // job cnt, server and worker
+	servers    []server.Server
+	workers    []worker.Worker
+	jobs       map[string]job.Runner
+	logger     *xlog.Logger
+	registerer registry.Registry
 }
 
 // initialize application
@@ -72,6 +74,7 @@ func (app *Application) initialize() {
 		app.cycle = xcycle.NewCycle()
 		app.servers = make([]server.Server, 0)
 		app.workers = make([]worker.Worker, 0)
+		app.jobs = make(map[string]job.Runner)
 		app.logger = xlog.JupiterLogger
 		// app.defers = []func() error{}
 		app.afterStop = xdefer.NewStack()
@@ -130,15 +133,42 @@ func (app *Application) AfterStop(fns ...func() error) {
 
 // Serve start a server
 func (app *Application) Serve(s server.Server) error {
-	app.jobCnt++
 	app.servers = append(app.servers, s)
 	return nil
 }
 
 // Schedule ..
 func (app *Application) Schedule(w worker.Worker) error {
-	app.jobCnt++
 	app.workers = append(app.workers, w)
+	return nil
+}
+
+// Job
+func (app *Application) Job(runner job.Runner) error {
+	namedJob, ok := runner.(interface{ GetJobName() string })
+	// job runner must implement GetJobName
+	if !ok {
+		return nil
+	}
+	jobName := namedJob.GetJobName()
+	if flag.Bool("disable-job") {
+		app.logger.Info("jupiter disable job", xlog.FieldName(jobName))
+		return nil
+	}
+
+	// start job by name
+	jobFlag := flag.String("job")
+	if jobFlag == "" {
+		app.logger.Error("jupiter jobs flag name empty", xlog.FieldName(jobName))
+		return nil
+	}
+
+	if jobName != jobFlag {
+		app.logger.Info("jupiter disable jobs", xlog.FieldName(jobName))
+		return nil
+	}
+	app.logger.Info("jupiter register job", xlog.FieldName(jobName))
+	app.jobs[jobName] = runner
 	return nil
 }
 
@@ -160,6 +190,11 @@ func (app *Application) Run() error {
 
 	if app.registerer == nil {
 		app.SetRegistry(registry.Nop{}) //default nop without registry
+	}
+
+	// todo jobs not graceful
+	if len(app.jobs) > 0 {
+		return app.startJobs()
 	}
 
 	// start govern
@@ -272,12 +307,26 @@ func (app *Application) startWorkers() error {
 	var eg errgroup.Group
 	// start multi workers
 	for _, w := range app.workers {
-		w := w
 		eg.Go(func() error {
 			return w.Run()
 		})
 	}
 	return eg.Wait()
+}
+
+// todo handle error
+func (app *Application) startJobs() error {
+	var jobs = make([]func(), 0)
+	for name, runner := range app.jobs {
+		jobs = append(jobs, func() {
+			app.logger.Info("job run begin", xlog.FieldName(name))
+			defer app.logger.Info("job run end", xlog.FieldName(name))
+			// runner.Run panic 错误在更上层抛出
+			runner.Run()
+		})
+	}
+	xgo.Parallel(jobs...)()
+	return nil
 }
 
 func (app *Application) parseFlags() error {
