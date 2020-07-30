@@ -74,7 +74,7 @@ func TestApplication_Run_1(t *testing.T) {
 		So(err, ShouldBeNil)
 		go func() {
 			// make sure Serve() is called
-			time.Sleep(time.Millisecond * 1500)
+			time.Sleep(time.Millisecond * 100)
 			err = app.Stop()
 			c.So(err, ShouldBeNil)
 		}()
@@ -92,7 +92,7 @@ func TestApplication_Run_1(t *testing.T) {
 		So(err, ShouldBeNil)
 		go func() {
 			// make sure Serve() is called
-			time.Sleep(time.Millisecond * 1500)
+			time.Sleep(time.Millisecond * 100)
 			err = app.Stop()
 			c.So(err, ShouldBeNil)
 		}()
@@ -111,7 +111,7 @@ func TestApplication_Run_1(t *testing.T) {
 		So(err, ShouldBeNil)
 		go func() {
 			// make sure Serve() is called
-			time.Sleep(time.Millisecond * 1500)
+			time.Sleep(time.Millisecond * 200)
 			err = app.Stop()
 			c.So(err, ShouldBeNil)
 		}()
@@ -206,17 +206,26 @@ func (info *stopInfo) Stop() error {
 }
 
 func TestApplication_BeforeStop(t *testing.T) {
-	Convey("test application before stop", t, func() {
+	Convey("test application before stop", t, func(c C) {
 		si := &stopInfo{}
 		app := &Application{}
 		app.BeforeStop(si.Stop)
+		go func(si *stopInfo) {
+			time.Sleep(time.Microsecond * 100)
+			err := app.Stop()
+			c.So(err, ShouldBeNil)
+			c.So(si.state, ShouldEqual, true)
+		}(si)
 		err := app.Run()
-		So(err, ShouldBeNil)
-		So(si.state, ShouldEqual, false)
-
-		err = app.Stop()
-		So(err, ShouldBeNil)
-		So(si.state, ShouldEqual, true)
+		c.So(err, ShouldBeNil)
+	})
+}
+func TestApplication_EmptyRun(t *testing.T) {
+	Convey("test application empty run", t, func(c C) {
+		app := &Application{}
+		app.initialize()
+		err := app.Run()
+		c.So(err, ShouldBeNil)
 	})
 }
 

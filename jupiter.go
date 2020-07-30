@@ -60,7 +60,6 @@ type Application struct {
 	afterStop   *xdefer.DeferStack
 	beforeStop  *xdefer.DeferStack
 	defers      []func() error
-	//jobCnt      int // job cnt, server and worker
 	servers    []server.Server
 	workers    []worker.Worker
 	jobs       map[string]job.Runner
