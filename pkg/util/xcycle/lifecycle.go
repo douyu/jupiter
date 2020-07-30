@@ -49,12 +49,13 @@ func (c *Cycle) Run(fn func() error) {
 }
 
 //Done block and return a chan error
-func (c *Cycle) Done() <-chan error {
-	go func() {
+func (c *Cycle) Done() <-chan struct{} {
+	done := make(chan struct{})
+	go func(done chan struct{}) {
 		c.wg.Wait()
-		c.Close()
-	}()
-	return c.quit
+		close(done)
+	}(done)
+	return done
 }
 
 //DoneAndClose ..

@@ -28,8 +28,9 @@ func TestCycleDone(t *testing.T) {
 		return nil
 	})
 	go func() {
-		state = "done"
 		<-c.Done()
+		state = "done"
+		c.Close()
 	}()
 	go func() {
 		time.Sleep(time.Microsecond * 200)
