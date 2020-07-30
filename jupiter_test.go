@@ -17,14 +17,15 @@ package jupiter
 import (
 	"context"
 	"errors"
+	"sync"
+	"testing"
+	"time"
+
 	"github.com/coreos/etcd/clientv3"
 	"github.com/douyu/jupiter/pkg"
 	"github.com/douyu/jupiter/pkg/client/etcdv3"
 	"github.com/douyu/jupiter/pkg/server/xgrpc"
 	"google.golang.org/grpc"
-	"sync"
-	"testing"
-	"time"
 
 	"github.com/douyu/jupiter/pkg/registry"
 	compound_registry "github.com/douyu/jupiter/pkg/registry/compound"
@@ -208,7 +209,8 @@ func (info *stopInfo) Stop() error {
 func TestApplication_BeforeStop(t *testing.T) {
 	Convey("test application before stop", t, func(c C) {
 		si := &stopInfo{}
-		app := &Application{}
+		app, err := NewApplication()
+		c.So(err, ShouldBeNil)
 		app.BeforeStop(si.Stop)
 		go func(si *stopInfo) {
 			time.Sleep(time.Microsecond * 100)
@@ -216,7 +218,7 @@ func TestApplication_BeforeStop(t *testing.T) {
 			c.So(err, ShouldBeNil)
 			c.So(si.state, ShouldEqual, true)
 		}(si)
-		err := app.Run()
+		err = app.Run()
 		c.So(err, ShouldBeNil)
 	})
 }

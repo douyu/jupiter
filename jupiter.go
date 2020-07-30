@@ -68,6 +68,15 @@ type Application struct {
 	registerer  registry.Registry
 }
 
+//NewApplication new a app
+func NewApplication(fns ...func() error) (*Application, error) {
+	app := &Application{}
+	if err := app.Startup(); err != nil {
+		return nil, err
+	}
+	return app, nil
+}
+
 // initialize application
 func (app *Application) initialize() {
 	app.initOnce.Do(func() {
