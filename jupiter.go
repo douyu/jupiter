@@ -337,11 +337,15 @@ func (app *Application) clean() {
 func (app *Application) loadConfig() error {
 	var configAddr = flag.String("config")
 	provider, err := manager.NewDataSource(configAddr)
-	if err != nil {
-		app.logger.Panic("data source: provider error", xlog.FieldMod(ecode.ModConfig), xlog.FieldErr(err))
-	}
-	if err := conf.LoadFromDataSource(provider, toml.Unmarshal); err != nil {
-		app.logger.Panic("data source: load config", xlog.FieldMod(ecode.ModConfig), xlog.FieldErrKind(ecode.ErrKindUnmarshalConfigErr), xlog.FieldErr(err))
+	if err != manager.ErrConfigAddr {
+		if err != nil {
+			app.logger.Panic("data source: provider error", xlog.FieldMod(ecode.ModConfig), xlog.FieldErr(err))
+		}
+		if err := conf.LoadFromDataSource(provider, toml.Unmarshal); err != nil {
+			app.logger.Panic("data source: load config", xlog.FieldMod(ecode.ModConfig), xlog.FieldErrKind(ecode.ErrKindUnmarshalConfigErr), xlog.FieldErr(err))
+		}
+	} else {
+		app.logger.Info("no config... ", xlog.FieldMod(ecode.ModConfig))
 	}
 	return nil
 }
