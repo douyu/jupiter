@@ -25,7 +25,6 @@ import (
 	"github.com/douyu/jupiter/pkg"
 	"github.com/douyu/jupiter/pkg/client/etcdv3"
 	"github.com/douyu/jupiter/pkg/server/xgrpc"
-	"google.golang.org/grpc"
 
 	"github.com/douyu/jupiter/pkg/registry"
 	compound_registry "github.com/douyu/jupiter/pkg/registry/compound"
@@ -209,8 +208,8 @@ func (info *stopInfo) Stop() error {
 func TestApplication_BeforeStop(t *testing.T) {
 	Convey("test application before stop", t, func(c C) {
 		si := &stopInfo{}
-		app, err := NewApplication()
-		c.So(err, ShouldBeNil)
+		app := &Application{}
+		app.initialize()
 		app.BeforeStop(si.Stop)
 		go func(si *stopInfo) {
 			time.Sleep(time.Microsecond * 100)
@@ -218,7 +217,7 @@ func TestApplication_BeforeStop(t *testing.T) {
 			c.So(err, ShouldBeNil)
 			c.So(si.state, ShouldEqual, true)
 		}(si)
-		err = app.Run()
+		err := app.Run()
 		c.So(err, ShouldBeNil)
 	})
 }
@@ -226,6 +225,9 @@ func TestApplication_EmptyRun(t *testing.T) {
 	Convey("test application empty run", t, func(c C) {
 		app := &Application{}
 		app.initialize()
+		go func() {
+			app.cycle.DoneAndClose()
+		}()
 		err := app.Run()
 		c.So(err, ShouldBeNil)
 	})
@@ -235,7 +237,11 @@ func TestApplication_AfterStop(t *testing.T) {
 	Convey("test application after stop", t, func() {
 		si := &stopInfo{}
 		app := &Application{}
+		app.initialize()
 		app.AfterStop(si.Stop)
+		go func() {
+			app.Stop()
+		}()
 		err := app.Run()
 		So(err, ShouldBeNil)
 		So(si.state, ShouldEqual, true)
@@ -257,7 +263,8 @@ func TestApplication_Serve(t *testing.T) {
 			c.So(err, ShouldBeNil)
 		}()
 		err = app.Run()
-		So(err, ShouldEqual, grpc.ErrServerStopped)
+		// So(err, ShouldEqual, grpc.ErrServerStopped)
+		So(err, ShouldBeNil)
 	})
 }
 

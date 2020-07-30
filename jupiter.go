@@ -268,6 +268,7 @@ func (app *Application) GracefulStop(ctx context.Context) (err error) {
 			}(w)
 		}
 		<-app.cycle.Done()
+		app.afterStop.Clean()
 		app.cycle.Close()
 	})
 	return err
