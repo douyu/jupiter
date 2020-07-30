@@ -5,7 +5,6 @@ import (
 	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/util/xnet"
 	"github.com/douyu/jupiter/pkg/xlog"
-	"go.uber.org/zap"
 )
 
 // Config ...
@@ -28,7 +27,6 @@ func StdConfig(name string) *Config {
 func RawConfig(key string) *Config {
 	var config = DefaultConfig()
 	if conf.Get(key) == nil {
-		config.Enable = true
 		return config
 	}
 	if err := conf.UnmarshalKey(key, &config); err != nil {
@@ -37,18 +35,24 @@ func RawConfig(key string) *Config {
 			xlog.FieldValueAny(config),
 		)
 	}
-	config.Enable = true
 	return config
 }
 
 // DefaultConfig represents default config
 // User should construct config base on DefaultConfig
 func DefaultConfig() *Config {
-	host, err := xnet.GetLocalIP()
-	if err != nil {
-		xlog.JupiterLogger.Error("govern get local ip error", zap.Error(err))
+	ips := xnet.GetIPs()
+	if len(ips) == 0 {
+		xlog.JupiterLogger.Error("govern get local ip error")
+	}
+	var host string
+	if len(ips) == 1 {
+		host = ips[0]
+	} else {
+		host = "localhost"
 	}
 	return &Config{
+		Enable:  true,
 		Host:    host,
 		Network: "tcp4",
 		Port:    0,
