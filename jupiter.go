@@ -125,13 +125,11 @@ func (app *Application) Defer(fns ...func() error) {
 
 //BeforeStop hook
 func (app *Application) BeforeStop(fns ...func() error) {
-	app.initialize()
 	app.beforeStop.Push(fns...)
 }
 
 //AfterStop hook
 func (app *Application) AfterStop(fns ...func() error) {
-	app.initialize()
 	app.afterStop.Push(fns...)
 }
 
@@ -147,7 +145,7 @@ func (app *Application) Schedule(w worker.Worker) error {
 	return nil
 }
 
-// Job
+// Job ..
 func (app *Application) Job(runner job.Runner) error {
 	namedJob, ok := runner.(interface{ GetJobName() string })
 	// job runner must implement GetJobName
