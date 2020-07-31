@@ -69,10 +69,8 @@ func (c *Cycle) DoneAndClose() {
 
 //Close ..
 func (c *Cycle) Close() {
-	if c.mu == 0 {
-		if atomic.CompareAndSwapUint32(&c.mu, 0, 1) {
-			close(c.quit)
-		}
+	if atomic.CompareAndSwapUint32(&c.mu, 0, 1) {
+		close(c.quit)
 	}
 }
 
