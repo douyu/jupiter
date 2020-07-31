@@ -44,6 +44,7 @@ func NewCycle() *Cycle {
 //Run a new goroutine
 func (c *Cycle) Run(fn func() error) {
 	c.mu.Lock()
+	//todo add check options panic before waiting
 	defer c.mu.Unlock()
 	c.wg.Add(1)
 	go func(c *Cycle) {
