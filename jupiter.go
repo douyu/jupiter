@@ -163,15 +163,17 @@ func (app *Application) Startup(fns ...func() error) error {
 // 	app.AfterStop(fns...)
 // }
 
-// //BeforeStop hook
-// func (app *Application) BeforeStop(fns ...func() error) {
-// 	app.beforeStop.Push(fns...)
-// }
+// BeforeStop hook
+// Deprecated: use RegisterHooks instead
+func (app *Application) BeforeStop(fns ...func() error) {
+	app.RegisterHooks(StageBeforeStop, fns...)
+}
 
-// //AfterStop hook
-// func (app *Application) AfterStop(fns ...func() error) {
-// 	app.afterStop.Push(fns...)
-// }
+// AfterStop hook
+// Deprecated: use RegisterHooks instead
+func (app *Application) AfterStop(fns ...func() error) {
+	app.RegisterHooks(StageAfterStop, fns...)
+}
 
 // Serve start a server
 func (app *Application) Serve(s server.Server) error {
