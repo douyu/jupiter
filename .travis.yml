@@ -6,6 +6,7 @@ sudo: required
 services:
   - mysql
   - redis-server
+  - docker
 
 go:
   - 1.13.x
@@ -13,9 +14,11 @@ go:
 env:
   - GO111MODULE=on
 
-before_install: 
+before_install:
   - go get golang.org/x/tools/cmd/goimports
   - mysql -e 'CREATE DATABASE IF NOT EXISTS test;'
+  - docker pull elcolio/etcd
+  - docker run -d -p 127.0.0.1:2379:2379 elcolio/etcd
 
 script:
   - diff -u <(echo -n) <(gofmt -d -s .)
