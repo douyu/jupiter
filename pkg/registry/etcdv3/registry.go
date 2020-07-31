@@ -18,6 +18,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/douyu/jupiter/pkg"
 	"github.com/douyu/jupiter/pkg/constant"
 	"net"
 	"net/url"
@@ -58,28 +59,11 @@ func newETCDRegistry(config *Config) *etcdv3Registry {
 
 // RegisterService register service to registry
 func (reg *etcdv3Registry) RegisterService(ctx context.Context, info *server.ServiceInfo) error {
-	opOptions := make([]clientv3.OpOption, 0)
-	if reg.lease != 0 {
-		opOptions = append(opOptions, clientv3.WithLease(reg.lease), clientv3.WithSerializable())
-	}
-
-	if _, ok := ctx.Deadline(); !ok {
-		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(ctx, reg.ReadTimeout)
-		defer cancel()
-	}
-
-	key := reg.registerKey(info)
-	val := reg.registerValue(info)
-	_, err := reg.client.Put(ctx, key, val, opOptions...)
+	err := reg.registerBiz(ctx, info)
 	if err != nil {
-		reg.logger.Error("register service", xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err), xlog.FieldKeyAny(key), xlog.FieldValueAny(info))
 		return err
 	}
-
-	reg.logger.Info("register service", xlog.FieldKeyAny(key), xlog.FieldValueAny(info))
-	reg.kvs.Store(key, val)
-	return err
+	return reg.registerMetric(ctx, info)
 }
 
 // UnregisterService unregister service from registry
@@ -192,6 +176,63 @@ func (reg *etcdv3Registry) Close() error {
 		return err
 	}
 	return nil
+}
+
+func (reg *etcdv3Registry) registerMetric(ctx context.Context, info *server.ServiceInfo) error {
+	if info.Kind != constant.ServiceGovernor {
+		return nil
+	}
+
+	metric := "/prometheus/job/%s/%s"
+	opOptions := make([]clientv3.OpOption, 0)
+	if reg.lease != 0 {
+		opOptions = append(opOptions, clientv3.WithLease(reg.lease), clientv3.WithSerializable())
+	}
+
+	if _, ok := ctx.Deadline(); !ok {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, reg.ReadTimeout)
+		defer cancel()
+	}
+
+	key := fmt.Sprintf(metric, info.Name, pkg.HostName())
+	val := info.Address
+	_, err := reg.client.Put(ctx, key, val, opOptions...)
+	if err != nil {
+		reg.logger.Error("register service", xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err), xlog.FieldKeyAny(key), xlog.FieldValueAny(info))
+		return err
+	}
+
+	reg.logger.Info("register service", xlog.FieldKeyAny(key), xlog.FieldValueAny(val))
+	reg.kvs.Store(key, val)
+	return nil
+
+}
+
+func (reg *etcdv3Registry) registerBiz(ctx context.Context, info *server.ServiceInfo) error {
+	opOptions := make([]clientv3.OpOption, 0)
+	if reg.lease != 0 {
+		opOptions = append(opOptions, clientv3.WithLease(reg.lease), clientv3.WithSerializable())
+	}
+
+	if _, ok := ctx.Deadline(); !ok {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, reg.ReadTimeout)
+		defer cancel()
+	}
+
+	key := reg.registerKey(info)
+	val := reg.registerValue(info)
+	_, err := reg.client.Put(ctx, key, val, opOptions...)
+	if err != nil {
+		reg.logger.Error("register service", xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err), xlog.FieldKeyAny(key), xlog.FieldValueAny(info))
+		return err
+	}
+
+	reg.logger.Info("register service", xlog.FieldKeyAny(key), xlog.FieldValueAny(val))
+	reg.kvs.Store(key, val)
+	return nil
+
 }
 
 func (reg *etcdv3Registry) registerKey(info *server.ServiceInfo) string {
