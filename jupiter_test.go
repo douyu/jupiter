@@ -17,6 +17,10 @@ package jupiter
 import (
 	"context"
 	"errors"
+	"github.com/douyu/jupiter/pkg/client/grpc"
+	"github.com/douyu/jupiter/pkg/client/grpc/resolver"
+	"github.com/douyu/jupiter/pkg/util/xtest/proto/testproto"
+	"github.com/douyu/jupiter/pkg/util/xtest/server/yell"
 	"testing"
 	"time"
 
@@ -248,7 +252,7 @@ func TestRegister(t *testing.T) {
 		})
 		So(err, ShouldBeNil)
 
-		err = app.RegisterHooks(StageBeforeStop, func() error {
+		err = app.RegisterHooks(StageAfterStop, func() error {
 			//resp,err := etcdctl.Get(context.Background(),"/jupiter/"+pkg.Name()+"/providers/grpc://",clientv3.WithPrefix())
 			return nil
 		})
@@ -257,6 +261,57 @@ func TestRegister(t *testing.T) {
 		go func() {
 			// make sure Serve() is called
 			time.Sleep(time.Millisecond * 3000)
+			err = app.Stop()
+			c.So(err, ShouldBeNil)
+		}()
+		err = app.Run()
+		So(err, ShouldBeNil)
+	})
+}
+
+func TestResolverAndRegister(t *testing.T) {
+	Convey("test application register and client resolver", t, func(c C) {
+		app := &Application{}
+		grpcConfig := xgrpc.DefaultConfig()
+		grpcConfig.Port = 0
+		app.initialize()
+
+		grpcServer := grpcConfig.Build()
+		fooServer := &yell.FooServer{}
+		fooServer.SetName("srv1")
+		testproto.RegisterGreeterServer(grpcServer.Server, fooServer)
+		err := app.Serve(grpcServer)
+		So(err, ShouldBeNil)
+
+		etcdv3_registryConfig := etcdv3_registry.DefaultConfig()
+		etcdv3_registryConfig.Endpoints = []string{"127.0.0.1:2379"}
+		etcdConfig := etcdv3.DefaultConfig()
+		etcdConfig.Endpoints = []string{"127.0.0.1:2379"}
+		app.SetRegistry(
+			compound_registry.New(
+				etcdv3_registryConfig.Build(),
+			),
+		)
+
+		go func() {
+			// make sure Serve() is called
+			time.Sleep(time.Millisecond * 3000)
+
+			resolver.Register("etcd", etcdv3_registryConfig.Build())
+			cfg := grpc.DefaultConfig()
+			cfg.Address = "etcd:///" + pkg.Name()
+			directClient := testproto.NewGreeterClient(cfg.Build())
+			Convey("test resolver grpc", t, func() {
+				ctx := context.Background()
+				ctx, cancel := context.WithTimeout(ctx, time.Second)
+				defer cancel()
+				res, err := directClient.SayHello(ctx, &testproto.HelloRequest{
+					Name: "hello",
+				})
+				So(err, ShouldBeNil)
+				So(res.Message, ShouldEqual, yell.RespFantasy.Message)
+			})
+
 			err = app.Stop()
 			c.So(err, ShouldBeNil)
 		}()

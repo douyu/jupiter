@@ -64,6 +64,7 @@ func DefaultConfig() *Config {
 		SlowThreshold:          xtime.Duration("600ms"),
 		OnDialError:            "panic",
 		AccessInterceptorLevel: "info",
+		Block:                  true,
 	}
 }
 

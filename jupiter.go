@@ -343,6 +343,7 @@ func (app *Application) startServers() error {
 	var eg errgroup.Group
 	// start multi servers
 	for _, s := range app.servers {
+		s := s
 		eg.Go(func() (err error) {
 			_ = app.registerer.RegisterService(context.TODO(), s.Info())
 			defer app.registerer.UnregisterService(context.TODO(), s.Info())
@@ -359,6 +360,7 @@ func (app *Application) startWorkers() error {
 	var eg errgroup.Group
 	// start multi workers
 	for _, w := range app.workers {
+		w := w
 		eg.Go(func() error {
 			return w.Run()
 		})
