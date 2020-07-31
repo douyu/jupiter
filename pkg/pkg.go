@@ -16,12 +16,13 @@ package pkg
 
 import (
 	"fmt"
-	"github.com/douyu/jupiter/pkg/util/xtime"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
+
+	"github.com/douyu/jupiter/pkg/util/xtime"
 
 	"github.com/douyu/jupiter/pkg/constant"
 	"github.com/douyu/jupiter/pkg/util/xcolor"
@@ -72,64 +73,77 @@ func Name() string {
 	return appName
 }
 
-func SetName(appName string) {
-	appName = appName
+//SetName set app anme
+func SetName(s string) {
+	appName = s
 }
 
+//AppID get appID
 func AppID() string {
 	return appID
 }
 
-func SetAppID(appID string) {
-	appID = appID
+//SetAppID set appID
+func SetAppID(s string) {
+	appID = s
 }
 
+//AppVersion get buildAppVersion
 func AppVersion() string {
 	return buildAppVersion
 }
 
-func SetAppVersion(appVersion string) {
-	appVersion = appVersion
-}
+//appVersion not defined
+// func SetAppVersion(s string) {
+// 	appVersion = s
+// }
 
+//JupiterVersion get jupiterVersion
 func JupiterVersion() string {
 	return jupiterVersion
 }
 
-func SetJupiterVersion(jupiterVersion string) {
-	jupiterVersion = jupiterVersion
-}
+// todo: jupiterVersion is const not be set
+// func SetJupiterVersion(s string) {
+// 	jupiterVersion = s
+// }
 
+//BuildTime get buildTime
 func BuildTime() string {
 	return buildTime
 }
 
+//BuildUser get buildUser
 func BuildUser() string {
 	return buildUser
 }
 
+//BuildHost get buildHost
 func BuildHost() string {
 	return buildHost
 }
 
+//SetBuildTime set buildTime
 func SetBuildTime(buildTime string) {
 	buildTime = strings.Replace(buildTime, "--", " ", 1)
 }
 
-// HostName ...
+// HostName get host name
 func HostName() string {
 	return hostName
 }
 
+//StartTime get start time
 func StartTime() string {
 	return startTime
 }
 
+//GoVersion get go version
 func GoVersion() string {
 	return goVersion
 }
 
-// PrintVersion ...
+// PrintVersion print formated version info
 func PrintVersion() {
 	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", xcolor.Red("name"), xcolor.Blue(appName))
 	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", xcolor.Red("appID"), xcolor.Blue(appID))
