@@ -27,6 +27,7 @@ type Cycle struct {
 	quit     chan error
 	closeing uint32
 	waiting  uint32
+	// works []func() error
 }
 
 //NewCycle new a cycle life
@@ -40,6 +41,31 @@ func NewCycle() *Cycle {
 		waiting:  0,
 	}
 }
+
+/*
+// Go ..
+func (c *Cycle) Go(fns ...func() error) {
+	c.works = append(c.works, fns...)
+}
+
+//RunWait ..
+func (c *Cycle) RunWait() <-chan error {
+	go func(c *Cycle) {
+		for _, fn := range c.works {
+			c.wg.Add(1)
+			go func(c *Cycle, fn func() error) {
+				defer c.wg.Done()
+				if err := fn(); err != nil {
+					c.quit <- err
+				}
+			}(c, fn)
+		}
+		c.Wait()
+		close(c.quit)
+	}(c)
+	return c.quit
+}
+*/
 
 //Run a new goroutine
 func (c *Cycle) Run(fn func() error) {
@@ -57,13 +83,13 @@ func (c *Cycle) Run(fn func() error) {
 
 //Done block and return a chan error
 func (c *Cycle) Done() <-chan struct{} {
-	c.mu.Lock()
-	defer c.mu.Unlock()
 	if atomic.CompareAndSwapUint32(&c.waiting, 0, 1) {
-		go func() {
+		go func(c *Cycle) {
+			c.mu.Lock()
+			defer c.mu.Unlock()
 			c.wg.Wait()
 			close(c.done)
-		}()
+		}(c)
 	}
 	return c.done
 }

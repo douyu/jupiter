@@ -17,12 +17,13 @@ package jupiter
 import (
 	"context"
 	"errors"
+	"testing"
+	"time"
+
 	"github.com/douyu/jupiter/pkg/client/grpc"
 	"github.com/douyu/jupiter/pkg/client/grpc/resolver"
 	"github.com/douyu/jupiter/pkg/util/xtest/proto/testproto"
 	"github.com/douyu/jupiter/pkg/util/xtest/server/yell"
-	"testing"
-	"time"
 
 	"github.com/coreos/etcd/clientv3"
 	"github.com/douyu/jupiter/pkg"
@@ -73,7 +74,7 @@ func TestApplication_Run_1(t *testing.T) {
 		go func() {
 			// make sure Serve() is called
 			time.Sleep(time.Millisecond * 100)
-			err = app.Stop()
+			err := app.Stop()
 			c.So(err, ShouldBeNil)
 		}()
 		err = app.Run()
