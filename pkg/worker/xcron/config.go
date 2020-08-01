@@ -175,7 +175,11 @@ func (wj wrappedJob) Run() {
 			wj.logger.Error("mutex", xlog.String("err", err.Error()))
 			return
 		}
-		err = mutex.Lock(wj.waitLockTime)
+		if wj.waitLockTime == 0 {
+			err = mutex.TryLock(DefaultWaitLockTime * time.Millisecond)
+		} else { // 阻塞等待直到waitLockTime timeout
+			err = mutex.Lock(wj.waitLockTime)
+		}
 		if err != nil {
 			wj.logger.Info("mutex lock", xlog.String("err", err.Error()))
 			return
