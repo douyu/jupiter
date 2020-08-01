@@ -63,7 +63,7 @@ func DefaultConfig() Config {
 // Config ...
 type Config struct {
 	WithSeconds     bool
-	ConcurrentDelay time.Duration
+	ConcurrentDelay int
 	ImmediatelyRun  bool
 
 	wrappers []JobWrapper

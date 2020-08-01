@@ -1,6 +1,6 @@
 [jupiter.cron.test]
     withSeconds = false
-    concurrentDelay= "10s"
+    concurrentDelay= 1
     immediatelyRun = false
     # 分布式任务的开关
     distributedTask = false
