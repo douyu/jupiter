@@ -24,7 +24,10 @@ import (
 	"github.com/pkg/errors"
 )
 
-// HTTP config
+//ModName named a mod
+const ModName = "server.echo"
+
+//Config HTTP config
 type Config struct {
 	Host          string
 	Port          int
@@ -46,11 +49,11 @@ func DefaultConfig() *Config {
 		Debug:                     false,
 		Deployment:                constant.DefaultDeployment,
 		SlowQueryThresholdInMilli: 500, // 500ms
-		logger:                    xlog.JupiterLogger.With(xlog.FieldMod("server.echo")),
+		logger:                    xlog.JupiterLogger.With(xlog.FieldMod(ModName)),
 	}
 }
 
-// Jupiter Standard HTTP Server config
+// StdConfig Jupiter Standard HTTP Server config
 func StdConfig(name string) *Config {
 	return RawConfig("jupiter.server." + name)
 }

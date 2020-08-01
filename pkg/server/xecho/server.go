@@ -19,12 +19,13 @@ import (
 	"net/http"
 	"os"
 
+	"net"
+
 	"github.com/douyu/jupiter/pkg/constant"
 	"github.com/douyu/jupiter/pkg/ecode"
 	"github.com/douyu/jupiter/pkg/server"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/labstack/echo/v4"
-	"net"
 )
 
 // Server ...
@@ -85,5 +86,6 @@ func (s *Server) Info() *server.ServiceInfo {
 		server.WithAddress(s.listener.Addr().String()),
 		server.WithKind(constant.ServiceProvider),
 	)
+	info.Name = info.Name + "." + ModName
 	return &info
 }

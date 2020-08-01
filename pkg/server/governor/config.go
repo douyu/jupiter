@@ -2,10 +2,14 @@ package governor
 
 import (
 	"fmt"
+
 	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/util/xnet"
 	"github.com/douyu/jupiter/pkg/xlog"
 )
+
+//ModName ..
+const ModName = "govern"
 
 // Config ...
 type Config struct {
@@ -56,7 +60,7 @@ func DefaultConfig() *Config {
 		Host:    host,
 		Network: "tcp4",
 		Port:    0,
-		logger:  xlog.JupiterLogger.With(xlog.FieldMod("govern")),
+		logger:  xlog.JupiterLogger.With(xlog.FieldMod(ModName)),
 	}
 }
 

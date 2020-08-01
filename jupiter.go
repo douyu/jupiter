@@ -64,15 +64,12 @@ type Application struct {
 	stopOnce    sync.Once
 	initOnce    sync.Once
 	startupOnce sync.Once
-	// afterStop   *xdefer.DeferStack
-	// beforeStop  *xdefer.DeferStack
-	// defers     []func() error
-	servers    []server.Server
-	workers    []worker.Worker
-	jobs       map[string]job.Runner
-	logger     *xlog.Logger
-	registerer registry.Registry
-	hooks      map[uint32]*xdefer.DeferStack
+	servers     []server.Server
+	workers     []worker.Worker
+	jobs        map[string]job.Runner
+	logger      *xlog.Logger
+	registerer  registry.Registry
+	hooks       map[uint32]*xdefer.DeferStack
 }
 
 //NewApplication new a app
@@ -175,9 +172,9 @@ func (app *Application) AfterStop(fns ...func() error) {
 	app.RegisterHooks(StageAfterStop, fns...)
 }
 
-// Serve start a server
-func (app *Application) Serve(s server.Server) error {
-	app.servers = append(app.servers, s)
+// Serve start server
+func (app *Application) Serve(s ...server.Server) error {
+	app.servers = append(app.servers, s...)
 	return nil
 }
 
@@ -228,7 +225,9 @@ func (app *Application) SetRegistry(reg registry.Registry) {
 //}
 
 // Run run application
-func (app *Application) Run() error {
+func (app *Application) Run(servers ...server.Server) error {
+	app.servers = append(app.servers, servers...)
+
 	app.waitSignals() //start signal listen task in goroutine
 	defer app.clean()
 
@@ -347,8 +346,8 @@ func (app *Application) startServers() error {
 		eg.Go(func() (err error) {
 			_ = app.registerer.RegisterService(context.TODO(), s.Info())
 			defer app.registerer.UnregisterService(context.TODO(), s.Info())
-			app.logger.Info("start servers", xlog.FieldMod(ecode.ModApp), xlog.FieldEvent("init"), xlog.FieldAddr(s.Info().Label()), xlog.Any("scheme", s.Info().Scheme))
-			defer app.logger.Info("exit server", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err), xlog.FieldAddr(s.Info().Label()))
+			app.logger.Info("start server", xlog.FieldMod(ecode.ModApp), xlog.FieldEvent("init"), xlog.FieldName(s.Info().Name), xlog.FieldAddr(s.Info().Label()), xlog.Any("scheme", s.Info().Scheme))
+			defer app.logger.Info("exit server", xlog.FieldMod(ecode.ModApp), xlog.FieldEvent("exit"), xlog.FieldName(s.Info().Name), xlog.FieldErr(err), xlog.FieldAddr(s.Info().Label()))
 			err = s.Serve()
 			return
 		})

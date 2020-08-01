@@ -24,6 +24,9 @@ import (
 	"github.com/pkg/errors"
 )
 
+//ModName ..
+const ModName = "server.gin"
+
 // Config HTTP config
 type Config struct {
 	Host          string
@@ -45,7 +48,7 @@ func DefaultConfig() *Config {
 		Port:                      9091,
 		Mode:                      gin.ReleaseMode,
 		SlowQueryThresholdInMilli: 500, // 500ms
-		logger:                    xlog.JupiterLogger.With(xlog.FieldMod("server.gin")),
+		logger:                    xlog.JupiterLogger.With(xlog.FieldMod(ModName)),
 	}
 }
 
