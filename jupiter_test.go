@@ -92,7 +92,7 @@ func TestApplication_Run_1(t *testing.T) {
 		go func() {
 			// make sure Serve() is called
 			time.Sleep(time.Millisecond * 100)
-			err = app.Stop()
+			err := app.Stop()
 			c.So(err, ShouldBeNil)
 		}()
 		err = app.Run()
@@ -111,7 +111,7 @@ func TestApplication_Run_1(t *testing.T) {
 		go func() {
 			// make sure Serve() is called
 			time.Sleep(time.Millisecond * 200)
-			err = app.Stop()
+			err := app.Stop()
 			c.So(err, ShouldBeNil)
 		}()
 		err = app.Run()
