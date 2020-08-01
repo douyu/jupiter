@@ -1,15 +1,15 @@
 package xdefer
 
 import (
-	"sync"
 	"testing"
 )
 
 func TestNewStack(t *testing.T) {
-	stack := &DeferStack{
-		fns: make([]func() error, 0),
-		mu:  sync.RWMutex{},
-	}
+	// stack := &DeferStack{
+	// 	fns: make([]func() error, 0),
+	// 	mu:  sync.RWMutex{},
+	// }
+	stack := NewStack()
 	state := ""
 	fn1 := func() error {
 		state = state + "1"
