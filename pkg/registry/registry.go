@@ -116,6 +116,13 @@ func GetServiceValue(s *server.ServiceInfo) string {
 	return string(val)
 }
 
+//GetService ..
+func GetService(s string) *server.ServiceInfo {
+	var si server.ServiceInfo
+	json.Unmarshal([]byte(s), &si)
+	return &si
+}
+
 // Nop registry, used for local development/debugging
 type Nop struct{}
 
