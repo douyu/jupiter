@@ -20,18 +20,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/douyu/jupiter/pkg/client/grpc"
-	"github.com/douyu/jupiter/pkg/client/grpc/resolver"
-	"github.com/douyu/jupiter/pkg/util/xtest/proto/testproto"
-	"github.com/douyu/jupiter/pkg/util/xtest/server/yell"
-
-	"github.com/coreos/etcd/clientv3"
-	"github.com/douyu/jupiter/pkg"
-	"github.com/douyu/jupiter/pkg/client/etcdv3"
 	"github.com/douyu/jupiter/pkg/server/xgrpc"
 
-	compound_registry "github.com/douyu/jupiter/pkg/registry/compound"
-	etcdv3_registry "github.com/douyu/jupiter/pkg/registry/etcdv3"
 	"github.com/douyu/jupiter/pkg/server"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -221,6 +211,45 @@ func TestApplication_Serve(t *testing.T) {
 	})
 }
 
+/*
+
+func newFakeRegistry() registry.Registry {
+	return &fakeRegistry{
+		prefix: "fake_registry",
+		store:  make(map[string]string),
+	}
+}
+
+type fakeRegistry struct {
+	prefix string
+	store  map[string]string
+}
+
+func (r *fakeRegistry) RegisterService(ctx context.Context, s *server.ServiceInfo) error {
+	r.store[registry.GetServiceKey(r.prefix, s)] = registry.GetServiceValue(s)
+	return nil
+}
+func (r *fakeRegistry) UnregisterService(ctx context.Context, s *server.ServiceInfo) error {
+	delete(r.store, registry.GetServiceKey(r.prefix, s))
+	return nil
+}
+func (r *fakeRegistry) ListServices(ctx context.Context, s1 string, s2 string) ([]*server.ServiceInfo, error) {
+	var srvs []*server.ServiceInfo
+	for _, v := range r.store {
+		srvs = append(srvs, registry.GetService(v))
+	}
+	return nil, nil
+}
+func (r *fakeRegistry) WatchServices(ctx context.Context, s1 string, s2 string) (chan registry.Endpoints, error) {
+	return nil, nil
+}
+func (r *fakeRegistry) Close() error {
+	return nil
+}
+
+var _ registry.Registry = (*fakeRegistry)(nil)
+*/
+/*
 func TestRegister(t *testing.T) {
 	Convey("test application register", t, func(c C) {
 		app := &Application{}
@@ -230,6 +259,7 @@ func TestRegister(t *testing.T) {
 		grpcServer := grpcConfig.Build()
 		err := app.Serve(grpcServer)
 		So(err, ShouldBeNil)
+
 		etcdv3_registryConfig := etcdv3_registry.DefaultConfig()
 		etcdv3_registryConfig.Endpoints = []string{"127.0.0.1:2379"}
 		etcdConfig := etcdv3.DefaultConfig()
@@ -240,7 +270,6 @@ func TestRegister(t *testing.T) {
 				etcdv3_registryConfig.Build(),
 			),
 		)
-
 		err = app.RegisterHooks(StageBeforeStop, func() error {
 			resp, err := etcdctl.Get(context.Background(), "/jupiter/"+pkg.Name()+"/providers/grpc://", clientv3.WithPrefix())
 			c.So(err, ShouldBeNil)
@@ -320,3 +349,4 @@ func TestResolverAndRegister(t *testing.T) {
 		So(err, ShouldBeNil)
 	})
 }
+*/
