@@ -15,6 +15,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/douyu/jupiter"
 	"github.com/douyu/jupiter/pkg/worker/xcron"
 	"github.com/douyu/jupiter/pkg/xlog"
@@ -53,5 +54,6 @@ func (eng *Engine) startJobs() error {
 func (eng *Engine) execJob() error {
 	xlog.Info("info job")
 	xlog.Warn("warn job")
+	fmt.Println("run job")
 	return nil
 }
