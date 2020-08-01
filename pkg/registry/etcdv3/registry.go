@@ -18,13 +18,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/douyu/jupiter/pkg"
-	"github.com/douyu/jupiter/pkg/constant"
 	"net"
 	"net/url"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/douyu/jupiter/pkg"
+	"github.com/douyu/jupiter/pkg/constant"
 
 	"github.com/coreos/etcd/clientv3"
 	"github.com/coreos/etcd/mvcc/mvccpb"
@@ -236,18 +237,11 @@ func (reg *etcdv3Registry) registerBiz(ctx context.Context, info *server.Service
 }
 
 func (reg *etcdv3Registry) registerKey(info *server.ServiceInfo) string {
-	switch info.Kind {
-	case constant.ServiceProvider:
-		return fmt.Sprintf("/%s/%s/providers/%s://%s", reg.Prefix, info.Name, info.Scheme, info.Address)
-	case constant.ServiceGovernor:
-		return fmt.Sprintf("/%s/%s/governors/%s://%s", reg.Prefix, info.Name, info.Scheme, info.Address)
-	}
-	return fmt.Sprintf("/%s/%s/unknown/%s://%s", reg.Prefix, info.Name, info.Scheme, info.Address)
+	return registry.GetServiceKey(reg.Prefix, info)
 }
 
 func (reg *etcdv3Registry) registerValue(info *server.ServiceInfo) string {
-	val, _ := json.Marshal(info)
-	return string(val)
+	return registry.GetServiceValue(info)
 }
 
 func deleteAddrList(al *registry.Endpoints, prefix, scheme string, kvs ...*mvccpb.KeyValue) {

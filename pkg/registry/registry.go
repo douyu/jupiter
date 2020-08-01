@@ -16,6 +16,8 @@ package registry
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"io"
 
 	"github.com/douyu/jupiter/pkg/server"
@@ -101,6 +103,17 @@ type Registry interface {
 	ListServices(context.Context, string, string) ([]*server.ServiceInfo, error)
 	WatchServices(context.Context, string, string) (chan Endpoints, error)
 	io.Closer
+}
+
+//GetServiceKey ..
+func GetServiceKey(prefix string, s *server.ServiceInfo) string {
+	return fmt.Sprintf("/%s/%s/%s/%s://%s", prefix, s.Name, s.Kind.String(), s.Scheme, s.Address)
+}
+
+//GetServiceValue ..
+func GetServiceValue(s *server.ServiceInfo) string {
+	val, _ := json.Marshal(s)
+	return string(val)
 }
 
 // Nop registry, used for local development/debugging
