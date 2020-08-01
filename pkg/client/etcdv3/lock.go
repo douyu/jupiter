@@ -46,11 +46,11 @@ func (mutex *Mutex) Lock(timeout time.Duration) (err error) {
 	return mutex.m.Lock(ctx)
 }
 
-// Lock ...
+// TryLock ...
 func (mutex *Mutex) TryLock(timeout time.Duration) (err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
-	return mutex.m.TryLock(ctx)
+	return mutex.m.Lock(ctx)
 }
 
 // Unlock ...
