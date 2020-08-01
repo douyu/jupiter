@@ -38,7 +38,7 @@ type (
 		Secure         bool          `json:"secure"`
 		// 自动同步member list的间隔
 		AutoSyncInterval time.Duration `json:"autoAsyncInterval"`
-		TTL              time.Duration
+		TTL              int  // 单位：s
 		logger           *xlog.Logger
 	}
 )
