@@ -97,14 +97,9 @@ func (c *Cron) Schedule(schedule Schedule, job NamedJob) EntryID {
 		logger:   c.logger,
 
 		distributedTask: c.DistributedTask,
-		waitLockTime: func() time.Duration {
-			if c.WaitLockTime == 0 {
-				return DefaultWaitLockTime * time.Millisecond
-			}
-			return c.WaitLockTime
-		}(),
-		leaseTTL: c.TTL,
-		client:   c.client,
+		waitLockTime:    c.WaitLockTime,
+		leaseTTL:        c.TTL,
+		client:          c.client,
 	}
 	// xdebug.PrintKVWithPrefix("worker", "add job", job.Name())
 	c.logger.Info("add job", xlog.String("name", job.Name()))
