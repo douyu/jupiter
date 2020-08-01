@@ -236,8 +236,9 @@ func (app *Application) Run(servers ...server.Server) error {
 		return app.startJobs()
 	}
 
-	// start govern
+	// start servers and govern server
 	app.cycle.Run(app.startServers)
+	// start workers
 	app.cycle.Run(app.startWorkers)
 
 	//blocking and wait quit
@@ -370,6 +371,7 @@ func (app *Application) startWorkers() error {
 // todo handle error
 func (app *Application) startJobs() error {
 	var jobs = make([]func(), 0)
+	//warp jobs
 	for name, runner := range app.jobs {
 		jobs = append(jobs, func() {
 			app.logger.Info("job run begin", xlog.FieldName(name))
