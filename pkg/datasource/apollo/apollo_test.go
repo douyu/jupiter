@@ -16,7 +16,7 @@ package apollo
 
 import (
 	"github.com/douyu/jupiter/pkg/datasource/apollo/mockserver"
-	"github.com/philchia/agollo"
+	"github.com/philchia/agollo/v4"
 	"github.com/stretchr/testify/assert"
 	"log"
 	"sync"
@@ -46,36 +46,39 @@ func teardown() {
 
 func TestReadConfig(t *testing.T) {
 	testData := []string{"value1", "value2"}
+
+	mockserver.Set("application", "key_test", testData[0])
 	ds := NewDataSource(&agollo.Conf{
 		AppID:          "SampleApp",
 		Cluster:        "default",
 		NameSpaceNames: []string{"application"},
-		IP:             "localhost:16852",
+		MetaAddr:       "localhost:16852",
+		CacheDir:       ".",
 	}, "application", "key_test")
+	value, err := ds.ReadConfig()
+	assert.Nil(t, err)
+	assert.Equal(t, testData[0], string(value))
+	t.Logf("read: %s", value)
 
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		mockserver.Set("application", "key_test", testData[0])
-		time.Sleep(time.Second * 3)
 		mockserver.Set("application", "key_test", testData[1])
 		time.Sleep(time.Second * 3)
 		ds.Close()
 	}()
+
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		time.Sleep(time.Second)
-		index := 0
-
 		for range ds.IsConfigChanged() {
 			value, err := ds.ReadConfig()
 			assert.Nil(t, err)
-			assert.Equal(t, testData[index], string(value))
-			index++
+			assert.Equal(t, testData[1], string(value))
 			t.Logf("read: %s", value)
 		}
 	}()
+
 	wg.Wait()
 }

@@ -18,7 +18,6 @@ require (
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-redis/redis v6.15.8+incompatible
 	github.com/go-resty/resty/v2 v2.2.0
-	github.com/gogo/protobuf v1.2.1
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
 	github.com/golang/protobuf v1.4.2
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
@@ -33,7 +32,7 @@ require (
 	github.com/modern-go/reflect2 v1.0.1
 	github.com/onsi/ginkgo v1.12.3 // indirect
 	github.com/opentracing/opentracing-go v1.1.0
-	github.com/philchia/agollo v2.1.0+incompatible
+	github.com/philchia/agollo/v4 v4.0.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.6.0
 	github.com/robfig/cron/v3 v3.0.1
