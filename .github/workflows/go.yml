@@ -2,8 +2,7 @@ name: Go
 
 on:
   push:
-    branches:
-      - '*'
+    # branches:
   pull_request:
     branches: [ master ]
 
