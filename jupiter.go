@@ -78,7 +78,7 @@ type Application struct {
 //NewApplication new a app
 func NewApplication(fns ...func() error) (*Application, error) {
 	app := &Application{}
-	if err := app.Startup(); err != nil {
+	if err := app.Startup(fns...); err != nil {
 		return nil, err
 	}
 	return app, nil
