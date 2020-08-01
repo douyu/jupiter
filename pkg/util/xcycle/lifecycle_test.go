@@ -15,6 +15,7 @@
 package xcycle
 
 import (
+	"fmt"
 	"testing"
 	"time"
 )
@@ -73,4 +74,35 @@ func TestCycleClose(t *testing.T) {
 		t.Errorf("TestCycleClose error want: %v, ret: %v\r\n", want, state)
 	}
 	<-ch
+}
+
+func TestCycleDoneAndClose(t *testing.T) {
+	ch := make(chan string, 2)
+	state := "init"
+	c := NewCycle()
+	c.Run(func() error {
+		time.Sleep(time.Microsecond * 100)
+		return nil
+	})
+	go func() {
+		c.DoneAndClose()
+		ch <- "close"
+	}()
+	<-c.Wait()
+	want := "close"
+	state = <-ch
+	if state != want {
+		t.Errorf("TestCycleClose error want: %v, ret: %v\r\n", want, state)
+	}
+}
+func TestCycleWithError(t *testing.T) {
+	c := NewCycle()
+	c.Run(func() error {
+		return fmt.Errorf("run error")
+	})
+	err := <-c.Wait()
+	want := fmt.Errorf("run error")
+	if err.Error() != want.Error() {
+		t.Errorf("TestCycleClose error want: %v, ret: %v\r\n", want.Error(), err.Error())
+	}
 }
