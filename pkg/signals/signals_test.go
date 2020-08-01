@@ -22,18 +22,20 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+func kill(sig os.Signal) {
+	pro, _ := os.FindProcess(os.Getpid())
+	pro.Signal(sig)
+}
 func TestShutdownSIGQUIT(t *testing.T) {
 	Convey("test shutdown signal is SIGQUIT", t, func(c C) {
 		fn := func(grace bool) {
-			// c.So(grace, ShouldEqual, false)
+			c.So(grace, ShouldEqual, false)
 			if grace != false {
 				t.Fatal("SIGQUIT should be not grace")
 			}
 		}
 		Shutdown(fn)
-		pro, err := os.FindProcess(os.Getpid())
-		So(err, ShouldBeNil)
-		pro.Signal(syscall.SIGQUIT)
+		kill(syscall.SIGQUIT)
 	})
 }
 func TestShutdownSIGINT(t *testing.T) {
@@ -44,8 +46,6 @@ func TestShutdownSIGINT(t *testing.T) {
 			}
 		}
 		Shutdown(fn)
-		pro, err := os.FindProcess(os.Getpid())
-		c.So(err, ShouldBeNil)
-		pro.Signal(syscall.SIGINT)
+		kill(syscall.SIGQUIT)
 	})
 }
