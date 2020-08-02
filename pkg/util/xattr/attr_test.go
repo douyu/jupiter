@@ -29,7 +29,7 @@ func TestNew(t *testing.T) {
 
 	k2 := "2"
 	v2 := 2
-	attr.WithValues(k2, v2)
+	attr = attr.WithValues(k2, v2)
 	ret2, ok2 := attr.Value(k2).(int)
 	if !ok2 || v2 != ret2 {
 		t.Fatalf("attr.WithValues error: want:%v ret:%v", v2, ret2)
