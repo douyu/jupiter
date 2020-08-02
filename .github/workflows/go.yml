@@ -29,7 +29,7 @@ jobs:
           - 6379:6379
       etcd:
         image: "quay.io/coreos/etcd:v3.3"
-        environment:
+        env:
           ETCD_ADVERTISE_CLIENT_URLS: "http://0.0.0.0:2379"
           ETCD_LISTEN_CLIENT_URLS: "http://0.0.0.0:2379"
           ETCDCTL_API: "3"
