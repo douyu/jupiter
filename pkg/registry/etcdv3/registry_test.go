@@ -17,6 +17,7 @@ package etcdv3
 import (
 	"context"
 	"fmt"
+	"github.com/douyu/jupiter/pkg/constant"
 	"testing"
 	"time"
 
@@ -39,19 +40,22 @@ func Test_etcdv3Registry(t *testing.T) {
 
 	assert.Nil(t, registry.RegisterService(context.Background(), &server.ServiceInfo{
 		Name:       "service_1",
+		AppID:      "",
 		Scheme:     "grpc",
 		Address:    "10.10.10.1:9091",
+		Weight:     0,
 		Enable:     true,
 		Healthy:    true,
 		Metadata:   map[string]string{},
 		Region:     "default",
 		Zone:       "default",
+		Kind:       constant.ServiceProvider,
 		Deployment: "default",
+		Group:      "",
 	}))
 
 	services, err := registry.ListServices(context.Background(), "service_1", "grpc")
 	assert.Nil(t, err)
-	t.Logf("services: %+v\n", services[0])
 	assert.Equal(t, 1, len(services))
 	assert.Equal(t, "10.10.10.1:9091", services[0].Address)
 
@@ -113,11 +117,17 @@ func Test_etcdv3registry_UpdateAddressList(t *testing.T) {
 	}
 	_, err := reg.client.Put(context.Background(), "/jupiter/service_1/configurators/grpc:///routes/1", routeConfig.String())
 	assert.Nil(t, err)
-
-	services, err := reg.WatchServices(context.Background(), "service_1", "grpc")
-	assert.Nil(t, err)
-	fmt.Printf("len(services) = %+v\n", len(services))
-	for service := range services {
-		fmt.Printf("service = %+v\n", service)
-	}
+	ctx, cancel := context.WithCancel(context.Background())
+	go func() {
+		services, err := reg.WatchServices(ctx, "service_1", "grpc")
+		assert.Nil(t, err)
+		fmt.Printf("len(services) = %+v\n", len(services))
+		for service := range services {
+			fmt.Printf("service = %+v\n", service)
+		}
+	}()
+	time.Sleep(time.Second * 3)
+	cancel()
+	_ = reg.Close()
+	time.Sleep(time.Second * 1)
 }
