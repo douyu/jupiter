@@ -24,6 +24,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/coreos/etcd/etcdserver/api/v3rpc/rpctypes"
 	"github.com/douyu/jupiter/pkg"
 	"github.com/douyu/jupiter/pkg/constant"
 
@@ -39,10 +40,12 @@ import (
 
 type etcdv3Registry struct {
 	client *etcdv3.Client
-	lease  clientv3.LeaseID
 	kvs    sync.Map
 	*Config
 	cancel context.CancelFunc
+	ttl    time.Duration
+	leases map[string]clientv3.LeaseID
+	rmu    *sync.RWMutex
 }
 
 func newETCDRegistry(config *Config) *etcdv3Registry {
@@ -50,12 +53,15 @@ func newETCDRegistry(config *Config) *etcdv3Registry {
 		config.logger = xlog.JupiterLogger
 	}
 	config.logger = config.logger.With(xlog.FieldMod(ecode.ModRegistryETCD), xlog.FieldAddrAny(config.Config.Endpoints))
-	res := &etcdv3Registry{
+	reg := &etcdv3Registry{
 		client: config.Config.Build(),
 		Config: config,
 		kvs:    sync.Map{},
+		ttl:    time.Second * 5,
+		leases: make(map[string]clientv3.LeaseID),
+		rmu:    &sync.RWMutex{},
 	}
-	return res
+	return reg
 }
 
 // RegisterService register service to registry
@@ -139,6 +145,11 @@ func (reg *etcdv3Registry) unregister(ctx context.Context, key string) error {
 		ctx, cancel = context.WithTimeout(ctx, reg.ReadTimeout)
 		defer cancel()
 	}
+
+	if err := reg.delLeaseID(ctx, key); err != nil {
+		return err
+	}
+
 	_, err := reg.client.Delete(ctx, key)
 	if err == nil {
 		reg.kvs.Delete(key)
@@ -168,14 +179,6 @@ func (reg *etcdv3Registry) Close() error {
 		return true
 	})
 	wg.Wait()
-
-	if reg.lease > 0 {
-		// revoke 有一些延迟，考虑直接删除
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-		_, err := reg.client.Revoke(ctx, reg.lease)
-		cancel()
-		return err
-	}
 	return nil
 }
 
@@ -185,10 +188,6 @@ func (reg *etcdv3Registry) registerMetric(ctx context.Context, info *server.Serv
 	}
 
 	metric := "/prometheus/job/%s/%s"
-	opOptions := make([]clientv3.OpOption, 0)
-	if reg.lease != 0 {
-		opOptions = append(opOptions, clientv3.WithLease(reg.lease), clientv3.WithSerializable())
-	}
 
 	if _, ok := ctx.Deadline(); !ok {
 		var cancel context.CancelFunc
@@ -198,6 +197,18 @@ func (reg *etcdv3Registry) registerMetric(ctx context.Context, info *server.Serv
 
 	key := fmt.Sprintf(metric, info.Name, pkg.HostName())
 	val := info.Address
+
+	opOptions := make([]clientv3.OpOption, 0)
+	// opOptions = append(opOptions, clientv3.WithSerializable())
+	if reg.ttl > 0 {
+		leaseID, err := reg.getLeaseID(ctx, key)
+		if err != nil {
+			return err
+		}
+		opOptions = append(opOptions, clientv3.WithLease(leaseID))
+		//KeepAlive ctx without timeout for same as service life
+		reg.keepLeaseID(ctx, leaseID)
+	}
 	_, err := reg.client.Put(ctx, key, val, opOptions...)
 	if err != nil {
 		reg.logger.Error("register service", xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err), xlog.FieldKeyAny(key), xlog.FieldValueAny(info))
@@ -209,27 +220,89 @@ func (reg *etcdv3Registry) registerMetric(ctx context.Context, info *server.Serv
 	return nil
 
 }
-
-func (reg *etcdv3Registry) registerBiz(ctx context.Context, info *server.ServiceInfo) error {
-	opOptions := make([]clientv3.OpOption, 0)
-	if reg.lease != 0 {
-		opOptions = append(opOptions, clientv3.WithLease(reg.lease), clientv3.WithSerializable())
+func (reg *etcdv3Registry) getLeaseID(ctx context.Context, k string) (clientv3.LeaseID, error) {
+	reg.rmu.RLock()
+	leaseID, ok := reg.leases[k]
+	reg.rmu.RUnlock()
+	if ok {
+		//from map try keep alive once
+		if _, err := reg.client.KeepAliveOnce(ctx, leaseID); err != nil {
+			if err == rpctypes.ErrLeaseNotFound {
+				goto grant
+			}
+			return leaseID, err
+		}
+		return leaseID, nil
 	}
-
-	if _, ok := ctx.Deadline(); !ok {
-		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(ctx, reg.ReadTimeout)
+grant:
+	//grant
+	rsp, err := reg.client.Grant(ctx, int64(reg.ttl.Seconds()))
+	if err != nil {
+		return leaseID, err
+	}
+	//cache to map
+	reg.rmu.Lock()
+	reg.leases[k] = rsp.ID
+	reg.rmu.Unlock()
+	return rsp.ID, nil
+}
+func (reg *etcdv3Registry) keepLeaseID(ctx context.Context, leaseID clientv3.LeaseID) {
+	go func() {
+		ctx, cancel := context.WithCancel(ctx)
 		defer cancel()
+		ch, err := reg.client.KeepAlive(ctx, leaseID)
+		if err != nil {
+			return
+		}
+		for {
+			select {
+			case lkp := <-ch:
+				if lkp == nil {
+					return
+				}
+			}
+		}
+	}()
+}
+func (reg *etcdv3Registry) delLeaseID(ctx context.Context, k string) error {
+	reg.rmu.Lock()
+	id, ok := reg.leases[k]
+	delete(reg.leases, k)
+	reg.rmu.Unlock()
+	if ok {
+		if _, err := reg.client.Revoke(ctx, id); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+func (reg *etcdv3Registry) registerBiz(ctx context.Context, info *server.ServiceInfo) error {
+	var readCtx context.Context
+	var readCancel context.CancelFunc
+	if _, ok := ctx.Deadline(); !ok {
+		readCtx, readCancel = context.WithTimeout(ctx, reg.ReadTimeout)
+		defer readCancel()
 	}
 
 	key := reg.registerKey(info)
 	val := reg.registerValue(info)
-	_, err := reg.client.Put(ctx, key, val, opOptions...)
+
+	opOptions := make([]clientv3.OpOption, 0)
+	// opOptions = append(opOptions, clientv3.WithSerializable())
+	if reg.ttl > 0 {
+		leaseID, err := reg.getLeaseID(readCtx, key)
+		if err != nil {
+			return err
+		}
+		opOptions = append(opOptions, clientv3.WithLease(leaseID))
+		//KeepAlive ctx without timeout for same as service life
+		reg.keepLeaseID(ctx, leaseID)
+	}
+	_, err := reg.client.Put(readCtx, key, val, opOptions...)
 	if err != nil {
 		reg.logger.Error("register service", xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err), xlog.FieldKeyAny(key), xlog.FieldValueAny(info))
 		return err
 	}
-
 	reg.logger.Info("register service", xlog.FieldKeyAny(key), xlog.FieldValueAny(val))
 	reg.kvs.Store(key, val)
 	return nil
