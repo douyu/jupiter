@@ -70,6 +70,7 @@ type Application struct {
 	logger      *xlog.Logger
 	registerer  registry.Registry
 	hooks       map[uint32]*xdefer.DeferStack
+	smu         sync.RWMutex
 }
 
 //NewApplication new a app
@@ -174,6 +175,8 @@ func (app *Application) AfterStop(fns ...func() error) {
 
 // Serve start server
 func (app *Application) Serve(s ...server.Server) error {
+	app.smu.Lock()
+	defer app.smu.Unlock()
 	app.servers = append(app.servers, s...)
 	return nil
 }
@@ -226,7 +229,9 @@ func (app *Application) SetRegistry(reg registry.Registry) {
 
 // Run run application
 func (app *Application) Run(servers ...server.Server) error {
+	app.smu.Lock()
 	app.servers = append(app.servers, servers...)
+	app.smu.Unlock()
 
 	app.waitSignals() //start signal listen task in goroutine
 	defer app.clean()
@@ -268,11 +273,14 @@ func (app *Application) Stop() (err error) {
 			}
 		}
 		//stop servers
+		app.smu.RLock()
 		for _, s := range app.servers {
 			func(s server.Server) {
 				app.cycle.Run(s.Stop)
 			}(s)
 		}
+		app.smu.RUnlock()
+
 		//stop workers
 		for _, w := range app.workers {
 			func(w worker.Worker) {
@@ -298,6 +306,7 @@ func (app *Application) GracefulStop(ctx context.Context) (err error) {
 			}
 		}
 		//stop servers
+		app.smu.RLock()
 		for _, s := range app.servers {
 			func(s server.Server) {
 				app.cycle.Run(func() error {
@@ -305,6 +314,8 @@ func (app *Application) GracefulStop(ctx context.Context) (err error) {
 				})
 			}(s)
 		}
+		app.smu.RUnlock()
+
 		//stop workers
 		for _, w := range app.workers {
 			func(w worker.Worker) {
