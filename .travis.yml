@@ -17,8 +17,8 @@ env:
 before_install:
   - go get golang.org/x/tools/cmd/goimports
   - mysql -e 'CREATE DATABASE IF NOT EXISTS test;'
-  - docker pull elcolio/etcd
-  - docker run -d -p 127.0.0.1:2379:2379 elcolio/etcd
+  - docker pull xieyanze/etcd3
+  - docker run -d -p 127.0.0.1:2379:2379 xieyanze/etcd3
   - wget https://github.com/etcd-io/etcd/releases/download/v3.4.10/etcd-v3.4.10-linux-amd64.tar.gz
   - tar xvf etcd-v3.4.10-linux-amd64.tar.gz
 
