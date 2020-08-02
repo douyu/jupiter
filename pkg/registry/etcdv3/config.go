@@ -51,6 +51,7 @@ func DefaultConfig() *Config {
 		ReadTimeout: time.Second * 3,
 		Prefix:      "jupiter",
 		logger:      xlog.JupiterLogger,
+		ServiceTTL:  0,
 	}
 }
 
@@ -60,6 +61,7 @@ type Config struct {
 	ReadTimeout time.Duration
 	ConfigKey   string
 	Prefix      string
+	ServiceTTL  time.Duration
 	logger      *xlog.Logger
 }
 

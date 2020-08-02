@@ -5,3 +5,4 @@
 [jupiter.registry.test]
     configKey="jupiter.etcdv3.default"
     timeout = "1s"
+    service_ttl = "1s"

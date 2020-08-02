@@ -43,7 +43,6 @@ type etcdv3Registry struct {
 	kvs    sync.Map
 	*Config
 	cancel context.CancelFunc
-	ttl    time.Duration
 	leases map[string]clientv3.LeaseID
 	rmu    *sync.RWMutex
 }
@@ -57,7 +56,6 @@ func newETCDRegistry(config *Config) *etcdv3Registry {
 		client: config.Config.Build(),
 		Config: config,
 		kvs:    sync.Map{},
-		ttl:    time.Second * 5,
 		leases: make(map[string]clientv3.LeaseID),
 		rmu:    &sync.RWMutex{},
 	}
@@ -200,7 +198,7 @@ func (reg *etcdv3Registry) registerMetric(ctx context.Context, info *server.Serv
 
 	opOptions := make([]clientv3.OpOption, 0)
 	// opOptions = append(opOptions, clientv3.WithSerializable())
-	if reg.ttl > 0 {
+	if reg.Config.ServiceTTL > 0 {
 		leaseID, err := reg.getLeaseID(ctx, key)
 		if err != nil {
 			return err
@@ -236,7 +234,7 @@ func (reg *etcdv3Registry) getLeaseID(ctx context.Context, k string) (clientv3.L
 	}
 grant:
 	//grant
-	rsp, err := reg.client.Grant(ctx, int64(reg.ttl.Seconds()))
+	rsp, err := reg.client.Grant(ctx, int64(reg.Config.ServiceTTL.Seconds()))
 	if err != nil {
 		return leaseID, err
 	}
@@ -265,13 +263,15 @@ func (reg *etcdv3Registry) keepLeaseID(ctx context.Context, leaseID clientv3.Lea
 	}()
 }
 func (reg *etcdv3Registry) delLeaseID(ctx context.Context, k string) error {
-	reg.rmu.Lock()
-	id, ok := reg.leases[k]
-	delete(reg.leases, k)
-	reg.rmu.Unlock()
-	if ok {
-		if _, err := reg.client.Revoke(ctx, id); err != nil {
-			return err
+	if reg.Config.ServiceTTL > 0 {
+		reg.rmu.Lock()
+		id, ok := reg.leases[k]
+		delete(reg.leases, k)
+		reg.rmu.Unlock()
+		if ok {
+			if _, err := reg.client.Revoke(ctx, id); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -289,7 +289,7 @@ func (reg *etcdv3Registry) registerBiz(ctx context.Context, info *server.Service
 
 	opOptions := make([]clientv3.OpOption, 0)
 	// opOptions = append(opOptions, clientv3.WithSerializable())
-	if reg.ttl > 0 {
+	if reg.Config.ServiceTTL > 0 {
 		leaseID, err := reg.getLeaseID(readCtx, key)
 		if err != nil {
 			return err
