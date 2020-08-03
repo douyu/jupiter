@@ -35,7 +35,7 @@ func TestCycleDone(t *testing.T) {
 		c.Close()
 	}()
 	go func() {
-		time.Sleep(time.Microsecond * 200)
+		time.Sleep(time.Microsecond * 300)
 		ch <- "close"
 		c.Close()
 	}()

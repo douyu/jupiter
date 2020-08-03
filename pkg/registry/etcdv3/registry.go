@@ -119,7 +119,7 @@ func (reg *etcdv3Registry) WatchServices(ctx context.Context, name string, schem
 
 	xgo.Go(func() {
 		for event := range watch.C() {
-			var al2 registry.Endpoints
+			var al2 *registry.Endpoints
 			copy(al, al2)
 			switch event.Type {
 			case mvccpb.PUT:
