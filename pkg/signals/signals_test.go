@@ -28,7 +28,7 @@ func kill(sig os.Signal) {
 }
 func TestShutdownSIGQUIT(t *testing.T) {
 	quit := make(chan struct{})
-	Convey("test shutdown signal is SIGQUIT", t, func(c C) {
+	Convey("test shutdown signal by SIGQUIT", t, func(c C) {
 		fn := func(grace bool) {
 			c.So(grace, ShouldEqual, false)
 			close(quit)
@@ -40,7 +40,7 @@ func TestShutdownSIGQUIT(t *testing.T) {
 }
 func TestShutdownSIGINT(t *testing.T) {
 	quit := make(chan struct{})
-	Convey("test shutdown signal is SIGINT", t, func(c C) {
+	Convey("test shutdown signal by SIGINT", t, func(c C) {
 		fn := func(grace bool) {
 			c.So(grace, ShouldEqual, true)
 			close(quit)
