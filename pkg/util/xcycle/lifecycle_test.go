@@ -32,13 +32,12 @@ func TestCycleDone(t *testing.T) {
 		select {
 		case <-c.Done():
 			state = "done"
-		case <-time.After(time.Microsecond * 100):
+		case <-time.After(time.Millisecond):
 			state = "close"
 		}
 		c.Close()
 	}()
 	<-c.Wait()
-
 	want := "done"
 	if state != want {
 		t.Errorf("TestCycleDone error want: %v, ret: %v\r\n", want, state)
