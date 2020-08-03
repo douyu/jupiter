@@ -119,7 +119,10 @@ func (reg *etcdv3Registry) WatchServices(ctx context.Context, name string, schem
 
 	xgo.Go(func() {
 		for event := range watch.C() {
-			al2 := &registry.Endpoints{al}
+			cp := func(e registry.Endpoints) *registry.Endpoints {
+				return &e
+			}
+			al2 := cp(al)
 			switch event.Type {
 			case mvccpb.PUT:
 				updateAddrList(al2, prefix, scheme, event.Kv)
