@@ -35,6 +35,7 @@ import (
 	"github.com/douyu/jupiter/pkg/registry"
 	"github.com/douyu/jupiter/pkg/server"
 	"github.com/douyu/jupiter/pkg/util/xgo"
+	"github.com/douyu/jupiter/pkg/util/xstruct"
 	"github.com/douyu/jupiter/pkg/xlog"
 )
 
@@ -119,10 +120,8 @@ func (reg *etcdv3Registry) WatchServices(ctx context.Context, name string, schem
 
 	xgo.Go(func() {
 		for event := range watch.C() {
-			cp := func(e registry.Endpoints) *registry.Endpoints {
-				return &e
-			}
-			al2 := cp(*al)
+			var al2 *registry.Endpoints
+			xstruct.CopyStruct(al, al2)
 			switch event.Type {
 			case mvccpb.PUT:
 				updateAddrList(al2, prefix, scheme, event.Kv)
