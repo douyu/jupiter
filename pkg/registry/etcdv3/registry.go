@@ -119,8 +119,7 @@ func (reg *etcdv3Registry) WatchServices(ctx context.Context, name string, schem
 
 	xgo.Go(func() {
 		for event := range watch.C() {
-			var al2 *registry.Endpoints
-			copy(al, al2)
+			al2 := &registry.Endpoints{al}
 			switch event.Type {
 			case mvccpb.PUT:
 				updateAddrList(al2, prefix, scheme, event.Kv)
