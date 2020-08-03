@@ -38,16 +38,23 @@ var (
 	WithLocation = cron.WithLocation
 )
 
-// JobWrapper ...
 type (
+	// JobWrapper ...
 	JobWrapper = cron.JobWrapper
-	EntryID    = cron.EntryID
-	Entry      = cron.Entry
-	Schedule   = cron.Schedule
-	Parser     = cron.Parser
-	Option     = cron.Option
-	Job        = cron.Job
-	NamedJob   interface {
+	// EntryID ...
+	EntryID = cron.EntryID
+	// Entry ...
+	Entry = cron.Entry
+	// Schedule ...
+	Schedule = cron.Schedule
+	// Parser ...
+	Parser = cron.Parser
+	// Option ...
+	Option = cron.Option
+	// Job ...
+	Job = cron.Job
+	//NamedJob ..
+	NamedJob interface {
 		Run() error
 		Name() string
 	}
@@ -98,7 +105,7 @@ func (c *Cron) Schedule(schedule Schedule, job NamedJob) EntryID {
 
 		distributedTask: c.DistributedTask,
 		waitLockTime:    c.WaitLockTime,
-		leaseTTL:        c.TTL,
+		leaseTTL:        c.Config.TTL,
 		client:          c.client,
 	}
 	// xdebug.PrintKVWithPrefix("worker", "add job", job.Name())

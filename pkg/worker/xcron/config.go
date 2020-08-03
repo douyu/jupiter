@@ -16,11 +16,12 @@ package xcron
 
 import (
 	"fmt"
+	"runtime"
+	"time"
+
 	"github.com/coreos/etcd/clientv3/concurrency"
 	"github.com/douyu/jupiter/pkg/client/etcdv3"
 	"github.com/douyu/jupiter/pkg/ecode"
-	"runtime"
-	"time"
 
 	"github.com/douyu/jupiter/pkg/metric"
 	"go.uber.org/zap"
