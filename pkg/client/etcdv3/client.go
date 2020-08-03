@@ -55,7 +55,7 @@ func newClient(config *Config) *Client {
 	}
 
 	config.logger = config.logger.With(xlog.FieldAddrAny(config.Endpoints))
-	if config.IsDefaultLog {
+	if config.Enable {
 		conf.LogConfig = &zap.Config{
 			Level:       zap.NewAtomicLevelAt(logutil.ConvertToZapLevel(config.Level)),
 			Development: config.Debug,

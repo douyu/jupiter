@@ -41,8 +41,8 @@ type (
 		AutoSyncInterval time.Duration `json:"autoAsyncInterval"`
 		logger           *xlog.Logger
 
-		// true选用系统默认log，false选用etcd默认log
-		IsDefaultLog     bool     `json:"isDefaultLog"`
+		// 是否开启读取log配置
+		Enable     		 bool     `json:"enable"`
 		Level            string   `json:"level"`
 		Debug            bool     `json:"debug"`
 		Encoding         string   `json:"encoding" yaml:"encoding"`
@@ -59,6 +59,7 @@ func DefaultConfig() *Config {
 		BasicAuth:      false,
 		ConnectTimeout: xtime.Duration("5s"),
 		Secure:         false,
+		Enable: 		false,
 		Level:          logutil.DefaultLogLevel,
 		Encoding:       "json",
 		logger:         xlog.JupiterLogger.With(xlog.FieldMod("client.etcd")),
