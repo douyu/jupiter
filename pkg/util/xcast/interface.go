@@ -517,7 +517,6 @@ func ToStringSliceE(i interface{}) ([]string, error) {
 		}
 		return a, nil
 	case []string:
-		fmt.Println("[]string")
 		return v, nil
 	case string:
 		return strings.Fields(v), nil

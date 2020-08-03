@@ -19,6 +19,10 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/coreos/etcd/clientv3/concurrency"
+	"github.com/douyu/jupiter/pkg/client/etcdv3"
+	"github.com/douyu/jupiter/pkg/ecode"
+
 	"github.com/douyu/jupiter/pkg/metric"
 	"go.uber.org/zap"
 
@@ -39,13 +43,17 @@ func RawConfig(key string) Config {
 		xlog.Panic("unmarshal", xlog.String("key", key))
 	}
 
+	if config.DistributedTask {
+		config.Config = etcdv3.RawConfig(key)
+	}
+
 	return config
 }
 
 // DefaultConfig ...
 func DefaultConfig() Config {
 	return Config{
-		logger:          xlog.DefaultLogger,
+		logger:          xlog.JupiterLogger,
 		wrappers:        []JobWrapper{},
 		WithSeconds:     false,
 		ImmediatelyRun:  false,
@@ -56,12 +64,19 @@ func DefaultConfig() Config {
 // Config ...
 type Config struct {
 	WithSeconds     bool
-	ConcurrentDelay time.Duration
+	ConcurrentDelay int
 	ImmediatelyRun  bool
 
 	wrappers []JobWrapper
 	logger   *xlog.Logger
 	parser   cron.Parser
+
+	// Distributed task
+	DistributedTask bool
+
+	WaitLockTime time.Duration
+	*etcdv3.Config
+	client *etcdv3.Client
 }
 
 // WithChain ...
@@ -98,7 +113,28 @@ func (config Config) Build() *Cron {
 	} else {
 		// 默认不延迟也不跳过
 	}
+
+	if config.DistributedTask {
+		// 创建 Etcd Lock
+		newETCDXcron(&config)
+	} else {
+		config.Config = &etcdv3.Config{}
+	}
+
 	return newCron(&config)
+}
+
+func newETCDXcron(config *Config) {
+	if config.logger == nil {
+		config.logger = xlog.DefaultLogger
+	}
+	config.logger = config.logger.With(xlog.FieldMod(ecode.ModXcronETCD), xlog.FieldAddrAny(config.Config.Endpoints))
+	config.client = config.Config.Build()
+	if config.TTL == 0 {
+		config.TTL = DefaultTTL
+	}
+
+	return
 }
 
 type wrappedLogger struct {
@@ -118,10 +154,39 @@ func (wl *wrappedLogger) Error(err error, msg string, keysAndValues ...interface
 type wrappedJob struct {
 	NamedJob
 	logger *xlog.Logger
+
+	distributedTask bool
+	waitLockTime    time.Duration
+	leaseTTL        int
+	client          *etcdv3.Client
 }
+
+const (
+	// 任务锁
+	WorkerLockDir       = "/xcron/lock/"
+	DefaultTTL          = 60   // default set
+	DefaultWaitLockTime = 1000 // ms
+)
 
 // Run ...
 func (wj wrappedJob) Run() {
+	if wj.distributedTask {
+		mutex, err := wj.client.NewMutex(WorkerLockDir+wj.Name(), concurrency.WithTTL(wj.leaseTTL))
+		if err != nil {
+			wj.logger.Error("mutex", xlog.String("err", err.Error()))
+			return
+		}
+		if wj.waitLockTime == 0 {
+			err = mutex.TryLock(DefaultWaitLockTime * time.Millisecond)
+		} else { // 阻塞等待直到waitLockTime timeout
+			err = mutex.Lock(wj.waitLockTime)
+		}
+		if err != nil {
+			wj.logger.Info("mutex lock", xlog.String("err", err.Error()))
+			return
+		}
+		defer mutex.Unlock()
+	}
 	_ = wj.run()
 }
 

@@ -32,11 +32,12 @@ require (
 	github.com/modern-go/reflect2 v1.0.1
 	github.com/onsi/ginkgo v1.12.3 // indirect
 	github.com/opentracing/opentracing-go v1.1.0
-	github.com/philchia/agollo v2.1.0+incompatible
+	github.com/philchia/agollo/v4 v4.0.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.6.0
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/smallnest/weighted v0.0.0-20200122032019-adf21c9b8bd1
+	github.com/smartystreets/goconvey v0.0.0-20190710185942-9d28bd7c0945
 	github.com/spf13/cast v1.3.1
 	github.com/stretchr/testify v1.6.1
 	github.com/tidwall/pretty v1.0.1
@@ -45,9 +46,9 @@ require (
 	go.uber.org/automaxprocs v1.3.0
 	go.uber.org/multierr v1.5.0
 	go.uber.org/zap v1.15.0
-	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
+	golang.org/x/sync v0.0.0-20200625203802-6e8e738ad208
 	golang.org/x/sys v0.0.0-20200523222454-059865788121 // indirect
-	golang.org/x/tools v0.0.0-20200527183253-8e7acdbce89d // indirect
+	golang.org/x/tools v0.0.0-20200728235236-e8769ccb4337 // indirect
 	google.golang.org/genproto v0.0.0-20190819201941-24fa4b261c55
 	google.golang.org/grpc v1.26.0
 	sigs.k8s.io/yaml v1.1.0 // indirect

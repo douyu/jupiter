@@ -24,10 +24,10 @@ import (
 	"google.golang.org/grpc"
 )
 
-func newGRPCClient(config Config) *grpc.ClientConn {
+func newGRPCClient(config *Config) *grpc.ClientConn {
 	var ctx = context.Background()
 	var dialOptions = config.dialOptions
-	config.logger = config.logger.With(
+	logger := config.logger.With(
 		xlog.FieldMod("client.grpc"),
 		xlog.FieldAddr(config.Address),
 	)
@@ -46,15 +46,17 @@ func newGRPCClient(config Config) *grpc.ClientConn {
 		dialOptions = append(dialOptions, grpc.WithKeepaliveParams(*config.KeepAlive))
 	}
 
+	dialOptions = append(dialOptions, grpc.WithBalancerName(config.BalancerName))
+
 	cc, err := grpc.DialContext(ctx, config.Address, dialOptions...)
 
 	if err != nil {
 		if config.OnDialError == "panic" {
-			config.logger.Panic("dial grpc server", xlog.FieldErrKind(ecode.ErrKindRequestErr), xlog.FieldErr(err))
+			logger.Panic("dial grpc server", xlog.FieldErrKind(ecode.ErrKindRequestErr), xlog.FieldErr(err))
 		} else {
-			config.logger.Error("dial grpc server", xlog.FieldErrKind(ecode.ErrKindRequestErr), xlog.FieldErr(err))
+			logger.Error("dial grpc server", xlog.FieldErrKind(ecode.ErrKindRequestErr), xlog.FieldErr(err))
 		}
 	}
-	config.logger.Info("start grpc client")
+	logger.Info("start grpc client")
 	return cc
 }

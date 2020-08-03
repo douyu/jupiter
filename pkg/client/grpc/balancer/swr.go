@@ -109,7 +109,7 @@ func newWeightPicker(readySCs map[resolver.Address]balancer.SubConn) *weightPick
 }
 
 // Pick ...
-func (p *weightPicker) Pick(ctx context.Context, opts balancer.PickOptions) (balancer.SubConn, func(balancer.DoneInfo), error) {
+func (p *weightPicker) Pick(ctx context.Context, opts balancer.PickInfo) (balancer.SubConn, func(balancer.DoneInfo), error) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 

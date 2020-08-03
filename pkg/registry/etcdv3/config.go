@@ -50,7 +50,8 @@ func DefaultConfig() *Config {
 		Config:      etcdv3.DefaultConfig(),
 		ReadTimeout: time.Second * 3,
 		Prefix:      "jupiter",
-		logger:      xlog.DefaultLogger,
+		logger:      xlog.JupiterLogger,
+		ServiceTTL:  0,
 	}
 }
 
@@ -60,21 +61,14 @@ type Config struct {
 	ReadTimeout time.Duration
 	ConfigKey   string
 	Prefix      string
+	ServiceTTL  time.Duration
 	logger      *xlog.Logger
 }
 
-// BuildRegistry ...
-func (config Config) BuildRegistry() registry.Registry {
+// Build ...
+func (config Config) Build() registry.Registry {
 	if config.ConfigKey != "" {
 		config.Config = etcdv3.RawConfig(config.ConfigKey)
 	}
 	return newETCDRegistry(&config)
-}
-
-// BuildResolver ...
-func (config Config) BuildResolver() *etcdResolver {
-	if config.ConfigKey != "" {
-		config.Config = etcdv3.RawConfig(config.ConfigKey)
-	}
-	return newETCDResolver(&config)
 }

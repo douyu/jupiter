@@ -12,21 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package conf
+package constant
 
-import (
-	"encoding/json"
-	"net/http"
+const (
+	// KeyRouteConfig ...
+	KeyRouteConfig = "__route_config_"
 
-	"github.com/douyu/jupiter/pkg/govern"
+	// KeyRouteGroup ...
+	KeyRouteGroup = "__route_group_"
+
+	// KeyProviderConfig ...
+	KeyProviderConfig = "__provider_config_"
+
+	// KeyConsumerConfig ...
+	KeyConsumerConfig = "__consumer_config_"
+
+	// KeyServiceInfo
+	KeyServiceInfo = "__service_info_"
 )
-
-func init() {
-	govern.HandleFunc("/configs", func(w http.ResponseWriter, r *http.Request) {
-		encoder := json.NewEncoder(w)
-		if r.URL.Query().Get("pretty") == "true" {
-			encoder.SetIndent("", "    ")
-		}
-		encoder.Encode(defaultConfiguration.traverse("."))
-	})
-}
