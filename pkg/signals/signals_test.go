@@ -27,25 +27,28 @@ func kill(sig os.Signal) {
 	pro.Signal(sig)
 }
 func TestShutdownSIGQUIT(t *testing.T) {
+	quit := make(chan struct{})
 	Convey("test shutdown signal is SIGQUIT", t, func(c C) {
 		fn := func(grace bool) {
 			c.So(grace, ShouldEqual, false)
-			if grace != false {
-				t.Fatal("SIGQUIT should be not grace")
-			}
+			close(quit)
 		}
 		Shutdown(fn)
 		kill(syscall.SIGQUIT)
+		<-quit
+		c.Println("quit")
 	})
 }
 func TestShutdownSIGINT(t *testing.T) {
+	quit := make(chan struct{})
 	Convey("test shutdown signal is SIGINT", t, func(c C) {
 		fn := func(grace bool) {
-			if grace != true {
-				t.Fatal("SIGINT should be grace")
-			}
+			c.So(grace, ShouldEqual, true)
+			close(quit)
 		}
 		Shutdown(fn)
-		kill(syscall.SIGQUIT)
+		kill(syscall.SIGINT)
+		<-quit
+		c.Println("quit")
 	})
 }
