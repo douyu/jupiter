@@ -36,7 +36,6 @@ func TestShutdownSIGQUIT(t *testing.T) {
 		Shutdown(fn)
 		kill(syscall.SIGQUIT)
 		<-quit
-		c.Println("quit")
 	})
 }
 func TestShutdownSIGINT(t *testing.T) {
@@ -49,6 +48,5 @@ func TestShutdownSIGINT(t *testing.T) {
 		Shutdown(fn)
 		kill(syscall.SIGINT)
 		<-quit
-		c.Println("quit")
 	})
 }
