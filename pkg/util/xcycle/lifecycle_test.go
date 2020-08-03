@@ -22,36 +22,31 @@ import (
 
 //TestCycleDone
 func TestCycleDone(t *testing.T) {
-	ch := make(chan string, 2)
 	state := "init"
 	c := NewCycle()
 	c.Run(func() error {
-		time.Sleep(time.Microsecond * 100)
+		time.Sleep(time.Microsecond * 5)
 		return nil
 	})
 	go func() {
-		<-c.Done()
-		ch <- "done"
-		c.Close()
-	}()
-	go func() {
-		time.Sleep(time.Microsecond * 300)
-		ch <- "close"
+		select {
+		case <-c.Done():
+			state = "done"
+		case <-time.After(time.Microsecond * 100):
+			state = "close"
+		}
 		c.Close()
 	}()
 	<-c.Wait()
 
 	want := "done"
-	state = <-ch
 	if state != want {
 		t.Errorf("TestCycleDone error want: %v, ret: %v\r\n", want, state)
 	}
-	<-ch
 }
 
 //TestCycleClose
 func TestCycleClose(t *testing.T) {
-	ch := make(chan string, 2)
 	state := "init"
 	c := NewCycle()
 	c.Run(func() error {
@@ -59,21 +54,19 @@ func TestCycleClose(t *testing.T) {
 		return nil
 	})
 	go func() {
-		time.Sleep(time.Microsecond * 200)
-		<-c.Done()
-		ch <- "done"
-	}()
-	go func() {
+		select {
+		case <-c.Done():
+			state = "done"
+		case <-time.After(time.Microsecond):
+			state = "close"
+		}
 		c.Close()
-		ch <- "close"
 	}()
 	<-c.Wait()
 	want := "close"
-	state = <-ch
 	if state != want {
 		t.Errorf("TestCycleClose error want: %v, ret: %v\r\n", want, state)
 	}
-	<-ch
 }
 
 func TestCycleDoneAndClose(t *testing.T) {
