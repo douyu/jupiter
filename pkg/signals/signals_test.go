@@ -38,15 +38,16 @@ func TestShutdownSIGQUIT(t *testing.T) {
 		<-quit
 	})
 }
-func TestShutdownSIGINT(t *testing.T) {
-	quit := make(chan struct{})
-	Convey("test shutdown signal by SIGINT", t, func(c C) {
-		fn := func(grace bool) {
-			c.So(grace, ShouldEqual, true)
-			close(quit)
-		}
-		Shutdown(fn)
-		kill(syscall.SIGINT)
-		<-quit
-	})
-}
+
+// func TestShutdownSIGINT(t *testing.T) {
+// 	quit := make(chan struct{})
+// 	Convey("test shutdown signal by SIGINT", t, func(c C) {
+// 		fn := func(grace bool) {
+// 			c.So(grace, ShouldEqual, true)
+// 			close(quit)
+// 		}
+// 		Shutdown(fn)
+// 		kill(syscall.SIGINT)
+// 		<-quit
+// 	})
+// }
