@@ -21,6 +21,7 @@ import (
 	"runtime"
 	"sync"
 
+	"github.com/douyu/jupiter/pkg/server/governor"
 	job "github.com/douyu/jupiter/pkg/worker/xjob"
 
 	"github.com/BurntSushi/toml"
@@ -36,7 +37,6 @@ import (
 	"github.com/douyu/jupiter/pkg/registry"
 	"github.com/douyu/jupiter/pkg/sentinel"
 	"github.com/douyu/jupiter/pkg/server"
-	"github.com/douyu/jupiter/pkg/server/governor"
 	"github.com/douyu/jupiter/pkg/signals"
 	"github.com/douyu/jupiter/pkg/trace"
 	"github.com/douyu/jupiter/pkg/trace/jaeger"
@@ -61,16 +61,16 @@ const (
 // Create an instance of Application, by using &Application{}
 type Application struct {
 	cycle       *xcycle.Cycle
-	stopOnce    sync.Once
+	smu         *sync.RWMutex
 	initOnce    sync.Once
 	startupOnce sync.Once
+	stopOnce    sync.Once
 	servers     []server.Server
 	workers     []worker.Worker
 	jobs        map[string]job.Runner
 	logger      *xlog.Logger
 	registerer  registry.Registry
 	hooks       map[uint32]*xdefer.DeferStack
-	smu         sync.RWMutex
 }
 
 //New new a Application
@@ -111,15 +111,16 @@ func (app *Application) RegisterHooks(k uint32, fns ...func() error) error {
 // initialize application
 func (app *Application) initialize() {
 	app.initOnce.Do(func() {
+		//assign
 		app.cycle = xcycle.NewCycle()
+		app.smu = &sync.RWMutex{}
 		app.servers = make([]server.Server, 0)
 		app.workers = make([]worker.Worker, 0)
 		app.jobs = make(map[string]job.Runner)
 		app.logger = xlog.JupiterLogger
-		// app.afterStop = xdefer.NewStack()
-		// app.beforeStop = xdefer.NewStack()
-
+		//private method
 		app.initHooks(StageBeforeStop, StageAfterStop)
+		//public method
 		app.SetRegistry(registry.Nop{}) //default nop without registry
 	})
 }

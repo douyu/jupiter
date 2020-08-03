@@ -217,6 +217,66 @@ func TestApplication_Serve(t *testing.T) {
 	})
 }
 
+type testWorker struct {
+	RunErr  error
+	StopErr error
+}
+
+func (t *testWorker) Run() error {
+	return t.RunErr
+}
+func (t *testWorker) Stop() error {
+	return t.StopErr
+}
+func Test_Unit_Application_Schedule(t *testing.T) {
+	Convey("test unit Application.Schedule", t, func(c C) {
+		w := &testWorker{}
+		app := &Application{}
+		err := app.Schedule(w)
+		c.So(err, ShouldBeNil)
+	})
+}
+func Test_Unit_Application_Stop(t *testing.T) {
+	Convey("test unit Application.Stop", t, func(c C) {
+		app := &Application{}
+		app.initialize()
+		err := app.Stop()
+		c.So(err, ShouldBeNil)
+	})
+}
+
+func Test_Unit_Application_GracefulStop(t *testing.T) {
+	Convey("test unit Application.GracefulStop", t, func(c C) {
+		app := &Application{}
+		app.initialize()
+		err := app.GracefulStop(context.TODO())
+		c.So(err, ShouldBeNil)
+	})
+}
+func Test_Unit_Application_startServers(t *testing.T) {
+	Convey("test unit Application.startServers", t, func(c C) {
+		app := &Application{}
+		app.initialize()
+		err := app.startServers()
+		c.So(err, ShouldBeNil)
+		go func() {
+			time.Sleep(time.Microsecond * 100)
+			app.Stop()
+		}()
+	})
+}
+
+type testJobRunner struct{}
+
+func (t *testJobRunner) Run() {}
+
+func Test_Unit_Application_Job(t *testing.T) {
+	j := &testJobRunner{}
+	app := &Application{}
+	app.initialize()
+	app.Job(j)
+}
+
 /*
 
 func newFakeRegistry() registry.Registry {
