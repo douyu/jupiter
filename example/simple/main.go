@@ -26,7 +26,7 @@ import (
 )
 
 func main() {
-	app, err := jupiter.NewApplication()
+	app, err := jupiter.New()
 	if err != nil {
 		log.Fatal(err)
 	}

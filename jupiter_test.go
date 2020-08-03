@@ -52,6 +52,12 @@ func (s *testServer) GracefulStop(ctx context.Context) error {
 func (s *testServer) Info() *server.ServiceInfo {
 	return &server.ServiceInfo{}
 }
+func TestApplication_New(t *testing.T) {
+	Convey("test application run serve", t, func(c C) {
+		_, err := New()
+		So(err, ShouldBeNil)
+	})
+}
 func TestApplication_Run_1(t *testing.T) {
 	Convey("test application run serve", t, func(c C) {
 		srv := &testServer{
@@ -121,22 +127,22 @@ func TestApplication_initialize(t *testing.T) {
 }
 
 func TestApplication_Startup(t *testing.T) {
-	//Convey("test application startup error", t, func() {
-	//	app := &Application{}
-	//	startUpErr := errors.New("throw startup error")
-	//	err := app.Startup(func() error {
-	//		return startUpErr
-	//	})
-	//	So(err, ShouldEqual, startUpErr)
-	//})
-	//
-	//Convey("test application startup nil", t, func() {
-	//	app := &Application{}
-	//	err := app.Startup(func() error {
-	//		return nil
-	//	})
-	//	So(err,ShouldBeNil)
-	//})
+	Convey("test application startup error", t, func() {
+		app := &Application{}
+		startUpErr := errors.New("throw startup error")
+		err := app.Startup(func() error {
+			return startUpErr
+		})
+		So(err, ShouldEqual, startUpErr)
+	})
+
+	Convey("test application startup nil", t, func() {
+		app := &Application{}
+		err := app.Startup(func() error {
+			return nil
+		})
+		So(err, ShouldBeNil)
+	})
 }
 
 type stopInfo struct {

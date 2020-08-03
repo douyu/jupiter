@@ -73,8 +73,8 @@ type Application struct {
 	smu         sync.RWMutex
 }
 
-//NewApplication new a app
-func NewApplication(fns ...func() error) (*Application, error) {
+//New new a Application
+func New(fns ...func() error) (*Application, error) {
 	app := &Application{}
 	if err := app.Startup(fns...); err != nil {
 		return nil, err
@@ -163,15 +163,15 @@ func (app *Application) Startup(fns ...func() error) error {
 
 // BeforeStop hook
 // Deprecated: use RegisterHooks instead
-func (app *Application) BeforeStop(fns ...func() error) {
-	app.RegisterHooks(StageBeforeStop, fns...)
-}
+// func (app *Application) BeforeStop(fns ...func() error) {
+// 	app.RegisterHooks(StageBeforeStop, fns...)
+// }
 
 // AfterStop hook
 // Deprecated: use RegisterHooks instead
-func (app *Application) AfterStop(fns ...func() error) {
-	app.RegisterHooks(StageAfterStop, fns...)
-}
+// func (app *Application) AfterStop(fns ...func() error) {
+// 	app.RegisterHooks(StageAfterStop, fns...)
+// }
 
 // Serve start server
 func (app *Application) Serve(s ...server.Server) error {
