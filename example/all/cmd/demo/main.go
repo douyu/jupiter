@@ -15,7 +15,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/douyu/jupiter/example/all/internal/app/demo"
@@ -26,16 +25,9 @@ import (
 func main() {
 	eng := demo.NewEngine()
 
-	eng.AfterStop(func() error {
-		fmt.Println("exit...")
-		return nil
-	})
-
-	eng.SetGovernor("127.0.0.1:9391")
-
 	eng.SetRegistry( // 多注册中心
 		compound.New(
-			etcdv3.StdConfig("wh01").BuildRegistry(),
+			etcdv3.StdConfig("wh01").Build(),
 		),
 	)
 

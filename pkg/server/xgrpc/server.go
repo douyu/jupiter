@@ -18,8 +18,8 @@ import (
 	"context"
 	"net"
 
-	"github.com/douyu/jupiter/pkg"
 	"github.com/douyu/jupiter/pkg/constant"
+
 	"github.com/douyu/jupiter/pkg/ecode"
 
 	"github.com/douyu/jupiter/pkg/server"
@@ -32,6 +32,7 @@ type Server struct {
 	*grpc.Server
 	listener net.Listener
 	*Config
+	serverInfo *server.ServiceInfo
 }
 
 func newServer(config *Config) *Server {
@@ -56,15 +57,24 @@ func newServer(config *Config) *Server {
 		config.logger.Panic("new grpc server err", xlog.FieldErrKind(ecode.ErrKindListenErr), xlog.FieldErr(err))
 	}
 	config.Port = listener.Addr().(*net.TCPAddr).Port
-	return &Server{Server: newServer, listener: listener, Config: config}
+
+	info := server.ApplyOptions(
+		server.WithScheme("grpc"),
+		server.WithAddress(listener.Addr().String()),
+		server.WithKind(constant.ServiceProvider),
+	)
+
+	return &Server{
+		Server:     newServer,
+		listener:   listener,
+		Config:     config,
+		serverInfo: &info,
+	}
 }
 
 // Server implements server.Server interface.
 func (s *Server) Serve() error {
 	err := s.Server.Serve(s.listener)
-	if err == grpc.ErrServerStopped {
-		return nil
-	}
 	return err
 }
 
@@ -83,19 +93,6 @@ func (s *Server) GracefulStop(ctx context.Context) error {
 }
 
 // Info returns server info, used by governor and consumer balancer
-// TODO(gorexlv): implements government protocol with juno
 func (s *Server) Info() *server.ServiceInfo {
-	return &server.ServiceInfo{
-		Name:      pkg.Name(),
-		Scheme:    "grpc",
-		Address:   s.listener.Addr().String(),
-		Weight:    0.0,
-		Enable:    true,
-		Healthy:   true,
-		Metadata:  map[string]string{},
-		Region:    "",
-		Zone:      "",
-		GroupName: "",
-		Kind:      constant.ServiceProvider,
-	}
+	return s.serverInfo
 }

@@ -119,4 +119,6 @@ const (
 	ModClientGrpc = "client.grpc"
 	// ModClientMySQL ...
 	ModClientMySQL = "client.mysql"
+	// ModXcronETCD ...
+	ModXcronETCD = "xcron.etcd"
 )

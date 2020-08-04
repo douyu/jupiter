@@ -18,15 +18,20 @@ import (
 	"fmt"
 
 	"github.com/douyu/jupiter/pkg/conf"
+	"github.com/douyu/jupiter/pkg/constant"
 	"github.com/douyu/jupiter/pkg/ecode"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/pkg/errors"
 )
 
-// HTTP config
+//ModName named a mod
+const ModName = "server.echo"
+
+//Config HTTP config
 type Config struct {
 	Host          string
 	Port          int
+	Deployment    string
 	Debug         bool
 	DisableMetric bool
 	DisableTrace  bool
@@ -42,12 +47,13 @@ func DefaultConfig() *Config {
 		Host:                      "127.0.0.1",
 		Port:                      9091,
 		Debug:                     false,
+		Deployment:                constant.DefaultDeployment,
 		SlowQueryThresholdInMilli: 500, // 500ms
-		logger:                    xlog.JupiterLogger.With(xlog.FieldMod("server.echo")),
+		logger:                    xlog.JupiterLogger.With(xlog.FieldMod(ModName)),
 	}
 }
 
-// Jupiter Standard HTTP Server config
+// StdConfig Jupiter Standard HTTP Server config
 func StdConfig(name string) *Config {
 	return RawConfig("jupiter.server." + name)
 }
