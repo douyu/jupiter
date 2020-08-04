@@ -49,14 +49,14 @@ func TestCycleClose(t *testing.T) {
 	state := "init"
 	c := NewCycle()
 	c.Run(func() error {
-		time.Sleep(time.Microsecond * 100)
+		time.Sleep(time.Millisecond * 100)
 		return nil
 	})
 	go func() {
 		select {
 		case <-c.Done():
 			state = "done"
-		case <-time.After(time.Microsecond):
+		case <-time.After(time.Millisecond):
 			state = "close"
 		}
 		c.Close()

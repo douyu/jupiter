@@ -21,24 +21,24 @@ import (
 
 //Cycle ..
 type Cycle struct {
-	mu       *sync.Mutex
-	wg       *sync.WaitGroup
-	done     chan struct{}
-	quit     chan error
-	closeing uint32
-	waiting  uint32
+	mu      *sync.Mutex
+	wg      *sync.WaitGroup
+	done    chan struct{}
+	quit    chan error
+	closing uint32
+	waiting uint32
 	// works []func() error
 }
 
 //NewCycle new a cycle life
 func NewCycle() *Cycle {
 	return &Cycle{
-		mu:       &sync.Mutex{},
-		wg:       &sync.WaitGroup{},
-		done:     make(chan struct{}),
-		quit:     make(chan error),
-		closeing: 0,
-		waiting:  0,
+		mu:      &sync.Mutex{},
+		wg:      &sync.WaitGroup{},
+		done:    make(chan struct{}),
+		quit:    make(chan error),
+		closing: 0,
+		waiting: 0,
 	}
 }
 
@@ -104,7 +104,7 @@ func (c *Cycle) DoneAndClose() {
 func (c *Cycle) Close() {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if atomic.CompareAndSwapUint32(&c.closeing, 0, 1) {
+	if atomic.CompareAndSwapUint32(&c.closing, 0, 1) {
 		close(c.quit)
 	}
 }
