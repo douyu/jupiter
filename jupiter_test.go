@@ -17,10 +17,12 @@ package jupiter
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
 	"github.com/douyu/jupiter/pkg/server/xgrpc"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/douyu/jupiter/pkg/server"
 	. "github.com/smartystreets/goconvey/convey"
@@ -52,13 +54,30 @@ func (s *testServer) GracefulStop(ctx context.Context) error {
 func (s *testServer) Info() *server.ServiceInfo {
 	return &server.ServiceInfo{}
 }
-func TestApplication_New(t *testing.T) {
-	Convey("test application run serve", t, func(c C) {
+
+var errTest = fmt.Errorf("test error")
+
+func Test_Unit_Application_New(t *testing.T) {
+	t.Run("no params", func(t *testing.T) {
 		_, err := New()
-		So(err, ShouldBeNil)
+		assert.Nil(t, err)
+	})
+	t.Run("without error", func(t *testing.T) {
+		fn := func() error {
+			return nil
+		}
+		_, err := New(fn)
+		assert.Nil(t, err)
+	})
+	t.Run("with error", func(t *testing.T) {
+		fn := func() error {
+			return errTest
+		}
+		_, err := New(fn)
+		assert.Equal(t, errTest, err)
 	})
 }
-func TestApplication_Run_1(t *testing.T) {
+func TestApplication_Run(t *testing.T) {
 	Convey("test application run serve", t, func(c C) {
 		srv := &testServer{
 			ServeErr: errors.New("when server call serve error"),
@@ -266,15 +285,64 @@ func Test_Unit_Application_startServers(t *testing.T) {
 	})
 }
 
-type testJobRunner struct{}
+type nonamedJobRunner struct{}
 
-func (t *testJobRunner) Run() {}
+func (t *nonamedJobRunner) Run() {}
 
+type namedJobRunner struct{}
+
+func (t *namedJobRunner) Run() {}
+func (t *namedJobRunner) GetJobName() string {
+	return "namedJobRunner"
+}
 func Test_Unit_Application_Job(t *testing.T) {
-	j := &testJobRunner{}
-	app := &Application{}
-	app.initialize()
-	app.Job(j)
+	t.Run("no named", func(t *testing.T) {
+		j := &nonamedJobRunner{}
+		app := &Application{}
+		app.initialize()
+		err := app.Job(j)
+		assert.Nil(t, err)
+	})
+	t.Run("named", func(t *testing.T) {
+		j := &namedJobRunner{}
+		app := &Application{}
+		app.initialize()
+		err := app.Job(j)
+		assert.Nil(t, err, err)
+	})
+
+}
+
+func Test_Unit_Application_startJobs(t *testing.T) {
+	t.Run("without jobs", func(t *testing.T) {
+		app := &Application{}
+		app.initialize()
+		err := app.startJobs()
+		assert.Nil(t, err, err)
+	})
+	t.Run("with a jobs", func(t *testing.T) {
+		app := &Application{}
+		app.initialize()
+		app.jobs["test"] = &namedJobRunner{}
+		err := app.startJobs()
+		assert.Nil(t, err, err)
+	})
+}
+
+func Test_Unit_Application_startWorkers(t *testing.T) {
+	t.Run("without workers", func(t *testing.T) {
+		app := &Application{}
+		app.initialize()
+		err := app.startWorkers()
+		assert.Nil(t, err, err)
+	})
+	t.Run("with a workers", func(t *testing.T) {
+		app := &Application{}
+		app.initialize()
+		app.workers = append(app.workers, &testWorker{})
+		err := app.startWorkers()
+		assert.Nil(t, err, err)
+	})
 }
 
 /*

@@ -238,9 +238,7 @@ func (app *Application) Run(servers ...server.Server) error {
 	defer app.clean()
 
 	// todo jobs not graceful
-	if len(app.jobs) > 0 {
-		return app.startJobs()
-	}
+	app.startJobs()
 
 	// start servers and govern server
 	app.cycle.Run(app.startServers)
@@ -382,6 +380,9 @@ func (app *Application) startWorkers() error {
 
 // todo handle error
 func (app *Application) startJobs() error {
+	if len(app.jobs) == 0 {
+		return nil
+	}
 	var jobs = make([]func(), 0)
 	//warp jobs
 	for name, runner := range app.jobs {
