@@ -90,4 +90,3 @@ func traceServerInterceptor() ghttp.HandlerFunc {
 		r.Middleware.Next()
 	}
 }
-

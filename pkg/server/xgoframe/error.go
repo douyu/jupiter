@@ -6,4 +6,3 @@ import (
 )
 
 var errMicroDefault = status.Errorf(codes.Internal, createStatusErr(codeMS, "micro default"))
-
