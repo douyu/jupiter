@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/douyu/jupiter/pkg/server/xgrpc"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/douyu/jupiter/pkg/server"
 	. "github.com/smartystreets/goconvey/convey"
@@ -266,15 +267,39 @@ func Test_Unit_Application_startServers(t *testing.T) {
 	})
 }
 
-type testJobRunner struct{}
+type nonamedJobRunner struct{}
 
-func (t *testJobRunner) Run() {}
+func (t *nonamedJobRunner) Run() {}
 
+type namedJobRunner struct{}
+
+func (t *namedJobRunner) Run() {}
+func (t *namedJobRunner) GetJobName() string {
+	return "namedJobRunner"
+}
 func Test_Unit_Application_Job(t *testing.T) {
-	j := &testJobRunner{}
+	t.Run("no named", func(t *testing.T) {
+		j := &nonamedJobRunner{}
+		app := &Application{}
+		app.initialize()
+		err := app.Job(j)
+		assert.Nil(t, err)
+	})
+	t.Run("named", func(t *testing.T) {
+		j := &namedJobRunner{}
+		app := &Application{}
+		app.initialize()
+		err := app.Job(j)
+		assert.Nil(t, err, err)
+	})
+
+}
+
+func Test_Unit_Application_startJobs(t *testing.T) {
 	app := &Application{}
 	app.initialize()
-	app.Job(j)
+	err := app.startJobs()
+	assert.Nil(t, err, err)
 }
 
 /*
