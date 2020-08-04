@@ -4,6 +4,7 @@ go 1.14
 
 require (
 	github.com/BurntSushi/toml v0.3.1
+	github.com/Workiva/go-datastructures v1.0.50
 	github.com/alibaba/sentinel-golang v0.4.0
 	github.com/apache/rocketmq-client-go v0.0.0-20191211114916-85ee94b43cef
 	github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd // indirect

@@ -8,6 +8,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+const ModName = "server.goframe"
+
 // HTTP config
 type Config struct {
 	Host          string
