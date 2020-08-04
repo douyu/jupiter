@@ -1,4 +1,4 @@
-package xgf
+package xgoframe
 
 import (
 	"context"

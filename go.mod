@@ -18,14 +18,15 @@ require (
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-redis/redis v6.15.8+incompatible
 	github.com/go-resty/resty/v2 v2.2.0
+	github.com/gogf/gf v1.13.3
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
 	github.com/golang/protobuf v1.4.2
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
-	github.com/gorilla/websocket v1.4.0
+	github.com/gorilla/websocket v1.4.1
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.1-0.20190118093823-f849b5445de4 // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/jinzhu/gorm v1.9.12
-	github.com/json-iterator/go v1.1.9
+	github.com/json-iterator/go v1.1.10
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/labstack/echo/v4 v4.1.16
 	github.com/mitchellh/mapstructure v1.3.2
@@ -46,7 +47,6 @@ require (
 	go.uber.org/multierr v1.5.0
 	go.uber.org/zap v1.15.0
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
-	golang.org/x/sys v0.0.0-20200523222454-059865788121 // indirect
 	golang.org/x/tools v0.0.0-20200527183253-8e7acdbce89d // indirect
 	google.golang.org/genproto v0.0.0-20190819201941-24fa4b261c55
 	google.golang.org/grpc v1.26.0

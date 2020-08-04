@@ -1,1 +1,1 @@
-package xgf
+package xgoframe

@@ -1,4 +1,4 @@
-package xgf
+package xgoframe
 
 import (
 	"github.com/douyu/jupiter/pkg/metric"
