@@ -34,29 +34,29 @@ func newServer(config *Config) *Server {
 	return s
 }
 
-func (s *Server)Serve() error  {
+func (s *Server) Serve() error {
 	routes := s.GetRouterArray()
 
 	for i := 0; i < len(routes); i++ {
-		s.config.logger.Info("add route ",xlog.FieldMethod(routes[i].Method),xlog.String("path",routes[i].Route))
+		s.config.logger.Info("add route ", xlog.FieldMethod(routes[i].Method), xlog.String("path", routes[i].Route))
 	}
 	s.Run()
 
 	return nil
 }
 
-func (s *Server)Stop() error  {
+func (s *Server) Stop() error {
 	return s.Shutdown()
 }
 
-func (s *Server)GracefulStop(ctx context.Context) error  {
+func (s *Server) GracefulStop(ctx context.Context) error {
 	return s.Stop()
 }
 
-func (s *Server)Info() *server.ServiceInfo  {
+func (s *Server) Info() *server.ServiceInfo {
 	info := server.ApplyOptions(
 		server.WithScheme("http"),
-		server.WithAddress(s.config.Host +":"+ strconv.Itoa(s.config.Port)),
+		server.WithAddress(s.config.Host+":"+strconv.Itoa(s.config.Port)),
 		server.WithKind(constant.ServiceProvider),
 	)
 	info.Name = info.Name + "." + ModName
