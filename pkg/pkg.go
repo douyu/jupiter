@@ -64,6 +64,7 @@ func init() {
 	}
 	hostName = name
 	startTime = xtime.TS.Format(time.Now())
+	SetBuildTime(buildTime)
 	goVersion = runtime.Version()
 	InitEnv()
 }
@@ -124,8 +125,8 @@ func BuildHost() string {
 }
 
 //SetBuildTime set buildTime
-func SetBuildTime(buildTime string) {
-	buildTime = strings.Replace(buildTime, "--", " ", 1)
+func SetBuildTime(param string) {
+	buildTime = strings.Replace(param, "--", " ", 1)
 }
 
 // HostName get host name
