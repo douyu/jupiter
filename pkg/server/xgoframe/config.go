@@ -85,7 +85,6 @@ func (config *Config) WithPort(port int) *Config {
 func (config *Config) Build() *Server {
 	serve := newServer(config)
 
-	serve.BindMiddlewareDefault()
 	serve.Use(recoverMiddleware(config.logger, config.SlowQueryThresholdInMilli))
 	//
 	if !config.DisableMetric {

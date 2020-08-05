@@ -55,5 +55,8 @@ func (eng *Engine) serveHTTP() error {
 			"name": "hello,jupiter",
 		})
 	})
+	server.BindHandler("/panic", func(r *ghttp.Request) {
+		panic("it is a test for panic")
+	})
 	return eng.Serve(server)
 }
