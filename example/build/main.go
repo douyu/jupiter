@@ -15,17 +15,23 @@
 package main
 
 import (
-	"time"
-
 	"github.com/douyu/jupiter"
+	compound_registry "github.com/douyu/jupiter/pkg/registry/compound"
+	etcdv3_registry "github.com/douyu/jupiter/pkg/registry/etcdv3"
+	"github.com/douyu/jupiter/pkg/server/xecho"
 	"github.com/douyu/jupiter/pkg/xlog"
+	"github.com/labstack/echo/v4"
 )
 
-//  go run main.go --config=config.toml
 func main() {
-	app := NewEngine()
-	if err := app.Run(); err != nil {
-		panic(err)
+	eng := NewEngine()
+	eng.SetRegistry(
+		compound_registry.New(
+			etcdv3_registry.StdConfig("test").Build(),
+		),
+	)
+	if err := eng.Run(); err != nil {
+		xlog.Error(err.Error())
 	}
 }
 
@@ -36,21 +42,19 @@ type Engine struct {
 func NewEngine() *Engine {
 	eng := &Engine{}
 	if err := eng.Startup(
-		eng.printLogger,
+		eng.serveHTTP,
 	); err != nil {
 		xlog.Panic("startup", xlog.Any("err", err))
 	}
 	return eng
 }
 
-func (s *Engine) printLogger() error {
-	xlog.DefaultLogger = xlog.StdConfig("default").Build()
-	go func() {
-		for {
-			xlog.Info("logger info", xlog.String("gopher", "jupiter1"), xlog.String("type", "file"))
-			xlog.Debug("logger debug", xlog.String("gopher", "jupiter2"), xlog.String("type", "file"))
-			time.Sleep(1 * time.Second)
-		}
-	}()
-	return nil
+// HTTP地址
+func (eng *Engine) serveHTTP() error {
+	server := xecho.StdConfig("http").Build()
+	server.GET("/hello", func(ctx echo.Context) error {
+
+		return ctx.JSON(200, "Gopher Wuhan")
+	})
+	return eng.Serve(server)
 }

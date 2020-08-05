@@ -15,12 +15,11 @@
 package main
 
 import (
-	"time"
-
 	"github.com/douyu/jupiter"
 	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/server/xecho"
 	"github.com/douyu/jupiter/pkg/xlog"
+	"time"
 )
 
 //  go run main.go --config=config.toml --watch=true
@@ -65,10 +64,11 @@ func (s *Engine) fileWatch() error {
 			panic(err.Error())
 		}
 	})
+
 	go func() {
 		// 循环打印配置
 		for {
-			time.Sleep(10 * time.Second)
+			time.Sleep(1 * time.Second)
 			xlog.Info("people info", xlog.String("name", p.Name), xlog.String("type", "structByFileWatch"))
 		}
 	}()
