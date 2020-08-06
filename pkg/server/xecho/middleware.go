@@ -73,6 +73,7 @@ func (invoker *Config) AccessLogger() echo.MiddlewareFunc {
 				trace.Info(zap.String("method", ctx.Request().Method))
 				trace.Info(zap.Int("code", ctx.Response().Status))
 				trace.Info(zap.String("host", ctx.Request().Host))
+				trace.Info(zap.String("path", ctx.Request().URL.Path))
 
 				if cost := int64(time.Since(trace.BeginTime)) / 1e6; cost > 500 {
 					trace.Warn(zap.Int64("slow", cost))
