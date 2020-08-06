@@ -94,6 +94,6 @@ func (s *Server) Info() *server.ServiceInfo {
 		server.WithAddress(s.listener.Addr().String()),
 		server.WithKind(constant.ServiceProvider),
 	)
-	info.Name = info.Name + "." + ModName
+	// info.Name = info.Name + "." + ModName
 	return &info
 }
