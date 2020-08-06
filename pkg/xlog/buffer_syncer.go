@@ -69,6 +69,7 @@ func Buffer(ws zapcore.WriteSyncer, bufferSize int, flushInterval time.Duration)
 	// flush buffer every interval
 	// we do not need to exit this goroutine until closefunc called explicitly
 	go func() {
+		defer ticker.Stop()
 		for {
 			select {
 			case <-ticker.C:
