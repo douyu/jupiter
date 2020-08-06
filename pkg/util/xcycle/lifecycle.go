@@ -21,23 +21,57 @@ import (
 
 //Cycle ..
 type Cycle struct {
-	mu uint32
-	sync.Once
-	wg   *sync.WaitGroup
-	quit chan error
+	mu      *sync.Mutex
+	wg      *sync.WaitGroup
+	done    chan struct{}
+	quit    chan error
+	closing uint32
+	waiting uint32
+	// works []func() error
 }
 
 //NewCycle new a cycle life
 func NewCycle() *Cycle {
 	return &Cycle{
-		mu:   0,
-		wg:   &sync.WaitGroup{},
-		quit: make(chan error),
+		mu:      &sync.Mutex{},
+		wg:      &sync.WaitGroup{},
+		done:    make(chan struct{}),
+		quit:    make(chan error),
+		closing: 0,
+		waiting: 0,
 	}
 }
 
+/*
+// Go ..
+func (c *Cycle) Go(fns ...func() error) {
+	c.works = append(c.works, fns...)
+}
+
+//RunWait ..
+func (c *Cycle) RunWait() <-chan error {
+	go func(c *Cycle) {
+		for _, fn := range c.works {
+			c.wg.Add(1)
+			go func(c *Cycle, fn func() error) {
+				defer c.wg.Done()
+				if err := fn(); err != nil {
+					c.quit <- err
+				}
+			}(c, fn)
+		}
+		c.Wait()
+		close(c.quit)
+	}(c)
+	return c.quit
+}
+*/
+
 //Run a new goroutine
 func (c *Cycle) Run(fn func() error) {
+	c.mu.Lock()
+	//todo add check options panic before waiting
+	defer c.mu.Unlock()
 	c.wg.Add(1)
 	go func(c *Cycle) {
 		defer c.wg.Done()
@@ -45,16 +79,19 @@ func (c *Cycle) Run(fn func() error) {
 			c.quit <- err
 		}
 	}(c)
-
 }
 
 //Done block and return a chan error
-func (c *Cycle) Done() <-chan error {
-	go func() {
-		c.wg.Wait()
-		c.Close()
-	}()
-	return c.quit
+func (c *Cycle) Done() <-chan struct{} {
+	if atomic.CompareAndSwapUint32(&c.waiting, 0, 1) {
+		go func(c *Cycle) {
+			c.mu.Lock()
+			defer c.mu.Unlock()
+			c.wg.Wait()
+			close(c.done)
+		}(c)
+	}
+	return c.done
 }
 
 //DoneAndClose ..
@@ -65,10 +102,10 @@ func (c *Cycle) DoneAndClose() {
 
 //Close ..
 func (c *Cycle) Close() {
-	if c.mu == 0 {
-		if atomic.CompareAndSwapUint32(&c.mu, 0, 1) {
-			close(c.quit)
-		}
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if atomic.CompareAndSwapUint32(&c.closing, 0, 1) {
+		close(c.quit)
 	}
 }
 

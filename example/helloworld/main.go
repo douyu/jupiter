@@ -46,6 +46,7 @@ func NewEngine() *Engine {
 func (eng *Engine) serveHTTP() error {
 	server := xecho.StdConfig("http").Build()
 	server.GET("/hello", func(ctx echo.Context) error {
+
 		return ctx.JSON(200, "Gopher Wuhan")
 	})
 	return eng.Serve(server)

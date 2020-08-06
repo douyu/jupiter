@@ -19,13 +19,13 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/douyu/jupiter/pkg"
+	"net"
+
 	"github.com/douyu/jupiter/pkg/constant"
 	"github.com/douyu/jupiter/pkg/ecode"
 	"github.com/douyu/jupiter/pkg/server"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/labstack/echo/v4"
-	"net"
 )
 
 // Server ...
@@ -80,19 +80,12 @@ func (s *Server) GracefulStop(ctx context.Context) error {
 }
 
 // Info returns server info, used by governor and consumer balancer
-// TODO(gorexlv): implements government protocol with juno
 func (s *Server) Info() *server.ServiceInfo {
-	return &server.ServiceInfo{
-		Name:      pkg.Name(),
-		Scheme:    "http",
-		Address:   s.listener.Addr().String(),
-		Weight:    0.0,
-		Enable:    false,
-		Healthy:   false,
-		Metadata:  map[string]string{},
-		Region:    "",
-		Zone:      "",
-		GroupName: "",
-		Kind:      constant.ServiceProvider,
-	}
+	info := server.ApplyOptions(
+		server.WithScheme("http"),
+		server.WithAddress(s.listener.Addr().String()),
+		server.WithKind(constant.ServiceProvider),
+	)
+	// info.Name = info.Name + "." + ModName
+	return &info
 }

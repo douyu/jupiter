@@ -2,7 +2,7 @@ name: Go
 
 on:
   push:
-    branches: [ master ]
+    # branches:
   pull_request:
     branches: [ master ]
 
@@ -27,6 +27,17 @@ jobs:
         image: redis
         ports:
           - 6379:6379
+      etcd:
+        image: "quay.io/coreos/etcd:v3.3"
+        env:
+          ETCD_ADVERTISE_CLIENT_URLS: "http://0.0.0.0:2379"
+          ETCD_LISTEN_CLIENT_URLS: "http://0.0.0.0:2379"
+          ETCDCTL_API: "3"
+          ALLOW_NONE_AUTHENTICATION: "yes"
+        ports:
+          - 2379:2379
+          - 2380:2380
+          - 4001:4001
 
     steps:
       - name: Set up Go ${{ matrix.go }}

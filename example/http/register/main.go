@@ -27,7 +27,7 @@ func main() {
 	eng := NewEngine()
 	eng.SetRegistry(
 		compound_registry.New(
-			etcdv3_registry.StdConfig("wh").BuildRegistry(),
+			etcdv3_registry.StdConfig("wh").Build(),
 		),
 	)
 	if err := eng.Run(); err != nil {

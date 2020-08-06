@@ -16,13 +16,25 @@ package xnet
 
 import (
 	"net/url"
-	"strconv"
 	"time"
+
+	"github.com/douyu/jupiter/pkg/util/xcast"
 )
 
 // URL wrap url.URL.
 type URL struct {
-	url.URL
+	Scheme     string
+	Opaque     string        // encoded opaque data
+	User       *url.Userinfo // username and password information
+	Host       string        // host or host:port
+	Path       string        // path (relative paths may omit leading slash)
+	RawPath    string        // encoded path hint (see EscapedPath method)
+	ForceQuery bool          // append a query ('?') even if RawQuery is empty
+	RawQuery   string        // encoded query values, without '?'
+	Fragment   string        // fragment for references, without '#'
+	HostName   string
+	Port       string
+	params     url.Values
 }
 
 // ParseURL parses raw into URL.
@@ -33,7 +45,18 @@ func ParseURL(raw string) (*URL, error) {
 	}
 
 	return &URL{
-		URL: *u,
+		Scheme:     u.Scheme,
+		Opaque:     u.Opaque,
+		User:       u.User,
+		Host:       u.Host,
+		Path:       u.Path,
+		RawPath:    u.RawPath,
+		ForceQuery: u.ForceQuery,
+		RawQuery:   u.RawQuery,
+		Fragment:   u.Fragment,
+		HostName:   u.Hostname(),
+		Port:       u.Port(),
+		params:     u.Query(),
 	}, nil
 }
 
@@ -51,34 +74,29 @@ func (u *URL) Username() string {
 }
 
 // QueryInt returns provided field's value in int type.
+// if value is empty, expect returns
 func (u *URL) QueryInt(field string, expect int) (ret int) {
-	ret = expect
-	if mi := u.Query().Get(field); mi != "" {
-		if m, e := strconv.Atoi(mi); e == nil {
-			if m > 0 {
-				ret = m
-			}
-		}
+	ret, err := xcast.ToIntE(u.Query().Get(field))
+	if err != nil {
+		return expect
 	}
 
-	return
+	return ret
 }
 
 // QueryInt64 returns provided field's value in int64 type.
+// if value is empty, expect returns
 func (u *URL) QueryInt64(field string, expect int64) (ret int64) {
-	ret = expect
-	if mi := u.Query().Get(field); mi != "" {
-		if m, e := strconv.ParseInt(mi, 10, 64); e == nil {
-			if m > 0 {
-				ret = m
-			}
-		}
+	ret, err := xcast.ToInt64E(u.Query().Get(field))
+	if err != nil {
+		return expect
 	}
 
-	return
+	return ret
 }
 
 // QueryString returns provided field's value in string type.
+// if value is empty, expect returns
 func (u *URL) QueryString(field string, expect string) (ret string) {
 	ret = expect
 	if mi := u.Query().Get(field); mi != "" {
@@ -88,22 +106,31 @@ func (u *URL) QueryString(field string, expect string) (ret string) {
 	return
 }
 
-// QuerySecond returns provided field's value in duration type.
-// Deprecated: use QueryDuration instead.
-func (u *URL) QuerySecond(field string, expect int64) (ret time.Duration) {
-	return u.QueryDuration(field, expect)
-}
-
 // QueryDuration returns provided field's value in duration type.
-func (u *URL) QueryDuration(field string, expect int64) (ret time.Duration) {
-	ret = time.Duration(expect)
-	if mi := u.Query().Get(field); mi != "" {
-		if m, e := strconv.ParseInt(mi, 10, 64); e == nil {
-			if m > 0 {
-				ret = time.Duration(m)
-			}
-		}
+// if value is empty, expect returns
+func (u *URL) QueryDuration(field string, expect time.Duration) (ret time.Duration) {
+	ret, err := xcast.ToDurationE(u.Query().Get(field))
+	if err != nil {
+		return expect
 	}
 
-	return
+	return ret
+}
+
+// QueryBool returns provided field's value in bool
+// if value is empty, expect returns
+func (u *URL) QueryBool(field string, expect bool) (ret bool) {
+	ret, err := xcast.ToBoolE(u.Query().Get(field))
+	if err != nil {
+		return expect
+	}
+	return ret
+}
+
+// Query parses RawQuery and returns the corresponding values.
+// It silently discards malformed value pairs.
+// To check errors use ParseQuery.
+func (u *URL) Query() url.Values {
+	v, _ := url.ParseQuery(u.RawQuery)
+	return v
 }

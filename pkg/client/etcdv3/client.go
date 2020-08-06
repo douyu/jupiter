@@ -20,6 +20,7 @@ import (
 	"crypto/x509"
 	"github.com/coreos/etcd/pkg/logutil"
 	"go.uber.org/zap"
+	"github.com/coreos/etcd/clientv3/concurrency"
 	"io/ioutil"
 	"strings"
 	"time"
@@ -232,4 +233,9 @@ func (client *Client) GetValues(ctx context.Context, keys ...string) (map[string
 		}
 	}
 	return vars, nil
+}
+
+//GetLeaseSession 创建租约会话
+func (client *Client) GetLeaseSession(ctx context.Context, opts ...concurrency.SessionOption) (leaseSession *concurrency.Session, err error) {
+	return concurrency.NewSession(client.Client, opts...)
 }

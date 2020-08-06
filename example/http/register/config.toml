@@ -1,5 +1,7 @@
 [jupiter.server.http]
     port = 9090
+[jupiter.server.governor]
+    port = 19090
 [jupiter.etcdv3.default]
     endpoints=["127.0.0.1:2379"]
     secure = false

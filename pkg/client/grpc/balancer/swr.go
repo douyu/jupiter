@@ -15,19 +15,17 @@
 package balancer
 
 import (
-	"context"
 	"errors"
-	"net/url"
-	"strconv"
+	"fmt"
 	"sync"
 
-	"github.com/douyu/jupiter/pkg/util/xrand"
+	"github.com/douyu/jupiter/pkg/constant"
+	"github.com/douyu/jupiter/pkg/registry"
+	"github.com/douyu/jupiter/pkg/server"
+	"github.com/smallnest/weighted"
+	"google.golang.org/grpc/attributes"
 	"google.golang.org/grpc/balancer"
 	"google.golang.org/grpc/balancer/base"
-	"google.golang.org/grpc/resolver"
-
-	"github.com/douyu/jupiter/pkg/xlog"
-	"github.com/smallnest/weighted"
 )
 
 const (
@@ -35,88 +33,137 @@ const (
 	NameSmoothWeightRoundRobin = "swr"
 )
 
-func newGWRBuilder(policy string) balancer.Builder {
-	return base.NewBalancerBuilderWithConfig(policy, &groupPickerBuilder{
-		policy: policy,
-	}, base.Config{HealthCheck: true})
+// PickerBuildInfo ...
+type PickerBuildInfo struct {
+	// ReadySCs is a map from all ready SubConns to the Addresses used to
+	// create them.
+	ReadySCs map[balancer.SubConn]base.SubConnInfo
+	*attributes.Attributes
+}
+
+// PickerBuilder ...
+type PickerBuilder interface {
+	Build(info PickerBuildInfo) balancer.V2Picker
 }
 
 func init() {
-	balancer.Register(newGWRBuilder(NameSmoothWeightRoundRobin))
+	balancer.Register(
+		NewBalancerBuilderV2(NameSmoothWeightRoundRobin, &swrPickerBuilder{}, base.Config{HealthCheck: true}),
+	)
 }
 
-type groupPickerBuilder struct {
-	policy string
-}
+type swrPickerBuilder struct{}
 
 // Build ...
-func (gpb *groupPickerBuilder) Build(readySCs map[resolver.Address]balancer.SubConn) balancer.Picker {
-	if len(readySCs) == 0 {
-		return base.NewErrPicker(balancer.ErrNoSubConnAvailable)
-	}
-	var scs []balancer.SubConn
-	for _, sc := range readySCs {
-		scs = append(scs, sc)
-	}
-
-	switch gpb.policy {
-	case NameSmoothWeightRoundRobin:
-		return newWeightPicker(readySCs)
-	default:
-		panic("balance invalid pick policy " + gpb.policy)
-	}
+func (s swrPickerBuilder) Build(info PickerBuildInfo) balancer.V2Picker {
+	return newSWRPicker(info)
 }
 
-type weightPicker struct {
-	subConns []balancer.SubConn
-	readySCs map[resolver.Address]balancer.SubConn
-
-	mu     sync.Mutex
-	next   int
-	logger *xlog.Logger
-	bucket *weighted.SW
+type swrPicker struct {
+	readySCs     map[balancer.SubConn]base.SubConnInfo
+	mu           sync.Mutex
+	next         int
+	buckets      *weighted.SW
+	routeBuckets map[string]*weighted.SW
+	*attributes.Attributes
 }
 
-func newWeightPicker(readySCs map[resolver.Address]balancer.SubConn) *weightPicker {
-	wp := &weightPicker{
-		readySCs: readySCs,
-		next:     xrand.Intn(len(readySCs)),
-		bucket:   &weighted.SW{},
+func newSWRPicker(info PickerBuildInfo) *swrPicker {
+	picker := &swrPicker{
+		buckets:      &weighted.SW{},
+		readySCs:     info.ReadySCs,
+		routeBuckets: map[string]*weighted.SW{},
 	}
-
-	for addr, sub := range readySCs {
-		meta, ok := addr.Metadata.(*url.Values)
-		if !ok {
-			xlog.Error("metadata assert", xlog.Any("metadata", addr.Metadata))
-			continue
-		}
-		// v1 版grpc没有weight字段，默认100
-		weightStr := meta.Get("weight")
-		if weightStr == "" {
-			weightStr = "100"
-		}
-
-		weight, err := strconv.Atoi(weightStr)
-		if err != nil {
-			xlog.Error("metadata weight", xlog.Any("metadata", addr.Metadata))
-			continue
-		}
-
-		wp.bucket.Add(sub, weight)
-	}
-
-	return wp
+	picker.parseBuildInfo(info)
+	return picker
 }
 
 // Pick ...
-func (p *weightPicker) Pick(ctx context.Context, opts balancer.PickOptions) (balancer.SubConn, func(balancer.DoneInfo), error) {
+func (p *swrPicker) Pick(info balancer.PickInfo) (balancer.PickResult, error) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	sub, ok := p.bucket.Next().(balancer.SubConn)
-	if ok {
-		return sub, nil, nil
+	var buckets = p.buckets
+	if bs, ok := p.routeBuckets[info.FullMethodName]; ok {
+		// 根据URI进行流量分组路由
+		buckets = bs
 	}
 
-	return nil, nil, errors.New("pick failed")
+	sub, ok := buckets.Next().(balancer.SubConn)
+	if ok {
+		return balancer.PickResult{SubConn: sub}, nil
+	}
+
+	return balancer.PickResult{}, errors.New("pick failed")
+}
+
+func (p *swrPicker) parseBuildInfo(info PickerBuildInfo) {
+	var hostedSubConns = map[string]balancer.SubConn{}
+	var groupedSubConns = map[string][]balancer.SubConn{}
+
+	for subConn, info := range info.ReadySCs {
+		p.buckets.Add(subConn, 1)
+		if info.Address.Attributes != nil {
+			if serviceInfo, ok := info.Address.Attributes.Value(constant.KeyServiceInfo).(server.ServiceInfo); ok {
+				// todo(gorexlv): 分组
+				group := serviceInfo.Group
+				if _, ok := groupedSubConns[group]; !ok {
+					groupedSubConns[group] = make([]balancer.SubConn, 0)
+				}
+				groupedSubConns[group] = append(groupedSubConns[group], subConn)
+			}
+		}
+		host := info.Address.Addr
+		hostedSubConns[host] = subConn
+		p.buckets.Add(subConn, 1)
+	}
+
+	if info.Attributes == nil {
+		return
+	}
+
+	providerConfig, ok := info.Attributes.Value(constant.KeyProviderConfig).(registry.ProviderConfig)
+	if !ok {
+		return
+	}
+
+	fmt.Printf("providerConfig => %v\n", providerConfig)
+
+	consumerConfigs, ok := info.Attributes.Value(constant.KeyConsumerConfig).(map[string]registry.ConsumerConfig)
+	if !ok {
+		return
+	}
+
+	fmt.Printf("consumerConfigs => %v\n", consumerConfigs)
+
+	// 路由配置
+	routeConfigs, ok := info.Attributes.Value(constant.KeyRouteConfig).(map[string]registry.RouteConfig)
+	if !ok {
+		return
+	}
+	for _, config := range routeConfigs {
+		if _, ok := p.routeBuckets[config.URI]; !ok {
+			p.routeBuckets[config.URI] = &weighted.SW{}
+		}
+
+		// 基于Group的权重配置, 同一分组下的IP分配同一个权重值
+		for group, weight := range config.Upstream.Groups {
+			sConns, ok := groupedSubConns[group]
+			if !ok {
+				continue
+			}
+
+			for _, sConn := range sConns {
+				p.routeBuckets[config.URI].Add(sConn, weight)
+			}
+		}
+
+		// 基于Node IP的权重配置, 如果配置了对应Node，将会覆盖Group中配置的权重
+		for node, weight := range config.Upstream.Nodes {
+			if sConn, ok := hostedSubConns[node]; ok {
+				p.routeBuckets[config.URI].Add(sConn, weight)
+			}
+		}
+
+	}
 }

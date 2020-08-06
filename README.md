@@ -1,6 +1,6 @@
 ![](doc/logo.png)
 
-[![Build Status](https://travis-ci.org/douyu/jupiter.svg?branch=master)](https://travis-ci.org/douyu/jupiter)
+[![GoTest](https://github.com/douyu/jupiter/workflows/Go/badge.svg)](https://github.com/douyu/jupiter/actions)
 [![codecov](https://codecov.io/gh/douyu/jupiter/branch/master/graph/badge.svg)](https://codecov.io/gh/douyu/jupiter)
 [![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat-square)](https://pkg.go.dev/github.com/douyu/jupiter?tab=doc)
 [![Go Report Card](https://goreportcard.com/badge/github.com/douyu/jupiter)](https://goreportcard.com/report/github.com/douyu/jupiter)
@@ -46,7 +46,6 @@ func startGRPCServer() server.Server {
 func startWorker() worker.Worker {
 	cron := xcron.DefaultConfig().Build()
 	cron.Schedule(xcron.Every(time.Second*10), xcron.FuncJob(func() error {
-		fmt.Println("now: ", time.Now().Local().String())
 		return nil
 	}))
 	return cron

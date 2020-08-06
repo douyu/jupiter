@@ -113,3 +113,11 @@ func (t *Time) EndOfMinute() *Time {
 	y, m, d := t.Date()
 	return &Time{time.Date(y, m, d, t.Hour(), t.Minute(), 59, int(time.Second-time.Nanosecond), t.Location())}
 }
+
+var TS TimeFormat = "2006-01-02 15:04:05"
+
+type TimeFormat string
+
+func (ts TimeFormat) Format(t time.Time) string {
+	return t.Format(string(ts))
+}
