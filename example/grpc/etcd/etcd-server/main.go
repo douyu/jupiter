@@ -16,7 +16,6 @@ package main
 
 import (
 	"context"
-
 	"github.com/douyu/jupiter"
 	compound_registry "github.com/douyu/jupiter/pkg/registry/compound"
 	etcdv3_registry "github.com/douyu/jupiter/pkg/registry/etcdv3"
@@ -29,10 +28,10 @@ func main() {
 	eng := NewEngine()
 	eng.SetRegistry(
 		compound_registry.New(
-			etcdv3_registry.StdConfig("wh").BuildRegistry(),
+			etcdv3_registry.StdConfig("wh").Build(),
 		),
 	)
-	eng.SetGovernor("127.0.0.1:9092")
+	//eng.SetGovernor("0.0.0.0:0")
 	if err := eng.Run(); err != nil {
 		xlog.Error(err.Error())
 	}
@@ -54,14 +53,18 @@ func NewEngine() *Engine {
 
 func (eng *Engine) serveGRPC() error {
 	server := xgrpc.StdConfig("grpc").Build()
-	helloworld.RegisterGreeterServer(server.Server, new(Greeter))
+	helloworld.RegisterGreeterServer(server.Server, &Greeter{
+		server: server,
+	})
 	return eng.Serve(server)
 }
 
-type Greeter struct{}
+type Greeter struct {
+	server *xgrpc.Server
+}
 
 func (g Greeter) SayHello(context context.Context, request *helloworld.HelloRequest) (*helloworld.HelloReply, error) {
 	return &helloworld.HelloReply{
-		Message: "Hello Jupiter",
+		Message: "Hello Jupiter, I'm " + g.server.Address(),
 	}, nil
 }

@@ -3,16 +3,28 @@ language: go
 dist: xenial
 sudo: required
 
+services:
+  - mysql
+  - redis-server
+  - docker
+
 go:
-  - 1.12.x
   - 1.13.x
   - 1.14.x
 env:
   - GO111MODULE=on
 
-before_install: go get golang.org/x/tools/cmd/goimports
+before_install:
+  - go get golang.org/x/tools/cmd/goimports
+  - mysql -e 'CREATE DATABASE IF NOT EXISTS test;'
+  - docker pull xieyanze/etcd3
+  - docker run -d -p 127.0.0.1:2379:2379 xieyanze/etcd3
+  - wget https://github.com/etcd-io/etcd/releases/download/v3.4.10/etcd-v3.4.10-linux-amd64.tar.gz
+  - tar xvf etcd-v3.4.10-linux-amd64.tar.gz
 
 script:
+  - etcd-v3.4.10-linux-amd64/etcdctl put "/hello" "jupiter"
+  - etcd-v3.4.10-linux-amd64/etcdctl get "/hello"
   - diff -u <(echo -n) <(gofmt -d -s .)
   # - diff -u <(echo -n) <(goimports -d .)
   - go test -v -race ./... -coverprofile=coverage.txt -covermode=atomic

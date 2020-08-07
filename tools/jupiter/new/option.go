@@ -14,6 +14,7 @@
 
 package new
 
+//ProjectInfo ...
 type ProjectInfo struct {
 	// project dir
 	Path string
@@ -23,6 +24,6 @@ type ProjectInfo struct {
 }
 
 var (
-	Project            ProjectInfo
+	project            ProjectInfo
 	DefaultProjectName = "jupiter-demo"
 )

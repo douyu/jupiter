@@ -25,7 +25,7 @@ import (
 
 func main() {
 	eng := NewEngine()
-	eng.SetGovernor("127.0.0.1:9092")
+	// eng.SetGovernor("127.0.0.1:9092")
 	if err := eng.Run(); err != nil {
 		xlog.Error(err.Error())
 	}

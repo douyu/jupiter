@@ -1,14 +1,25 @@
 package main
 
 import (
+    "fmt"
 	"log"
 	"{{.ModPrefix}}{{.Name}}/internal/app/engine"
+	"{{.ModPrefix}}{{.Name}}/internal/app/model"
+    "{{.ModPrefix}}{{.Name}}/internal/app/service"
+    "github.com/douyu/jupiter"
 )
 
 func main() {
 	eng := engine.NewEngine()
-	if err := eng.Run(); err != nil {
-		log.Fatal(err)
-	}
+	eng.RegisterHooks(jupiter.StageAfterStop, func() error {
+        fmt.Println("exit jupiter app ...")
+        return nil
+      })
+
+    model.Init()
+    service.Init()
+    if err := eng.Run(); err != nil {
+    	log.Fatal(err)
+    }
 }
 

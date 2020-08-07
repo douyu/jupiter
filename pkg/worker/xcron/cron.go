@@ -39,14 +39,22 @@ var (
 )
 
 type (
+	// JobWrapper ...
 	JobWrapper = cron.JobWrapper
-	EntryID    = cron.EntryID
-	Entry      = cron.Entry
-	Schedule   = cron.Schedule
-	Parser     = cron.Parser
-	Option     = cron.Option
-	Job        = cron.Job
-	NamedJob   interface {
+	// EntryID ...
+	EntryID = cron.EntryID
+	// Entry ...
+	Entry = cron.Entry
+	// Schedule ...
+	Schedule = cron.Schedule
+	// Parser ...
+	Parser = cron.Parser
+	// Option ...
+	Option = cron.Option
+	// Job ...
+	Job = cron.Job
+	//NamedJob ..
+	NamedJob interface {
 		Run() error
 		Name() string
 	}
@@ -70,7 +78,7 @@ type Cron struct {
 
 func newCron(config *Config) *Cron {
 	if config.logger == nil {
-		config.logger = xlog.DefaultLogger
+		config.logger = xlog.JupiterLogger
 	}
 	config.logger = config.logger.With(xlog.FieldMod("worker.cron"))
 	cron := &Cron{
@@ -94,6 +102,11 @@ func (c *Cron) Schedule(schedule Schedule, job NamedJob) EntryID {
 	innnerJob := &wrappedJob{
 		NamedJob: job,
 		logger:   c.logger,
+
+		distributedTask: c.DistributedTask,
+		waitLockTime:    c.WaitLockTime,
+		leaseTTL:        c.Config.TTL,
+		client:          c.client,
 	}
 	// xdebug.PrintKVWithPrefix("worker", "add job", job.Name())
 	c.logger.Info("add job", xlog.String("name", job.Name()))

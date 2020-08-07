@@ -18,9 +18,9 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
+	"testing"
 )
 
 var (
@@ -28,14 +28,15 @@ var (
 )
 
 func init() {
-	procName := filepath.Base(os.Args[0])
-
+	// procName := filepath.Base(os.Args[0])
+	// nfs := flag.NewFlagSet(procName, flag.ExitOnError)
 	flagset = &FlagSet{
-		FlagSet:  flag.NewFlagSet(procName, flag.ExitOnError),
+		FlagSet:  flag.CommandLine,
 		flags:    defaultFlags,
 		actions:  make(map[string]func(string, *FlagSet)),
 		environs: make(map[string]string),
 	}
+	testing.Init()
 }
 
 // Flag ...

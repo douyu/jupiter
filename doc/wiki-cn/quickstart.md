@@ -32,8 +32,8 @@ func main() {
 
 ```golang
 func(app *MyApplication) startHTTPServer() error {
-    server := xhttp.DefaultConfig().Build()
-    server.GET("ping", func(ctx echo.Context) error {
+    server := xecho.DefaultConfig().Build()
+    server.GET("ping",func(ctx echo.Context) error {
         return ctx.JSON(200, "pong")
     })
     return app.Serve(server)
@@ -54,7 +54,7 @@ func main() {
 ```golang
 func(app *MyApplication) startGRPCServer() error {
     server := xgrpc.DefaultConfig().Build()
-    helloworld.RegisterGreeterServer(server.Server, new(greeter))
+    helloworld.RegisterGreeterServer(server.Server, new(greeter.Greeter))
     returnapp.Serve(server)
 }
 
@@ -102,7 +102,7 @@ func main() {
     app := &MyApplication{}
     app.Startup()
     app.SetRegistry(
-        etcd_registry.DefaultConfig().Build(),
+        etcdv3.DefaultConfig().Build(),
     )
     app.Run()
 }
@@ -145,7 +145,7 @@ func main() {
 ```golang
 func dialServer() {
     config := DefaultConfig()
-    config = config.WithDialOption(grpc.WithInsecure(), grpc.WithBalancerName("swr"))
+    config = config.WithDialOption()
     config.Address = "127.0.0.1:9990"
     client := helloworld.NewGreeterClient(config.Build())
     rep, err := client.SayHello(context.Background(), &helloworld.HelloRequest{
@@ -157,20 +157,12 @@ func dialServer() {
 ```golang
 // 1. 注册一个resolver
 func init() {
-	resolver.Register(etcdv3_registry.Config{
-		Timeout: time.Second * 3,
-		Prefix:  "jupiter",
-		Config: etcdv3.Config{
-			Endpoints: []string{"127.0.0.1:2379"},
-			Timeout:   time.Second * 3,
-			Secure:    false,
-		},
-	}.BuildResolver())
+	resolver.Register("etcd", etcdv3.StdConfig("wh").Build())
 }
 // 2. 通过resolver获取服务器地址
 func dialServer() {
-    config := DefaultConfig()
-    config = config.WithDialOption(grpc.WithInsecure(), grpc.WithBalancerName("swr"))
+    config := grpc.DefaultConfig()
+    config = config.WithDialOption()
     config.Address = "etcd:///server-name" // 注意必须填写etcd:///
     client := helloworld.NewGreeterClient(config.Build())
     rep, err := client.SayHello(context.Background(), &helloworld.HelloRequest{

@@ -30,6 +30,7 @@ var (
 func init() {
 	if isDevelopmentMode {
 		xlog.DefaultLogger.SetLevel(xlog.DebugLevel)
+		xlog.JupiterLogger.SetLevel(xlog.DebugLevel)
 	}
 }
 

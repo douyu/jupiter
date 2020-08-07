@@ -23,12 +23,13 @@ import (
 
 // run: go run main.go -config=config.toml
 type Engine struct {
-	*jupiter.Application
+	jupiter.Application
 }
 
 func NewEngine() *Engine {
 	eng := &Engine{}
 	if err := eng.Startup(
+		eng.exampleForRedis,
 		eng.exampleForRedisStub,
 		eng.exampleForRedisClusterStub,
 	); err != nil {
@@ -46,7 +47,7 @@ func main() {
 
 func (eng *Engine) exampleForRedisStub() (err error) {
 	//build redisStub
-	redisStub := redis.StdRedisConfig("myredis").Build()
+	redisStub := redis.StdRedisStubConfig("myredis").Build()
 	// set string
 	setRes := redisStub.Set("jupiter-redis", "redisStub", time.Second*5)
 	xlog.Info("redisStub set string", xlog.Any("res", setRes))
@@ -63,6 +64,27 @@ func (eng *Engine) exampleForRedisClusterStub() (err error) {
 	xlog.Info("redisClusterStub set string", xlog.Any("res", setRes))
 	// get string
 	getRes := redisStub.Get("jupiter-redisCluster")
+	xlog.Info("redisClusterStub get string", xlog.Any("res", getRes))
+	return
+}
+
+func (eng *Engine) exampleForRedis() (err error) {
+	//build redisStub
+	redisClient := redis.StdRedisConfig("myredistub").Build()
+	// set string
+	setRes := redisClient.Set("jupiter-redis", "redisStub", time.Second*5)
+	xlog.Info("redisStub set string", xlog.Any("res", setRes))
+	// get string
+	getRes := redisClient.Get("jupiter-redis")
+	xlog.Info("redisStub get string", xlog.Any("res", getRes))
+
+	//build redisClusterStub
+	redisClient = redis.StdRedisConfig("myrediscluster").Build()
+	// set string
+	setRes = redisClient.Set("jupiter-redisCluster", "redisClusterStub", time.Second*5)
+	xlog.Info("redisClusterStub set string", xlog.Any("res", setRes))
+	// get string
+	getRes = redisClient.Get("jupiter-redisCluster")
 	xlog.Info("redisClusterStub get string", xlog.Any("res", getRes))
 	return
 }

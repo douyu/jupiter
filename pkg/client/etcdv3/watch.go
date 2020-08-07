@@ -17,20 +17,23 @@ package etcdv3
 import (
 	"context"
 	"sync"
-	"time"
 
+	"github.com/coreos/etcd/clientv3"
+	"github.com/coreos/etcd/mvcc/mvccpb"
+	"github.com/douyu/jupiter/pkg/ecode"
+	"github.com/douyu/jupiter/pkg/util/xgo"
 	"github.com/douyu/jupiter/pkg/xlog"
-	"go.etcd.io/etcd/clientv3"
 )
 
 // Watch A watch only tells the latest revision
 type Watch struct {
 	revision  int64
-	client    *Client
 	cancel    context.CancelFunc
 	eventChan chan *clientv3.Event
 	lock      *sync.RWMutex
 	logger    *xlog.Logger
+
+	incipientKVs []*mvccpb.KeyValue
 }
 
 // C ...
@@ -38,56 +41,65 @@ func (w *Watch) C() chan *clientv3.Event {
 	return w.eventChan
 }
 
-func (w *Watch) update(resp *clientv3.WatchResponse) {
-	if resp.CompactRevision > w.revision {
-		w.revision = resp.CompactRevision
-	} else if resp.Header.GetRevision() > w.revision {
-		w.revision = resp.Header.GetRevision()
-	}
-
-	if err := resp.Err(); err != nil {
-		w.logger.Error("handle watch update", xlog.Any("err", err))
-		return
-	}
-
-	for _, event := range resp.Events {
-		select {
-		case w.eventChan <- event:
-		default:
-			w.logger.Warn("handle watch block", xlog.Int64("revision", w.revision), xlog.Any("kv", event.Kv))
-		}
-	}
+// IncipientKeyValues incipient key and values
+func (w *Watch) IncipientKeyValues() []*mvccpb.KeyValue {
+	return w.incipientKVs
 }
 
 // NewWatch ...
-func (client *Client) NewWatch(prefix string) (*Watch, error) {
-	var (
-		ctx, cancel = context.WithCancel(context.Background())
-		watcher     = &Watch{
-			client:    client,
-			revision:  0,
-			cancel:    cancel,
-			eventChan: make(chan *clientv3.Event, 100),
-			lock:      &sync.RWMutex{},
-			logger:    client.config.logger,
-		}
-	)
+func (client *Client) WatchPrefix(ctx context.Context, prefix string) (*Watch, error) {
+	resp, err := client.Get(ctx, prefix, clientv3.WithPrefix())
+	if err != nil {
+		return nil, err
+	}
 
-	go func() {
-		rch := client.Watch(ctx, prefix, clientv3.WithPrefix(), clientv3.WithCreatedNotify())
+	var w = &Watch{
+		revision:     resp.Header.Revision,
+		eventChan:    make(chan *clientv3.Event, 100),
+		incipientKVs: resp.Kvs,
+	}
+
+	xgo.Go(func() {
+		ctx, cancel := context.WithCancel(context.Background())
+		w.cancel = cancel
+		rch := client.Client.Watch(ctx, prefix, clientv3.WithPrefix(), clientv3.WithCreatedNotify(), clientv3.WithRev(w.revision))
 		for {
-			for resp := range rch {
-				watcher.update(&resp)
+			for n := range rch {
+				if n.CompactRevision > w.revision {
+					w.revision = n.CompactRevision
+				}
+				if n.Header.GetRevision() > w.revision {
+					w.revision = n.Header.GetRevision()
+				}
+				if err := n.Err(); err != nil {
+					xlog.Error(ecode.MsgWatchRequestErr, xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err), xlog.FieldAddr(prefix))
+					continue
+				}
+				for _, ev := range n.Events {
+					select {
+					case w.eventChan <- ev:
+					default:
+						xlog.Error("watch etcd with prefix", xlog.Any("err", "block event chan, drop event message"))
+					}
+				}
 			}
-
-			time.Sleep(time.Duration(1) * time.Second)
-			if watcher.revision > 0 {
-				rch = client.Watch(ctx, prefix, clientv3.WithPrefix(), clientv3.WithCreatedNotify())
+			ctx, cancel := context.WithCancel(context.Background())
+			w.cancel = cancel
+			if w.revision > 0 {
+				rch = client.Watch(ctx, prefix, clientv3.WithPrefix(), clientv3.WithCreatedNotify(), clientv3.WithRev(w.revision))
 			} else {
 				rch = client.Watch(ctx, prefix, clientv3.WithPrefix(), clientv3.WithCreatedNotify())
 			}
 		}
-	}()
+	})
 
-	return watcher, nil
+	return w, nil
+}
+
+// Close close watch
+func (w *Watch) Close() error {
+	if w.cancel != nil {
+		w.cancel()
+	}
+	return nil
 }

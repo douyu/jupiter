@@ -1,7 +1,7 @@
 PROJECT_NAME := "jupiter"
 PKG := "github.com/douyu/jupiter"
-PKG_LIST := $(shell go list ${PKG}/... | grep -v /vendor/)
-GO_FILES := $(shell find . -name '*.go' | grep -v /vendor/ | grep -v _test.go)
+PKG_LIST := $(shell go list ${PKG}/... | grep /pkg/)
+GO_FILES := $(shell find . -name '*.go' | grep /pkg/ | grep -v _test.go)
 
 .DEFAULT_GOAL := default
 .PHONY: all test lint fmt fmtcheck cmt errcheck license
@@ -50,7 +50,7 @@ dep: ## Get the dependencies
 
 ########################################################
 version: ## Print git revision info
-	@echo $(expr substr $(git -rev-parse HEAD) 1 8)
+	@echo $(expr substr $(git rev-parse HEAD) 1 8)
 
 help: ## Display this help screen
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'

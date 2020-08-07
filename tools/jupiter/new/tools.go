@@ -17,16 +17,15 @@ package new
 import (
 	"bytes"
 	"fmt"
+	"github.com/douyu/jupiter/pkg/util/xcolor"
+	"github.com/douyu/jupiter/tools/jupiter/common"
+	"github.com/gobuffalo/packr/v2"
+	"github.com/urfave/cli"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 	"text/template"
-
-	"github.com/douyu/jupiter/pkg/util/xcolor"
-	"github.com/douyu/jupiter/pkg/util/xregexp"
-	"github.com/gobuffalo/packr/v2"
-	"github.com/urfave/cli"
 )
 
 // CreateProject create a template project for Jupiter
@@ -38,73 +37,53 @@ func CreateProject(cli *cli.Context) (err error) {
 	}
 	name := newArgs[0]
 	if name == "" {
-		Project.Name = DefaultProjectName
+		project.Name = DefaultProjectName
 	} else {
-		Project.Name = name
+		project.Name = name
 	}
-	if Project.Path != "" {
-		if Project.Path, err = filepath.Abs(Project.Path); err != nil {
+	if project.Path != "" {
+		if project.Path, err = filepath.Abs(project.Path); err != nil {
 			return
 		}
-		Project.Path = filepath.Join(Project.Path, Project.Name)
+		project.Path = filepath.Join(project.Path, project.Name)
 	} else {
 		pwd, _ := os.Getwd()
-		Project.Path = filepath.Join(pwd, Project.Name)
+		project.Path = filepath.Join(pwd, project.Name)
 	}
-	modPath := getModPath(Project.Path)
-	Project.ModPrefix = modPath
+	//GetModPath
+	modPath := common.GetModPath(project.Path)
+	fmt.Println("new project modPrefix:", modPath)
+	project.ModPrefix = modPath
 	if err = doCreateProject(); err != nil {
 		return
 	}
-	fmt.Println(xcolor.Greenf("Project dir:", Project.Path))
+	fmt.Println(xcolor.Greenf("Project dir:", project.Path))
 	fmt.Println(xcolor.Green("Project created successfully"))
 	return
 }
 
-func getModPath(projectPath string) (modPath string) {
-	dir := filepath.Dir(projectPath)
-	for {
-		for {
-			if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
-				content, _ := ioutil.ReadFile(filepath.Join(dir, "go.mod"))
-				mod := xregexp.RegexpReplace(`module\s+(?P<name>[\S]+)`, string(content), "$name")
-				name := strings.TrimPrefix(filepath.Dir(projectPath), dir)
-				name = strings.TrimPrefix(name, string(os.PathSeparator))
-				if name == "" {
-					return fmt.Sprintf("%s/", mod)
-				}
-				return fmt.Sprintf("%s/%s/", mod, name)
-			}
-			parent := filepath.Dir(dir)
-			if dir == parent {
-				return ""
-			}
-			dir = parent
-		}
-	}
-
-}
+//go:generate packr2
 func doCreateProject() (err error) {
 	box := packr.New("all", "./templates")
-	if err = os.MkdirAll(Project.Path, 0755); err != nil {
+	if err = os.MkdirAll(project.Path, 0755); err != nil {
 		return
 	}
 	for _, name := range box.List() {
-		if Project.ModPrefix != "" && name == "go.mod.tmpl" {
+		if project.ModPrefix != "" && name == "go.mod.tmpl" {
 			continue
 		}
 		tmpl, _ := box.FindString(name)
 		i := strings.LastIndex(name, string(os.PathSeparator))
 		if i > 0 {
 			dir := name[:i]
-			if err = os.MkdirAll(filepath.Join(Project.Path, dir), 0755); err != nil {
+			if err = os.MkdirAll(filepath.Join(project.Path, dir), 0755); err != nil {
 				return
 			}
 		}
 		if strings.HasSuffix(name, ".tmpl") {
 			name = strings.TrimSuffix(name, ".tmpl")
 		}
-		if err = doWriteFile(filepath.Join(Project.Path, name), tmpl); err != nil {
+		if err = doWriteFile(filepath.Join(project.Path, name), tmpl); err != nil {
 			return
 		}
 	}
@@ -118,7 +97,7 @@ func doWriteFile(path, tmpl string) (err error) {
 		return
 	}
 	fmt.Println(xcolor.Greenf("File generated----------------------->", path))
-	return ioutil.WriteFile(path, data, 0644)
+	return ioutil.WriteFile(path, data, 0755)
 }
 
 func parseTmpl(tmpl string) ([]byte, error) {
@@ -127,7 +106,7 @@ func parseTmpl(tmpl string) ([]byte, error) {
 		return nil, err
 	}
 	var buf bytes.Buffer
-	if err = tmp.Execute(&buf, Project); err != nil {
+	if err = tmp.Execute(&buf, project); err != nil {
 		return nil, err
 	}
 	return buf.Bytes(), nil

@@ -9,6 +9,8 @@
     * [通过远端配置读取结构体配置示例](./config/structByRemoteConfig)
     * [监听远端配置读取单行配置示例](./config/onelineByRemoteConfigWatch)
     * [监听远端配置读取结构体配置示例](./config/structByRemoteConfigWatch)
+    * [通过Apollo配置读取单行配置示例](./config/onelinebyApollo)
+    * [通过etcdv3配置读取单行配置示例](./config/onelineByEtcdv3)
 * [日志示例](./logger)    
     * [日志终端展示示例](./logger/command)    
     * [日志文本展示示例](./logger/file)    

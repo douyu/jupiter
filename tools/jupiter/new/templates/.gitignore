@@ -1,0 +1,7 @@
+.idea/
+*.iml
+*.exe
+*.bak*
+.history/
+.vscode/
+vendor/

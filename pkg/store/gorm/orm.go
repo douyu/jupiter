@@ -17,12 +17,7 @@ package gorm
 import (
 	"context"
 	"errors"
-	"fmt"
-	"strings"
-	"time"
-
 	"github.com/douyu/jupiter/pkg/util/xdebug"
-	"github.com/douyu/jupiter/pkg/xlog"
 
 	"github.com/jinzhu/gorm"
 	// mysql driver
@@ -107,74 +102,40 @@ func Open(dialect string, options *Config) (*DB, error) {
 		inner.LogMode(true)
 	}
 
-	d, err := ParseDSN(options.DSN)
-	if err != nil {
-		return nil, err
-	}
-
-	label := fmt.Sprintf("%s_%s", d.DBName, d.Addr)
-
-	replace := func(processor func() *gorm.CallbackProcessor, callbackName string, wrapper func(func(*Scope), string) func(*Scope)) {
+	replace := func(processor func() *gorm.CallbackProcessor, callbackName string, interceptors ...Interceptor) {
 		old := processor().Get(callbackName)
-		processor().Replace(callbackName, wrapper(old, label))
-	}
-
-	invoke := func(op string) func(callback func(scope *Scope), label string) func(scope *Scope) {
-		return func(callback func(scope *Scope), label string) func(scope *Scope) {
-			return func(scope *Scope) {
-				fn := func() {
-					beg := time.Now()
-					callback(scope)
-					cost := time.Since(beg)
-
-					// slow log
-					if options.SlowThreshold > time.Duration(0) {
-						if cost > options.SlowThreshold {
-							xlog.Error("slow",
-								xlog.Any("command", errSlowCommand),
-								xlog.Any("sql", scope.CombinedConditionSql()),
-								xlog.Any("addr", d.Addr),
-								xlog.Any("table", d.DBName+"."+scope.TableName()),
-								xlog.Any("cost", cost),
-							)
-						}
-					}
-
-					// error metric
-					if scope.HasError() {
-						// todo sql语句，需要转换成脱密状态才能记录到日志
-						if scope.DB().Error != ErrRecordNotFound {
-						} else {
-						}
-					} else {
-					}
-				}
-
-				// do query!
-				fn()
-			}
+		var handler = old
+		for _, inte := range interceptors {
+			handler = inte(options.dsnCfg, callbackName, options)(handler)
 		}
+		processor().Replace(callbackName, handler)
 	}
 
-	replace(inner.Callback().Delete, "gorm:delete", invoke("delete"))
-	replace(inner.Callback().Update, "gorm:update", invoke("update"))
-	replace(inner.Callback().Create, "gorm:create", invoke("create"))
-	replace(inner.Callback().Query, "gorm:query", invoke("query"))
-	replace(inner.Callback().RowQuery, "gorm:row_query", invoke("row_query"))
+	replace(
+		inner.Callback().Delete,
+		"gorm:delete",
+		options.interceptors...,
+	)
+	replace(
+		inner.Callback().Update,
+		"gorm:update",
+		options.interceptors...,
+	)
+	replace(
+		inner.Callback().Create,
+		"gorm:create",
+		options.interceptors...,
+	)
+	replace(
+		inner.Callback().Query,
+		"gorm:query",
+		options.interceptors...,
+	)
+	replace(
+		inner.Callback().RowQuery,
+		"gorm:row_query",
+		options.interceptors...,
+	)
 
 	return inner, err
-}
-
-// 收敛status，避免prometheus日志太多
-func getStatement(err string) string {
-	if !strings.HasPrefix(err, "Errord") {
-		return "Unknown"
-	}
-	slice := strings.Split(err, ":")
-	if len(slice) < 2 {
-		return "Unknown"
-	}
-
-	// 收敛错误
-	return slice[0]
 }

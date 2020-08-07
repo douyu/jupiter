@@ -48,6 +48,7 @@ func NewEngine() *Engine {
 func (eng *Engine) consumer() error {
 	conn := grpc.StdConfig("directserver").Build()
 	client := helloworld.NewGreeterClient(conn)
+
 	go func() {
 		for {
 			resp, err := client.SayHello(context.Background(), &helloworld.HelloRequest{

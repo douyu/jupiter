@@ -32,16 +32,18 @@ import (
 // port
 func main() {
 	app := NewEngine()
-	app.SetGovernor("0.0.0.0:9999")
+	// app.SetGovernor("0.0.0.0:9999")
 	if err := app.Run(); err != nil {
 		panic(err)
 	}
 }
 
+//Engine ..
 type Engine struct {
 	jupiter.Application
 }
 
+//NewEngine ..
 func NewEngine() *Engine {
 	eng := &Engine{}
 	if err := eng.Startup(

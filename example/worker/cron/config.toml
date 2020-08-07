@@ -1,4 +1,11 @@
 [jupiter.cron.test]
     withSeconds = false
-    concurrentDelay= "10s"
+    concurrentDelay= 1
     immediatelyRun = false
+    # 分布式任务的开关
+    distributedTask = false
+    # 抢锁等待时间
+    waitLockTime = "1s"
+    # etcd配置相关
+    endpoints = ["127.0.0.1:2379"]
+    connectTimeout = "10s"

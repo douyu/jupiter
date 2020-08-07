@@ -14,6 +14,7 @@
 [jupiter.registry.wh02]
     configKey="jupiter.etcdv3.default"
     timeout = "1s"
+    
 [jupiter.cron.demo]
     immediatelyRun = true
     concurrentDelay = -1
@@ -24,3 +25,12 @@
 [jupiter.logger.default]
     level = "info"
     debug = true
+
+[jupiter.trace.jaeger]
+    enableRPCMetrics = false
+    [jupiter.trace.jaeger.sampler]
+        type = "const"
+        param = 0.001
+
+[jupiter.reliability.sentinel]
+    appName = "demo"

@@ -17,6 +17,7 @@ package xecho
 import (
 	"bytes"
 	"context"
+	"net/http"
 	"reflect"
 	"strings"
 
@@ -71,7 +72,7 @@ func GRPCProxyWrapper(h interface{}) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var req = reflect.New(t.In(1).Elem()).Interface()
 		if err := c.Bind(req); err != nil {
-			return ProtoError(c, StatusBadRequest, errBadRequest)
+			return ProtoError(c, http.StatusBadRequest, errBadRequest)
 		}
 		var md = metadata.MD{}
 		for k, vs := range c.Request().Header {
@@ -88,21 +89,21 @@ func GRPCProxyWrapper(h interface{}) echo.HandlerFunc {
 		inj.Map(req)
 		vs, err := inj.Invoke(h)
 		if err != nil {
-			return ProtoError(c, StatusInternalServerError, errMicroInvoke)
+			return ProtoError(c, http.StatusInternalServerError, errMicroInvoke)
 		}
 		if len(vs) != 2 {
-			return ProtoError(c, StatusInternalServerError, errMicroInvokeLen)
+			return ProtoError(c, http.StatusInternalServerError, errMicroInvokeLen)
 		}
 		repV, errV := vs[0], vs[1]
 		if !errV.IsNil() || repV.IsNil() {
 			if e, ok := errV.Interface().(error); ok {
-				return ProtoError(c, StatusOK, e)
+				return ProtoError(c, http.StatusOK, e)
 			}
-			return ProtoError(c, StatusInternalServerError, errMicroInvokeInvalid)
+			return ProtoError(c, http.StatusInternalServerError, errMicroInvokeInvalid)
 		}
 		if !repV.IsValid() {
-			return ProtoError(c, StatusInternalServerError, errMicroResInvalid)
+			return ProtoError(c, http.StatusInternalServerError, errMicroResInvalid)
 		}
-		return ProtoJSON(c, StatusOK, repV.Interface())
+		return ProtoJSON(c, http.StatusOK, repV.Interface())
 	}
 }

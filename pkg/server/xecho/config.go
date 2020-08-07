@@ -18,16 +18,25 @@ import (
 	"fmt"
 
 	"github.com/douyu/jupiter/pkg/conf"
+	"github.com/douyu/jupiter/pkg/constant"
 	"github.com/douyu/jupiter/pkg/ecode"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/pkg/errors"
 )
 
-// HTTP config
+//ModName named a mod
+const ModName = "server.echo"
+
+//Config HTTP config
 type Config struct {
-	Host  string
-	Port  int
-	Debug bool
+	Host          string
+	Port          int
+	Deployment    string
+	Debug         bool
+	DisableMetric bool
+	DisableTrace  bool
+
+	SlowQueryThresholdInMilli int64
 
 	logger *xlog.Logger
 }
@@ -35,14 +44,16 @@ type Config struct {
 // DefaultConfig ...
 func DefaultConfig() *Config {
 	return &Config{
-		Host:   "127.0.0.1",
-		Port:   9091,
-		Debug:  false,
-		logger: xlog.JupiterLogger.With(xlog.FieldMod("server.echo")),
+		Host:                      "127.0.0.1",
+		Port:                      9091,
+		Debug:                     false,
+		Deployment:                constant.DefaultDeployment,
+		SlowQueryThresholdInMilli: 500, // 500ms
+		logger:                    xlog.JupiterLogger.With(xlog.FieldMod(ModName)),
 	}
 }
 
-// Jupiter Standard HTTP Server config
+// StdConfig Jupiter Standard HTTP Server config
 func StdConfig(name string) *Config {
 	return RawConfig("jupiter.server." + name)
 }
@@ -75,10 +86,19 @@ func (config *Config) WithPort(port int) *Config {
 	return config
 }
 
-// Build ...
+// Build create server instance, then initialize it with necessary interceptor
 func (config *Config) Build() *Server {
+	server := newServer(config)
+	server.Use(recoverMiddleware(config.logger, config.SlowQueryThresholdInMilli))
 
-	return newServer(config)
+	if !config.DisableMetric {
+		server.Use(metricServerInterceptor())
+	}
+
+	if !config.DisableTrace {
+		server.Use(traceServerInterceptor())
+	}
+	return server
 }
 
 // Address ...

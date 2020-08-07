@@ -15,8 +15,12 @@
 package main
 
 import (
+	"context"
+	"time"
+
 	"github.com/douyu/jupiter"
 	"github.com/douyu/jupiter/pkg/store/gorm"
+	"github.com/douyu/jupiter/pkg/worker/xcron"
 	"github.com/douyu/jupiter/pkg/xlog"
 )
 
@@ -31,25 +35,44 @@ type User struct {
 
 func main() {
 	eng := &jupiter.Application{}
-	err := eng.Startup(
-		func() error {
-			gormDB := gorm.StdConfig("test").Build()
-			models := []interface{}{
-				&User{},
-			}
-			gormDB.SingularTable(true)
-			gormDB.Set("gorm:table_options", "ENGINE=InnoDB").AutoMigrate(models...)
-			gormDB.Create(&User{
-				Name: "jupiter",
-			})
-
-			var user User
-			gormDB.Where("id = 1").Find(&user)
-			xlog.Info("user info", xlog.String("name", user.Name))
-			return nil
-		},
-	)
-	if err != nil {
+	if err := eng.Startup(openDB); err != nil {
+		xlog.Panic("start up", xlog.FieldErr(err))
+	}
+	eng.Schedule(startTest())
+	if err := eng.Run(); err != nil {
 		xlog.Panic("startup", xlog.Any("err", err))
 	}
+}
+
+var gormDB *gorm.DB
+
+func openDB() error {
+	gormDB = gorm.StdConfig("test").Build()
+	models := []interface{}{
+		&User{},
+	}
+	gormDB.SingularTable(true)
+	gormDB.Set("gorm:table_options", "ENGINE=InnoDB").AutoMigrate(models...)
+	gormDB.Create(&User{
+		Name: "jupiter",
+	})
+
+	return nil
+}
+
+func testDB() error {
+	var user User
+	err := gorm.WithContext(context.Background(), gormDB).Where("id = 1").Find(&user).Error
+	xlog.Info("user info", xlog.String("name", user.Name))
+	return err
+}
+
+func startTest() *xcron.Cron {
+	cron := xcron.Config{
+		WithSeconds:     false,
+		ConcurrentDelay: 0,
+		ImmediatelyRun:  true,
+	}.Build()
+	cron.Schedule(xcron.Every(time.Second*10), xcron.FuncJob(testDB))
+	return cron
 }

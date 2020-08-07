@@ -47,8 +47,8 @@ func (s *Engine) printLogger() error {
 	xlog.DefaultLogger = xlog.StdConfig("default").Build()
 	go func() {
 		for {
-			xlog.Info("logger info", xlog.String("gopher", "jupiter"), xlog.String("type", "file"))
-			xlog.Warn("logger warn", xlog.String("gopher", "jupiter"), xlog.String("type", "file"))
+			xlog.Info("logger info", xlog.String("gopher", "jupiter1"), xlog.String("type", "file"))
+			xlog.Debug("logger debug", xlog.String("gopher", "jupiter2"), xlog.String("type", "file"))
 			time.Sleep(1 * time.Second)
 		}
 	}()

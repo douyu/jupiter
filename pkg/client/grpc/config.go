@@ -15,11 +15,11 @@
 package grpc
 
 import (
+	"github.com/douyu/jupiter/pkg/util/xtime"
 	"time"
 
-	"github.com/douyu/jupiter/pkg/ecode"
-
 	"github.com/douyu/jupiter/pkg/conf"
+	"github.com/douyu/jupiter/pkg/ecode"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/balancer/roundrobin"
@@ -28,16 +28,27 @@ import (
 
 // Config ...
 type Config struct {
+	Name         string // config's name
 	BalancerName string
 	Address      string
 	Block        bool
 	DialTimeout  time.Duration
+	ReadTimeout  time.Duration
 	Direct       bool
-	OnDialError  string
+	OnDialError  string // panic | error
 	KeepAlive    *keepalive.ClientParameters
 	logger       *xlog.Logger
 	dialOptions  []grpc.DialOption
-	// resolver     resolver.Builder
+
+	SlowThreshold time.Duration
+
+	Debug                     bool
+	DisableTraceInterceptor   bool
+	DisableAidInterceptor     bool
+	DisableTimeoutInterceptor bool
+	DisableMetricInterceptor  bool
+	DisableAccessInterceptor  bool
+	AccessInterceptorLevel    string
 }
 
 // DefaultConfig ...
@@ -46,10 +57,14 @@ func DefaultConfig() *Config {
 		dialOptions: []grpc.DialOption{
 			grpc.WithInsecure(),
 		},
-		logger:       xlog.JupiterLogger.With(xlog.FieldMod(ecode.ModClientGrpc)),
-		BalancerName: roundrobin.Name, // roundrobin by default
-		DialTimeout:  time.Second * 3,
-		OnDialError:  "panic",
+		logger:                 xlog.JupiterLogger.With(xlog.FieldMod(ecode.ModClientGrpc)),
+		BalancerName:           roundrobin.Name, // round robin by default
+		DialTimeout:            time.Second * 3,
+		ReadTimeout:            xtime.Duration("1s"),
+		SlowThreshold:          xtime.Duration("600ms"),
+		OnDialError:            "panic",
+		AccessInterceptorLevel: "info",
+		Block:                  true,
 	}
 }
 
@@ -84,6 +99,41 @@ func (config *Config) WithDialOption(opts ...grpc.DialOption) *Config {
 
 // Build ...
 func (config *Config) Build() *grpc.ClientConn {
-	client := newGRPCClient(*config)
-	return client
+	if config.Debug {
+		config.dialOptions = append(config.dialOptions,
+			grpc.WithChainUnaryInterceptor(debugUnaryClientInterceptor(config.Address)),
+		)
+	}
+
+	if !config.DisableAidInterceptor {
+		config.dialOptions = append(config.dialOptions,
+			grpc.WithChainUnaryInterceptor(aidUnaryClientInterceptor()),
+		)
+	}
+
+	if !config.DisableTimeoutInterceptor {
+		config.dialOptions = append(config.dialOptions,
+			grpc.WithChainUnaryInterceptor(timeoutUnaryClientInterceptor(config.logger, config.ReadTimeout, config.SlowThreshold)),
+		)
+	}
+
+	if !config.DisableTraceInterceptor {
+		config.dialOptions = append(config.dialOptions,
+			grpc.WithChainUnaryInterceptor(traceUnaryClientInterceptor()),
+		)
+	}
+
+	if !config.DisableAccessInterceptor {
+		config.dialOptions = append(config.dialOptions,
+			grpc.WithChainUnaryInterceptor(loggerUnaryClientInterceptor(config.logger, config.Name, config.AccessInterceptorLevel)),
+		)
+	}
+
+	if !config.DisableMetricInterceptor {
+		config.dialOptions = append(config.dialOptions,
+			grpc.WithChainUnaryInterceptor(metricUnaryClientInterceptor(config.Name)),
+		)
+	}
+
+	return newGRPCClient(config)
 }

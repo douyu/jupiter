@@ -1,3 +1,17 @@
+// Copyright 2020 Douyu
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 // Package rotate provides a rolling logger.
 //
 // Note that this is v2.0 of rotate, and should be imported using gopkg.in
@@ -184,14 +198,11 @@ var _asyncBufferPool = sync.Pool{
 // Take care of reopen, I am not sure if there need no lock
 func (l *Logger) run() {
 	var err error
-	for {
-		select {
-		case b := <-l.queue:
-			if _, err = l.file.Write(b); err != nil {
-				panic(err)
-			}
-			_asyncBufferPool.Put(b)
+	for b := range l.queue {
+		if _, err = l.file.Write(b); err != nil {
+			panic(err)
 		}
+		_asyncBufferPool.Put(b)
 	}
 }
 
