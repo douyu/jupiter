@@ -4,6 +4,7 @@ go 1.14
 
 require (
 	github.com/BurntSushi/toml v0.3.1
+	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/alibaba/sentinel-golang v0.4.0
 	github.com/apache/rocketmq-client-go v0.0.0-20191211114916-85ee94b43cef
 	github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd // indirect
@@ -42,6 +43,9 @@ require (
 	github.com/smartystreets/goconvey v0.0.0-20190710185942-9d28bd7c0945
 	github.com/spf13/cast v1.3.1
 	github.com/stretchr/testify v1.6.1
+	github.com/swaggo/files v0.0.0-20190704085106-630677cd5c14
+	github.com/swaggo/gin-swagger v1.2.0
+	github.com/swaggo/swag v1.6.7
 	github.com/tidwall/pretty v1.0.1
 	github.com/uber/jaeger-client-go v2.23.1+incompatible
 	github.com/uber/jaeger-lib v2.2.0+incompatible // indirect
