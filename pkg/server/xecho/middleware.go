@@ -57,6 +57,7 @@ func recoverMiddleware(logger *xlog.Logger, slowQueryThresholdInMilli int64) ech
 					zap.String("method", ctx.Request().Method),
 					zap.Int("code", ctx.Response().Status),
 					zap.String("host", ctx.Request().Host),
+					zap.String("path", ctx.Request().URL.Path),
 				)
 				if slowQueryThresholdInMilli > 0 {
 					if cost := int64(time.Since(beg)) / 1e6; cost > slowQueryThresholdInMilli {
