@@ -12,18 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// @author ccb1900
-// @url https://github.com/ccb1900
-// @description this a server wrapper for goframe with jupiter
-// it is necessary to implement Server interface
-// You should add middleware for metrics,trace and recovery
 package xgoframe
 
 import (
 	"context"
+	"strconv"
+
 	"github.com/douyu/jupiter/pkg/constant"
 	"github.com/douyu/jupiter/pkg/xlog"
-	"strconv"
 
 	//"github.com/douyu/jupiter/pkg/ecode"
 	//"github.com/douyu/jupiter/pkg/xlog"
@@ -32,6 +28,7 @@ import (
 	"github.com/gogf/gf/net/ghttp"
 )
 
+//Server is server core struct
 type Server struct {
 	*ghttp.Server
 	config *Config
@@ -48,6 +45,7 @@ func newServer(config *Config) *Server {
 	return s
 }
 
+//Serve ..
 func (s *Server) Serve() error {
 	routes := s.GetRouterArray()
 
@@ -59,20 +57,22 @@ func (s *Server) Serve() error {
 	return nil
 }
 
+//Stop ..
 func (s *Server) Stop() error {
 	return s.Shutdown()
 }
 
+//GracefulStop ..
 func (s *Server) GracefulStop(ctx context.Context) error {
 	return s.Stop()
 }
 
+//Info ..
 func (s *Server) Info() *server.ServiceInfo {
 	info := server.ApplyOptions(
 		server.WithScheme("http"),
 		server.WithAddress(s.config.Host+":"+strconv.Itoa(s.config.Port)),
 		server.WithKind(constant.ServiceProvider),
 	)
-	info.Name = info.Name + "." + ModName
 	return &info
 }
