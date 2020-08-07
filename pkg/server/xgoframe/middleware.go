@@ -15,16 +15,17 @@
 package xgoframe
 
 import (
+	"net/http"
+	"time"
+
 	"github.com/douyu/jupiter/pkg/metric"
 	"github.com/douyu/jupiter/pkg/trace"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/gogf/gf/net/ghttp"
 	"go.uber.org/zap"
-	"net/http"
-	"time"
 )
 
-// RecoverMiddleware ...
+// recoverMiddleware ...
 func recoverMiddleware(logger *xlog.Logger, slowQueryThresholdInMilli int64) ghttp.HandlerFunc {
 	return func(r *ghttp.Request) {
 		defer func() {

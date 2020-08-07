@@ -16,15 +16,17 @@ package xgoframe
 
 import (
 	"fmt"
+
 	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/ecode"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/pkg/errors"
 )
 
+//ModName mod name
 const ModName = "server.goframe"
 
-// HTTP config
+//Config  HTTP config
 type Config struct {
 	Host          string
 	Port          int
@@ -44,11 +46,11 @@ func DefaultConfig() *Config {
 		Port:                      8099,
 		Debug:                     false,
 		SlowQueryThresholdInMilli: 500, // 500ms
-		logger:                    xlog.JupiterLogger.With(xlog.FieldMod("server.goframe")),
+		logger:                    xlog.JupiterLogger.With(xlog.FieldMod(ModName)),
 	}
 }
 
-// Jupiter Standard HTTP Server config
+//StdConfig Jupiter Standard HTTP Server config
 func StdConfig(name string) *Config {
 	return RawConfig("jupiter.server." + name)
 }
