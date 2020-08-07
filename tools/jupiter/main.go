@@ -17,6 +17,7 @@ package main
 import (
 	"github.com/douyu/jupiter/tools/jupiter/new"
 	"github.com/douyu/jupiter/tools/jupiter/protoc"
+	"log"
 	"os"
 
 	"github.com/urfave/cli"
@@ -35,6 +36,6 @@ func main() {
 	}
 	err := app.Run(os.Args)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 }
