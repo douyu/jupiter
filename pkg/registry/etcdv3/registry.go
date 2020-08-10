@@ -107,8 +107,10 @@ func (reg *etcdv3Registry) WatchServices(ctx context.Context, name string, schem
 
 	var addresses = make(chan registry.Endpoints, 10)
 	var al = &registry.Endpoints{
-		Nodes:        make(map[string]server.ServiceInfo),
-		RouteConfigs: make(map[string]registry.RouteConfig),
+		Nodes:           make(map[string]server.ServiceInfo),
+		RouteConfigs:    make(map[string]registry.RouteConfig),
+		ConsumerConfigs: make(map[string]registry.ConsumerConfig),
+		ProviderConfigs: make(map[string]registry.ProviderConfig),
 	}
 
 	for _, kv := range watch.IncipientKeyValues() {
@@ -140,14 +142,22 @@ func (reg *etcdv3Registry) WatchServices(ctx context.Context, name string, schem
 
 func (reg *etcdv3Registry) cloneEndPoints(src *registry.Endpoints) *registry.Endpoints {
 	dst := &registry.Endpoints{
-		Nodes:        make(map[string]server.ServiceInfo),
-		RouteConfigs: make(map[string]registry.RouteConfig),
+		Nodes:           make(map[string]server.ServiceInfo),
+		RouteConfigs:    make(map[string]registry.RouteConfig),
+		ConsumerConfigs: make(map[string]registry.ConsumerConfig),
+		ProviderConfigs: make(map[string]registry.ProviderConfig),
 	}
 	for k, v := range src.Nodes {
 		dst.Nodes[k] = v
 	}
 	for k, v := range src.RouteConfigs {
 		dst.RouteConfigs[k] = v
+	}
+	for k, v := range src.ConsumerConfigs {
+		dst.ConsumerConfigs[k] = v
+	}
+	for k, v := range src.ProviderConfigs {
+		dst.ProviderConfigs[k] = v
 	}
 	return dst
 }
