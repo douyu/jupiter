@@ -16,6 +16,7 @@ package main
 
 import (
 	"context"
+	"github.com/douyu/jupiter/pkg/xgrpclog"
 	"time"
 
 	"github.com/douyu/jupiter"
@@ -46,6 +47,8 @@ func NewEngine() *Engine {
 }
 
 func (eng *Engine) consumer() error {
+	xgrpclog.SetLogger(xlog.DefaultLogger)
+
 	conn := grpc.StdConfig("directserver").Build()
 	client := helloworld.NewGreeterClient(conn)
 
