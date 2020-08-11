@@ -17,12 +17,12 @@ package jupiter
 import (
 	"context"
 	"fmt"
+	"github.com/douyu/jupiter/pkg/server/governor"
+	"github.com/douyu/jupiter/pkg/worker/xjob"
 	"os"
 	"runtime"
 	"sync"
-
-	"github.com/douyu/jupiter/pkg/server/governor"
-	job "github.com/douyu/jupiter/pkg/worker/xjob"
+	"time"
 
 	"github.com/BurntSushi/toml"
 	"github.com/douyu/jupiter/pkg"
@@ -266,6 +266,12 @@ func (app *Application) Stop() (err error) {
 		app.runHooks(StageBeforeStop)
 
 		if app.registerer != nil {
+			app.smu.RLock()
+			for _, s := range app.servers {
+				app.logger.Info("unregister service", xlog.FieldAddrAny(s.Info().Address))
+				app.registerer.UnregisterService(context.TODO(), s.Info())
+			}
+			app.smu.RUnlock()
 			err = app.registerer.Close()
 			if err != nil {
 				app.logger.Error("stop register close err", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err))
@@ -299,6 +305,12 @@ func (app *Application) GracefulStop(ctx context.Context) (err error) {
 		app.runHooks(StageBeforeStop)
 
 		if app.registerer != nil {
+			app.smu.RLock()
+			for _, s := range app.servers {
+				app.logger.Info("unregister service", xlog.FieldAddrAny(s.Info().Address))
+				app.registerer.UnregisterService(context.TODO(), s.Info())
+			}
+			app.smu.RUnlock()
 			err = app.registerer.Close()
 			if err != nil {
 				app.logger.Error("stop register close err", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err))
@@ -355,11 +367,24 @@ func (app *Application) startServers() error {
 	for _, s := range app.servers {
 		s := s
 		eg.Go(func() (err error) {
-			_ = app.registerer.RegisterService(context.TODO(), s.Info())
-			defer app.registerer.UnregisterService(context.TODO(), s.Info())
 			app.logger.Info("start server", xlog.FieldMod(ecode.ModApp), xlog.FieldEvent("init"), xlog.FieldName(s.Info().Name), xlog.FieldAddr(s.Info().Label()), xlog.Any("scheme", s.Info().Scheme))
 			defer app.logger.Info("exit server", xlog.FieldMod(ecode.ModApp), xlog.FieldEvent("exit"), xlog.FieldName(s.Info().Name), xlog.FieldErr(err), xlog.FieldAddr(s.Info().Label()))
+
+			errCh := make(chan error, 1)
+			xgo.Go(func() {
+				time.Sleep(time.Second)
+				select {
+				case err := <-errCh:
+					app.logger.Error("failed to start server", xlog.FieldErr(err))
+					return
+				default:
+					app.logger.Info("register service", xlog.FieldAddrAny(s.Info().Address))
+					app.registerer.RegisterService(context.TODO(), s.Info())
+				}
+			})
 			err = s.Serve()
+			errCh <- err
+			close(errCh)
 			return
 		})
 	}
