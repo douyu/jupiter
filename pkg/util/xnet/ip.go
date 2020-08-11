@@ -17,7 +17,6 @@ package xnet
 import (
 	"errors"
 	"fmt"
-	"log"
 	"net"
 )
 
@@ -25,7 +24,6 @@ import (
 func GetLocalIP() (string, error) {
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
-		log.Println(err)
 		return "", err
 	}
 	for _, addr := range addrs {

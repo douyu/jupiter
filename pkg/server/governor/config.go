@@ -45,16 +45,14 @@ func RawConfig(key string) *Config {
 // DefaultConfig represents default config
 // User should construct config base on DefaultConfig
 func DefaultConfig() *Config {
-	ips := xnet.GetIPs()
-	if len(ips) == 0 {
-		xlog.JupiterLogger.Error("govern get local ip error")
-	}
 	var host string
-	if len(ips) == 1 {
-		host = ips[0]
-	} else {
+	ip, err := xnet.GetLocalIP()
+	if err != nil {
 		host = "localhost"
+	} else {
+		host = ip
 	}
+
 	return &Config{
 		Enable:  true,
 		Host:    host,
