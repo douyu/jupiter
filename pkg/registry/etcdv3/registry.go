@@ -24,9 +24,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/coreos/etcd/clientv3/concurrency"
 	"github.com/douyu/jupiter/pkg"
 	"github.com/douyu/jupiter/pkg/constant"
-	"go.etcd.io/etcd/clientv3/concurrency"
 
 	"github.com/coreos/etcd/clientv3"
 	"github.com/coreos/etcd/mvcc/mvccpb"
