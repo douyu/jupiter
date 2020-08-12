@@ -7,8 +7,9 @@ type Option func(a *Application)
 type Disable int
 
 const (
-	DisableParserFlag Disable = 1
-	DisableLoadConfig Disable = 2
+	DisableParserFlag      Disable = 1
+	DisableLoadConfig      Disable = 2
+	DisableDefaultGovernor Disable = 3
 )
 
 func (a *Application) WithOptions(options ...Option) {

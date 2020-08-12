@@ -352,6 +352,11 @@ func (app *Application) waitSignals() {
 }
 
 func (app *Application) initGovernor() error {
+	if app.isDisable(DisableDefaultGovernor) {
+		app.logger.Info("defualt governor disable", xlog.FieldMod(ecode.ModApp))
+		return nil
+	}
+
 	config := governor.StdConfig("governor")
 	if !config.Enable {
 		return nil
