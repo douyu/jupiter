@@ -18,7 +18,6 @@ import (
 	"errors"
 	"fmt"
 	"net"
-	"strconv"
 )
 
 // GetLocalIP ...
@@ -46,14 +45,8 @@ func GetLocalMainIP() (string, int, error) {
 	}
 	defer conn.Close()
 	localAddr := conn.LocalAddr().(*net.UDPAddr)
-	host, port, err := net.SplitHostPort(localAddr.String())
-	if err != nil {
-		return "", 0, err
-	}
 
-	portInt, _ := strconv.Atoi(port)
-
-	return host, portInt, nil
+	return localAddr.IP.String(), localAddr.Port, nil
 }
 
 // GetMacAddrs ...
