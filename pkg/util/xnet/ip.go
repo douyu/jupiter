@@ -18,6 +18,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"strconv"
 )
 
 // GetLocalIP ...
@@ -34,6 +35,25 @@ func GetLocalIP() (string, error) {
 		}
 	}
 	return "", errors.New("unable to determine locla ip")
+}
+
+// GetLocalIP ...
+func GetLocalMainIP() (string, int, error) {
+	// UDP Connect, no handshake
+	conn, err := net.Dial("udp", "8.8.8.8:8")
+	if err != nil {
+		return "", 0, err
+	}
+	defer conn.Close()
+	localAddr := conn.LocalAddr().(*net.UDPAddr)
+	host, port, err := net.SplitHostPort(localAddr.String())
+	if err != nil {
+		return "", 0, err
+	}
+
+	portInt, _ := strconv.Atoi(port)
+
+	return host, portInt, nil
 }
 
 // GetMacAddrs ...
