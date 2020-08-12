@@ -45,12 +45,7 @@ func RawConfig(key string) *Config {
 // DefaultConfig represents default config
 // User should construct config base on DefaultConfig
 func DefaultConfig() *Config {
-	var (
-		host string
-		port int
-		err  error
-	)
-	host, port, err = xnet.GetLocalMainIP()
+	host, port, err := xnet.GetLocalMainIP()
 	if err != nil {
 		host = "localhost"
 	}
