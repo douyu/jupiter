@@ -45,19 +45,16 @@ func RawConfig(key string) *Config {
 // DefaultConfig represents default config
 // User should construct config base on DefaultConfig
 func DefaultConfig() *Config {
-	var host string
-	ip, err := xnet.GetLocalIP()
+	host, port, err := xnet.GetLocalMainIP()
 	if err != nil {
 		host = "localhost"
-	} else {
-		host = ip
 	}
 
 	return &Config{
 		Enable:  true,
 		Host:    host,
 		Network: "tcp4",
-		Port:    0,
+		Port:    port,
 		logger:  xlog.JupiterLogger.With(xlog.FieldMod(ModName)),
 	}
 }

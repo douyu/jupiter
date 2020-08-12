@@ -36,6 +36,19 @@ func GetLocalIP() (string, error) {
 	return "", errors.New("unable to determine locla ip")
 }
 
+// GetLocalIP ...
+func GetLocalMainIP() (string, int, error) {
+	// UDP Connect, no handshake
+	conn, err := net.Dial("udp", "8.8.8.8:8")
+	if err != nil {
+		return "", 0, err
+	}
+	defer conn.Close()
+	localAddr := conn.LocalAddr().(*net.UDPAddr)
+
+	return localAddr.IP.String(), localAddr.Port, nil
+}
+
 // GetMacAddrs ...
 func GetMacAddrs() (macAddrs []string) {
 	netInterfaces, err := net.Interfaces()
