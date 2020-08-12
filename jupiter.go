@@ -60,17 +60,19 @@ const (
 // Application is the framework's instance, it contains the servers, workers, client and configuration settings.
 // Create an instance of Application, by using &Application{}
 type Application struct {
-	cycle       *xcycle.Cycle
-	smu         *sync.RWMutex
-	initOnce    sync.Once
-	startupOnce sync.Once
-	stopOnce    sync.Once
-	servers     []server.Server
-	workers     []worker.Worker
-	jobs        map[string]job.Runner
-	logger      *xlog.Logger
-	registerer  registry.Registry
-	hooks       map[uint32]*xdefer.DeferStack
+	cycle        *xcycle.Cycle
+	smu          *sync.RWMutex
+	initOnce     sync.Once
+	startupOnce  sync.Once
+	stopOnce     sync.Once
+	servers      []server.Server
+	workers      []worker.Worker
+	jobs         map[string]job.Runner
+	logger       *xlog.Logger
+	registerer   registry.Registry
+	hooks        map[uint32]*xdefer.DeferStack
+	configParser conf.Unmarshaller
+	disableMap   map[Disable]bool
 }
 
 //New new a Application
@@ -80,6 +82,12 @@ func New(fns ...func() error) (*Application, error) {
 		return nil, err
 	}
 	return app, nil
+}
+
+func DefaultApp() *Application {
+	app := &Application{}
+	app.initialize()
+	return app
 }
 
 //init hooks
@@ -118,6 +126,8 @@ func (app *Application) initialize() {
 		app.workers = make([]worker.Worker, 0)
 		app.jobs = make(map[string]job.Runner)
 		app.logger = xlog.JupiterLogger
+		app.configParser = toml.Unmarshal
+		app.disableMap = make(map[Disable]bool)
 		//private method
 		app.initHooks(StageBeforeStop, StageAfterStop)
 		//public method
@@ -399,6 +409,10 @@ func (app *Application) startJobs() error {
 
 //parseFlags init
 func (app *Application) parseFlags() error {
+	if app.isDisable(DisableParserFlag) {
+		app.logger.Info("parseFlags disable", xlog.FieldMod(ecode.ModApp))
+		return nil
+	}
 	flag.Register(&flag.StringFlag{
 		Name:    "config",
 		Usage:   "--config",
@@ -428,13 +442,19 @@ func (app *Application) parseFlags() error {
 
 //loadConfig init
 func (app *Application) loadConfig() error {
+	if app.isDisable(DisableLoadConfig) {
+		app.logger.Info("load config disable", xlog.FieldMod(ecode.ModConfig))
+		return nil
+	}
+
 	var configAddr = flag.String("config")
 	provider, err := manager.NewDataSource(configAddr)
 	if err != manager.ErrConfigAddr {
 		if err != nil {
 			app.logger.Panic("data source: provider error", xlog.FieldMod(ecode.ModConfig), xlog.FieldErr(err))
 		}
-		if err := conf.LoadFromDataSource(provider, toml.Unmarshal); err != nil {
+
+		if err := conf.LoadFromDataSource(provider, app.configParser); err != nil {
 			app.logger.Panic("data source: load config", xlog.FieldMod(ecode.ModConfig), xlog.FieldErrKind(ecode.ErrKindUnmarshalConfigErr), xlog.FieldErr(err))
 		}
 	} else {
@@ -490,6 +510,14 @@ func (app *Application) initMaxProcs() error {
 	}
 	app.logger.Info("auto max procs", xlog.FieldMod(ecode.ModProc), xlog.Int64("procs", int64(runtime.GOMAXPROCS(-1))))
 	return nil
+}
+
+func (app *Application) isDisable(d Disable) bool {
+	b, ok := app.disableMap[d]
+	if !ok {
+		return false
+	}
+	return b
 }
 
 //printBanner init
