@@ -57,7 +57,10 @@ func (s *spbStatus) GetMessage(exts ...interface{}) string {
 
 	var buf bytes.Buffer
 	buf.WriteString(s.Message)
-	buf.WriteByte(',')
+
+	if len(exts) > 0 {
+		buf.WriteByte(',')
+	}
 	for i := 0; i < len(exts); i++ {
 		buf.WriteString(fmt.Sprintf("%v", exts[i]))
 		buf.WriteByte(':')

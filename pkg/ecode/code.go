@@ -36,7 +36,7 @@ var (
 	maxCustomizeCode = 9999
 	_codes           sync.Map
 	// OK ...
-	OK = add(int(codes.OK), "ok")
+	OK = add(int(codes.OK), "OK")
 )
 
 func init() {
