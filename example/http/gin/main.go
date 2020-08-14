@@ -16,11 +16,13 @@ package main
 
 import (
 	"log"
+	"net/http"
 
 	"github.com/douyu/jupiter"
 	"github.com/douyu/jupiter/pkg/server/xgin"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 )
 
 func main() {
@@ -69,6 +71,16 @@ func (eng *Engine) serveHTTP() error {
 				break
 			}
 		}
-	}))
+	}, handleCheckOrigin))
 	return eng.Serve(server)
+}
+
+//handleCheckOrigin 允许websocket跨域
+//error:request origin not allowed by Upgrader.CheckOrigin
+func handleCheckOrigin(ws *xgin.WebSocket) {
+	ws.Upgrader = &websocket.Upgrader{
+		CheckOrigin: func(r *http.Request) bool {
+			return true
+		},
+	}
 }
