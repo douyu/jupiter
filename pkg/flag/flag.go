@@ -79,7 +79,7 @@ func Parse() error {
 }
 
 // Lookup lookup flag value by name
-// prioproty: flag > default > env
+// priority: flag > default > env
 func (fs *FlagSet) Lookup(name string) *flag.Flag {
 	flag := fs.FlagSet.Lookup(name)
 	if flag != nil {
