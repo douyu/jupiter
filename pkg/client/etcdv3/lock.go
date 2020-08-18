@@ -18,7 +18,7 @@ import (
 	"context"
 	"time"
 
-	"go.etcd.io/etcd/clientv3/concurrency"
+	"github.com/coreos/etcd/clientv3/concurrency"
 )
 
 // Mutex ...
@@ -28,10 +28,10 @@ type Mutex struct {
 }
 
 // NewMutex ...
-func (client *Client) NewMutex(key string) (mutex *Mutex, err error) {
+func (client *Client) NewMutex(key string, opts ...concurrency.SessionOption) (mutex *Mutex, err error) {
 	mutex = &Mutex{}
 	// 默认session ttl = 60s
-	mutex.s, err = concurrency.NewSession(client.Client)
+	mutex.s, err = concurrency.NewSession(client.Client, opts...)
 	if err != nil {
 		return
 	}
@@ -41,6 +41,13 @@ func (client *Client) NewMutex(key string) (mutex *Mutex, err error) {
 
 // Lock ...
 func (mutex *Mutex) Lock(timeout time.Duration) (err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	return mutex.m.Lock(ctx)
+}
+
+// TryLock ...
+func (mutex *Mutex) TryLock(timeout time.Duration) (err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	return mutex.m.Lock(ctx)

@@ -94,7 +94,7 @@ func TestSerialUntilError(t *testing.T) {
 			got := SerialUntilError(tt.args.fns...)
 			err := got()
 			assert.NotNil(t, err)
-			assert.Equal(t, err.Error(), "github.com/douyu/jupiter/pkg/util/xgo.TestSerialUntilError.func1.1: invalid")
+			assert.Equal(t, err.Error(), "invalid")
 			assert.Equal(t, atomic.LoadInt64(&value), int64(1+2))
 		})
 	}

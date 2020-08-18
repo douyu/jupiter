@@ -22,23 +22,26 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/douyu/jupiter/pkg/govern"
+	"github.com/douyu/jupiter/pkg/server/governor"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/golang/protobuf/ptypes/any"
 	spb "google.golang.org/genproto/googleapis/rpc/status"
 )
+
+// EcodeNum 低于10000均为系统错误码，业务错误码请使用10000以上
+const EcodeNum int32 = 9999
 
 var (
 	aid              int
 	maxCustomizeCode = 9999
 	_codes           sync.Map
 	// OK ...
-	OK = add(int(codes.OK), "ok")
+	OK = add(int(codes.OK), "OK")
 )
 
 func init() {
 	// status code list
-	govern.HandleFunc("/status/code/list", func(w http.ResponseWriter, r *http.Request) {
+	governor.HandleFunc("/status/code/list", func(w http.ResponseWriter, r *http.Request) {
 		var rets = make(map[int]*spbStatus)
 		_codes.Range(func(key, val interface{}) bool {
 			code := key.(int)
@@ -55,6 +58,7 @@ func Add(code int, message string) *spbStatus {
 	if code > maxCustomizeCode {
 		xlog.Panic("customize code must less than 9999", xlog.Any("code", code))
 	}
+
 	return add(aid*10000+code, message)
 }
 

@@ -18,7 +18,10 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/douyu/jupiter/pkg"
+	"net"
+
+	"github.com/douyu/jupiter/pkg/constant"
+	"github.com/douyu/jupiter/pkg/ecode"
 	"github.com/douyu/jupiter/pkg/server"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/gin-gonic/gin"
@@ -27,29 +30,49 @@ import (
 // Server ...
 type Server struct {
 	*gin.Engine
-	Server *http.Server
-	config *Config
+	Server   *http.Server
+	config   *Config
+	listener net.Listener
 }
 
 func newServer(config *Config) *Server {
-	return &Server{
-		Engine: gin.New(),
-		config: config,
+	listener, err := net.Listen("tcp", config.Address())
+	if err != nil {
+		config.logger.Panic("new xgin server err", xlog.FieldErrKind(ecode.ErrKindListenErr), xlog.FieldErr(err))
 	}
+	config.Port = listener.Addr().(*net.TCPAddr).Port
+	gin.SetMode(config.Mode)
+	return &Server{
+		Engine:   gin.New(),
+		config:   config,
+		listener: listener,
+	}
+}
+
+//Upgrade protocol to WebSocket
+func (s *Server) Upgrade(ws *WebSocket) gin.IRoutes {
+	return s.GET(ws.Pattern, func(c *gin.Context) {
+		ws.Upgrade(c.Writer, c.Request)
+	})
 }
 
 // Serve implements server.Server interface.
 func (s *Server) Serve() error {
-	gin.SetMode(s.config.Mode)
 	// s.Gin.StdLogger = xlog.JupiterLogger.StdLog()
 	for _, route := range s.Engine.Routes() {
-		s.config.logger.Info("gin add route", xlog.FieldMethod(route.Method), xlog.String("path", route.Path))
+		s.config.logger.Info("add route", xlog.FieldMethod(route.Method), xlog.String("path", route.Path))
 	}
 	s.Server = &http.Server{
 		Addr:    s.config.Address(),
 		Handler: s,
 	}
-	return s.Server.ListenAndServe()
+	err := s.Server.Serve(s.listener)
+	if err == http.ErrServerClosed {
+		s.config.logger.Info("close gin", xlog.FieldAddr(s.config.Address()))
+		return nil
+	}
+
+	return err
 }
 
 // Stop implements server.Server interface
@@ -65,19 +88,12 @@ func (s *Server) GracefulStop(ctx context.Context) error {
 }
 
 // Info returns server info, used by governor and consumer balancer
-// TODO(gorexlv): implements government protocol with juno
 func (s *Server) Info() *server.ServiceInfo {
-	return &server.ServiceInfo{
-		Name:      pkg.Name(),
-		Scheme:    "http",
-		IP:        s.config.Host,
-		Port:      s.config.Port,
-		Weight:    0.0,
-		Enable:    false,
-		Healthy:   false,
-		Metadata:  map[string]string{},
-		Region:    "",
-		Zone:      "",
-		GroupName: "",
-	}
+	info := server.ApplyOptions(
+		server.WithScheme("http"),
+		server.WithAddress(s.listener.Addr().String()),
+		server.WithKind(constant.ServiceProvider),
+	)
+	// info.Name = info.Name + "." + ModName
+	return &info
 }

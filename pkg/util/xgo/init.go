@@ -18,12 +18,14 @@ import (
 	"fmt"
 	"runtime"
 
+	"github.com/douyu/jupiter/pkg/util/xstring"
 	"github.com/douyu/jupiter/pkg/xlog"
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
 
 var (
-	_logger = xlog.DefaultLogger.With(zap.String("mod", "xgo"))
+	_logger = xlog.JupiterLogger.With(zap.String("mod", "xgo"))
 )
 
 func try(fn func() error, cleaner func()) (ret error) {
@@ -39,6 +41,7 @@ func try(fn func() error, cleaner func()) (ret error) {
 			} else {
 				ret = fmt.Errorf("%+v", err)
 			}
+			ret = errors.Wrap(ret, fmt.Sprintf("%s:%d", xstring.FunctionName(fn), line))
 		}
 	}()
 	return fn()
@@ -49,7 +52,7 @@ func try2(fn func(), cleaner func()) (ret error) {
 		defer cleaner()
 	}
 	defer func() {
-		_, file, line, _ := runtime.Caller(4)
+		_, file, line, _ := runtime.Caller(5)
 		if err := recover(); err != nil {
 			_logger.Error("recover", zap.Any("err", err), zap.String("line", fmt.Sprintf("%s:%d", file, line)))
 			if _, ok := err.(error); ok {

@@ -18,10 +18,12 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"runtime"
 	"strings"
 	"time"
 
 	"github.com/douyu/jupiter/pkg/conf"
+	"github.com/douyu/jupiter/pkg/defers"
 	"github.com/douyu/jupiter/pkg/util/xcolor"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -102,6 +104,13 @@ func newLogger(config *Config) *Logger {
 		ws = os.Stdout
 	} else {
 		ws = zapcore.AddSync(newRotate(config))
+	}
+
+	if config.Async {
+		var close CloseFunc
+		ws, close = Buffer(ws, defaultBufferSize, defaultFlushInterval)
+
+		defers.Register(close)
 	}
 
 	lv := zap.NewAtomicLevelAt(zapcore.InfoLevel)
@@ -356,6 +365,7 @@ func (logger *Logger) Fatal(msg string, fields ...Field) {
 	if logger.IsDebugMode() {
 		panicDetail(msg, fields...)
 		msg = normalizeMessage(msg)
+		return
 	}
 	logger.desugar.Fatal(msg, fields...)
 }
@@ -381,9 +391,13 @@ func panicDetail(msg string, fields ...Field) {
 
 	// 控制台输出
 	fmt.Printf("%s: \n    %s: %s\n", xcolor.Red("panic"), xcolor.Red("msg"), msg)
+	if _, file, line, ok := runtime.Caller(3); ok {
+		fmt.Printf("    %s: %s:%d\n", xcolor.Red("loc"), file, line)
+	}
 	for key, val := range enc.Fields {
 		fmt.Printf("    %s: %s\n", xcolor.Red(key), fmt.Sprintf("%+v", val))
 	}
+
 }
 
 // With ...

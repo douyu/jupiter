@@ -48,6 +48,16 @@ func FieldName(value string) Field {
 	return String("name", value)
 }
 
+// FieldType ...
+func FieldType(value string) Field {
+	return String("type", value)
+}
+
+// FieldCode ...
+func FieldCode(value int32) Field {
+	return Int32("code", value)
+}
+
 // 耗时时间
 func FieldCost(value time.Duration) Field {
 	return String("cost", fmt.Sprintf("%.3f", float64(value.Round(time.Microsecond))/float64(time.Millisecond)))
@@ -83,6 +93,11 @@ func FieldErr(err error) Field {
 	return zap.Error(err)
 }
 
+// FieldErr ...
+func FieldStringErr(err string) Field {
+	return String("err", err)
+}
+
 // FieldExtMessage ...
 func FieldExtMessage(vals ...interface{}) Field {
 	return zap.Any("ext", vals)
@@ -96,4 +111,9 @@ func FieldStack(value []byte) Field {
 // FieldMethod ...
 func FieldMethod(value string) Field {
 	return String("method", value)
+}
+
+// FieldEvent ...
+func FieldEvent(value string) Field {
+	return String("event", value)
 }

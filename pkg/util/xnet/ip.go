@@ -15,8 +15,8 @@
 package xnet
 
 import (
+	"errors"
 	"fmt"
-	"log"
 	"net"
 )
 
@@ -24,7 +24,6 @@ import (
 func GetLocalIP() (string, error) {
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
-		log.Println(err)
 		return "", err
 	}
 	for _, addr := range addrs {
@@ -34,7 +33,20 @@ func GetLocalIP() (string, error) {
 			}
 		}
 	}
-	panic("unable to determine locla ip")
+	return "", errors.New("unable to determine locla ip")
+}
+
+// GetLocalIP ...
+func GetLocalMainIP() (string, int, error) {
+	// UDP Connect, no handshake
+	conn, err := net.Dial("udp", "8.8.8.8:8")
+	if err != nil {
+		return "", 0, err
+	}
+	defer conn.Close()
+	localAddr := conn.LocalAddr().(*net.UDPAddr)
+
+	return localAddr.IP.String(), localAddr.Port, nil
 }
 
 // GetMacAddrs ...

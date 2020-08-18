@@ -1,0 +1,8 @@
+[jupiter.etcdv3.default]
+   endpoints=["127.0.0.1:2379"]
+   secure = false
+
+[jupiter.registry.test]
+    configKey="jupiter.etcdv3.default"
+    timeout = "1s"
+    service_ttl = "5s"

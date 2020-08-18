@@ -60,38 +60,34 @@ func ParallelWithErrorChan(fns ...func() error) chan error {
 // returns a chan of errors.
 func RestrictParallelWithErrorChan(concurrency int, fns ...func() error) chan error {
 	total := len(fns)
-
 	if concurrency <= 0 {
 		concurrency = 1
 	}
-
 	if concurrency > total {
 		concurrency = total
 	}
-
 	var wg sync.WaitGroup
-	wg.Add(total)
-
 	errs := make(chan error, total)
-	sem := make(chan struct{}, concurrency)
-	go func(sem chan struct{}, errs chan error) {
+	jobs := make(chan func() error, concurrency)
+	wg.Add(concurrency)
+	for i := 0; i < concurrency; i++ {
+		//consumer
+		go func(jobs chan func() error, errs chan error) {
+			defer wg.Done()
+			for fn := range jobs {
+				errs <- try(fn, nil)
+			}
+		}(jobs, errs)
+	}
+	go func(errs chan error) {
+		//producer
+		for _, fn := range fns {
+			jobs <- fn
+		}
+		close(jobs)
+		//wait for block errs
 		wg.Wait()
 		close(errs)
-		close(sem)
-	}(sem, errs)
-
-	for _, fn := range fns {
-		go func(fn func() error, sem chan struct{}, errs chan error) {
-			defer wg.Done()
-			<-sem
-			errs <- try(fn, nil)
-			sem <- struct{}{}
-		}(fn, sem, errs)
-	}
-
-	for i := 0; i < cap(sem); i++ {
-		sem <- struct{}{}
-	}
-
+	}(errs)
 	return errs
 }

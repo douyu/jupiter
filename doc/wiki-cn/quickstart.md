@@ -102,7 +102,7 @@ func main() {
     app := &MyApplication{}
     app.Startup()
     app.SetRegistry(
-        etcdv3.DefaultConfig().BuildRegistry(),
+        etcdv3.DefaultConfig().Build(),
     )
     app.Run()
 }
@@ -119,8 +119,8 @@ func main() {
     app.Startup()
     app.SetRegistry( // 多注册中心
 		compound.New(
-			etcdv3.StdConfig("bj01").BuildRegistry(),  // 读取配置文件中 jupiter.etcdv3.bj01的配置，自动初始化一个etcd registry
-			etcdv3.StdConfig("bj02").BuildRegistry(),  // 读取配置文件中 jupiter.etcdv3.bj02的配置，自动初始化一个etcd registry
+			etcdv3.StdConfig("bj01").Build(),  // 读取配置文件中 jupiter.etcdv3.bj01的配置，自动初始化一个etcd registry
+			etcdv3.StdConfig("bj02").Build(),  // 读取配置文件中 jupiter.etcdv3.bj02的配置，自动初始化一个etcd registry
 		),
 	)
     app.Run()
@@ -157,15 +157,7 @@ func dialServer() {
 ```golang
 // 1. 注册一个resolver
 func init() {
-	resolver.Register(etcdv3.Config{
-		ReadTimeout: time.Second * 3,
-		Prefix:  "jupiter",
-		Config: &clientEtcdv3.Config{
-			Endpoints: []string{"127.0.0.1:2379"},
-			ConnectTimeout:   time.Second * 3,
-			Secure:    false,
-		},
-	}.BuildResolver())
+	resolver.Register("etcd", etcdv3.StdConfig("wh").Build())
 }
 // 2. 通过resolver获取服务器地址
 func dialServer() {

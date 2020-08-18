@@ -1,8 +1,23 @@
+// Copyright 2020 Douyu
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package gorm
 
 import (
 	"context"
 	"fmt"
+	"github.com/douyu/jupiter/pkg/metric"
 	"strconv"
 	"time"
 
@@ -40,13 +55,18 @@ func metricInterceptor(dsn *DSN, op string, options *Config) func(Handler) Handl
 
 			// error metric
 			if scope.HasError() {
+				metric.LibHandleCounter.WithLabelValues(metric.TypeGorm, dsn.DBName+"."+scope.TableName(), dsn.Addr, "ERR").Inc()
 				// todo sql语句，需要转换成脱密状态才能记录到日志
 				if scope.DB().Error != ErrRecordNotFound {
 					options.logger.Error("mysql err", xlog.FieldErr(scope.DB().Error), xlog.FieldName(dsn.DBName+"."+scope.TableName()), xlog.FieldMethod(op))
 				} else {
 					options.logger.Warn("record not found", xlog.FieldErr(scope.DB().Error), xlog.FieldName(dsn.DBName+"."+scope.TableName()), xlog.FieldMethod(op))
 				}
+			} else {
+				metric.LibHandleCounter.Inc(metric.TypeGorm, dsn.DBName+"."+scope.TableName(), dsn.Addr, "OK")
 			}
+
+			metric.LibHandleHistogram.WithLabelValues(metric.TypeGorm, dsn.DBName+"."+scope.TableName(), dsn.Addr).Observe(cost.Seconds())
 
 			if options.SlowThreshold > time.Duration(0) && options.SlowThreshold < cost {
 				options.logger.Error(
@@ -77,7 +97,7 @@ func traceInterceptor(dsn *DSN, op string, options *Config) func(Handler) Handle
 				if ctx, ok := val.(context.Context); ok {
 					span, _ := trace.StartSpanFromContext(
 						ctx,
-						op,
+						"GORM", // TODO this op value is op or GORM
 						trace.TagComponent("mysql"),
 						trace.TagSpanKind("client"),
 					)
@@ -90,7 +110,9 @@ func traceInterceptor(dsn *DSN, op string, options *Config) func(Handler) Handle
 					span.SetTag("sql.addr", dsn.Addr)
 					span.SetTag("span.kind", "client")
 					span.SetTag("peer.service", "mysql")
-					span.LogFields(trace.String("sql.query", logSQL(scope.SQL, scope.SQLVars, options.DetailSQL)))
+					span.SetTag("db.instance", dsn.DBName)
+					span.SetTag("peer.address", dsn.Addr)
+					span.SetTag("peer.statement", logSQL(scope.SQL, scope.SQLVars, options.DetailSQL))
 					return
 				}
 			}

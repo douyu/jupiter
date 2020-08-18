@@ -16,9 +16,13 @@ package xecho
 
 import (
 	"context"
+	"net/http"
 	"os"
 
-	"github.com/douyu/jupiter/pkg"
+	"net"
+
+	"github.com/douyu/jupiter/pkg/constant"
+	"github.com/douyu/jupiter/pkg/ecode"
 	"github.com/douyu/jupiter/pkg/server"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/labstack/echo/v4"
@@ -27,13 +31,20 @@ import (
 // Server ...
 type Server struct {
 	*echo.Echo
-	config *Config
+	config   *Config
+	listener net.Listener
 }
 
 func newServer(config *Config) *Server {
+	listener, err := net.Listen("tcp", config.Address())
+	if err != nil {
+		config.logger.Panic("new xecho server err", xlog.FieldErrKind(ecode.ErrKindListenErr), xlog.FieldErr(err))
+	}
+	config.Port = listener.Addr().(*net.TCPAddr).Port
 	return &Server{
-		Echo:   echo.New(),
-		config: config,
+		Echo:     echo.New(),
+		config:   config,
+		listener: listener,
 	}
 }
 
@@ -44,9 +55,16 @@ func (s *Server) Serve() error {
 	s.Echo.HideBanner = true
 	s.Echo.StdLogger = xlog.JupiterLogger.StdLog()
 	for _, route := range s.Echo.Routes() {
-		s.config.logger.Info("echo add route", xlog.FieldMethod(route.Method), xlog.String("path", route.Path))
+		s.config.logger.Info("add route", xlog.FieldMethod(route.Method), xlog.String("path", route.Path))
 	}
-	return s.Echo.Start(s.config.Address())
+	s.Echo.Listener = s.listener
+	err := s.Echo.Start("")
+	if err != http.ErrServerClosed {
+		return err
+	}
+
+	s.config.logger.Info("close echo", xlog.FieldAddr(s.config.Address()))
+	return nil
 }
 
 // Stop implements server.Server interface
@@ -62,19 +80,12 @@ func (s *Server) GracefulStop(ctx context.Context) error {
 }
 
 // Info returns server info, used by governor and consumer balancer
-// TODO(gorexlv): implements government protocol with juno
 func (s *Server) Info() *server.ServiceInfo {
-	return &server.ServiceInfo{
-		Name:      pkg.Name(),
-		Scheme:    "http",
-		IP:        s.config.Host,
-		Port:      s.config.Port,
-		Weight:    0.0,
-		Enable:    false,
-		Healthy:   false,
-		Metadata:  map[string]string{},
-		Region:    "",
-		Zone:      "",
-		GroupName: "",
-	}
+	info := server.ApplyOptions(
+		server.WithScheme("http"),
+		server.WithAddress(s.listener.Addr().String()),
+		server.WithKind(constant.ServiceProvider),
+	)
+	// info.Name = info.Name + "." + ModName
+	return &info
 }
