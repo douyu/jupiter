@@ -210,7 +210,7 @@ func (reg *etcdv3Registry) registerMetric(ctx context.Context, info *server.Serv
 		return nil
 	}
 
-	metric := "/prometheus/job/%s/%s"
+	metric := "/prometheus/job/%s/%s/%s"
 
 	if _, ok := ctx.Deadline(); !ok {
 		var cancel context.CancelFunc
@@ -218,8 +218,8 @@ func (reg *etcdv3Registry) registerMetric(ctx context.Context, info *server.Serv
 		defer cancel()
 	}
 
-	key := fmt.Sprintf(metric, info.Name, pkg.HostName())
 	val := info.Address
+	key := fmt.Sprintf(metric, info.Name, pkg.HostName(), val)
 
 	opOptions := make([]clientv3.OpOption, 0)
 	// opOptions = append(opOptions, clientv3.WithSerializable())

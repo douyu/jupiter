@@ -32,10 +32,9 @@ func main() {
 	eng := NewEngine()
 	eng.SetRegistry(
 		compound_registry.New(
-			etcdv3_registry.StdConfig("wh").BuildRegistry(),
+			etcdv3_registry.StdConfig("wh").Build(),
 		),
 	)
-	eng.SetGovernor("127.0.0.1:9999")
 	if err := eng.Run(); err != nil {
 		xlog.Error(err.Error())
 	}
@@ -55,7 +54,7 @@ func NewEngine() *Engine {
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
 			defer cancel()
 			// 添加数据
-			_, err := client.Put(ctx, fmt.Sprintf("/prometheus/job/%s/%s", "jupiter", "monitor-demo"), "127.0.0.1:9999")
+			_, err := client.Put(ctx, fmt.Sprintf("/prometheus/job/%s/%s/%s", "jupiter", "monitor-demo", "127.0.0.1:9999"), "127.0.0.1:9999")
 			if err != nil {
 				xlog.Panic(err.Error())
 			}
