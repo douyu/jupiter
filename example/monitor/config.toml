@@ -1,0 +1,9 @@
+[jupiter.server.grpc]
+    port = 9091
+[jupiter.registry.wh]
+    connectTimeout = "1s"
+    endpoints=["127.0.0.1:2379"]
+    secure = false
+[jupiter.etcdv3.myetcd]
+    endpoints = ["127.0.0.1:2379"]
+    connectTimeout = "10s"
