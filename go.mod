@@ -19,6 +19,8 @@ require (
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-redis/redis v6.15.8+incompatible
 	github.com/go-resty/resty/v2 v2.2.0
+	github.com/go-sql-driver/mysql v1.5.0
+	github.com/go-xorm/xorm v0.7.9
 	github.com/gogf/gf v1.13.3
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
 	github.com/golang/protobuf v1.4.2
@@ -59,4 +61,5 @@ require (
 	google.golang.org/genproto v0.0.0-20191108220845-16a3f7862a1a
 	google.golang.org/grpc v1.26.0
 	sigs.k8s.io/yaml v1.1.0 // indirect
+	xorm.io/core v0.7.2-0.20190928055935-90aeac8d08eb
 )
