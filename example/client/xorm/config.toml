@@ -1,0 +1,7 @@
+[jupiter.mysql.test]
+   debug = true
+   showSql = true
+   dsn = "root:root@tcp(127.0.0.1:3306)/test?charset=utf8&parseTime=True&loc=Local&readTimeout=1s&timeout=1s&writeTimeout=3s"
+   level = "panic"
+   maxIdleConns = 2
+   maxOpenConns = 5
