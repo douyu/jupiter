@@ -104,6 +104,9 @@ func (config *Config) WithParser(parser Parser) Config {
 func (config Config) Build() *Cron {
 	if config.WithSeconds {
 		config.parser = cron.NewParser(cron.Second | cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow | cron.Descriptor)
+	} else {
+		// default parser
+		config.parser = cron.NewParser(cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow | cron.Descriptor)
 	}
 
 	if config.ConcurrentDelay > 0 { // 延迟
