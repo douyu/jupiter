@@ -1,0 +1,9 @@
+[jupiter.sentinel]
+[jupiter.sentinel.test]
+appName="test-app"
+logPath="/tmp/sentinel/log"
+[[jupiter.sentinel.test.flowRules]]
+resource="some-test"
+metricType =1 # flow.QPS
+count=10
+controlBehavior = 0 # flow.Reject

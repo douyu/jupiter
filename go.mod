@@ -6,7 +6,7 @@ require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/alibaba/sentinel-golang v0.4.0
-	github.com/apache/rocketmq-client-go v0.0.0-20191211114916-85ee94b43cef
+	github.com/apache/rocketmq-client-go/v2 v2.0.0
 	github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd // indirect
 	github.com/codegangsta/inject v0.0.0-20150114235600-33e0aa1cb7c0
 	github.com/coreos/etcd v3.3.22+incompatible
@@ -17,6 +17,7 @@ require (
 	github.com/flosch/pongo2 v0.0.0-20200518135938-dfb43dbdc22a
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/gin-gonic/gin v1.6.3
+	github.com/globalsign/mgo v0.0.0-20181015135952-eeefdecb41b8
 	github.com/go-redis/redis v6.15.8+incompatible
 	github.com/go-resty/resty/v2 v2.2.0
 	github.com/gogf/gf v1.13.3
@@ -26,6 +27,7 @@ require (
 	github.com/gorilla/websocket v1.4.2
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.1-0.20190118093823-f849b5445de4 // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
+	github.com/grpc-ecosystem/grpc-gateway v1.9.6 // indirect
 	github.com/jinzhu/gorm v1.9.12
 	github.com/json-iterator/go v1.1.10
 	github.com/kr/pretty v0.2.0 // indirect
@@ -40,6 +42,7 @@ require (
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/sirupsen/logrus v1.6.0 // indirect
 	github.com/smallnest/weighted v0.0.0-20200122032019-adf21c9b8bd1
+	github.com/smartystreets/assertions v0.0.0-20190401211740-f487f9de1cd3 // indirect
 	github.com/smartystreets/goconvey v1.6.4
 	github.com/spf13/cast v1.3.1
 	github.com/stretchr/testify v1.6.1
@@ -55,8 +58,10 @@ require (
 	golang.org/x/crypto v0.0.0-20200728195943-123391ffb6de // indirect
 	golang.org/x/sync v0.0.0-20200625203802-6e8e738ad208
 	golang.org/x/sys v0.0.0-20200805065543-0cf7623e9dbd // indirect
+	golang.org/x/text v0.3.3 // indirect
 	golang.org/x/tools v0.0.0-20200728235236-e8769ccb4337 // indirect
 	google.golang.org/genproto v0.0.0-20191108220845-16a3f7862a1a
 	google.golang.org/grpc v1.26.0
+	gopkg.in/mgo.v2 v2.0.0-20180705113604-9856a29383ce
 	sigs.k8s.io/yaml v1.1.0 // indirect
 )

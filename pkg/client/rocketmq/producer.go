@@ -15,14 +15,58 @@
 package rocketmq
 
 import (
+	"context"
 	"time"
 
-	"github.com/apache/rocketmq-client-go"
-	"github.com/apache/rocketmq-client-go/primitive"
-	"github.com/apache/rocketmq-client-go/producer"
-	"github.com/douyu/jupiter/pkg/conf"
+	"github.com/apache/rocketmq-client-go/v2"
+	"github.com/apache/rocketmq-client-go/v2/primitive"
+	"github.com/apache/rocketmq-client-go/v2/producer"
+	"github.com/douyu/jupiter/pkg/defers"
+	"github.com/douyu/jupiter/pkg/istats"
+	"github.com/douyu/jupiter/pkg/util/xdebug"
 	"github.com/douyu/jupiter/pkg/xlog"
 )
+
+type Producer struct {
+	rocketmq.Producer
+	name string
+	ProducerConfig
+	interceptors []primitive.Interceptor
+	fInfo        FlowInfo
+}
+
+func StdNewProducer(name string) *Producer {
+	return NewProducer(name, StdProducerConfig(name))
+}
+
+func NewProducer(name string, conf ProducerConfig) *Producer {
+	if _, ok := _producers.Load(name); ok {
+		xlog.Panic("duplicated load", xlog.String("name", name))
+	}
+
+	if xdebug.IsDevelopmentMode() {
+		xdebug.PrettyJsonPrint("rocketmq's config: "+name, conf)
+	}
+
+	cc := &Producer{
+		name:           name,
+		ProducerConfig: conf,
+		interceptors:   []primitive.Interceptor{},
+		fInfo: FlowInfo{
+			FlowInfoBase: istats.NewFlowInfoBase(conf.Shadow.Mode),
+			Name:         name,
+			Addr:         conf.Addr,
+			Topic:        conf.Topic,
+			Group:        conf.Group,
+			GroupType:    "producer",
+		},
+	}
+
+	cc.interceptors = append(cc.interceptors, producerDefaultInterceptor(cc), producerMDInterceptor(cc), producerShadowInterceptor(cc, conf.Shadow))
+
+	_producers.Store(name, cc)
+	return cc
+}
 
 // ProducerConfig producer config
 type ProducerConfig struct {
@@ -32,59 +76,117 @@ type ProducerConfig struct {
 	Retry       int           `json:"retry" toml:"retry"`
 	DialTimeout time.Duration `json:"dialTimeout" toml:"dialTimeout"`
 	RwTimeout   time.Duration `json:"rwTimeout" toml:"rwTimeout"`
-
-	interceptors []primitive.Interceptor
+	Shadow      Shadow        `json:"shadow" toml:"shadow"`
+	AccessKey   string        `json:"accessKey" toml:"accessKey"`
+	SecretKey   string        `json:"secretKey" toml:"secretKey"`
 }
 
-// StdProducerConfig ...
-func StdProducerConfig(name string) ProducerConfig {
-	return RawProducerConfig("jupiter.rocketmq." + name + ".producer")
-}
-
-// RawProducerConfig ...
-func RawProducerConfig(key string) ProducerConfig {
-	var config = DefaultProducerConfig()
-	if err := conf.UnmarshalKey(key, &config); err != nil {
-		xlog.Panic("unmarshal config", xlog.String("key", key))
-	}
-
-	return config
-}
-
-// DefaultProducerConfig ...
-func DefaultProducerConfig() ProducerConfig {
-	return ProducerConfig{
-		Retry:        3,
-		DialTimeout:  time.Second * 3,
-		RwTimeout:    0,
-		interceptors: make([]primitive.Interceptor, 0),
-	}
-}
-
-// Build ...
-func (config ProducerConfig) Build() (rocketmq.Producer, error) {
+func (pc *Producer) Start() error {
 	// 兼容配置
 	client, err := rocketmq.NewProducer(
-		producer.WithNameServer(config.Addr),
-		producer.WithRetry(config.Retry),
-		producer.WithInterceptor(),
+		producer.WithNameServer(pc.Addr),
+		producer.WithRetry(pc.Retry),
+		producer.WithInterceptor(pc.interceptors...),
+		producer.WithInstanceName(pc.name),
+		producer.WithCredentials(primitive.Credentials{
+			AccessKey: pc.AccessKey,
+			SecretKey: pc.SecretKey,
+		}),
 	)
-	if err != nil {
-		return nil, err
+	if err != nil || client == nil {
+		xlog.Panic("create producer",
+			xlog.FieldName(pc.name),
+			xlog.FieldExtMessage(pc.ProducerConfig),
+			xlog.Any("error", err),
+		)
 	}
 
 	if err := client.Start(); err != nil {
-		return nil, err
+		xlog.Panic("start producer",
+			xlog.FieldName(pc.name),
+			xlog.FieldExtMessage(pc.ProducerConfig),
+			xlog.Any("error", err),
+		)
 	}
 
-	return client, err
+	pc.Producer = client
+	// 在应用退出的时候，保证注销
+	defers.Register(pc.Close)
+	return nil
 }
 
-// WithInterceptor ...
-func (config *ProducerConfig) WithInterceptor(fs ...primitive.Interceptor) *ProducerConfig {
-	if config.interceptors == nil {
-		config.interceptors = make([]primitive.Interceptor, 0)
+func (pc *Producer) WithInterceptor(fs ...primitive.Interceptor) *Producer {
+	pc.interceptors = append(pc.interceptors, fs...)
+	return pc
+}
+
+func (pc *Producer) Close() error {
+	err := pc.Shutdown()
+	if err != nil {
+		xlog.Warn("consumer close fail", xlog.Any("error", err.Error()))
+		return err
 	}
-	config.interceptors = append(config.interceptors, fs...)
-	return config
+	return nil
+}
+
+// Send rocketmq发送消息
+func (pc *Producer) Send(msg []byte) error {
+	m := primitive.NewMessage(pc.Topic, msg)
+	_, err := pc.SendSync(context.Background(), m)
+	if err != nil {
+		xlog.Error("send message error", xlog.Any("msg", msg))
+		return err
+	}
+	return nil
+}
+
+// SendWithContext 发送消息
+func (pc *Producer) SendWithContext(ctx context.Context, msg []byte) error {
+	m := primitive.NewMessage(pc.Topic, msg)
+	_, err := pc.SendSync(ctx, m)
+	if err != nil {
+		xlog.Error("send message error", xlog.Any("msg", msg))
+		return err
+	}
+	return nil
+}
+
+// SendWithTag rocket mq 发送消息,可以自定义选择 tag
+func (pc *Producer) SendWithTag(msg []byte, tag string) error {
+	m := primitive.NewMessage(pc.Topic, msg)
+	if tag != "" {
+		m.WithTag(tag)
+	}
+
+	_, err := pc.SendSync(context.Background(), m)
+	if err != nil {
+		xlog.Error("send message error", xlog.Any("msg", msg))
+		return err
+	}
+	return nil
+}
+
+// SendWithResult rocket mq 发送消息,可以自定义选择 tag 及返回结果
+func (pc *Producer) SendWithResult(msg []byte, tag string) (*primitive.SendResult, error) {
+	m := primitive.NewMessage(pc.Topic, msg)
+	if tag != "" {
+		m.WithTag(tag)
+	}
+
+	res, err := pc.SendSync(context.Background(), m)
+	if err != nil {
+		xlog.Error("send message error", xlog.Any("msg", msg))
+		return res, err
+	}
+	return res, nil
+}
+
+// SendMsg... 自定义消息格式
+func (pc *Producer) SendMsg(msg *primitive.Message) (*primitive.SendResult, error) {
+	res, err := pc.SendSync(context.Background(), msg)
+	if err != nil {
+		xlog.Error("send message error", xlog.Any("msg", msg))
+		return res, err
+	}
+	return res, nil
 }

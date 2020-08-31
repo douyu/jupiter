@@ -1,0 +1,14 @@
+[jupiter.rocketmq]
+[jupiter.rocketmq.configName]
+[jupiter.rocketmq.configName.consumer]
+enable = true
+addr = ["127.0.0.1:9876"]
+group = "test_group"
+topic = "test_topic"
+subExpression = "*"
+rate = 1
+capacity = 1
+[jupiter.rocketmq.configName.producer]
+addr = ["127.0.0.1:9876"]
+group = "test_group"
+topic = "test_topic"

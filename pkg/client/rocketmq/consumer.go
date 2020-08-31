@@ -16,113 +16,133 @@ package rocketmq
 
 import (
 	"context"
-	"time"
 
-	"github.com/apache/rocketmq-client-go"
-	"github.com/apache/rocketmq-client-go/consumer"
-	"github.com/apache/rocketmq-client-go/primitive"
-	"github.com/douyu/jupiter/pkg/conf"
+	"github.com/apache/rocketmq-client-go/v2"
+	"github.com/apache/rocketmq-client-go/v2/consumer"
+	"github.com/apache/rocketmq-client-go/v2/primitive"
+	"github.com/douyu/jupiter/pkg/defers"
+	"github.com/douyu/jupiter/pkg/istats"
 	"github.com/douyu/jupiter/pkg/xlog"
 )
 
-// ConsumerConfig consumer config
-type ConsumerConfig struct {
-	Enable          bool          `json:"enable" toml:"enable"`
-	Addr            []string      `json:"addr" toml:"addr"`
-	Topic           string        `json:"topic" toml:"topic"`
-	Group           string        `json:"group" toml:"group"`
-	DialTimeout     time.Duration `json:"dialTimeout" toml:"dialTimeout"`
-	RwTimeout       time.Duration `json:"rwTimeout" toml:"rwTimeout"`
-	SubExpression   string        `json:"subExpression" toml:"subExpression"`
-	Rate            float64       `json:"rate" toml:"rate"`
-	Capacity        int64         `json:"capacity" toml:"capacity"`
-	WaitMaxDuration time.Duration `json:"waitMaxDuration" toml:"waitMaxDuration"`
+type PushConsumer struct {
+	rocketmq.PushConsumer
+	name string
+	ConsumerConfig
 
 	subscribers  map[string]func(context.Context, ...*primitive.MessageExt) (consumer.ConsumeResult, error)
 	interceptors []primitive.Interceptor
+	fInfo        FlowInfo
 }
 
-// StdPushConsumerConfig ...
-func StdPushConsumerConfig(name string) ConsumerConfig {
-	return RawConsumerConfig("jupiter.rocketmq." + name + ".consumer")
-}
-
-// RawConsumerConfig 返回配置
-func RawConsumerConfig(key string) ConsumerConfig {
-	var config = DefaultConsumerConfig()
-	if err := conf.UnmarshalKey(key, &config); err != nil {
-		xlog.Panic("unmarshal config", xlog.String("key", key), xlog.Any("config", config))
+func NewPushConsumer(name string, conf ConsumerConfig) *PushConsumer {
+	if _, ok := _consumers.Load(name); ok {
+		xlog.Panic("duplicated load", xlog.String("name", name))
 	}
 
-	return config
+	xlog.Debug("rocketmq's config: ", xlog.String("name", name), xlog.Any("conf", conf))
+
+	cc := &PushConsumer{
+		name:           name,
+		ConsumerConfig: conf,
+		subscribers:    make(map[string]func(context.Context, ...*primitive.MessageExt) (consumer.ConsumeResult, error)),
+		interceptors:   []primitive.Interceptor{},
+		fInfo: FlowInfo{
+			FlowInfoBase: istats.NewFlowInfoBase(conf.Shadow.Mode),
+			Name:         name,
+			Addr:         conf.Addr,
+			Topic:        conf.Topic,
+			Group:        conf.Group,
+			GroupType:    "consumer",
+		},
+	}
+	cc.interceptors = append(cc.interceptors, pushConsumerDefaultInterceptor(cc), pushConsumerMDInterceptor(cc), pushConsumerShadowInterceptor(cc, conf.Shadow))
+
+	_consumers.Store(name, cc)
+	return cc
 }
 
-// DefaultConsumerConfig ...
-func DefaultConsumerConfig() ConsumerConfig {
-	return ConsumerConfig{
-		DialTimeout:  time.Second * 3,
-		RwTimeout:    time.Second * 10,
-		subscribers:  make(map[string]func(context.Context, ...*primitive.MessageExt) (consumer.ConsumeResult, error)),
-		interceptors: make([]primitive.Interceptor, 0),
+func (cc *PushConsumer) Close() error {
+	err := cc.Shutdown()
+	if err != nil {
+		xlog.Warn("consumer close fail", xlog.Any("error", err.Error()))
+		return err
 	}
+	return nil
 }
 
-// WithSubscribe ...
-func (config *ConsumerConfig) WithSubscribe(topic string, f func(context.Context, *primitive.MessageExt) error) *ConsumerConfig {
-	if config.subscribers == nil {
-		config.subscribers = make(map[string]func(context.Context, ...*primitive.MessageExt) (consumer.ConsumeResult, error))
-	}
+func (cc *PushConsumer) WithInterceptor(fs ...primitive.Interceptor) *PushConsumer {
+	cc.interceptors = append(cc.interceptors, fs...)
+	return cc
+}
 
-	if _, ok := config.subscribers[topic]; ok {
+func (cc *PushConsumer) Subscribe(topic string, f func(context.Context, *primitive.MessageExt) error) *PushConsumer {
+	if _, ok := cc.subscribers[topic]; ok {
 		xlog.Panic("duplicated subscribe", xlog.String("topic", topic))
 	}
-
 	fn := func(ctx context.Context, msgs ...*primitive.MessageExt) (consumer.ConsumeResult, error) {
 		for _, msg := range msgs {
 			err := f(ctx, msg)
 			if err != nil {
-				xlog.Error("consumer message", xlog.Any("err", err), xlog.Any("msg", msg))
+				xlog.Error("consumer message", xlog.String("err", err.Error()), xlog.String("field", cc.name), xlog.Any("ext", msg))
 				return consumer.ConsumeRetryLater, err
 			}
 		}
 
 		return consumer.ConsumeSuccess, nil
 	}
-	config.subscribers[topic] = fn
-	return config
+	cc.subscribers[topic] = fn
+	return cc
 }
 
-// WithInterceptor ...
-func (config *ConsumerConfig) WithInterceptor(fs ...primitive.Interceptor) *ConsumerConfig {
-	if config.interceptors == nil {
-		config.interceptors = make([]primitive.Interceptor, 0)
-	}
-	config.interceptors = append(config.interceptors, fs...)
-	return config
-}
-
-// Build ...
-func (config *ConsumerConfig) Build() (rocketmq.PushConsumer, error) {
+func (cc *PushConsumer) Start() error {
 	// 初始化 PushConsumer
 	client, err := rocketmq.NewPushConsumer(
-		consumer.WithGroupName(config.Group),
-		consumer.WithNameServer(config.Addr),
-		consumer.WithInterceptor(config.interceptors...),
+		consumer.WithGroupName(cc.Group),
+		consumer.WithNameServer(cc.Addr),
+		consumer.WithMaxReconsumeTimes(cc.Reconsume),
+		consumer.WithInterceptor(cc.interceptors...),
+		consumer.WithCredentials(primitive.Credentials{
+			AccessKey: cc.AccessKey,
+			SecretKey: cc.SecretKey,
+		}),
 	)
+	cc.PushConsumer = client
 
-	if err != nil {
-		return nil, err
+	selector := consumer.MessageSelector{
+		Type:       consumer.TAG,
+		Expression: "",
+	}
+	if cc.ConsumerConfig.SubExpression != "*" {
+		selector.Expression = cc.ConsumerConfig.SubExpression
 	}
 
-	for topic, fn := range config.subscribers {
-		if err := client.Subscribe(topic, consumer.MessageSelector{}, fn); err != nil {
-			return client, err
+	for topic, fn := range cc.subscribers {
+		if err := cc.PushConsumer.Subscribe(topic, selector, fn); err != nil {
+			return err
 		}
 	}
 
-	if err := client.Start(); err != nil {
-		return nil, err
+	if err != nil || client == nil {
+		xlog.Panic("create consumer",
+			xlog.FieldName(cc.name),
+			xlog.FieldExtMessage(cc.ConsumerConfig),
+			xlog.Any("error", err),
+		)
 	}
 
-	return client, err
+	if cc.Enable {
+		if err := client.Start(); err != nil {
+			xlog.Panic("start consumer",
+				xlog.FieldName(cc.name),
+				xlog.FieldExtMessage(cc.ConsumerConfig),
+				xlog.Any("error", err),
+			)
+			return err
+		}
+		// 在应用退出的时候，保证注销
+		defers.Register(cc.Close)
+	}
+
+	return nil
 }

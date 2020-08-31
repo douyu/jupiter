@@ -16,8 +16,13 @@ package xdebug
 
 import (
 	"flag"
+	"fmt"
 	"os"
 	"sync"
+
+	"github.com/douyu/jupiter/pkg/util/xcolor"
+	"github.com/douyu/jupiter/pkg/util/xstring"
+	"github.com/tidwall/pretty"
 
 	"github.com/douyu/jupiter/pkg/xlog"
 )
@@ -56,4 +61,18 @@ func IfPanic(err error) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+// PrettyJsonPrint ...
+func PrettyJsonPrint(message string, obj interface{}) {
+	if !IsDevelopmentMode() {
+		return
+	}
+	fmt.Printf("%s => %s\n",
+		xcolor.Red(message),
+		pretty.Color(
+			pretty.Pretty([]byte(xstring.PrettyJson(obj))),
+			pretty.TerminalStyle,
+		),
+	)
 }

@@ -16,10 +16,12 @@ package sentinel
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
 
 	sentinel "github.com/alibaba/sentinel-golang/api"
+	"github.com/alibaba/sentinel-golang/core/base"
 	"github.com/alibaba/sentinel-golang/core/flow"
 	"github.com/douyu/jupiter/pkg"
 	"github.com/douyu/jupiter/pkg/conf"
@@ -27,12 +29,20 @@ import (
 	"github.com/douyu/jupiter/pkg/xlog"
 )
 
+// StdConfig ...
+func StdConfig(name string) *Config {
+	return RawConfig("jupiter.sentinel." + name)
+}
+
 // RawConfig ...
 func RawConfig(key string) *Config {
 	var config = DefaultConfig()
 	if err := conf.UnmarshalKey(key, config); err != nil {
 		xlog.Panic("unmarshal key", xlog.Any("err", err))
 	}
+	fmt.Println("key:", key)
+
+	fmt.Println("config:", config)
 	return config
 }
 
@@ -78,6 +88,9 @@ func (config *Config) InitSentinelCoreComponent() error {
 	if len(config.FlowRules) > 0 {
 		_, _ = flow.LoadRules(config.FlowRules)
 	}
-
 	return sentinel.InitDefault()
+}
+
+func Entry(resource string) (*base.SentinelEntry, *base.BlockError) {
+	return sentinel.Entry(resource)
 }
