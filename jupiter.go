@@ -499,7 +499,7 @@ func (app *Application) initSentinel() error {
 	if conf.Get("jupiter.reliability.sentinel") != nil {
 		app.logger.Info("init sentinel")
 		return sentinel.RawConfig("jupiter.reliability.sentinel").
-			InitSentinelCoreComponent()
+			Build()
 	}
 	return nil
 }

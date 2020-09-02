@@ -67,3 +67,5 @@ coverage.html
 
 # customize ignore files
 configCacheDir
+
+example/*/*/config-local.toml

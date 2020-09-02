@@ -49,7 +49,7 @@ func main() {
 }
 
 func (eng *Engine) exampleRocketMQConsumer() (err error) {
-	consumerClient := rocketmq.NewPushConsumer("invokerx_topic_consumer", rocketmq.StdPushConsumerConfig("configName"))
+	consumerClient := rocketmq.StdPushConsumerConfig("configName").Build()
 	defer func() {
 		if consumerClient.Enable {
 			_ = consumerClient.Close()
@@ -66,7 +66,7 @@ func (eng *Engine) exampleRocketMQConsumer() (err error) {
 }
 
 func (eng *Engine) exampleRocketMQProducer() (err error) {
-	producerClient := rocketmq.NewProducer("test-mq-producer", rocketmq.StdProducerConfig("configName"))
+	producerClient := rocketmq.StdProducerConfig("configName").Build()
 	defer func() {
 		_ = producerClient.Close()
 	}()

@@ -16,7 +16,6 @@ package sentinel
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"os"
 
@@ -40,9 +39,6 @@ func RawConfig(key string) *Config {
 	if err := conf.UnmarshalKey(key, config); err != nil {
 		xlog.Panic("unmarshal key", xlog.Any("err", err))
 	}
-	fmt.Println("key:", key)
-
-	fmt.Println("config:", config)
 	return config
 }
 
@@ -67,7 +63,7 @@ func DefaultConfig() *Config {
 // Currently, only flow rules from json file is supported
 // todo: support dynamic rule config
 // todo: support more rule such as system rule
-func (config *Config) InitSentinelCoreComponent() error {
+func (config *Config) Build() error {
 	if config.FlowRulesFile != "" {
 		var rules []*flow.FlowRule
 		content, err := ioutil.ReadFile(config.FlowRulesFile)
