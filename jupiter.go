@@ -21,14 +21,18 @@ import (
 	"runtime"
 	"sync"
 
+	"github.com/BurntSushi/toml"
+
 	"github.com/douyu/jupiter/pkg/server/governor"
 	job "github.com/douyu/jupiter/pkg/worker/xjob"
 
-	"github.com/BurntSushi/toml"
 	"github.com/douyu/jupiter/pkg"
 	"github.com/douyu/jupiter/pkg/conf"
 
-	//go-lint
+	"go.uber.org/automaxprocs/maxprocs"
+	"golang.org/x/sync/errgroup"
+
+	// go-lint
 	_ "github.com/douyu/jupiter/pkg/datasource/file"
 	_ "github.com/douyu/jupiter/pkg/datasource/http"
 	"github.com/douyu/jupiter/pkg/datasource/manager"
@@ -46,15 +50,23 @@ import (
 	"github.com/douyu/jupiter/pkg/util/xgo"
 	"github.com/douyu/jupiter/pkg/worker"
 	"github.com/douyu/jupiter/pkg/xlog"
-	"go.uber.org/automaxprocs/maxprocs"
-	"golang.org/x/sync/errgroup"
 )
 
 const (
-	//StageAfterStop after app stop
+	// StageAfterStop after app stop
 	StageAfterStop uint32 = iota + 1
-	//StageBeforeStop before app stop
+	// StageBeforeStop before app stop
 	StageBeforeStop
+	// banner is the default application slogan
+	banner = `
+   (_)_   _ _ __ (_) |_ ___ _ __
+   | | | | | '_ \| | __/ _ \ '__|
+   | | |_| | |_) | | ||  __/ |
+  _/ |\__,_| .__/|_|\__\___|_|
+ |__/      |_|
+ 
+ Welcome to jupiter, starting application ...
+`
 )
 
 // Application is the framework's instance, it contains the servers, workers, client and configuration settings.
@@ -73,9 +85,10 @@ type Application struct {
 	hooks        map[uint32]*xdefer.DeferStack
 	configParser conf.Unmarshaller
 	disableMap   map[Disable]bool
+	banner       string
 }
 
-//New new a Application
+// New new a Application
 func New(fns ...func() error) (*Application, error) {
 	app := &Application{}
 	if err := app.Startup(fns...); err != nil {
@@ -90,7 +103,7 @@ func DefaultApp() *Application {
 	return app
 }
 
-//init hooks
+// init hooks
 func (app *Application) initHooks(hookKeys ...uint32) {
 	app.hooks = make(map[uint32]*xdefer.DeferStack, len(hookKeys))
 	for _, k := range hookKeys {
@@ -98,7 +111,7 @@ func (app *Application) initHooks(hookKeys ...uint32) {
 	}
 }
 
-//run hooks
+// run hooks
 func (app *Application) runHooks(k uint32) {
 	hooks, ok := app.hooks[k]
 	if ok {
@@ -106,7 +119,7 @@ func (app *Application) runHooks(k uint32) {
 	}
 }
 
-//RegisterHooks register a stage Hook
+// RegisterHooks register a stage Hook
 func (app *Application) RegisterHooks(k uint32, fns ...func() error) error {
 	hooks, ok := app.hooks[k]
 	if ok {
@@ -119,19 +132,27 @@ func (app *Application) RegisterHooks(k uint32, fns ...func() error) error {
 // initialize application
 func (app *Application) initialize() {
 	app.initOnce.Do(func() {
-		//assign
+		// assign default value
 		app.cycle = xcycle.NewCycle()
 		app.smu = &sync.RWMutex{}
 		app.servers = make([]server.Server, 0)
 		app.workers = make([]worker.Worker, 0)
 		app.jobs = make(map[string]job.Runner)
-		app.logger = xlog.JupiterLogger
-		app.configParser = toml.Unmarshal
-		app.disableMap = make(map[Disable]bool)
-		//private method
+		// assign optional default value
+		if app.disableMap == nil {
+			app.disableMap = make(map[Disable]bool)
+		}
+		if app.logger == nil {
+			app.logger = xlog.JupiterLogger
+		}
+		if app.configParser == nil {
+			app.configParser = toml.Unmarshal
+		}
+		// private method
 		app.initHooks(StageBeforeStop, StageAfterStop)
-		//public method
-		app.SetRegistry(registry.Nop{}) //default nop without registry
+		// public method
+		// default nop without registry
+		app.SetRegistry(registry.Nop{})
 	})
 }
 
@@ -157,7 +178,7 @@ func (app *Application) startup() (err error) {
 	return
 }
 
-//Startup ..
+// Startup ..
 func (app *Application) Startup(fns ...func() error) error {
 	app.initialize()
 	if err := app.startup(); err != nil {
@@ -234,9 +255,9 @@ func (app *Application) SetRegistry(reg registry.Registry) {
 
 // SetGovernor set governor addr (default 127.0.0.1:0)
 // Deprecated
-//func (app *Application) SetGovernor(addr string) {
+// func (app *Application) SetGovernor(addr string) {
 //	app.governorAddr = addr
-//}
+// }
 
 // Run run application
 func (app *Application) Run(servers ...server.Server) error {
@@ -244,7 +265,7 @@ func (app *Application) Run(servers ...server.Server) error {
 	app.servers = append(app.servers, servers...)
 	app.smu.Unlock()
 
-	app.waitSignals() //start signal listen task in goroutine
+	app.waitSignals() // start signal listen task in goroutine
 	defer app.clean()
 
 	// todo jobs not graceful
@@ -255,7 +276,7 @@ func (app *Application) Run(servers ...server.Server) error {
 	// start workers
 	app.cycle.Run(app.startWorkers)
 
-	//blocking and wait quit
+	// blocking and wait quit
 	if err := <-app.cycle.Wait(); err != nil {
 		app.logger.Error("jupiter shutdown with error", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err))
 		return err
@@ -264,7 +285,7 @@ func (app *Application) Run(servers ...server.Server) error {
 	return nil
 }
 
-//clean after app quit
+// clean after app quit
 func (app *Application) clean() {
 	_ = xlog.DefaultLogger.Flush()
 	_ = xlog.JupiterLogger.Flush()
@@ -281,7 +302,7 @@ func (app *Application) Stop() (err error) {
 				app.logger.Error("stop register close err", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err))
 			}
 		}
-		//stop servers
+		// stop servers
 		app.smu.RLock()
 		for _, s := range app.servers {
 			func(s server.Server) {
@@ -290,7 +311,7 @@ func (app *Application) Stop() (err error) {
 		}
 		app.smu.RUnlock()
 
-		//stop workers
+		// stop workers
 		for _, w := range app.workers {
 			func(w worker.Worker) {
 				app.cycle.Run(w.Stop)
@@ -314,7 +335,7 @@ func (app *Application) GracefulStop(ctx context.Context) (err error) {
 				app.logger.Error("stop register close err", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err))
 			}
 		}
-		//stop servers
+		// stop servers
 		app.smu.RLock()
 		for _, s := range app.servers {
 			func(s server.Server) {
@@ -325,7 +346,7 @@ func (app *Application) GracefulStop(ctx context.Context) (err error) {
 		}
 		app.smu.RUnlock()
 
-		//stop workers
+		// stop workers
 		for _, w := range app.workers {
 			func(w worker.Worker) {
 				app.cycle.Run(w.Stop)
@@ -341,8 +362,8 @@ func (app *Application) GracefulStop(ctx context.Context) (err error) {
 // waitSignals wait signal
 func (app *Application) waitSignals() {
 	app.logger.Info("init listen signal", xlog.FieldMod(ecode.ModApp), xlog.FieldEvent("init"))
-	signals.Shutdown(func(grace bool) { //when get shutdown signal
-		//todo: support timeout
+	signals.Shutdown(func(grace bool) { // when get shutdown signal
+		// todo: support timeout
 		if grace {
 			app.GracefulStop(context.TODO())
 		} else {
@@ -399,7 +420,7 @@ func (app *Application) startJobs() error {
 		return nil
 	}
 	var jobs = make([]func(), 0)
-	//warp jobs
+	// warp jobs
 	for name, runner := range app.jobs {
 		jobs = append(jobs, func() {
 			app.logger.Info("job run begin", xlog.FieldName(name))
@@ -412,7 +433,7 @@ func (app *Application) startJobs() error {
 	return nil
 }
 
-//parseFlags init
+// parseFlags init
 func (app *Application) parseFlags() error {
 	if app.isDisable(DisableParserFlag) {
 		app.logger.Info("parseFlags disable", xlog.FieldMod(ecode.ModApp))
@@ -445,7 +466,7 @@ func (app *Application) parseFlags() error {
 	return flag.Parse()
 }
 
-//loadConfig init
+// loadConfig init
 func (app *Application) loadConfig() error {
 	if app.isDisable(DisableLoadConfig) {
 		app.logger.Info("load config disable", xlog.FieldMod(ecode.ModConfig))
@@ -468,7 +489,7 @@ func (app *Application) loadConfig() error {
 	return nil
 }
 
-//initLogger init
+// initLogger init
 func (app *Application) initLogger() error {
 	if conf.Get("jupiter.logger.default") != nil {
 		xlog.DefaultLogger = xlog.RawConfig("jupiter.logger.default").Build()
@@ -483,7 +504,7 @@ func (app *Application) initLogger() error {
 	return nil
 }
 
-//initTracer init
+// initTracer init
 func (app *Application) initTracer() error {
 	// init tracing component jaeger
 	if conf.Get("jupiter.trace.jaeger") != nil {
@@ -493,7 +514,7 @@ func (app *Application) initTracer() error {
 	return nil
 }
 
-//initSentinel init
+// initSentinel init
 func (app *Application) initSentinel() error {
 	// init reliability component sentinel
 	if conf.Get("jupiter.reliability.sentinel") != nil {
@@ -504,7 +525,7 @@ func (app *Application) initSentinel() error {
 	return nil
 }
 
-//initMaxProcs init
+// initMaxProcs init
 func (app *Application) initMaxProcs() error {
 	if maxProcs := conf.GetInt("maxProc"); maxProcs != 0 {
 		runtime.GOMAXPROCS(maxProcs)
@@ -525,17 +546,15 @@ func (app *Application) isDisable(d Disable) bool {
 	return b
 }
 
-//printBanner init
+// printBanner init
 func (app *Application) printBanner() error {
-	const banner = `
-   (_)_   _ _ __ (_) |_ ___ _ __
-   | | | | | '_ \| | __/ _ \ '__|
-   | | |_| | |_) | | ||  __/ |
-  _/ |\__,_| .__/|_|\__\___|_|
- |__/      |_|
- 
- Welcome to jupiter, starting application ...
-`
-	fmt.Println(xcolor.Green(banner))
+	if app.isDisable(DisableBanner) {
+		return nil
+	}
+	if app.banner == "" {
+		fmt.Println(xcolor.Green(banner))
+	} else {
+		fmt.Println(app.banner)
+	}
 	return nil
 }
