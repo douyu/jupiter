@@ -35,7 +35,6 @@ import (
 	"github.com/douyu/jupiter/pkg/registry"
 	"github.com/douyu/jupiter/pkg/server"
 	"github.com/douyu/jupiter/pkg/util/xgo"
-	"github.com/douyu/jupiter/pkg/util/xstruct"
 	"github.com/douyu/jupiter/pkg/xlog"
 )
 
@@ -118,9 +117,9 @@ func (reg *etcdv3Registry) WatchServices(ctx context.Context, name string, schem
 		updateAddrList(al, prefix, scheme, kv)
 	}
 
-	var snapshot registry.Endpoints
-	xstruct.CopyStruct(al, &snapshot)
-	addresses <- snapshot
+	// var snapshot registry.Endpoints
+	// xstruct.CopyStruct(al, &snapshot)
+	addresses <- *al.DeepCopy()
 
 	xgo.Go(func() {
 		for event := range watch.C() {
@@ -131,10 +130,14 @@ func (reg *etcdv3Registry) WatchServices(ctx context.Context, name string, schem
 				deleteAddrList(al, prefix, scheme, event.Kv)
 			}
 
-			var snapshot registry.Endpoints
-			xstruct.CopyStruct(al, &snapshot)
+			// var snapshot registry.Endpoints
+			// xstruct.CopyStruct(al, &snapshot)
+			out := al.DeepCopy()
+			fmt.Printf("al => %p\n", al.Nodes)
+			fmt.Printf("snapshot => %p\n", out.Nodes)
 			select {
-			case addresses <- snapshot:
+			// case addresses <- snapshot:
+			case addresses <- *out:
 			default:
 				xlog.Warnf("invalid")
 			}
