@@ -61,7 +61,7 @@ func (eng *Engine) initSentinel() error {
 		MetricType: flow.QPS,
 		Count:      1,
 	})
-	return config.InitSentinelCoreComponent()
+	return config.Build()
 }
 
 func (eng *Engine) startJobs() error {

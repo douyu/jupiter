@@ -5,6 +5,7 @@ import (
 
 	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/util/xtime"
+	"github.com/globalsign/mgo"
 )
 
 // Config ...
@@ -27,7 +28,7 @@ func StdConfig(name string) Config {
 // RawConfig 裸配置
 // example: minerva.mongodb.demo
 func RawConfig(key string) Config {
-	var config Config
+	var config = DefaultConfig()
 	if err := conf.UnmarshalKey(key, &config, conf.TagName("toml")); err != nil {
 		panic(err)
 	}
@@ -40,4 +41,8 @@ func DefaultConfig() Config {
 		SocketTimeout: xtime.Duration("5s"),
 		PoolLimit:     100,
 	}
+}
+
+func (config Config) Build() *mgo.Session {
+	return newSession(config)
 }
