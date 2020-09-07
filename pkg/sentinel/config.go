@@ -17,14 +17,13 @@ package sentinel
 import (
 	"encoding/json"
 	"io/ioutil"
-	"os"
 
 	sentinel "github.com/alibaba/sentinel-golang/api"
 	"github.com/alibaba/sentinel-golang/core/base"
+	sentinel_config "github.com/alibaba/sentinel-golang/core/config"
 	"github.com/alibaba/sentinel-golang/core/flow"
 	"github.com/douyu/jupiter/pkg"
 	"github.com/douyu/jupiter/pkg/conf"
-	"github.com/douyu/jupiter/pkg/constant"
 	"github.com/douyu/jupiter/pkg/xlog"
 )
 
@@ -78,13 +77,14 @@ func (config *Config) Build() error {
 		config.FlowRules = append(config.FlowRules, rules...)
 	}
 
-	_ = os.Setenv(constant.EnvKeySentinelAppName, config.AppName)
-	_ = os.Setenv(constant.EnvKeySentinelLogDir, config.LogPath)
+	configEntity := sentinel_config.NewDefaultConfig()
+	configEntity.Sentinel.App.Name = config.AppName
+	configEntity.Sentinel.Log.Dir = config.LogPath
 
 	if len(config.FlowRules) > 0 {
 		_, _ = flow.LoadRules(config.FlowRules)
 	}
-	return sentinel.InitDefault()
+	return sentinel.InitWithConfig(configEntity)
 }
 
 func Entry(resource string) (*base.SentinelEntry, *base.BlockError) {
