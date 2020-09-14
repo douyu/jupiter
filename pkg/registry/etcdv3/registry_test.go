@@ -28,6 +28,35 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestEtcdv3Registry_RegisterService(t *testing.T) {
+	etcdConfig := etcdv3.DefaultConfig()
+	etcdConfig.Endpoints = []string{"127.0.0.1:2379"}
+	registry := newETCDRegistry(&Config{
+		Config:      etcdConfig,
+		ReadTimeout: time.Second * 10,
+		Prefix:      "jupiter",
+		logger:      xlog.DefaultLogger,
+	})
+
+	readCtx, readCancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer readCancel()
+	assert.Nil(t, registry.RegisterService(readCtx, &server.ServiceInfo{
+		Name:       "service_1",
+		AppID:      "",
+		Scheme:     "grpc",
+		Address:    "10.10.10.1:9091",
+		Weight:     0,
+		Enable:     true,
+		Healthy:    true,
+		Metadata:   map[string]string{},
+		Region:     "default",
+		Zone:       "default",
+		Kind:       constant.ServiceProvider,
+		Deployment: "default",
+		Group:      "",
+	}))
+}
+
 func Test_etcdv3Registry(t *testing.T) {
 	etcdConfig := etcdv3.DefaultConfig()
 	etcdConfig.Endpoints = []string{"127.0.0.1:2379"}
