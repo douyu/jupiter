@@ -16,16 +16,14 @@ package sentinel
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
-	"os"
 
 	sentinel "github.com/alibaba/sentinel-golang/api"
 	"github.com/alibaba/sentinel-golang/core/base"
+	sentinel_config "github.com/alibaba/sentinel-golang/core/config"
 	"github.com/alibaba/sentinel-golang/core/flow"
 	"github.com/douyu/jupiter/pkg"
 	"github.com/douyu/jupiter/pkg/conf"
-	"github.com/douyu/jupiter/pkg/constant"
 	"github.com/douyu/jupiter/pkg/xlog"
 )
 
@@ -40,9 +38,6 @@ func RawConfig(key string) *Config {
 	if err := conf.UnmarshalKey(key, config); err != nil {
 		xlog.Panic("unmarshal key", xlog.Any("err", err))
 	}
-	fmt.Println("key:", key)
-
-	fmt.Println("config:", config)
 	return config
 }
 
@@ -67,7 +62,7 @@ func DefaultConfig() *Config {
 // Currently, only flow rules from json file is supported
 // todo: support dynamic rule config
 // todo: support more rule such as system rule
-func (config *Config) InitSentinelCoreComponent() error {
+func (config *Config) Build() error {
 	if config.FlowRulesFile != "" {
 		var rules []*flow.FlowRule
 		content, err := ioutil.ReadFile(config.FlowRulesFile)
@@ -82,13 +77,14 @@ func (config *Config) InitSentinelCoreComponent() error {
 		config.FlowRules = append(config.FlowRules, rules...)
 	}
 
-	_ = os.Setenv(constant.EnvKeySentinelAppName, config.AppName)
-	_ = os.Setenv(constant.EnvKeySentinelLogDir, config.LogPath)
+	configEntity := sentinel_config.NewDefaultConfig()
+	configEntity.Sentinel.App.Name = config.AppName
+	configEntity.Sentinel.Log.Dir = config.LogPath
 
 	if len(config.FlowRules) > 0 {
 		_, _ = flow.LoadRules(config.FlowRules)
 	}
-	return sentinel.InitDefault()
+	return sentinel.InitWithConfig(configEntity)
 }
 
 func Entry(resource string) (*base.SentinelEntry, *base.BlockError) {

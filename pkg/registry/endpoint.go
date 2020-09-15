@@ -35,6 +35,40 @@ type Endpoints struct {
 	ProviderConfigs map[string]ProviderConfig
 }
 
+func newEndpoints() *Endpoints {
+	return &Endpoints{
+		Nodes:           make(map[string]server.ServiceInfo),
+		RouteConfigs:    make(map[string]RouteConfig),
+		ConsumerConfigs: make(map[string]ConsumerConfig),
+		ProviderConfigs: make(map[string]ProviderConfig),
+	}
+}
+
+func (in *Endpoints) DeepCopy() *Endpoints {
+	if in == nil {
+		return nil
+	}
+
+	out := newEndpoints()
+	in.DeepCopyInfo(out)
+	return out
+}
+
+func (in *Endpoints) DeepCopyInfo(out *Endpoints) {
+	for key, info := range in.Nodes {
+		out.Nodes[key] = info
+	}
+	for key, config := range in.RouteConfigs {
+		out.RouteConfigs[key] = config
+	}
+	for key, config := range in.ConsumerConfigs {
+		out.ConsumerConfigs[key] = config
+	}
+	for key, config := range in.ProviderConfigs {
+		out.ProviderConfigs[key] = config
+	}
+}
+
 // ProviderConfig config of provider
 // 通过这个配置，修改provider的属性
 type ProviderConfig struct {

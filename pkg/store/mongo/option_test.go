@@ -1,10 +1,23 @@
 package mongo
 
 import (
+	"bytes"
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/BurntSushi/toml"
+	"github.com/douyu/jupiter/pkg/conf"
 )
+
+func TestMain(m *testing.M) {
+	conf.LoadFromReader(bytes.NewBufferString(`
+	[jupiter.mongo.demo]
+		dsn = ""
+		socketTimeout = "5s"
+		poolLimit = 100
+	`), toml.Unmarshal)
+}
 
 func TestStdConfig(t *testing.T) {
 	type args struct {
@@ -50,7 +63,7 @@ func TestRawConfig(t *testing.T) {
 		{
 			name: "raw config",
 			args: args{
-				key: "minerva.mongo.demo",
+				key: "jupiter.mongo.demo",
 			},
 			want: Config{
 				DSN:           "",

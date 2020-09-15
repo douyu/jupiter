@@ -47,7 +47,7 @@ func main() {
 }
 
 func (eng *Engine) exampleMongo() (err error) {
-	session := mongo.StdNew("test")
+	session := mongo.StdConfig("test").Build()
 	defer session.Close()
 
 	// write

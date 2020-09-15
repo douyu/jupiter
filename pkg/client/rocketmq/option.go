@@ -18,6 +18,7 @@ type Config struct {
 
 // ConsumerConfig consumer config
 type ConsumerConfig struct {
+	Name            string        `json:"name" toml:"name"`
 	Enable          bool          `json:"enable" toml:"enable"`
 	Addr            []string      `json:"addr" toml:"addr"`
 	Topic           string        `json:"topic" toml:"topic"`
@@ -32,6 +33,20 @@ type ConsumerConfig struct {
 	Reconsume       int32         `json:"reconsume" toml:"reconsume"`
 	AccessKey       string        `json:"accessKey" toml:"accessKey"`
 	SecretKey       string        `json:"secretKey" toml:"secretKey"`
+}
+
+// ProducerConfig producer config
+type ProducerConfig struct {
+	Name        string        `json:"name" toml:"name"`
+	Addr        []string      `json:"addr" toml:"addr"`
+	Topic       string        `json:"topic" toml:"topic"`
+	Group       string        `json:"group" toml:"group"`
+	Retry       int           `json:"retry" toml:"retry"`
+	DialTimeout time.Duration `json:"dialTimeout" toml:"dialTimeout"`
+	RwTimeout   time.Duration `json:"rwTimeout" toml:"rwTimeout"`
+	Shadow      Shadow        `json:"shadow" toml:"shadow"`
+	AccessKey   string        `json:"accessKey" toml:"accessKey"`
+	SecretKey   string        `json:"secretKey" toml:"secretKey"`
 }
 
 type Shadow struct {
@@ -72,7 +87,7 @@ func DefaultProducerConfig() ProducerConfig {
 }
 
 // StdPushConsumerConfig ...
-func StdPushConsumerConfig(name string) ConsumerConfig {
+func StdPushConsumerConfig(name string) *ConsumerConfig {
 
 	cc := RawConsumerConfig("jupiter.rocketmq." + name + ".consumer")
 	rc := RawConfig("jupiter.rocketmq." + name)
@@ -81,7 +96,7 @@ func StdPushConsumerConfig(name string) ConsumerConfig {
 	if len(cc.Addr) == 0 {
 		cc.Addr = rc.Addresses
 	}
-
+	cc.Name = name
 	for ind, addr := range cc.Addr {
 		if strings.HasPrefix(addr, "http") {
 			cc.Addr[ind] = addr
@@ -90,11 +105,11 @@ func StdPushConsumerConfig(name string) ConsumerConfig {
 		}
 	}
 
-	return cc
+	return &cc
 }
 
 // StdProducerConfig ...
-func StdProducerConfig(name string) ProducerConfig {
+func StdProducerConfig(name string) *ProducerConfig {
 	pc := RawProducerConfig("jupiter.rocketmq." + name + ".producer")
 	rc := RawConfig("jupiter.rocketmq." + name)
 	// 兼容rocket_client_mq变更，addr需要携带shceme
@@ -102,6 +117,7 @@ func StdProducerConfig(name string) ProducerConfig {
 		pc.Addr = rc.Addresses
 	}
 
+	pc.Name = name
 	for ind, addr := range pc.Addr {
 		if strings.HasPrefix(addr, "http") {
 			pc.Addr[ind] = addr
@@ -109,7 +125,7 @@ func StdProducerConfig(name string) ProducerConfig {
 			pc.Addr[ind] = "http://" + addr
 		}
 	}
-	return pc
+	return &pc
 }
 
 // RawConfig 返回配置

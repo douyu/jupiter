@@ -34,12 +34,3 @@ func init() {
 }
 
 var _logger = xlog.JupiterLogger.With(xlog.FieldMod("mongodb"))
-
-// Invoker ...
-func Invoker(name string) *mgo.Session {
-	if client := Get(name); client != nil {
-		return client
-	}
-
-	return StdNew(name)
-}

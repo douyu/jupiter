@@ -35,16 +35,17 @@ type PushConsumer struct {
 	fInfo        FlowInfo
 }
 
-func NewPushConsumer(name string, conf ConsumerConfig) *PushConsumer {
+func (conf *ConsumerConfig) Build() *PushConsumer {
+	name := conf.Name
 	if _, ok := _consumers.Load(name); ok {
 		xlog.Panic("duplicated load", xlog.String("name", name))
 	}
 
 	xlog.Debug("rocketmq's config: ", xlog.String("name", name), xlog.Any("conf", conf))
 
-	cc := &PushConsumer{
+	pc := &PushConsumer{
 		name:           name,
-		ConsumerConfig: conf,
+		ConsumerConfig: *conf,
 		subscribers:    make(map[string]func(context.Context, ...*primitive.MessageExt) (consumer.ConsumeResult, error)),
 		interceptors:   []primitive.Interceptor{},
 		fInfo: FlowInfo{
@@ -56,10 +57,10 @@ func NewPushConsumer(name string, conf ConsumerConfig) *PushConsumer {
 			GroupType:    "consumer",
 		},
 	}
-	cc.interceptors = append(cc.interceptors, pushConsumerDefaultInterceptor(cc), pushConsumerMDInterceptor(cc), pushConsumerShadowInterceptor(cc, conf.Shadow))
+	pc.interceptors = append(pc.interceptors, pushConsumerDefaultInterceptor(pc), pushConsumerMDInterceptor(pc), pushConsumerShadowInterceptor(pc, conf.Shadow))
 
-	_consumers.Store(name, cc)
-	return cc
+	_consumers.Store(name, pc)
+	return pc
 }
 
 func (cc *PushConsumer) Close() error {

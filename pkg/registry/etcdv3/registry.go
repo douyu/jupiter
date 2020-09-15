@@ -117,20 +117,27 @@ func (reg *etcdv3Registry) WatchServices(ctx context.Context, name string, schem
 		updateAddrList(al, prefix, scheme, kv)
 	}
 
-	addresses <- *al
+	// var snapshot registry.Endpoints
+	// xstruct.CopyStruct(al, &snapshot)
+	addresses <- *al.DeepCopy()
 
 	xgo.Go(func() {
 		for event := range watch.C() {
-			al2 := reg.cloneEndPoints(al)
 			switch event.Type {
 			case mvccpb.PUT:
-				updateAddrList(al2, prefix, scheme, event.Kv)
+				updateAddrList(al, prefix, scheme, event.Kv)
 			case mvccpb.DELETE:
-				deleteAddrList(al2, prefix, scheme, event.Kv)
+				deleteAddrList(al, prefix, scheme, event.Kv)
 			}
 
+			// var snapshot registry.Endpoints
+			// xstruct.CopyStruct(al, &snapshot)
+			out := al.DeepCopy()
+			fmt.Printf("al => %p\n", al.Nodes)
+			fmt.Printf("snapshot => %p\n", out.Nodes)
 			select {
-			case addresses <- *al2:
+			// case addresses <- snapshot:
+			case addresses <- *out:
 			default:
 				xlog.Warnf("invalid")
 			}
@@ -138,28 +145,6 @@ func (reg *etcdv3Registry) WatchServices(ctx context.Context, name string, schem
 	})
 
 	return addresses, nil
-}
-
-func (reg *etcdv3Registry) cloneEndPoints(src *registry.Endpoints) *registry.Endpoints {
-	dst := &registry.Endpoints{
-		Nodes:           make(map[string]server.ServiceInfo),
-		RouteConfigs:    make(map[string]registry.RouteConfig),
-		ConsumerConfigs: make(map[string]registry.ConsumerConfig),
-		ProviderConfigs: make(map[string]registry.ProviderConfig),
-	}
-	for k, v := range src.Nodes {
-		dst.Nodes[k] = v
-	}
-	for k, v := range src.RouteConfigs {
-		dst.RouteConfigs[k] = v
-	}
-	for k, v := range src.ConsumerConfigs {
-		dst.ConsumerConfigs[k] = v
-	}
-	for k, v := range src.ProviderConfigs {
-		dst.ProviderConfigs[k] = v
-	}
-	return dst
 }
 
 func (reg *etcdv3Registry) unregister(ctx context.Context, key string) error {

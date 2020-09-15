@@ -3,8 +3,9 @@ package pkg
 import (
 	"crypto/md5"
 	"fmt"
-	"github.com/douyu/jupiter/pkg/constant"
 	"os"
+
+	"github.com/douyu/jupiter/pkg/constant"
 )
 
 var (
@@ -32,40 +33,40 @@ func AppLogDir() string {
 	return appLogDir
 }
 
-func SetAppLogDir(appLogDir string) {
-	appLogDir = appLogDir
+func SetAppLogDir(logDir string) {
+	appLogDir = logDir
 }
 
 func AppMode() string {
 	return appMode
 }
 
-func SetAppMode(appMode string) {
-	appMode = appMode
+func SetAppMode(mode string) {
+	appMode = mode
 }
 
 func AppRegion() string {
 	return appRegion
 }
 
-func SetAppRegion(appRegion string) {
-	appRegion = appRegion
+func SetAppRegion(region string) {
+	appRegion = region
 }
 
 func AppZone() string {
 	return appZone
 }
 
-func SetAppZone(appZone string) {
-	appZone = appZone
+func SetAppZone(zone string) {
+	appZone = zone
 }
 
 func AppHost() string {
 	return appHost
 }
 
-func SetAppHost(appHost string) {
-	appHost = appHost
+func SetAppHost(host string) {
+	appHost = host
 }
 
 func AppInstance() string {

@@ -49,7 +49,7 @@ func main() {
 }
 
 func (eng *Engine) exampleSentinel() (err error) {
-	err = sentinel.StdConfig("test").InitSentinelCoreComponent()
+	err = sentinel.StdConfig("test").Build()
 	if err != nil {
 		panic(fmt.Sprintf("sentinel init failed: %s", err.Error()))
 	}

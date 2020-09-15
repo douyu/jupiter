@@ -16,7 +16,6 @@ package rocketmq
 
 import (
 	"context"
-	"time"
 
 	"github.com/apache/rocketmq-client-go/v2"
 	"github.com/apache/rocketmq-client-go/v2/primitive"
@@ -36,10 +35,11 @@ type Producer struct {
 }
 
 func StdNewProducer(name string) *Producer {
-	return NewProducer(name, StdProducerConfig(name))
+	return StdProducerConfig("configName").Build()
 }
 
-func NewProducer(name string, conf ProducerConfig) *Producer {
+func (conf *ProducerConfig) Build() *Producer {
+	name := conf.Topic
 	if _, ok := _producers.Load(name); ok {
 		xlog.Panic("duplicated load", xlog.String("name", name))
 	}
@@ -50,7 +50,7 @@ func NewProducer(name string, conf ProducerConfig) *Producer {
 
 	cc := &Producer{
 		name:           name,
-		ProducerConfig: conf,
+		ProducerConfig: *conf,
 		interceptors:   []primitive.Interceptor{},
 		fInfo: FlowInfo{
 			FlowInfoBase: istats.NewFlowInfoBase(conf.Shadow.Mode),
@@ -66,19 +66,6 @@ func NewProducer(name string, conf ProducerConfig) *Producer {
 
 	_producers.Store(name, cc)
 	return cc
-}
-
-// ProducerConfig producer config
-type ProducerConfig struct {
-	Addr        []string      `json:"addr" toml:"addr"`
-	Topic       string        `json:"topic" toml:"topic"`
-	Group       string        `json:"group" toml:"group"`
-	Retry       int           `json:"retry" toml:"retry"`
-	DialTimeout time.Duration `json:"dialTimeout" toml:"dialTimeout"`
-	RwTimeout   time.Duration `json:"rwTimeout" toml:"rwTimeout"`
-	Shadow      Shadow        `json:"shadow" toml:"shadow"`
-	AccessKey   string        `json:"accessKey" toml:"accessKey"`
-	SecretKey   string        `json:"secretKey" toml:"secretKey"`
 }
 
 func (pc *Producer) Start() error {
