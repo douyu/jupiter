@@ -15,12 +15,15 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/douyu/jupiter"
-	"github.com/douyu/jupiter/pkg/store/mongo"
+	"github.com/douyu/jupiter/pkg/store/mongox"
 	"github.com/douyu/jupiter/pkg/xlog"
+	"go.mongodb.org/mongo-driver/mongo"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -47,29 +50,46 @@ func main() {
 }
 
 func (eng *Engine) exampleMongo() (err error) {
-	session := mongo.StdConfig("test").Build()
-	defer session.Close()
+	client := mongox.StdConfig("test").Build()
 
-	// write
-	m := make(map[string]interface{}, 0)
-	m["dateline"] = time.Now().Unix()
-	m["rid"] = 777
+	write(client)
+	read(client)
 
-	err = session.DB("test").C("test").Insert(m)
-	if err != nil {
-		panic(err)
-	}
-
-	// read
-	type MongoData struct {
-		Dateline int64 `bson:"dateline"`
-		Rid      int64 `bson:"rid"`
-	}
-	var rawData []MongoData
-	err = session.DB("test").C("test").Find(bson.M{"rid": 777}).Sort("-time").All(&rawData)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("rawData...", rawData)
 	return
+}
+
+func write(client *mongo.Client) {
+	collection := client.Database("test").Collection("test")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	_, err := collection.InsertOne(ctx, bson.M{"rid": 888, "dateline": time.Now().Unix()})
+	if err != nil {
+		panic(err)
+	}
+}
+
+func read(client *mongo.Client) {
+
+	collection := client.Database("test").Collection("test")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	cur, err := collection.Find(ctx, bson.M{"rid": 888})
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer cur.Close(ctx)
+	for cur.Next(ctx) {
+		var result bson.M
+		err := cur.Decode(&result)
+		if err != nil {
+			xlog.Fatal("exampleMongo", xlog.Any("err", err.Error()))
+		}
+		fmt.Println("result...", result)
+
+		// do something with result....
+	}
 }

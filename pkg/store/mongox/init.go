@@ -1,18 +1,17 @@
-package mongo
+package mongox
 
 import (
 	"net/http"
 
 	"github.com/douyu/jupiter/pkg/application"
 	"github.com/douyu/jupiter/pkg/xlog"
-	"github.com/globalsign/mgo"
 	jsoniter "github.com/json-iterator/go"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func init() {
 	// govern.RegisterStatSnapper("mongo", Stats)
 	// govern.RegisterConfSnapper("mongo", Configs)
-
 	http.HandleFunc("/debug/mongo/stats", func(w http.ResponseWriter, r *http.Request) {
 		type mongoStatus struct {
 			application.RuntimeStats
@@ -22,13 +21,13 @@ func init() {
 			RuntimeStats: application.NewRuntimeStats(),
 			Mongos:       make(map[string]interface{}, 0),
 		}
-		Range(func(name string, cc *mgo.Session) bool {
+		Range(func(name string, cc *mongo.Client) bool {
 			rets.Mongos[name] = map[string]interface{}{
-				"liveServers": cc.LiveServers(),
-				"mode":        cc.Mode(),
+				"numberSessionsInProgress": cc.NumberSessionsInProgress(),
 			}
 			return true
 		})
+
 		_ = jsoniter.NewEncoder(w).Encode(rets)
 	})
 }

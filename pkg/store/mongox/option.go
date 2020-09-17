@@ -1,16 +1,17 @@
-package mongo
+package mongox
 
 import (
 	"time"
 
 	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/util/xtime"
-	"github.com/globalsign/mgo"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // Config ...
 type (
 	Config struct {
+		Name string
 		// DSN地址
 		DSN string `json:"dsn" toml:"dsn"`
 		// 创建连接的超时时间
@@ -29,6 +30,7 @@ func StdConfig(name string) Config {
 // example: minerva.mongodb.demo
 func RawConfig(key string) Config {
 	var config = DefaultConfig()
+	config.Name = key
 	if err := conf.UnmarshalKey(key, &config, conf.TagName("toml")); err != nil {
 		panic(err)
 	}
@@ -43,6 +45,6 @@ func DefaultConfig() Config {
 	}
 }
 
-func (config Config) Build() *mgo.Session {
+func (config Config) Build() *mongo.Client {
 	return newSession(config)
 }
