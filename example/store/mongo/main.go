@@ -21,8 +21,10 @@ import (
 	"time"
 
 	"github.com/douyu/jupiter"
+	"github.com/douyu/jupiter/pkg/server/xecho"
 	"github.com/douyu/jupiter/pkg/store/mongox"
 	"github.com/douyu/jupiter/pkg/xlog"
+	"github.com/labstack/echo/v4"
 	"go.mongodb.org/mongo-driver/mongo"
 	"gopkg.in/mgo.v2/bson"
 )
@@ -36,6 +38,7 @@ func NewEngine() *Engine {
 	eng := &Engine{}
 	if err := eng.Startup(
 		eng.exampleMongo,
+		eng.serveHTTP,
 	); err != nil {
 		xlog.Panic("startup", xlog.Any("err", err))
 	}
@@ -47,6 +50,15 @@ func main() {
 	if err := app.Run(); err != nil {
 		panic(err)
 	}
+}
+
+// HTTP地址
+func (eng *Engine) serveHTTP() error {
+	server := xecho.StdConfig("http").Build()
+	server.GET("/hello", func(ctx echo.Context) error {
+		return ctx.JSON(200, "Gopher Wuhan")
+	})
+	return eng.Serve(server)
 }
 
 func (eng *Engine) exampleMongo() (err error) {

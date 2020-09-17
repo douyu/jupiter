@@ -442,6 +442,13 @@ func (app *Application) parseFlags() error {
 			os.Exit(0)
 		},
 	})
+
+	flag.Register(&flag.StringFlag{
+		Name:    "host",
+		Usage:   "--host, print host",
+		Default: "127.0.0.1",
+		Action:  func(string, *flag.FlagSet) {},
+	})
 	return flag.Parse()
 }
 
