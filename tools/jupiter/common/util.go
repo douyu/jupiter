@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 )
 
@@ -18,6 +19,9 @@ func GetModPath(projectPath string) (modPath string) {
 			mod := xregexp.RegexpReplace(`module\s+(?P<name>[\S]+)`, string(content), "$name")
 			name := strings.TrimPrefix(filepath.Dir(projectPath), dir)
 			name = strings.TrimPrefix(name, string(os.PathSeparator))
+			if runtime.GOOS == "windows" {
+				name = strings.ReplaceAll(name, "\\", "/")
+			}
 			if name == "" {
 				return fmt.Sprintf("%s/", mod)
 			}
