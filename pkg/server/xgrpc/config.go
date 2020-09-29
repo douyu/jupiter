@@ -38,9 +38,12 @@ type Config struct {
 	DisableMetric bool
 	// SlowQueryThresholdInMilli, request will be colored if cost over this threshold value
 	SlowQueryThresholdInMilli int64
-	serverOptions             []grpc.ServerOption
-	streamInterceptors        []grpc.StreamServerInterceptor
-	unaryInterceptors         []grpc.UnaryServerInterceptor
+	// ServiceAddress service address in registry info, default to 'Host:Port'
+	ServiceAddress string
+
+	serverOptions      []grpc.ServerOption
+	streamInterceptors []grpc.StreamServerInterceptor
+	unaryInterceptors  []grpc.UnaryServerInterceptor
 
 	logger *xlog.Logger
 }

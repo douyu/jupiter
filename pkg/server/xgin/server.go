@@ -89,9 +89,14 @@ func (s *Server) GracefulStop(ctx context.Context) error {
 
 // Info returns server info, used by governor and consumer balancer
 func (s *Server) Info() *server.ServiceInfo {
+	serviceAddr := s.listener.Addr().String()
+	if s.config.ServiceAddress != "" {
+		serviceAddr = s.config.ServiceAddress
+	}
+
 	info := server.ApplyOptions(
 		server.WithScheme("http"),
-		server.WithAddress(s.listener.Addr().String()),
+		server.WithAddress(serviceAddr),
 		server.WithKind(constant.ServiceProvider),
 	)
 	// info.Name = info.Name + "." + ModName
