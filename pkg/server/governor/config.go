@@ -18,6 +18,9 @@ type Config struct {
 	Network string `json:"network" toml:"network"`
 	logger  *xlog.Logger
 	Enable  bool
+
+	// ServiceAddress service address in registry info, default to 'Host:Port'
+	ServiceAddress string
 }
 
 // StdConfig represents Standard gRPC Server config

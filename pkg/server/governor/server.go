@@ -55,9 +55,14 @@ func (s *Server) GracefulStop(ctx context.Context) error {
 
 //Info ..
 func (s *Server) Info() *server.ServiceInfo {
+	serviceAddr := s.listener.Addr().String()
+	if s.Config.ServiceAddress != "" {
+		serviceAddr = s.Config.ServiceAddress
+	}
+
 	info := server.ApplyOptions(
 		server.WithScheme("http"),
-		server.WithAddress(s.listener.Addr().String()),
+		server.WithAddress(serviceAddr),
 		server.WithKind(constant.ServiceGovernor),
 	)
 	// info.Name = info.Name + "." + ModName

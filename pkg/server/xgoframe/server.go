@@ -16,11 +16,9 @@ package xgoframe
 
 import (
 	"context"
-	"strconv"
 
 	"github.com/douyu/jupiter/pkg/constant"
 	"github.com/douyu/jupiter/pkg/xlog"
-
 	//"github.com/douyu/jupiter/pkg/ecode"
 	//"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/douyu/jupiter/pkg/server"
@@ -37,7 +35,7 @@ type Server struct {
 func newServer(config *Config) *Server {
 	s := new(Server)
 	serve := g.Server()
-	serve.SetPort(config.Port)
+	serve.SetAddr(config.Address())
 
 	s.Server = serve
 	s.config = config
@@ -69,9 +67,14 @@ func (s *Server) GracefulStop(ctx context.Context) error {
 
 //Info ..
 func (s *Server) Info() *server.ServiceInfo {
+	serviceAddr := s.config.Address()
+	if s.config.ServiceAddress != "" {
+		serviceAddr = s.config.ServiceAddress
+	}
+
 	info := server.ApplyOptions(
 		server.WithScheme("http"),
-		server.WithAddress(s.config.Host+":"+strconv.Itoa(s.config.Port)),
+		server.WithAddress(serviceAddr),
 		server.WithKind(constant.ServiceProvider),
 	)
 	return &info

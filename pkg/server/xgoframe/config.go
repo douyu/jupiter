@@ -33,6 +33,8 @@ type Config struct {
 	Debug         bool
 	DisableMetric bool
 	DisableTrace  bool
+	// ServiceAddress service address in registry info, default to 'Host:Port'
+	ServiceAddress string
 
 	SlowQueryThresholdInMilli int64
 

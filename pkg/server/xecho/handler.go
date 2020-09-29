@@ -25,7 +25,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/labstack/echo/v4"
 	"google.golang.org/grpc/metadata"
-	status "google.golang.org/grpc/status"
+	"google.golang.org/grpc/status"
 )
 
 // ProtoError ...

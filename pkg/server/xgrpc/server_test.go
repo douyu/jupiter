@@ -21,7 +21,6 @@ import (
 	"time"
 
 	"github.com/douyu/jupiter/pkg/constant"
-	"github.com/douyu/jupiter/pkg/server"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/smartystreets/goconvey/convey"
 	"google.golang.org/grpc"
@@ -30,10 +29,9 @@ import (
 
 func TestServer_Serve(t *testing.T) {
 	type fields struct {
-		Server     *grpc.Server
-		listener   net.Listener
-		Config     *Config
-		serverInfo *server.ServiceInfo
+		Server   *grpc.Server
+		listener net.Listener
+		Config   *Config
 	}
 	tests := []struct {
 		name    string
@@ -45,10 +43,9 @@ func TestServer_Serve(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Server{
-				Server:     tt.fields.Server,
-				listener:   tt.fields.listener,
-				Config:     tt.fields.Config,
-				serverInfo: tt.fields.serverInfo,
+				Server:   tt.fields.Server,
+				listener: tt.fields.listener,
+				Config:   tt.fields.Config,
 			}
 			if err := s.Serve(); (err != nil) != tt.wantErr {
 				t.Errorf("Server.Serve() error = %v, wantErr %v", err, tt.wantErr)

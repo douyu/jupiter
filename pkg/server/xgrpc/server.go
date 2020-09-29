@@ -19,9 +19,7 @@ import (
 	"net"
 
 	"github.com/douyu/jupiter/pkg/constant"
-
 	"github.com/douyu/jupiter/pkg/ecode"
-
 	"github.com/douyu/jupiter/pkg/server"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"google.golang.org/grpc"
@@ -32,7 +30,6 @@ type Server struct {
 	*grpc.Server
 	listener net.Listener
 	*Config
-	serverInfo *server.ServiceInfo
 }
 
 func newServer(config *Config) *Server {
@@ -58,17 +55,10 @@ func newServer(config *Config) *Server {
 	}
 	config.Port = listener.Addr().(*net.TCPAddr).Port
 
-	info := server.ApplyOptions(
-		server.WithScheme("grpc"),
-		server.WithAddress(listener.Addr().String()),
-		server.WithKind(constant.ServiceProvider),
-	)
-
 	return &Server{
-		Server:     newServer,
-		listener:   listener,
-		Config:     config,
-		serverInfo: &info,
+		Server:   newServer,
+		listener: listener,
+		Config:   config,
 	}
 }
 
@@ -94,5 +84,15 @@ func (s *Server) GracefulStop(ctx context.Context) error {
 
 // Info returns server info, used by governor and consumer balancer
 func (s *Server) Info() *server.ServiceInfo {
-	return s.serverInfo
+	serviceAddress := s.listener.Addr().String()
+	if s.Config.ServiceAddress != "" {
+		serviceAddress = s.Config.ServiceAddress
+	}
+
+	info := server.ApplyOptions(
+		server.WithScheme("grpc"),
+		server.WithAddress(serviceAddress),
+		server.WithKind(constant.ServiceProvider),
+	)
+	return &info
 }
