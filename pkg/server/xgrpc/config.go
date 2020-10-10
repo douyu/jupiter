@@ -16,6 +16,7 @@ package xgrpc
 
 import (
 	"fmt"
+	"github.com/douyu/jupiter/pkg/flag"
 
 	"github.com/douyu/jupiter/pkg/constant"
 	"github.com/douyu/jupiter/pkg/ecode"
@@ -73,7 +74,7 @@ func RawConfig(key string) *Config {
 func DefaultConfig() *Config {
 	return &Config{
 		Network:                   "tcp4",
-		Host:                      "127.0.0.1",
+		Host:                      flag.String("host"),
 		Port:                      9092,
 		Deployment:                constant.DefaultDeployment,
 		DisableMetric:             false,
