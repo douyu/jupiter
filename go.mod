@@ -55,8 +55,8 @@ require (
 	golang.org/x/crypto v0.0.0-20200728195943-123391ffb6de // indirect
 	golang.org/x/sync v0.0.0-20200625203802-6e8e738ad208
 	golang.org/x/sys v0.0.0-20200805065543-0cf7623e9dbd // indirect
-	golang.org/x/tools v0.0.0-20200728235236-e8769ccb4337 // indirect
-	google.golang.org/genproto v0.0.0-20191216164720-4f79533eabd1
-	google.golang.org/grpc v1.26.0
+	google.golang.org/genproto v0.0.0-20200806141610-86f49bd18e98
+	google.golang.org/grpc v1.31.0
+	google.golang.org/grpc/examples v0.0.0-20201030225255-4e179b8d3ec4
 	gopkg.in/mgo.v2 v2.0.0-20180705113604-9856a29383ce
 )
