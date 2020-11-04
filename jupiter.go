@@ -73,6 +73,7 @@ type Application struct {
 	hooks        map[uint32]*xdefer.DeferStack
 	configParser conf.Unmarshaller
 	disableMap   map[Disable]bool
+	HideBanner   bool
 }
 
 //New new a Application
@@ -533,6 +534,10 @@ func (app *Application) isDisable(d Disable) bool {
 
 //printBanner init
 func (app *Application) printBanner() error {
+	if app.HideBanner {
+		return nil
+	}
+
 	const banner = `
    (_)_   _ _ __ (_) |_ ___ _ __
    | | | | | '_ \| | __/ _ \ '__|
