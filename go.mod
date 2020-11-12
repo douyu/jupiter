@@ -20,7 +20,9 @@ require (
 	github.com/go-redis/redis v6.15.8+incompatible
 	github.com/go-resty/resty/v2 v2.2.0
 	github.com/gogf/gf v1.13.3
+	github.com/golang/mock v1.4.4 // indirect
 	github.com/golang/protobuf v1.4.2
+	github.com/google/go-cmp v0.5.1 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
 	github.com/gorilla/websocket v1.4.2
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
@@ -53,10 +55,15 @@ require (
 	go.uber.org/multierr v1.5.0
 	go.uber.org/zap v1.15.0
 	golang.org/x/crypto v0.0.0-20200728195943-123391ffb6de // indirect
+	golang.org/x/exp v0.0.0-20200224162631-6cc2880d07d6 // indirect
+	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
+	golang.org/x/net v0.0.0-20200707034311-ab3426394381 // indirect
 	golang.org/x/sync v0.0.0-20200625203802-6e8e738ad208
 	golang.org/x/sys v0.0.0-20200805065543-0cf7623e9dbd // indirect
-	google.golang.org/genproto v0.0.0-20200806141610-86f49bd18e98
-	google.golang.org/grpc v1.31.0
-	google.golang.org/grpc/examples v0.0.0-20201030225255-4e179b8d3ec4
+	golang.org/x/tools v0.0.0-20200806022845-90696ccdc692 // indirect
+	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
+	google.golang.org/genproto v0.0.0-20200122232147-0452cf42e150
+	google.golang.org/grpc v1.26.0
 	gopkg.in/mgo.v2 v2.0.0-20180705113604-9856a29383ce
+	honnef.co/go/tools v0.0.1-2020.1.4 // indirect
 )
