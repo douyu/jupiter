@@ -67,3 +67,5 @@ require (
 	gopkg.in/mgo.v2 v2.0.0-20180705113604-9856a29383ce
 	honnef.co/go/tools v0.0.1-2020.1.4 // indirect
 )
+
+replace google.golang.org/grpc => google.golang.org/grpc v1.26.0
