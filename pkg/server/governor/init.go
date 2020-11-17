@@ -16,11 +16,13 @@ package governor
 
 import (
 	"encoding/json"
-	"github.com/douyu/jupiter/pkg"
-	"github.com/douyu/jupiter/pkg/conf"
-	jsoniter "github.com/json-iterator/go"
 	"net/http"
 	"os"
+
+	"github.com/douyu/jupiter/pkg"
+	"github.com/douyu/jupiter/pkg/conf"
+	"github.com/douyu/jupiter/pkg/util/xstring"
+	jsoniter "github.com/json-iterator/go"
 )
 
 func init() {
@@ -30,6 +32,11 @@ func init() {
 			encoder.SetIndent("", "    ")
 		}
 		encoder.Encode(conf.Traverse("."))
+	})
+
+	HandleFunc("/debug/config", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(200)
+		_, _ = w.Write(xstring.PrettyJSONBytes(conf.Traverse(".")))
 	})
 
 	HandleFunc("/debug/env", func(w http.ResponseWriter, r *http.Request) {
