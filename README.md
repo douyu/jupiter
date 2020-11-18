@@ -70,5 +70,3 @@ You can start with the issues labeled with good first issue.
 
 - DingTalk: 
    <img src="doc/dingtalk.png" width = "200" height = "200" alt="" align=center />
-- Wechat:
-   <img src="doc/wechat.png" width = "200" height = "200" alt="" align=center />
