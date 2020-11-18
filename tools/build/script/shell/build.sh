@@ -13,6 +13,13 @@ OUT=${1:?"output path"}
 VERSION_PACKAGE=${2:?"version go package"}
 BUILDPATH=${3:?"path to build"}
 
+pkgPath=${BUILDPATH//$GOPATH\/src\//}
+appName=$(echo $pkgPath | sed -e "s/\//-/g" -e "s/git.xxx.com-//g")
+
+echo "GOPATH:"${GOPATH}
+echo "pkgPath:"${pkgPath}
+echo "appName:"${appName}
+
 set -e
 
 GOOS=${GOOS:-linux}
@@ -25,7 +32,7 @@ LDFLAGS="-extldflags -static"
 GOBUILDFLAGS=${GOBUILDFLAGS:-""}
 GCFLAGS=${GCFLAGS:-}
 
-SUBBUILDPATH=$(dirname ${BUILDPATH})
+SUBBUILDPATH=${BUILDPATH}"/cmd"
 
 export CGO_ENABLED=0
 
@@ -71,21 +78,21 @@ do
     if [[  ${dir} == "main.go" ]]
         then
             echo -e "\n"
-            echo "dir:"$dir
-            echo "OUT:"${OUT}
+            echo "DIR:"$dir
+            echo "appName:"${appName}
             echo "BUILDPATH:"${BUILDPATH}
             echo -e "\n"
-            time GOOS=${GOOS} GOARCH=${GOARCH} ${GOBINARY} build ${V} ${GOBUILDFLAGS} ${GCFLAGS:+-gcflags "${GCFLAGS}"} -o ${SUBBUILDPATH}"/../bin/"${OUT} \
-            -pkgdir=${GOPKG}/${GOOS}_${GOARCH} -ldflags "${LDFLAGS} ${LD_VERSIONFLAGS}" "${BUILDPATH}"
+            time GOOS=${GOOS} GOARCH=${GOARCH} ${GOBINARY} build ${V} ${GOBUILDFLAGS} ${GCFLAGS:+-gcflags "${GCFLAGS}"} -o ${SUBBUILDPATH}"/../bin/"${appName} \
+            -pkgdir=${GOPKG}/${GOOS}_${GOARCH} -ldflags "${LDFLAGS} ${LD_VERSIONFLAGS}" "${BUILDPATH}/cmd/main.go"
         else
-            TMPOUT=${OUT:0:(${#OUT})-3}"-"${dir}"-go"
-            TMPBUILDPATH=${BUILDPATH:0:(${#BUILDPATH})-7}${dir}"/main.go"
+            TMPAppName=${appName:0:(${#appName})-3}"-"${dir}"-go"
+            TMPBUILDPATH=${BUILDPATH}"/cmd/"${dir}"/main.go"
             echo -e "\n"
-            echo "dir:"$dir
-            echo "TMPOUT:"${TMPOUT}
+            echo "DIR:"$dir
+            echo "TMPAppName:"${TMPAppName}
             echo "TMPBUILDPATH:"${TMPBUILDPATH}
             echo -e "\n"
-            time GOOS=${GOOS} GOARCH=${GOARCH} ${GOBINARY} build ${V} ${GOBUILDFLAGS} ${GCFLAGS:+-gcflags "${GCFLAGS}"} -o  ${SUBBUILDPATH}"/../bin/"${TMPOUT} \
+            time GOOS=${GOOS} GOARCH=${GOARCH} ${GOBINARY} build ${V} ${GOBUILDFLAGS} ${GCFLAGS:+-gcflags "${GCFLAGS}"} -o  ${SUBBUILDPATH}"/../bin/"${TMPAppName} \
             -pkgdir=${GOPKG}/${GOOS}_${GOARCH} -ldflags "${LDFLAGS} ${LD_VERSIONFLAGS}" "${TMPBUILDPATH}"
     fi
 done
