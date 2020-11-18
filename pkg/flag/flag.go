@@ -20,7 +20,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"testing"
 )
 
 var (
@@ -36,7 +35,6 @@ func init() {
 		actions:  make(map[string]func(string, *FlagSet)),
 		environs: make(map[string]string),
 	}
-	testing.Init()
 }
 
 // Flag ...
