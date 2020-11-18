@@ -199,6 +199,12 @@ func (r *Redis) Decr(key string) bool {
 	return err == nil
 }
 
+// Scan ...
+func (r *Redis) Scan(cursor uint64, match string, count int64) ([]string, error) {
+	result, _, err := r.Client.Scan(cursor, match, count).Result()
+	return result, err
+}
+
 // Type ...
 func (r *Redis) Type(key string) (string, error) {
 	statusObj := r.Client.Type(key)
