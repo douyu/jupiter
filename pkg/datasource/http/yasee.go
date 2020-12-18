@@ -105,7 +105,7 @@ func (y *yaseeDataSource) watch() {
 		var yaseeRes yaseeRes
 		if err := json.Unmarshal(resp.Body(), &yaseeRes); err != nil {
 			time.Sleep(time.Second * 1)
-			xlog.Error("yaseeDataSource", xlog.String("unmarshal err", err.Error()))
+			y.updateConfig(string(resp.Body()), 0)
 			continue
 		}
 		// default code != 200 means not change
@@ -114,14 +114,18 @@ func (y *yaseeDataSource) watch() {
 			xlog.Info("yaseeDataSource", xlog.Int64("code", int64(yaseeRes.Code)))
 			continue
 		}
-		select {
-		case y.changed <- struct{}{}:
-			// record the config change data
-			y.data = yaseeRes.Data.Content
-			y.lastRevision = yaseeRes.Data.LastRevision
-			xlog.Info("yaseeDataSource", xlog.String("change", yaseeRes.Data.Content))
-		default:
-		}
+		y.updateConfig(yaseeRes.Data.Content, yaseeRes.Data.LastRevision)
+	}
+}
+
+func (y *yaseeDataSource) updateConfig(data string, version int64) {
+	select {
+	case y.changed <- struct{}{}:
+		// record the config change data
+		y.data = data
+		y.lastRevision = version
+		xlog.Info("yaseeDataSource", xlog.String("change", data))
+	default:
 	}
 }
 
@@ -138,6 +142,7 @@ func (y *yaseeDataSource) getConfigInner(addr string, enableWatch bool) (string,
 	if commonKey == "" {
 		return "", fmt.Errorf("config check key is null")
 	}
+
 	content, err := y.getConfig(addr, enableWatch)
 	if err != nil {
 		content, err = ReadConfigFromFile(commonKey, "configCacheDir")
@@ -160,7 +165,7 @@ func (y *yaseeDataSource) getConfig(addr string, enableWatch bool) (string, erro
 	}
 	configRes := yaseeRes{}
 	if err := json.Unmarshal(resp.Body(), &configRes); err != nil {
-		return "", fmt.Errorf("unmarshal config err:%v", err.Error())
+		return string(resp.Body()), nil
 	}
 	if configRes.Code != 200 {
 		return "", fmt.Errorf("get config reply err code:%v", resp.Status())
