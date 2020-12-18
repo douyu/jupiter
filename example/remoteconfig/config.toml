@@ -1,0 +1,12 @@
+remote = "read:key"
+[jupiter.server.http]
+    port = 9090
+[jupiter.server.governor]
+    port = 19090
+[jupiter.logger.default]
+debug = true
+enableConsole = true
+name = "default.json"
+dir = "."
+async = false
+level = "info"
