@@ -461,6 +461,7 @@ func (app *Application) loadConfig() error {
 	}
 
 	var configAddr = flag.String("config")
+	fmt.Printf("configAddr => %v\n", configAddr)
 	provider, err := manager.NewDataSource(configAddr)
 	if err != manager.ErrConfigAddr {
 		if err != nil {
