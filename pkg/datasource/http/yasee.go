@@ -68,18 +68,8 @@ func NewDataSource(addr string, enableWatch bool) *yaseeDataSource {
 
 // ReadConfig ...
 func (y *yaseeDataSource) ReadConfig() ([]byte, error) {
-	// 检查watch 如果watch为真，走长轮询逻辑
-	switch y.enableWatch {
-	case true:
-		if y.data == "" {
-			content, err := y.getConfigInner(y.addr, y.enableWatch)
-			return []byte(content), err
-		}
-		return []byte(y.data), nil
-	default:
-		content, err := y.getConfigInner(y.addr, y.enableWatch)
-		return []byte(content), err
-	}
+	content, err := y.getConfigInner(y.addr, false)
+	return []byte(content), err
 }
 
 // IsConfigChanged ...
