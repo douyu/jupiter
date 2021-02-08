@@ -40,7 +40,7 @@ type Config struct {
 }
 
 // StdConfig ...
-func StdConfig(name string) *Config {
+func StdConfig() *Config {
 	return RawConfig("jupiter.trace.jaeger")
 }
 
@@ -111,6 +111,8 @@ func (config *Config) Build(options ...jconfig.Option) opentracing.Tracer {
 		Headers:     config.Headers,
 		Tags:        config.tags,
 	}
+	xlog.Info("trace", xlog.Any("configuration", configuration))
+
 	tracer, closer, err := configuration.NewTracer(config.options...)
 	if err != nil {
 		if config.PanicOnError {
