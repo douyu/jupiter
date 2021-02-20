@@ -358,8 +358,8 @@ func updateAddrList(al *registry.Endpoints, prefix, scheme string, kvs ...*mvccp
 			}
 			if serviceInfo.Enable == true {
 				al.Nodes[uri.String()] = serviceInfo
-			}else{
-				delete(al.Nodes,uri.String())
+			} else {
+				delete(al.Nodes, uri.String())
 			}
 
 		case strings.HasPrefix(addr, "configurators/"+scheme):
