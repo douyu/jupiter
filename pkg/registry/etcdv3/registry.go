@@ -356,7 +356,12 @@ func updateAddrList(al *registry.Endpoints, prefix, scheme string, kvs ...*mvccp
 				xlog.Error("parse uri", xlog.FieldErrKind(ecode.ErrKindUriErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)))
 				continue
 			}
-			al.Nodes[uri.String()] = serviceInfo
+			if serviceInfo.Enable == true {
+				al.Nodes[uri.String()] = serviceInfo
+			}else{
+				delete(al.Nodes,uri.String())
+			}
+
 		case strings.HasPrefix(addr, "configurators/"+scheme):
 			addr = strings.TrimPrefix(addr, "configurators/")
 
