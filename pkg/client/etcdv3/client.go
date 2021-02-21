@@ -18,6 +18,8 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"github.com/coreos/etcd/pkg/logutil"
+	"go.uber.org/zap"
 	"github.com/coreos/etcd/clientv3/concurrency"
 	"io/ioutil"
 	"strings"
@@ -54,7 +56,25 @@ func newClient(config *Config) *Client {
 	}
 
 	config.logger = config.logger.With(xlog.FieldAddrAny(config.Endpoints))
+	if config.Enable {
+		conf.LogConfig = &zap.Config{
+			Level:       zap.NewAtomicLevelAt(logutil.ConvertToZapLevel(config.Level)),
+			Development: config.Debug,
+			Sampling: &zap.SamplingConfig{
+				Initial:    config.Initial,
+				Thereafter: config.Thereafter,
+			},
 
+			Encoding: config.Encoding,
+
+			// copied from "zap.NewProductionEncoderConfig" with some updates
+			EncoderConfig: *xlog.DefaultZapConfig(),
+
+			// Use "/dev/null" to discard all
+			OutputPaths:      config.OutputPaths,
+			ErrorOutputPaths: config.ErrorOutputPaths,
+		}
+	}
 	if config.Endpoints == nil {
 		config.logger.Panic("client etcd endpoints empty", xlog.FieldMod(ecode.ModClientETCD), xlog.FieldValueAny(config))
 	}
