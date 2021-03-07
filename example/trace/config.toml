@@ -1,0 +1,7 @@
+[jupiter.trace.jaeger]
+EnableRPCMetrics= true
+[jupiter.trace.jaeger.Reporter]
+LocalAgentHostPort = "127.0.0.1:6831"
+LogSpans = true
+[jupiter.trace.jaeger.Sampler]
+Param = 0.0001
