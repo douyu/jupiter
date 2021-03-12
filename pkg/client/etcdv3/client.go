@@ -18,15 +18,14 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
-	"github.com/coreos/etcd/clientv3/concurrency"
 	"io/ioutil"
 	"strings"
 	"time"
 
-	"github.com/douyu/jupiter/pkg/ecode"
-
 	"github.com/coreos/etcd/clientv3"
+	"github.com/coreos/etcd/clientv3/concurrency"
 	"github.com/coreos/etcd/mvcc/mvccpb"
+	"github.com/douyu/jupiter/pkg/ecode"
 	"github.com/douyu/jupiter/pkg/xlog"
 	grpcprom "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"google.golang.org/grpc"
@@ -47,8 +46,8 @@ func newClient(config *Config) *Client {
 		DialKeepAliveTimeout: 3 * time.Second,
 		DialOptions: []grpc.DialOption{
 			grpc.WithBlock(),
-			grpc.WithUnaryInterceptor(grpcprom.UnaryClientInterceptor),
-			grpc.WithStreamInterceptor(grpcprom.StreamClientInterceptor),
+			grpc.WithChainUnaryInterceptor(grpcprom.UnaryClientInterceptor),
+			grpc.WithChainStreamInterceptor(grpcprom.StreamClientInterceptor),
 		},
 		AutoSyncInterval: config.AutoSyncInterval,
 	}
