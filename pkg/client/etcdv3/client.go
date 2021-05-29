@@ -18,10 +18,11 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
-	"github.com/coreos/etcd/clientv3/concurrency"
 	"io/ioutil"
 	"strings"
 	"time"
+
+	"github.com/coreos/etcd/clientv3/concurrency"
 
 	"github.com/douyu/jupiter/pkg/ecode"
 
@@ -198,18 +199,17 @@ func (client *Client) GetValues(ctx context.Context, keys ...string) (map[string
 		}
 		return nil
 	}
-	for _, key := range keys {
-		getOps = append(getOps, key)
-		if len(getOps) >= maxTxnOps {
-			if err := doTxn(getOps); err != nil {
+	cnt := len(keys) / maxTxnOps
+	for i := 0; i <= cnt; i++ {
+		switch temp := (i == cnt); temp {
+		case false:
+			if err := doTxn(keys[i*maxTxnOps : (i+1)*maxTxnOps]); err != nil {
 				return vars, err
 			}
-			getOps = getOps[:0]
-		}
-	}
-	if len(getOps) > 0 {
-		if err := doTxn(getOps); err != nil {
-			return vars, err
+		case true:
+			if err := doTxn(keys[i*maxTxnOps:]); err != nil {
+				return vars, err
+			}
 		}
 	}
 	return vars, nil
