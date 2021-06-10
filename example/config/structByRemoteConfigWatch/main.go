@@ -65,10 +65,13 @@ func (eng *Engine) serveHTTP() error {
 func (eng *Engine) remoteConfigWatch() error {
 	p := People{}
 	conf.OnChange(func(config *conf.Configuration) {
-		err := config.UnmarshalKey("people", &p)
+		var tmp People
+		err := config.UnmarshalKey("people", &tmp)
 		if err != nil {
-			panic(err.Error())
+			xlog.Error("watchConfig people failed", xlog.FieldErr(err))
+			return
 		}
+		p = tmp
 	})
 	go func() {
 		// 循环打印配置
