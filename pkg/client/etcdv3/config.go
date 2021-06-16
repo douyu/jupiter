@@ -18,10 +18,13 @@ import (
 	"time"
 
 	"github.com/douyu/jupiter/pkg/conf"
+	"github.com/douyu/jupiter/pkg/constant"
 	"github.com/douyu/jupiter/pkg/ecode"
 	"github.com/douyu/jupiter/pkg/util/xtime"
 	"github.com/douyu/jupiter/pkg/xlog"
 )
+
+var ConfigPrefix = constant.ConfigPrefix + ".etcdv3"
 
 // Config ...
 type (
@@ -55,7 +58,7 @@ func DefaultConfig() *Config {
 
 // StdConfig ...
 func StdConfig(name string) *Config {
-	return RawConfig("jupiter.etcdv3." + name)
+	return RawConfig(ConfigPrefix + "." + name)
 }
 
 // RawConfig ...
