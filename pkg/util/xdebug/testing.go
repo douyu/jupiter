@@ -18,6 +18,8 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
 	"sync"
 
 	"github.com/douyu/jupiter/pkg/util/xcolor"
@@ -75,4 +77,35 @@ func PrettyJsonPrint(message string, obj interface{}) {
 			pretty.TerminalStyle,
 		),
 	)
+}
+
+// PrettyJsonByte ...
+func PrettyJsonByte(obj interface{}) string {
+	return string(pretty.Color(pretty.Pretty([]byte(xstring.Json(obj))), pretty.TerminalStyle))
+}
+
+// PrettyKV ...
+func PrettyKV(key string, val string) {
+	fmt.Printf("%-50s => %s\n", xcolor.Red(key), xcolor.Green(val))
+}
+
+// PrettyKV ...
+func PrettyKVWithPrefix(prefix string, key string, val string) {
+	fmt.Printf(prefix+" %-30s => %s\n", xcolor.Red(key), xcolor.Blue(val))
+}
+
+// PrettyMap ...
+func PrettyMap(data map[string]interface{}) {
+	for key, val := range data {
+		fmt.Printf("%-20s : %s\n", xcolor.Red(key), fmt.Sprintf("%+v", val))
+	}
+}
+
+// GetCurrentDirectory ...
+func GetCurrentDirectory() string {
+	dir, err := filepath.Abs(filepath.Dir(os.Args[0])) // 返回绝对路径  filepath.Dir(os.Args[0])去除最后一个元素的路径
+	if err != nil {
+		panic(err)
+	}
+	return strings.Replace(dir, "\\", "/", -1) // 将\替换成/
 }

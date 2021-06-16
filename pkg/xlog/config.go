@@ -19,9 +19,12 @@ import (
 	"time"
 
 	"github.com/douyu/jupiter/pkg/conf"
+	"github.com/douyu/jupiter/pkg/constant"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
+
+var ConfigPrefix = constant.ConfigPrefix + ".logger"
 
 // Config ...
 type Config struct {
@@ -58,6 +61,10 @@ func (config *Config) Filename() string {
 	return fmt.Sprintf("%s/%s", config.Dir, config.Name)
 }
 
+func ConfigEntry(name string) string {
+	return ConfigPrefix + "." + name
+}
+
 // RawConfig ...
 func RawConfig(key string) *Config {
 	var config = DefaultConfig()
@@ -70,7 +77,7 @@ func RawConfig(key string) *Config {
 
 // StdConfig Jupiter Standard logger config
 func StdConfig(name string) *Config {
-	return RawConfig("jupiter.logger." + name)
+	return RawConfig(ConfigPrefix + "." + name)
 }
 
 // DefaultConfig ...

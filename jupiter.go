@@ -21,6 +21,7 @@ import (
 	"runtime"
 	"sync"
 
+	"github.com/douyu/jupiter/pkg/constant"
 	"github.com/douyu/jupiter/pkg/server/governor"
 	job "github.com/douyu/jupiter/pkg/worker/xjob"
 
@@ -461,9 +462,6 @@ func (app *Application) loadConfig() error {
 	}
 
 	var configAddr = flag.String("config")
-
-	fmt.Printf("configAddr => %v\n", configAddr)
-
 	provider, err := manager.NewDataSource(configAddr)
 	if err != manager.ErrConfigAddr {
 		if err != nil {
@@ -481,15 +479,15 @@ func (app *Application) loadConfig() error {
 
 //initLogger init
 func (app *Application) initLogger() error {
-	if conf.Get("jupiter.logger.default") != nil {
-		xlog.DefaultLogger = xlog.RawConfig("jupiter.logger.default").Build()
+	if conf.Get(xlog.ConfigEntry("default")) != nil {
+		xlog.DefaultLogger = xlog.RawConfig(constant.ConfigPrefix + ".logger.default").Build()
 	}
-	xlog.DefaultLogger.AutoLevel("jupiter.logger.default")
+	xlog.DefaultLogger.AutoLevel(constant.ConfigPrefix + ".logger.default")
 
-	if conf.Get("jupiter.logger.jupiter") != nil {
-		xlog.JupiterLogger = xlog.RawConfig("jupiter.logger.jupiter").Build()
+	if conf.Get(constant.ConfigPrefix+".logger.jupiter") != nil {
+		xlog.JupiterLogger = xlog.RawConfig(constant.ConfigPrefix + ".logger.jupiter").Build()
 	}
-	xlog.JupiterLogger.AutoLevel("jupiter.logger.jupiter")
+	xlog.JupiterLogger.AutoLevel(constant.ConfigPrefix + ".logger.jupiter")
 
 	return nil
 }

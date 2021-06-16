@@ -32,3 +32,21 @@ func TagName(tag string) GetOption {
 		o.TagName = tag
 	}
 }
+
+func TagNameJSON() GetOption {
+	return func(o *GetOptions) {
+		o.TagName = "json"
+	}
+}
+
+func TagNameTOML() GetOption {
+	return func(o *GetOptions) {
+		o.TagName = "toml"
+	}
+}
+
+func TagNameYAML() GetOption {
+	return func(o *GetOptions) {
+		o.TagName = "yaml"
+	}
+}

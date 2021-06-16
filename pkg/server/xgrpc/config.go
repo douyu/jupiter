@@ -16,6 +16,7 @@ package xgrpc
 
 import (
 	"fmt"
+
 	"github.com/douyu/jupiter/pkg/flag"
 
 	"github.com/douyu/jupiter/pkg/constant"
@@ -28,9 +29,10 @@ import (
 
 // Config ...
 type Config struct {
-	Host       string
-	Port       int
-	Deployment string
+	Name       string `json:"name"`
+	Host       string `json:"host"`
+	Port       int    `json:"port"`
+	Deployment string `json:"deployment"`
 	// Network network type, tcp4 by default
 	Network string `json:"network" toml:"network"`
 	// DisableTrace disbale Trace Interceptor, false by default
@@ -41,6 +43,8 @@ type Config struct {
 	SlowQueryThresholdInMilli int64
 	// ServiceAddress service address in registry info, default to 'Host:Port'
 	ServiceAddress string
+
+	Labels map[string]string `json:"labels"`
 
 	serverOptions      []grpc.ServerOption
 	streamInterceptors []grpc.StreamServerInterceptor
