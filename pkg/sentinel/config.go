@@ -43,10 +43,10 @@ func RawConfig(key string) *Config {
 
 // Config ...
 type Config struct {
-	AppName       string           `json:"appName"`
-	LogPath       string           `json:"logPath"`
-	FlowRules     []*flow.FlowRule `json:"rules"`
-	FlowRulesFile string           `json:"flowRulesFile"`
+	AppName       string       `json:"appName"`
+	LogPath       string       `json:"logPath"`
+	FlowRules     []*flow.Rule `json:"rules"`
+	FlowRulesFile string       `json:"flowRulesFile"`
 }
 
 // DefaultConfig returns default config for sentinel
@@ -54,7 +54,7 @@ func DefaultConfig() *Config {
 	return &Config{
 		AppName:   pkg.Name(),
 		LogPath:   "/tmp/log",
-		FlowRules: make([]*flow.FlowRule, 0),
+		FlowRules: make([]*flow.Rule, 0),
 	}
 }
 
@@ -64,7 +64,7 @@ func DefaultConfig() *Config {
 // todo: support more rule such as system rule
 func (config *Config) Build() error {
 	if config.FlowRulesFile != "" {
-		var rules []*flow.FlowRule
+		var rules []*flow.Rule
 		content, err := ioutil.ReadFile(config.FlowRulesFile)
 		if err != nil {
 			xlog.Error("load sentinel flow rules", xlog.FieldErr(err), xlog.FieldKey(config.FlowRulesFile))
