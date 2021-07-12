@@ -39,7 +39,7 @@ func StdNewProducer(name string) *Producer {
 }
 
 func (conf *ProducerConfig) Build() *Producer {
-	name := conf.Topic
+	name := conf.Name
 	if _, ok := _producers.Load(name); ok {
 		xlog.Panic("duplicated load", xlog.String("name", name))
 	}
@@ -113,6 +113,7 @@ func (pc *Producer) Close() error {
 		xlog.Warn("consumer close fail", xlog.Any("error", err.Error()))
 		return err
 	}
+	_producers.Delete(pc.name)
 	return nil
 }
 
