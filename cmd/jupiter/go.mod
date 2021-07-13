@@ -1,4 +1,4 @@
-module github.com/douyu/jupiter/tools/jupiter
+module github.com/douyu/jupiter/cmd/jupiter
 
 go 1.14
 

@@ -15,10 +15,11 @@
 package main
 
 import (
-	"github.com/douyu/jupiter/tools/jupiter/new"
-	"github.com/douyu/jupiter/tools/jupiter/protoc"
 	"log"
 	"os"
+
+	"github.com/douyu/jupiter/cmd/jupiter/new"
+	"github.com/douyu/jupiter/cmd/jupiter/protoc"
 
 	"github.com/urfave/cli"
 )

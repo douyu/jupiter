@@ -4,7 +4,7 @@ jupiter 提供了脚手架以便快速的创建应用:
 
 1. 安装脚手架工具
 ```
-go get -u github.com/douyu/jupiter/tools/jupiter
+go get -u github.com/douyu/jupiter/cmd/jupiter
 ```
 2. 创建一个项目
 ``` bash

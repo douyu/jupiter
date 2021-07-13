@@ -20,7 +20,7 @@ linux :
 export GO111MODULE=on
 export GOPROXY=https://mirrors.aliyun.com/goproxy/,direct
 ```
-`go get -u -v github.com/douyu/jupiter/tools/jupiter`
+`go get -u -v github.com/douyu/jupiter/cmd/jupiter`
 * windows 用户:  
   会在${GOPATH}/src/bin 目录下生成jupiter.exe 文件,若想方便的在任何地方使用jupiter命令,请将该
   命令配置在系统的环境变量中

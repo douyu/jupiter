@@ -3,6 +3,13 @@ package application
 import (
 	"os"
 	"time"
+
+	"github.com/douyu/jupiter/pkg/flag"
+)
+
+var (
+	appHost  = os.Getenv("JUPITER_APP_HOST")
+	hostname string
 )
 
 func init() {
@@ -30,9 +37,20 @@ func NewRuntimeStats() RuntimeStats {
 	}
 }
 
-var hostname string
-
 // Hostname gets hostname.
 func Hostname() string {
 	return hostname
+}
+
+// EnvServerHost gets JUPITER_APP_HOST.
+func EnvServerHost() string {
+	host := flag.String("host")
+	if host != "" {
+		return host
+	}
+
+	if appHost == "" {
+		return "127.0.0.1"
+	}
+	return appHost
 }

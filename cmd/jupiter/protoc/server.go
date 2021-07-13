@@ -2,15 +2,16 @@ package protoc
 
 import (
 	"fmt"
-	"github.com/douyu/jupiter/pkg/util/xcolor"
-	template2 "github.com/douyu/jupiter/tools/jupiter/protoc/template"
-	"github.com/emicklei/proto"
 	"html/template"
 	"os"
 	"path"
 	"path/filepath"
 	"runtime"
 	"strings"
+
+	template2 "github.com/douyu/jupiter/cmd/jupiter/protoc/template"
+	"github.com/douyu/jupiter/pkg/util/xcolor"
+	"github.com/emicklei/proto"
 )
 
 // GRPCServerGen  ...
