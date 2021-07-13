@@ -18,7 +18,7 @@ func TestGetModPath(t *testing.T) {
 		{
 			name:        "getModPath",
 			args:        args{projectPath: "./"},
-			wantModPath: "github.com/douyu/jupiter/tools/jupiter/",
+			wantModPath: "github.com/douyu/jupiter/cmd/jupiter/",
 		},
 	}
 	for _, tt := range tests {
