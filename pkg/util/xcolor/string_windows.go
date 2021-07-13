@@ -30,31 +30,30 @@ func RandomColor() string {
 }
 
 // Yellow ...
-func Yellow(msg string) string {
-	return fmt.Sprintf("%s", msg)
+func Yellow(msg string, arg ...interface{}) string {
+	return sprint(msg, arg...)
 }
 
 // Red ...
-func Red(msg string) string {
-	return fmt.Sprintf("%s", msg)
-}
-
-// Redf ...
-func Redf(msg string, arg interface{}) string {
-	return fmt.Sprintf("%s %+v\n", msg, arg)
+func Red(msg string, arg ...interface{}) string {
+	return sprint(msg, arg...)
 }
 
 // Blue ...
-func Blue(msg string) string {
-	return fmt.Sprintf("%s", msg)
+func Blue(msg string, arg ...interface{}) string {
+	return sprint(msg, arg...)
 }
 
 // Green ...
-func Green(msg string) string {
-	return fmt.Sprintf("%s", msg)
+func Green(msg string, arg ...interface{}) string {
+	return sprint(msg, arg...)
 }
 
-// Greenf ...
-func Greenf(msg string, arg interface{}) string {
-	return fmt.Sprintf("%s %+v\n", msg, arg)
+// sprint ...
+func sprint(msg string, arg ...interface{}) string {
+	if arg != nil {
+		return fmt.Sprintf("%s %+v\n", msg, arrToTransform(arg))
+	} else {
+		return fmt.Sprintf("%s", msg)
+	}
 }
