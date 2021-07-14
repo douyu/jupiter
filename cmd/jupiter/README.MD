@@ -1,34 +1,43 @@
 # jupiter
 
 ## 脚手架介绍
+
 ### jupiter脚手架工具集
+
 1. 快速生成模板项目
 2. 基于proto文件生成pb.go
 3. 基于proto文件生成服务端实现
 
 # go version
+
  GO >= 1.13
 
 ## 脚手架工具获取
+
 windows :  
+
 ```shell script
 set GO111MODULE=on
 set GOPROXY=https://mirrors.aliyun.com/goproxy/,direct
 ```
+
 linux :  
+
 ```shell script
 export GO111MODULE=on
 export GOPROXY=https://mirrors.aliyun.com/goproxy/,direct
 ```
+
 `go get -u -v github.com/douyu/jupiter/cmd/jupiter`
+
 * windows 用户:  
   会在${GOPATH}/src/bin 目录下生成jupiter.exe 文件,若想方便的在任何地方使用jupiter命令,请将该
   命令配置在系统的环境变量中
 
-
-
 ## 如何使用
+
 * jupiter -h  
+
 ```shell script
 E:\go\goworkspace\src\jupiter-demo\cmd>jupiter -h
 NAME:
@@ -49,6 +58,7 @@ GLOBAL OPTIONS:
    --help, -h     show help
    --version, -v  print the version
 ```
+
 * jupiter new -h
 
 ```shell script
@@ -69,7 +79,9 @@ Examples:
   # Build the specified directory for the template project
   jupiter new (your project name) -d (project dir)
 ```
-* jupiter protoc -h  
+
+* jupiter protoc -h
+  
 ```shell script
 E:\go\goworkspace\src\jupiter-demo\cmd>jupiter protoc -h
 NAME:
@@ -94,20 +106,26 @@ Examples:
    # -f: Proto file address -o: Code generation path -p:prefix(Current project name) -g: Whether to generate Server code
    jupiter protoc -f ./pb/hello/hello.proto -o ./internal/app/grpc -p jupiter-demo -s
 ```
-## 开始实战 
+
+## 开始实战
+
  接下来我们会一步一步的带着大家从无到有开发jupiter应用!(gopher Let's go)
 ### 快速创建jupiter模板项目
+
 ```shell script
 cd ${GOPATH}/src
 jupiter new jupiter-demo -d ./
 ```
-命令解释: 
+
+命令解释:
+
 * new :创建jupiter模板项目
 * jupiter-demo: 项目名称
 * -d: 生成项目所在路径
 
 然后就会在${GOPATH}/src 下生成jupiter-demo 项目  
 项目目录结构:
+
 ```go
 build                           编译目录
 cmd                             应用启动目录
@@ -135,19 +153,26 @@ sql                             sql脚本
 go.mod
 Makefile
 ```
+
 ### 运行jupiter应用
+
 * 数据库环境准备
+
 1. 请先在mysql中创建test库，然后将sql中的user.sql在该库中执行
 2. 修改mysql配置: 在config/config.toml中 找到 `[jupiter.mysql.test]`
    将`dsn` 改成你所在的环境
+
 * 下载go.mod依赖
-*  编译运行  
+* 编译运行
    在项目跟目录下执行以下命令
+
 ```shell script
 cd cmd
 go run main.go --config=../config/config.toml
 ```
-   接下来你将会看到以下日志  
+
+   接下来你将会看到以下日志
+  
 ```shell script
 E:\go\goworkspace\src\jupiter-demo\cmd>go run main.go --config=../config/config.toml
 
@@ -211,6 +236,7 @@ E:\go\goworkspace\src\jupiter-demo\cmd>go run main.go --config=../config/config.
 1592274932      WARN    exec job                                {"warn": "print warning"}
 1592274932      INFO    run job                                 {"mod": "worker.cron", "name": "jupiter-demo/internal/app/engine.(*Engine).execJob-fm"}
 ```
+
 模板项目中 我们默认帮你开启了HTTP,GRPC,JOB等服务。当然你也可以根据自己的需求进行取舍  
 接下来打开浏览器输入:  
 http://127.0.0.1:20105/jupiter  
@@ -226,28 +252,34 @@ http://127.0.0.1:20105/jupiter
 
 jupiter protoc工具集目前可用于根据pb文件中的proto文件，生成pb.go，以及生成服务端实现，
 你只需要去完善对应服务端实现的业务逻辑即可。
+
 * 环境准备
   请确保当前系统安装protoc 编译工具  
   go版本的 Protobuf 编译器插件,工具内部采用的是性能更好的 protoc-gen-gofast ,若检测到当前系统安装会自动进行安装
 * 实操演示  
 脚手架中默认提供的 `pb/hello/hello.proto` 文件,以下操作都是基于该文件  
-进入到项目根目录下，执行以下命令   
+进入到项目根目录下，执行以下命令
+
 1. 生成pb.go 文件
+
 ```shell script
  jupiter protoc -f ./pb/hello/hello.proto -o ./pb/hello -g
 ```
+
 命令解释:  
 -f : proto文件路径  
 -o :生成文件目录(建议生成目录与proto文件同级，方便管理)  
--g :是否生成pb.go 文件   
+-g :是否生成pb.go 文件
 
 正常情况下会在 `./pb/hello/`中 生成 `hello.pb.go` 文件
 
-2. 生成grpc服务端实现
-```
+2.生成grpc服务端实现
+
+``` bash
 jupiter protoc -f ./pb/hello/hello.proto -o ./internal/app/grpc -p jupiter-demo -s
 ```
-命令解释:    
+
+命令解释:
 -f : proto文件路径  
 -o : grpc服务端代码生成文件目录(建议生成至./internal/app/grpc 中)  
 -p : grpc服务端代码实现依赖pb.go的前缀(请使用当前项目名)  
@@ -259,13 +291,13 @@ jupiter protoc -f ./pb/hello/hello.proto -o ./internal/app/grpc -p jupiter-demo 
 
 快速测试grpc服务端代码:  
 框架内部我们支持 代理http到grpc控制器,并且在engine.go中我们也提供了相关的示例
+
 ```go
-	//support proxy for http to grpc controller
-	g := greeter.Greeter{}
-	group2 := server.Group("/grpc")
-	group2.GET("/get", xecho.GRPCProxyWrapper(g.SayHello))
-	group2.POST("/post", xecho.GRPCProxyWrapper(g.SayHello))
+//support proxy for http to grpc controller
+g := greeter.Greeter{}
+group2 := server.Group("/grpc")
+group2.GET("/get", xecho.GRPCProxyWrapper(g.SayHello))
+group2.POST("/post", xecho.GRPCProxyWrapper(g.SayHello))
 ```
-你可以参照该示例,将自己的grpc服务端实现注册在路由中，然后通过HTTP请求即可访问 
 
-
+你可以参照该示例,将自己的grpc服务端实现注册在路由中，然后通过HTTP请求即可访问

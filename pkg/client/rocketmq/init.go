@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/douyu/jupiter/pkg/application"
+	"github.com/douyu/jupiter/pkg/governor"
 	jsoniter "github.com/json-iterator/go"
 )
 
@@ -13,7 +14,7 @@ var _producers = &sync.Map{}
 var _consumers = &sync.Map{}
 
 func init() {
-	http.HandleFunc("/debug/rocketmq/stats", func(w http.ResponseWriter, r *http.Request) {
+	governor.HandleFunc("/debug/rocketmq/stats", func(w http.ResponseWriter, r *http.Request) {
 		type rocketmqStatus struct {
 			application.RuntimeStats
 			RocketMQs map[string]interface{} `json:"rocketmqs"`
@@ -22,8 +23,8 @@ func init() {
 
 		var rets = rocketmqStatus{
 			RuntimeStats: application.NewRuntimeStats(),
-			RocketMQs:    make(map[string]interface{}, 0),
-			FlowInfo:     make(map[string]FlowInfo, 0),
+			RocketMQs:    make(map[string]interface{}),
+			FlowInfo:     make(map[string]FlowInfo),
 		}
 
 		_producers.Range(func(key interface{}, val interface{}) bool {

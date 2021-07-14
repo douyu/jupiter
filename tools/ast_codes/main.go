@@ -33,7 +33,7 @@ import (
 
 	// "github.com/pelletier/go-toml"
 	"github.com/davecgh/go-spew/spew"
-	"github.com/spf13/cast"
+	"github.com/douyu/pkg/util/xcast"
 )
 
 /*
@@ -196,14 +196,14 @@ func main() {
 				}
 				switch field.Type {
 				case "bool":
-					// tree.SetWithComment(prefix+".default."+field.Tag, field.Doc, false, cast.ToBool(field.Default))
-					mdfield.Default = cast.ToBool(field.Default)
+					// tree.SetWithComment(prefix+".default."+field.Tag, field.Doc, false, xcast.ToBool(field.Default))
+					mdfield.Default = xcast.ToBool(field.Default)
 				case "int", "int32", "int64", "int8", "uint", "uint32", "uint64":
-					// tree.SetWithComment(prefix+".default."+field.Tag, field.Doc, false, cast.ToInt64(field.Default))
-					mdfield.Default = cast.ToInt64(field.Default)
+					// tree.SetWithComment(prefix+".default."+field.Tag, field.Doc, false, xcast.ToInt64(field.Default))
+					mdfield.Default = xcast.ToInt64(field.Default)
 				case "time.Duration":
-					// tree.SetWithComment(prefix+".default."+field.Tag, field.Doc, false, cast.ToString(field.Default))
-					mdfield.Default = cast.ToString(field.Default)
+					// tree.SetWithComment(prefix+".default."+field.Tag, field.Doc, false, xcast.ToString(field.Default))
+					mdfield.Default = xcast.ToString(field.Default)
 				}
 				mdfields = append(mdfields, mdfield)
 			}

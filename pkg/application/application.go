@@ -22,7 +22,7 @@ import (
 	"sync"
 
 	"github.com/douyu/jupiter/pkg/constant"
-	"github.com/douyu/jupiter/pkg/server/governor"
+	"github.com/douyu/jupiter/pkg/governor"
 	job "github.com/douyu/jupiter/pkg/worker/xjob"
 
 	"github.com/BurntSushi/toml"
@@ -77,7 +77,7 @@ type Application struct {
 	HideBanner   bool
 }
 
-//New new a Application
+// New create a new Application instance
 func New(fns ...func() error) (*Application, error) {
 	app := &Application{}
 	if err := app.Startup(fns...); err != nil {
