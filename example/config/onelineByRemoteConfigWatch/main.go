@@ -57,7 +57,7 @@ func NewEngine() *Engine {
 }
 
 func (eng *Engine) serveHTTP() error {
-	server := xecho.StdConfig("http").Build()
+	server := xecho.StdConfig("http").MustBuild()
 	return eng.Serve(server)
 }
 

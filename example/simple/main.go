@@ -18,8 +18,7 @@ import (
 	"log"
 
 	"github.com/douyu/jupiter"
-	compound_registry "github.com/douyu/jupiter/pkg/registry/compound"
-	etcdv3_registry "github.com/douyu/jupiter/pkg/registry/etcdv3"
+	"github.com/douyu/jupiter/pkg/registry"
 	"github.com/douyu/jupiter/pkg/server"
 	"github.com/douyu/jupiter/pkg/server/xgin"
 	"github.com/gin-gonic/gin"
@@ -30,11 +29,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	app.SetRegistry(
-		compound_registry.New(
-			etcdv3_registry.StdConfig("test").Build(),
-		),
-	)
+	app.SetRegistry(registry.Local{})
 	app.Run(startHTTPServer())
 }
 

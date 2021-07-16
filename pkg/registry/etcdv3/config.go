@@ -66,9 +66,17 @@ type Config struct {
 }
 
 // Build ...
-func (config Config) Build() registry.Registry {
+func (config Config) Build() (registry.Registry, error) {
 	if config.ConfigKey != "" {
 		config.Config = etcdv3.RawConfig(config.ConfigKey)
 	}
 	return newETCDRegistry(&config)
+}
+
+func (config Config) MustBuild() registry.Registry {
+	reg, err := config.Build()
+	if err != nil {
+		xlog.Panicf("build registry failed: %v", err)
+	}
+	return reg
 }

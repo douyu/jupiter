@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"reflect"
 	"strings"
 	"sync"
@@ -29,6 +30,9 @@ import (
 	"github.com/pkg/errors"
 )
 
+func init() {
+}
+
 // Configuration provides configuration for application.
 type Configuration struct {
 	mu       sync.RWMutex
@@ -37,8 +41,11 @@ type Configuration struct {
 
 	keyMap    *sync.Map
 	onChanges []func(*Configuration)
+	onLoadeds []func(*Configuration)
 
 	watchers map[string][]func(*Configuration)
+	// TODO: concurrency protect
+	loaded bool
 }
 
 const (
@@ -52,7 +59,9 @@ func New() *Configuration {
 		keyDelim:  defaultKeyDelim,
 		keyMap:    &sync.Map{},
 		onChanges: make([]func(*Configuration), 0),
+		onLoadeds: make([]func(*Configuration), 0),
 		watchers:  make(map[string][]func(*Configuration)),
+		loaded:    false,
 	}
 }
 
@@ -80,6 +89,15 @@ func (c *Configuration) OnChange(fn func(*Configuration)) {
 	c.onChanges = append(c.onChanges, fn)
 }
 
+func (c *Configuration) OnLoaded(fn func(*Configuration)) {
+	if c.loaded {
+		fn(c)
+		return
+	}
+
+	c.onLoadeds = append(c.onLoadeds, fn)
+}
+
 // LoadFromDataSource ...
 func (c *Configuration) LoadFromDataSource(ds DataSource, unmarshaller Unmarshaller) error {
 	content, err := ds.ReadConfig()
@@ -94,7 +112,7 @@ func (c *Configuration) LoadFromDataSource(ds DataSource, unmarshaller Unmarshal
 	go func() {
 		for range ds.IsConfigChanged() {
 			if content, err := ds.ReadConfig(); err == nil {
-				_ = c.Load(content, unmarshaller)
+				_ = c.reflush(content, unmarshaller)
 				for _, change := range c.onChanges {
 					change(c)
 				}
@@ -105,13 +123,30 @@ func (c *Configuration) LoadFromDataSource(ds DataSource, unmarshaller Unmarshal
 	return nil
 }
 
-// Load ...
-func (c *Configuration) Load(content []byte, unmarshal Unmarshaller) error {
+func (c *Configuration) reflush(content []byte, unmarshal Unmarshaller) error {
 	configuration := make(map[string]interface{})
 	if err := unmarshal(content, &configuration); err != nil {
 		return err
 	}
-	return c.apply(configuration)
+	if err := c.apply(configuration); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Load ...
+func (c *Configuration) Load(content []byte, unmarshal Unmarshaller) error {
+	if err := c.reflush(content, unmarshal); err != nil {
+		return err
+	}
+
+	log.Print("load config successfully")
+	c.loaded = true
+	for _, loadHook := range c.onLoadeds {
+		loadHook(c)
+	}
+	return nil
 }
 
 // Load loads configuration from provided data source.
@@ -126,7 +161,6 @@ func (c *Configuration) LoadFromReader(reader io.Reader, unmarshaller Unmarshall
 func (c *Configuration) apply(conf map[string]interface{}) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-
 	var changes = make(map[string]interface{})
 
 	xmap.MergeStringMap(c.override, conf)

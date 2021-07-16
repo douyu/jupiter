@@ -20,6 +20,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/arschles/assert"
 	"github.com/douyu/jupiter/pkg/constant"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/smartystreets/goconvey/convey"
@@ -71,7 +72,7 @@ func TestServer_Closed(t *testing.T) {
 }
 func TestServer_Stop(t *testing.T) {
 	convey.Convey("test server graceful stop", t, func(c convey.C) {
-		ns := newServer(&Config{
+		ns, err := newServer(&Config{
 			Network:                   "tcp4",
 			Host:                      "127.0.0.1",
 			Port:                      0,
@@ -84,6 +85,7 @@ func TestServer_Stop(t *testing.T) {
 			streamInterceptors:        []grpc.StreamServerInterceptor{},
 			unaryInterceptors:         []grpc.UnaryServerInterceptor{},
 		})
+		assert.Nil(t, err)
 		//
 		go func() {
 			// make sure Serve() is called
@@ -92,7 +94,7 @@ func TestServer_Stop(t *testing.T) {
 			c.So(err, convey.ShouldBeNil)
 		}()
 
-		err := ns.Serve()
+		err = ns.Serve()
 		convey.So(err, convey.ShouldBeNil)
 		// server.Serve is responsible for closing the listener, even if the
 		// server was already stopped.
@@ -102,7 +104,7 @@ func TestServer_Stop(t *testing.T) {
 }
 func TestServer_GracefulStop(t *testing.T) {
 	convey.Convey("test server graceful stop", t, func(c convey.C) {
-		ns := newServer(&Config{
+		ns, err := newServer(&Config{
 			Network:                   "tcp4",
 			Host:                      "127.0.0.1",
 			Port:                      0,
@@ -115,6 +117,7 @@ func TestServer_GracefulStop(t *testing.T) {
 			streamInterceptors:        []grpc.StreamServerInterceptor{},
 			unaryInterceptors:         []grpc.UnaryServerInterceptor{},
 		})
+		assert.Nil(t, err)
 		//
 		go func() {
 			// make sure Serve() is called
@@ -123,7 +126,7 @@ func TestServer_GracefulStop(t *testing.T) {
 			c.So(err, convey.ShouldBeNil)
 		}()
 
-		err := ns.Serve()
+		err = ns.Serve()
 		convey.So(err, convey.ShouldBeNil)
 		// server.Serve is responsible for closing the listener, even if the
 		// server was already stopped.
@@ -134,7 +137,7 @@ func TestServer_GracefulStop(t *testing.T) {
 
 func TestServer_Info(t *testing.T) {
 	convey.Convey("test server info", t, func(c convey.C) {
-		ns := newServer(&Config{
+		ns, err := newServer(&Config{
 			Network:                   "tcp4",
 			Host:                      "127.0.0.1",
 			Port:                      0,
@@ -147,6 +150,7 @@ func TestServer_Info(t *testing.T) {
 			streamInterceptors:        []grpc.StreamServerInterceptor{},
 			unaryInterceptors:         []grpc.UnaryServerInterceptor{},
 		})
+		assert.Nil(t, err)
 		convey.So(ns.Info().Scheme, convey.ShouldEqual, "grpc")
 		convey.So(ns.Info().Enable, convey.ShouldEqual, true)
 	})

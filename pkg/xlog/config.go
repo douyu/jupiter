@@ -16,6 +16,7 @@ package xlog
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/douyu/jupiter/pkg/conf"
@@ -23,6 +24,23 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
+
+func init() {
+	conf.OnLoaded(func(c *conf.Configuration) {
+		log.Print("hook config, init loggers")
+		if c.Get(ConfigEntry("default")) != nil {
+			log.Printf("reload default logger with configKey: %s", ConfigEntry("default"))
+			DefaultLogger = RawConfig(constant.ConfigPrefix + ".logger.default").Build()
+		}
+		DefaultLogger.AutoLevel(constant.ConfigPrefix + ".logger.default")
+
+		if c.Get(constant.ConfigPrefix+".logger.jupiter") != nil {
+			log.Printf("reload default logger with configKey: %s", ConfigEntry("jupiter"))
+			JupiterLogger = RawConfig(constant.ConfigPrefix + ".logger.jupiter").Build()
+		}
+		JupiterLogger.AutoLevel(constant.ConfigPrefix + ".logger.jupiter")
+	})
+}
 
 var ConfigPrefix = constant.ConfigPrefix + ".logger"
 

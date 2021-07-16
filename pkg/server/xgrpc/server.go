@@ -16,12 +16,11 @@ package xgrpc
 
 import (
 	"context"
+	"fmt"
 	"net"
 
 	"github.com/douyu/jupiter/pkg/constant"
-	"github.com/douyu/jupiter/pkg/ecode"
 	"github.com/douyu/jupiter/pkg/server"
-	"github.com/douyu/jupiter/pkg/xlog"
 	"google.golang.org/grpc"
 )
 
@@ -32,7 +31,7 @@ type Server struct {
 	*Config
 }
 
-func newServer(config *Config) *Server {
+func newServer(config *Config) (*Server, error) {
 	var streamInterceptors = append(
 		[]grpc.StreamServerInterceptor{defaultStreamServerInterceptor(config.logger, config.SlowQueryThresholdInMilli)},
 		config.streamInterceptors...,
@@ -51,7 +50,8 @@ func newServer(config *Config) *Server {
 	newServer := grpc.NewServer(config.serverOptions...)
 	listener, err := net.Listen(config.Network, config.Address())
 	if err != nil {
-		config.logger.Panic("new grpc server err", xlog.FieldErrKind(ecode.ErrKindListenErr), xlog.FieldErr(err))
+		// config.logger.Panic("new grpc server err", xlog.FieldErrKind(ecode.ErrKindListenErr), xlog.FieldErr(err))
+		return nil, fmt.Errorf("create grpc server failed: %v", err)
 	}
 	config.Port = listener.Addr().(*net.TCPAddr).Port
 
@@ -59,7 +59,17 @@ func newServer(config *Config) *Server {
 		Server:   newServer,
 		listener: listener,
 		Config:   config,
+	}, nil
+}
+
+func (s *Server) Healthz() bool {
+	conn, err := s.listener.Accept()
+	if err != nil {
+		return false
 	}
+
+	conn.Close()
+	return true
 }
 
 // Server implements server.Server interface.
