@@ -21,6 +21,11 @@ import (
 	"runtime"
 	"sync"
 
+<<<<<<< HEAD
+=======
+	"github.com/douyu/jupiter/pkg/constant"
+	"github.com/douyu/jupiter/pkg/server/governor"
+>>>>>>> master
 	job "github.com/douyu/jupiter/pkg/worker/xjob"
 
 	"github.com/BurntSushi/toml"
@@ -28,6 +33,7 @@ import (
 	"github.com/douyu/jupiter/pkg/conf"
 
 	//go-lint
+<<<<<<< HEAD
 	_ "github.com/douyu/jupiter/pkg/conf/datasource/file"
 	_ "github.com/douyu/jupiter/pkg/datasource/http"
 	_ "github.com/douyu/jupiter/pkg/registry/etcdv3"
@@ -37,6 +43,19 @@ import (
 	"github.com/douyu/jupiter/pkg/registry"
 	"github.com/douyu/jupiter/pkg/server"
 	"github.com/douyu/jupiter/pkg/signals"
+=======
+	_ "github.com/douyu/jupiter/pkg/datasource/file"
+	_ "github.com/douyu/jupiter/pkg/datasource/http"
+	"github.com/douyu/jupiter/pkg/datasource/manager"
+	"github.com/douyu/jupiter/pkg/ecode"
+	"github.com/douyu/jupiter/pkg/flag"
+	"github.com/douyu/jupiter/pkg/registry"
+	"github.com/douyu/jupiter/pkg/sentinel"
+	"github.com/douyu/jupiter/pkg/server"
+	"github.com/douyu/jupiter/pkg/signals"
+	"github.com/douyu/jupiter/pkg/trace"
+	"github.com/douyu/jupiter/pkg/trace/jaeger"
+>>>>>>> master
 	"github.com/douyu/jupiter/pkg/util/xcolor"
 	"github.com/douyu/jupiter/pkg/util/xcycle"
 	"github.com/douyu/jupiter/pkg/util/xdefer"
@@ -71,10 +90,16 @@ type Application struct {
 	configParser conf.Unmarshaller
 	disableMap   map[Disable]bool
 	HideBanner   bool
+<<<<<<< HEAD
 	stopped      chan struct{}
 }
 
 // New create a new Application instance
+=======
+}
+
+//New new a Application
+>>>>>>> master
 func New(fns ...func() error) (*Application, error) {
 	app := &Application{}
 	if err := app.Startup(fns...); err != nil {

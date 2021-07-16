@@ -234,10 +234,9 @@ func (reg *etcdv3Registry) registerMetric(ctx context.Context, info *server.Serv
 
 }
 func (reg *etcdv3Registry) registerBiz(ctx context.Context, info *server.ServiceInfo) error {
-	var readCtx context.Context
-	var readCancel context.CancelFunc
 	if _, ok := ctx.Deadline(); !ok {
-		readCtx, readCancel = context.WithTimeout(ctx, reg.ReadTimeout)
+		var readCancel context.CancelFunc
+		ctx, readCancel = context.WithTimeout(ctx, reg.ReadTimeout)
 		defer readCancel()
 	}
 
@@ -254,7 +253,7 @@ func (reg *etcdv3Registry) registerBiz(ctx context.Context, info *server.Service
 		}
 		opOptions = append(opOptions, clientv3.WithLease(sess.Lease()))
 	}
-	_, err := reg.client.Put(readCtx, key, val, opOptions...)
+	_, err := reg.client.Put(ctx, key, val, opOptions...)
 	if err != nil {
 		reg.logger.Error("register service", xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err), xlog.FieldKeyAny(key), xlog.FieldValueAny(info))
 		return err
