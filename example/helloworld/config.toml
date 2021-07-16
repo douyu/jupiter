@@ -2,3 +2,16 @@
     port = 9090
 [jupiter.server.governor]
     port = 19090
+
+[jupiter.etcdv3.default]
+    endpoints = ["etcd-naming.dz11.com:2379"]
+    secure = false
+    timeout = "10s"
+
+[jupiter.registry.wh01]
+    configKey="jupiter.etcdv3.default"
+    timeout = "1s"
+
+[jupiter.registry.wh02]
+    configKey="jupiter.etcdv3.default"
+    timeout = "1s"

@@ -1,31 +1,18 @@
 package jupiter
 
-import "github.com/douyu/jupiter/pkg/conf"
-
-type Option func(a *Application)
-
-type Disable int
-
-const (
-	DisableParserFlag      Disable = 1
-	DisableLoadConfig      Disable = 2
-	DisableDefaultGovernor Disable = 3
+import (
+	"github.com/douyu/jupiter/pkg/application"
 )
 
-func (a *Application) WithOptions(options ...Option) {
-	for _, option := range options {
-		option(a)
-	}
-}
+type Option = application.Option
 
-func WithConfigParser(unmarshaller conf.Unmarshaller) Option {
-	return func(a *Application) {
-		a.configParser = unmarshaller
-	}
-}
+type Disable = application.Disable
 
-func WithDisable(d Disable) Option {
-	return func(a *Application) {
-		a.disableMap[d] = true
-	}
-}
+const (
+	DisableParserFlag      Disable = application.DisableParserFlag
+	DisableLoadConfig      Disable = application.DisableLoadConfig
+	DisableDefaultGovernor Disable = application.DisableDefaultGovernor
+)
+
+var WithConfigParser = application.WithConfigParser
+var WithDisable = application.WithDisable

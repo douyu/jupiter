@@ -122,8 +122,16 @@ func (config *Config) WithUnaryInterceptor(intes ...grpc.UnaryServerInterceptor)
 	return config
 }
 
+func (config *Config) MustBuild() *Server {
+	server, err := config.Build()
+	if err != nil {
+		xlog.Panicf("build xgrpc server: %v", err)
+	}
+	return server
+}
+
 // Build ...
-func (config *Config) Build() *Server {
+func (config *Config) Build() (*Server, error) {
 	if !config.DisableTrace {
 		config.unaryInterceptors = append(config.unaryInterceptors, traceUnaryServerInterceptor)
 		config.streamInterceptors = append(config.streamInterceptors, traceStreamServerInterceptor)

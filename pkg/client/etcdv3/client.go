@@ -18,13 +18,12 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"fmt"
 	"io/ioutil"
 	"strings"
 	"time"
 
 	"github.com/coreos/etcd/clientv3/concurrency"
-
-	"github.com/douyu/jupiter/pkg/ecode"
 
 	"github.com/coreos/etcd/clientv3"
 	"github.com/coreos/etcd/mvcc/mvccpb"
@@ -40,7 +39,7 @@ type Client struct {
 }
 
 // New ...
-func newClient(config *Config) *Client {
+func newClient(config *Config) (*Client, error) {
 	conf := clientv3.Config{
 		Endpoints:            config.Endpoints,
 		DialTimeout:          config.ConnectTimeout,
@@ -57,7 +56,7 @@ func newClient(config *Config) *Client {
 	config.logger = config.logger.With(xlog.FieldAddrAny(config.Endpoints))
 
 	if config.Endpoints == nil {
-		config.logger.Panic("client etcd endpoints empty", xlog.FieldMod(ecode.ModClientETCD), xlog.FieldValueAny(config))
+		return nil, fmt.Errorf("client etcd endpoints empty, empty endpoints")
 	}
 
 	if !config.Secure {
@@ -105,7 +104,8 @@ func newClient(config *Config) *Client {
 	client, err := clientv3.New(conf)
 
 	if err != nil {
-		config.logger.Panic("client etcd start panic", xlog.FieldMod(ecode.ModClientETCD), xlog.FieldErrKind(ecode.ErrKindAny), xlog.FieldErr(err), xlog.FieldValueAny(config))
+		// config.logger.Panic("client etcd start panic", xlog.FieldMod(ecode.ModClientETCD), xlog.FieldErrKind(ecode.ErrKindAny), xlog.FieldErr(err), xlog.FieldValueAny(config))
+		return nil, fmt.Errorf("client etcd start failed: %v", err)
 	}
 
 	cc := &Client{
@@ -114,7 +114,7 @@ func newClient(config *Config) *Client {
 	}
 
 	config.logger.Info("dial etcd server")
-	return cc
+	return cc, nil
 }
 
 // GetKeyValue queries etcd key, returns mvccpb.KeyValue
@@ -164,7 +164,7 @@ func (client *Client) GetValues(ctx context.Context, keys ...string) (map[string
 		firstRevision = int64(0)
 		vars          = make(map[string]string)
 		maxTxnOps     = 128
-		getOps        = make([]string, 0, maxTxnOps)
+		// getOps        = make([]string, 0, maxTxnOps)
 	)
 
 	doTxn := func(ops []string) error {

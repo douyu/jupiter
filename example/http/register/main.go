@@ -51,7 +51,7 @@ func NewEngine() *Engine {
 
 // HTTP地址
 func (eng *Engine) serveHTTP() error {
-	server := xecho.StdConfig("http").Build()
+	server := xecho.StdConfig("http").MustBuild()
 	server.GET("/hello", func(ctx echo.Context) error {
 		return ctx.JSON(200, "Gopher Wuhan")
 	})

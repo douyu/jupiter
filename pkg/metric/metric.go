@@ -15,11 +15,12 @@
 package metric
 
 import (
-	"github.com/douyu/jupiter/pkg"
-	"github.com/douyu/jupiter/pkg/server/governor"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"net/http"
 	"time"
+
+	"github.com/douyu/jupiter/pkg"
+	"github.com/douyu/jupiter/pkg/governor"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 var (

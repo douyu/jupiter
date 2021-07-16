@@ -22,10 +22,10 @@ import (
 	"net"
 
 	"github.com/douyu/jupiter/pkg/constant"
-	"github.com/douyu/jupiter/pkg/ecode"
 	"github.com/douyu/jupiter/pkg/server"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/labstack/echo/v4"
+	"github.com/pkg/errors"
 )
 
 // Server ...
@@ -35,17 +35,32 @@ type Server struct {
 	listener net.Listener
 }
 
-func newServer(config *Config) *Server {
+func newServer(config *Config) (*Server, error) {
 	listener, err := net.Listen("tcp", config.Address())
 	if err != nil {
-		config.logger.Panic("new xecho server err", xlog.FieldErrKind(ecode.ErrKindListenErr), xlog.FieldErr(err))
+		// config.logger.Panic("new xecho server err", xlog.FieldErrKind(ecode.ErrKindListenErr), xlog.FieldErr(err))
+		return nil, errors.Wrapf(err, "create xecho server failed")
 	}
 	config.Port = listener.Addr().(*net.TCPAddr).Port
 	return &Server{
 		Echo:     echo.New(),
 		config:   config,
 		listener: listener,
+	}, nil
+}
+
+func (s *Server) Healthz() bool {
+	if s.Echo.Listener == nil {
+		return false
 	}
+
+	conn, err := s.Echo.Listener.Accept()
+	if err != nil {
+		return false
+	}
+
+	conn.Close()
+	return true
 }
 
 // Server implements server.Server interface.

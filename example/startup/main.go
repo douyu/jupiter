@@ -36,7 +36,7 @@ func main() {
 }
 
 func startHTTPServer() server.Server {
-	server := xecho.DefaultConfig().Build()
+	server := xecho.DefaultConfig().MustBuild()
 	server.GET("/hello", func(ctx echo.Context) error {
 		return ctx.JSON(200, "Gopher Wuhan")
 	})

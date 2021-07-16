@@ -27,7 +27,7 @@ func main() {
 
 	eng.SetRegistry( // 多注册中心
 		compound.New(
-			etcdv3.StdConfig("wh01").Build(),
+			etcdv3.StdConfig("wh01").MustBuild(),
 		),
 	)
 

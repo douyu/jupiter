@@ -22,7 +22,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/douyu/jupiter/pkg/server/governor"
+	"github.com/douyu/jupiter/pkg/governor"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/golang/protobuf/ptypes/any"
 	spb "google.golang.org/genproto/googleapis/rpc/status"

@@ -17,9 +17,10 @@ package etcdv3
 import (
 	"context"
 	"fmt"
-	"github.com/douyu/jupiter/pkg/constant"
 	"testing"
 	"time"
+
+	"github.com/douyu/jupiter/pkg/constant"
 
 	"github.com/douyu/jupiter/pkg/client/etcdv3"
 	"github.com/douyu/jupiter/pkg/registry"
@@ -31,13 +32,14 @@ import (
 func Test_etcdv3Registry(t *testing.T) {
 	etcdConfig := etcdv3.DefaultConfig()
 	etcdConfig.Endpoints = []string{"127.0.0.1:2379"}
-	registry := newETCDRegistry(&Config{
+	registry, err := newETCDRegistry(&Config{
 		Config:      etcdConfig,
 		ReadTimeout: time.Second * 10,
 		Prefix:      "jupiter",
 		logger:      xlog.DefaultLogger,
 	})
 
+	assert.Nil(t, err)
 	assert.Nil(t, registry.RegisterService(context.Background(), &server.ServiceInfo{
 		Name:       "service_1",
 		AppID:      "",
