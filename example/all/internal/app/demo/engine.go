@@ -56,10 +56,8 @@ func NewEngine() *Engine {
 
 func (eng *Engine) initSentinel() error {
 	var config = sentinel.DefaultConfig()
-	config.FlowRules = append(config.FlowRules, &flow.FlowRule{
-		Resource:   "GET:/ping",
-		MetricType: flow.QPS,
-		Count:      1,
+	config.FlowRules = append(config.FlowRules, &flow.Rule{
+		Resource: "GET:/ping",
 	})
 	return config.Build()
 }
@@ -71,7 +69,7 @@ func (eng *Engine) startJobs() error {
 }
 
 func (eng *Engine) serveHTTP() error {
-	server := xecho.StdConfig("http").Build()
+	server := xecho.StdConfig("http").MustBuild()
 	server.Use(
 		sentinel_echo.SentinelMiddleware(
 			// customize resource extractor if required
@@ -106,7 +104,7 @@ func (eng *Engine) serveGRPC() error {
 	server := xgrpc.StdConfig("grpc").
 		WithUnaryInterceptor(sentinel_grpc.NewUnaryServerInterceptor()).
 		WithStreamInterceptor(sentinel_grpc.NewStreamServerInterceptor()).
-		Build()
+		MustBuild()
 
 	helloworld.RegisterGreeterServer(server.Server, new(greeter.Greeter))
 	return eng.Serve(server)

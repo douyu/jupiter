@@ -20,13 +20,6 @@ import (
 	"github.com/davecgh/go-spew/spew"
 )
 
-// DataSource ...
-type DataSource interface {
-	ReadConfig() ([]byte, error)
-	IsConfigChanged() <-chan struct{}
-	io.Closer
-}
-
 // Unmarshaller ...
 type Unmarshaller = func([]byte, interface{}) error
 
@@ -35,6 +28,10 @@ var defaultConfiguration = New()
 // OnChange 注册change回调函数
 func OnChange(fn func(*Configuration)) {
 	defaultConfiguration.OnChange(fn)
+}
+
+func OnLoaded(fn func(*Configuration)) {
+	defaultConfiguration.OnLoaded(fn)
 }
 
 // LoadFromDataSource load configuration from data source

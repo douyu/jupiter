@@ -20,6 +20,7 @@ import (
 	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/constant"
 	"github.com/douyu/jupiter/pkg/ecode"
+	"github.com/douyu/jupiter/pkg/flag"
 	"github.com/douyu/jupiter/pkg/util/xtime"
 	"github.com/douyu/jupiter/pkg/xlog"
 )
@@ -45,6 +46,10 @@ type (
 		logger           *xlog.Logger
 	}
 )
+
+func (config *Config) BindFlags(fs *flag.FlagSet) {
+	fs.BoolVar(&config.Secure, "insecure-etcd", true, "--insecure-etcd=true")
+}
 
 // DefaultConfig 返回默认配置
 func DefaultConfig() *Config {
@@ -77,7 +82,6 @@ func (config *Config) WithLogger(logger *xlog.Logger) *Config {
 }
 
 // Build ...
-func (config *Config) Build() *Client {
-	cc := newClient(config)
-	return cc
+func (config *Config) Build() (*Client, error) {
+	return newClient(config)
 }

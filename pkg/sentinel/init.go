@@ -1,4 +1,4 @@
-// Copyright 2020 Douyu
+// Copyright 2021 rex lv
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,26 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package sentinel
 
 import (
 	"log"
 
-	"github.com/douyu/jupiter/example/all/internal/app/demo"
-	"github.com/douyu/jupiter/pkg/registry/compound"
-	"github.com/douyu/jupiter/pkg/registry/etcdv3"
+	"github.com/douyu/jupiter/pkg/conf"
 )
 
-func main() {
-	eng := demo.NewEngine()
-
-	eng.SetRegistry( // 多注册中心
-		compound.New(
-			etcdv3.StdConfig("wh01").MustBuild(),
-		),
-	)
-
-	if err := eng.Run(); err != nil {
-		log.Fatal(err)
-	}
+func init() {
+	// 加载完配置，初始化sentinel
+	conf.OnLoaded(func(c *conf.Configuration) {
+		log.Print("hook config, init sentinel rules")
+		if conf.Get("jupiter.reliability.sentinel") != nil {
+			RawConfig("jupiter.reliability.sentinel").Build()
+		}
+	})
 }

@@ -15,11 +15,12 @@
 package main
 
 import (
+	"time"
+
 	"github.com/douyu/jupiter"
 	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/server/xecho"
 	"github.com/douyu/jupiter/pkg/xlog"
-	"time"
 )
 
 //  go run main.go --config=config.toml --watch=true
@@ -51,7 +52,7 @@ func NewEngine() *Engine {
 }
 
 func (eng *Engine) serveHTTP() error {
-	server := xecho.StdConfig("http").Build()
+	server := xecho.StdConfig("http").MustBuild()
 	return eng.Serve(server)
 }
 

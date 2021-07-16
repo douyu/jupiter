@@ -19,8 +19,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"time"
 
 	"github.com/douyu/jupiter/pkg/server"
+	"github.com/douyu/jupiter/pkg/xlog"
+	"golang.org/x/sync/errgroup"
 )
 
 // Event ...
@@ -102,6 +105,7 @@ type Registry interface {
 	UnregisterService(context.Context, *server.ServiceInfo) error
 	ListServices(context.Context, string, string) ([]*server.ServiceInfo, error)
 	WatchServices(context.Context, string, string) (chan Endpoints, error)
+	Kind() string
 	io.Closer
 }
 
@@ -119,31 +123,45 @@ func GetServiceValue(s *server.ServiceInfo) string {
 //GetService ..
 func GetService(s string) *server.ServiceInfo {
 	var si server.ServiceInfo
+	// TODO: 查询服务
 	json.Unmarshal([]byte(s), &si)
 	return &si
 }
 
-// Nop registry, used for local development/debugging
-type Nop struct{}
-
-// ListServices ...
-func (n Nop) ListServices(ctx context.Context, s string, s2 string) ([]*server.ServiceInfo, error) {
-	panic("implement me")
+func RegisterService(ctx context.Context, bean server.Server) error {
+	var eg errgroup.Group
+	_registerers.Range(func(key interface{}, value interface{}) bool {
+		var registry = value.(Registry)
+		eg.Go(func() error {
+			time.Sleep(time.Second * 3) // 延迟三秒注册
+			if bean.Healthz() {
+				if err := registry.RegisterService(ctx, bean.Info()); err != nil {
+					xlog.Errorf("register service failed: %v", err)
+					return err
+				}
+			}
+			<-ctx.Done()
+			// TODO: 区分stop/gracefulstop
+			_ = UnregisterService(context.TODO(), bean)
+			return nil
+		})
+		return true
+	})
+	return eg.Wait()
 }
-
-// WatchServices ...
-func (n Nop) WatchServices(ctx context.Context, s string, s2 string) (chan Endpoints, error) {
-	panic("implement me")
-}
-
-// RegisterService ...
-func (n Nop) RegisterService(context.Context, *server.ServiceInfo) error { return nil }
 
 // UnregisterService ...
-func (n Nop) UnregisterService(context.Context, *server.ServiceInfo) error { return nil }
-
-// Close ...
-func (n Nop) Close() error { return nil }
+func UnregisterService(ctx context.Context, bean server.Server) error {
+	var eg errgroup.Group
+	_registerers.Range(func(key interface{}, value interface{}) bool {
+		var registry = value.(Registry)
+		eg.Go(func() error {
+			return registry.UnregisterService(ctx, bean.Info())
+		})
+		return true
+	})
+	return eg.Wait()
+}
 
 // Configuration ...
 type Configuration struct {
@@ -166,69 +184,3 @@ type WeightGroup struct {
 	Group  string `json:"group" toml:"group"`
 	Weight int    `json:"weight" toml:"weight"`
 }
-
-// AddressList ...
-// type AddressList struct {
-// 	serverName string
-//
-// 	// regInfos map[string]*server.ServiceInfo
-// 	// cfgInfos map[string]*server.ConfigInfo
-//
-// 	// TODO 2019/9/10 gorexlv: need lock
-// 	regInfos map[string]*server.ServiceInfo // 注册信息
-// 	cfgInfos map[string]*RouteConfig        // 配置信息
-//
-// 	mtx sync.RWMutex
-// }
-//
-// func NewAddressList(serverName string) *AddressList {
-// 	return &AddressList{
-// 		serverName: serverName,
-// 		regInfos:   make(map[string]*url.Values),
-// 		cfgInfos:   make(map[string]*url.Values),
-// 	}
-// }
-//
-// func (al *AddressList) String() string {
-// 	return ""
-// }
-//
-// func (al *AddressList) List2() {
-//
-// }
-//
-// // List ...
-// func (al *AddressList) List() []resolver.Address {
-// 	// TODO 2019/9/10 gorexlv:
-// 	addrs := make([]resolver.Address, 0)
-// 	al.mtx.RLock()
-// 	defer al.mtx.RUnlock()
-// 	for addr, values := range al.regInfos {
-// 		metadata := *values
-// 		address := resolver.Address{
-// 			Addr:       addr,
-// 			ServerName: al.serverName,
-// 			Attributes: attributes.New(),
-// 		}
-// 		// if infos, ok := al.cfgInfos[addr]; ok {
-// 		// 	for cfg := range *infos {
-// 		// 		metadata.Set(cfg, infos.Get(cfg))
-// 		// 		// address.Attributes.WithValues(cfg, infos.Get(cfg))
-// 		// 	}
-// 		// }
-// 		if enable := metadata.Get("enable"); enable != "" && enable != "true" {
-// 			continue
-// 		}
-// 		if metadata.Get("weight") == "" {
-// 			metadata.Set("weight", "100")
-// 		}
-// 		// group: 客户端配置的分组，默认为default
-// 		// metadata.Get("group"): 服务端配置的分组
-// 		// if metadata.Get("group") != "" && metadata.Get("group") != group {
-// 		// 	continue
-// 		// }
-// 		address.Metadata = &metadata
-// 		addrs = append(addrs, address)
-// 	}
-// 	return addrs
-// }

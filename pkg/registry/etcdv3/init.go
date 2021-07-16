@@ -1,4 +1,4 @@
-// Copyright 2020 Douyu
+// Copyright 2021 rex lv
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,26 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package etcdv3
 
 import (
-	"log"
-
-	"github.com/douyu/jupiter/example/all/internal/app/demo"
-	"github.com/douyu/jupiter/pkg/registry/compound"
-	"github.com/douyu/jupiter/pkg/registry/etcdv3"
+	"github.com/douyu/jupiter/pkg/registry"
 )
 
-func main() {
-	eng := demo.NewEngine()
-
-	eng.SetRegistry( // 多注册中心
-		compound.New(
-			etcdv3.StdConfig("wh01").MustBuild(),
-		),
-	)
-
-	if err := eng.Run(); err != nil {
-		log.Fatal(err)
-	}
+func init() {
+	registry.RegisterBuilder("etcdv3", func(confKey string) registry.Registry {
+		return RawConfig(confKey).MustBuild()
+	})
 }

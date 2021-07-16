@@ -47,20 +47,26 @@ type etcdv3Registry struct {
 	sessions map[string]*concurrency.Session
 }
 
-func newETCDRegistry(config *Config) *etcdv3Registry {
+func newETCDRegistry(config *Config) (*etcdv3Registry, error) {
 	if config.logger == nil {
 		config.logger = xlog.JupiterLogger
 	}
 	config.logger = config.logger.With(xlog.FieldMod(ecode.ModRegistryETCD), xlog.FieldAddrAny(config.Config.Endpoints))
+	etcdv3Client, err := config.Config.Build()
+	if err != nil {
+		return nil, err
+	}
 	reg := &etcdv3Registry{
-		client:   config.Config.Build(),
+		client:   etcdv3Client,
 		Config:   config,
 		kvs:      sync.Map{},
 		rmu:      &sync.RWMutex{},
 		sessions: make(map[string]*concurrency.Session),
 	}
-	return reg
+	return reg, nil
 }
+
+func (reg *etcdv3Registry) Kind() string { return "etcdv3" }
 
 // RegisterService register service to registry
 func (reg *etcdv3Registry) RegisterService(ctx context.Context, info *server.ServiceInfo) error {

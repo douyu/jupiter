@@ -16,6 +16,7 @@ package governor
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"os"
 
@@ -26,6 +27,15 @@ import (
 )
 
 func init() {
+	conf.OnLoaded(func(c *conf.Configuration) {
+		log.Print("hook config, init runtime(governor)")
+
+	})
+
+	registerHandlers()
+}
+
+func registerHandlers() {
 	HandleFunc("/configs", func(w http.ResponseWriter, r *http.Request) {
 		encoder := json.NewEncoder(w)
 		if r.URL.Query().Get("pretty") == "true" {

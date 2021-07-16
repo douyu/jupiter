@@ -89,9 +89,20 @@ func (config *Config) WithPort(port int) *Config {
 	return config
 }
 
+func (config *Config) MustBuild() *Server {
+	server, err := config.Build()
+	if err != nil {
+		xlog.Panicf("build echo server failed: %v", err)
+	}
+	return server
+}
+
 // Build create server instance, then initialize it with necessary interceptor
-func (config *Config) Build() *Server {
-	server := newServer(config)
+func (config *Config) Build() (*Server, error) {
+	server, err := newServer(config)
+	if err != nil {
+		return nil, err
+	}
 	server.Use(recoverMiddleware(config.logger, config.SlowQueryThresholdInMilli))
 
 	if !config.DisableMetric {
@@ -101,7 +112,7 @@ func (config *Config) Build() *Server {
 	if !config.DisableTrace {
 		server.Use(traceServerInterceptor())
 	}
-	return server
+	return server, nil
 }
 
 // Address ...

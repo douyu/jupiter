@@ -21,8 +21,6 @@ import (
 	"runtime"
 	"sync"
 
-	"github.com/douyu/jupiter/pkg/constant"
-	"github.com/douyu/jupiter/pkg/governor"
 	job "github.com/douyu/jupiter/pkg/worker/xjob"
 
 	"github.com/BurntSushi/toml"
@@ -30,17 +28,15 @@ import (
 	"github.com/douyu/jupiter/pkg/conf"
 
 	//go-lint
-	_ "github.com/douyu/jupiter/pkg/datasource/file"
+	_ "github.com/douyu/jupiter/pkg/conf/datasource/file"
 	_ "github.com/douyu/jupiter/pkg/datasource/http"
-	"github.com/douyu/jupiter/pkg/datasource/manager"
+	_ "github.com/douyu/jupiter/pkg/registry/etcdv3"
+
 	"github.com/douyu/jupiter/pkg/ecode"
 	"github.com/douyu/jupiter/pkg/flag"
 	"github.com/douyu/jupiter/pkg/registry"
-	"github.com/douyu/jupiter/pkg/sentinel"
 	"github.com/douyu/jupiter/pkg/server"
 	"github.com/douyu/jupiter/pkg/signals"
-	"github.com/douyu/jupiter/pkg/trace"
-	"github.com/douyu/jupiter/pkg/trace/jaeger"
 	"github.com/douyu/jupiter/pkg/util/xcolor"
 	"github.com/douyu/jupiter/pkg/util/xcycle"
 	"github.com/douyu/jupiter/pkg/util/xdefer"
@@ -75,6 +71,7 @@ type Application struct {
 	configParser conf.Unmarshaller
 	disableMap   map[Disable]bool
 	HideBanner   bool
+	stopped      chan struct{}
 }
 
 // New create a new Application instance
@@ -130,6 +127,7 @@ func (app *Application) initialize() {
 		app.logger = xlog.JupiterLogger
 		app.configParser = toml.Unmarshal
 		app.disableMap = make(map[Disable]bool)
+		app.stopped = make(chan struct{})
 		//private method
 		app.initHooks(StageBeforeStop, StageAfterStop)
 		//public method
@@ -148,12 +146,12 @@ func (app *Application) startup() (err error) {
 		err = xgo.SerialUntilError(
 			app.parseFlags,
 			app.printBanner,
-			app.loadConfig,
-			app.initLogger,
+			// app.loadConfig,
+			// app.initLogger,
 			app.initMaxProcs,
-			app.initTracer,
-			app.initSentinel,
-			app.initGovernor,
+			// app.initTracer,
+			// app.initSentinel,
+			// app.initGovernor,
 		)()
 	})
 	return
@@ -275,14 +273,9 @@ func (app *Application) clean() {
 // Stop application immediately after necessary cleanup
 func (app *Application) Stop() (err error) {
 	app.stopOnce.Do(func() {
+		app.stopped <- struct{}{}
 		app.runHooks(StageBeforeStop)
 
-		if app.registerer != nil {
-			err = app.registerer.Close()
-			if err != nil {
-				app.logger.Error("stop register close err", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err))
-			}
-		}
 		//stop servers
 		app.smu.RLock()
 		for _, s := range app.servers {
@@ -308,14 +301,9 @@ func (app *Application) Stop() (err error) {
 // GracefulStop application after necessary cleanup
 func (app *Application) GracefulStop(ctx context.Context) (err error) {
 	app.stopOnce.Do(func() {
+		app.stopped <- struct{}{}
 		app.runHooks(StageBeforeStop)
 
-		if app.registerer != nil {
-			err = app.registerer.Close()
-			if err != nil {
-				app.logger.Error("stop register close err", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err))
-			}
-		}
 		//stop servers
 		app.smu.RLock()
 		for _, s := range app.servers {
@@ -353,27 +341,32 @@ func (app *Application) waitSignals() {
 	})
 }
 
-func (app *Application) initGovernor() error {
-	if app.isDisable(DisableDefaultGovernor) {
-		app.logger.Info("defualt governor disable", xlog.FieldMod(ecode.ModApp))
-		return nil
-	}
+// func (app *Application) initGovernor() error {
+// 	if app.isDisable(DisableDefaultGovernor) {
+// 		app.logger.Info("defualt governor disable", xlog.FieldMod(ecode.ModApp))
+// 		return nil
+// 	}
 
-	config := governor.StdConfig("governor")
-	if !config.Enable {
-		return nil
-	}
-	return app.Serve(config.Build())
-}
+// 	config := governor.StdConfig("governor")
+// 	if !config.Enable {
+// 		return nil
+// 	}
+// 	return app.Serve(config.Build())
+// }
 
 func (app *Application) startServers() error {
 	var eg errgroup.Group
+	var ctx, cancel = context.WithCancel(context.Background())
+	go func() {
+		<-app.stopped
+		cancel()
+	}()
 	// start multi servers
 	for _, s := range app.servers {
 		s := s
 		eg.Go(func() (err error) {
-			_ = app.registerer.RegisterService(context.TODO(), s.Info())
-			defer app.registerer.UnregisterService(context.TODO(), s.Info())
+			_ = registry.RegisterService(ctx, s)
+			defer registry.UnregisterService(context.TODO(), s)
 			app.logger.Info("start server", xlog.FieldMod(ecode.ModApp), xlog.FieldEvent("init"), xlog.FieldName(s.Info().Name), xlog.FieldAddr(s.Info().Label()), xlog.Any("scheme", s.Info().Scheme))
 			defer app.logger.Info("exit server", xlog.FieldMod(ecode.ModApp), xlog.FieldEvent("exit"), xlog.FieldName(s.Info().Name), xlog.FieldErr(err), xlog.FieldAddr(s.Info().Label()))
 			err = s.Serve()
@@ -420,13 +413,13 @@ func (app *Application) parseFlags() error {
 		app.logger.Info("parseFlags disable", xlog.FieldMod(ecode.ModApp))
 		return nil
 	}
-	flag.Register(&flag.StringFlag{
-		Name:    "config",
-		Usage:   "--config",
-		EnvVar:  "JUPITER_CONFIG",
-		Default: "",
-		Action:  func(name string, fs *flag.FlagSet) {},
-	})
+	// flag.Register(&flag.StringFlag{
+	// 	Name:    "config",
+	// 	Usage:   "--config",
+	// 	EnvVar:  "JUPITER_CONFIG",
+	// 	Default: "",
+	// 	Action:  func(name string, fs *flag.FlagSet) {},
+	// })
 
 	flag.Register(&flag.BoolFlag{
 		Name:    "watch",
@@ -455,62 +448,62 @@ func (app *Application) parseFlags() error {
 }
 
 //loadConfig init
-func (app *Application) loadConfig() error {
-	if app.isDisable(DisableLoadConfig) {
-		app.logger.Info("load config disable", xlog.FieldMod(ecode.ModConfig))
-		return nil
-	}
+// func (app *Application) loadConfig() error {
+// 	if app.isDisable(DisableLoadConfig) {
+// 		app.logger.Info("load config disable", xlog.FieldMod(ecode.ModConfig))
+// 		return nil
+// 	}
 
-	var configAddr = flag.String("config")
-	provider, err := manager.NewDataSource(configAddr)
-	if err != manager.ErrConfigAddr {
-		if err != nil {
-			app.logger.Panic("data source: provider error", xlog.FieldMod(ecode.ModConfig), xlog.FieldErr(err))
-		}
+// 	var configAddr = flag.String("config")
+// 	provider, err := manager.NewDataSource(configAddr)
+// 	if err != manager.ErrConfigAddr {
+// 		if err != nil {
+// 			app.logger.Panic("data source: provider error", xlog.FieldMod(ecode.ModConfig), xlog.FieldErr(err))
+// 		}
 
-		if err := conf.LoadFromDataSource(provider, app.configParser); err != nil {
-			app.logger.Panic("data source: load config", xlog.FieldMod(ecode.ModConfig), xlog.FieldErrKind(ecode.ErrKindUnmarshalConfigErr), xlog.FieldErr(err))
-		}
-	} else {
-		app.logger.Info("no config... ", xlog.FieldMod(ecode.ModConfig))
-	}
-	return nil
-}
+// 		if err := conf.LoadFromDataSource(provider, app.configParser); err != nil {
+// 			app.logger.Panic("data source: load config", xlog.FieldMod(ecode.ModConfig), xlog.FieldErrKind(ecode.ErrKindUnmarshalConfigErr), xlog.FieldErr(err))
+// 		}
+// 	} else {
+// 		app.logger.Info("no config... ", xlog.FieldMod(ecode.ModConfig))
+// 	}
+// 	return nil
+// }
 
 //initLogger init
-func (app *Application) initLogger() error {
-	if conf.Get(xlog.ConfigEntry("default")) != nil {
-		xlog.DefaultLogger = xlog.RawConfig(constant.ConfigPrefix + ".logger.default").Build()
-	}
-	xlog.DefaultLogger.AutoLevel(constant.ConfigPrefix + ".logger.default")
+// func (app *Application) initLogger() error {
+// 	if conf.Get(xlog.ConfigEntry("default")) != nil {
+// 		xlog.DefaultLogger = xlog.RawConfig(constant.ConfigPrefix + ".logger.default").Build()
+// 	}
+// 	xlog.DefaultLogger.AutoLevel(constant.ConfigPrefix + ".logger.default")
 
-	if conf.Get(constant.ConfigPrefix+".logger.jupiter") != nil {
-		xlog.JupiterLogger = xlog.RawConfig(constant.ConfigPrefix + ".logger.jupiter").Build()
-	}
-	xlog.JupiterLogger.AutoLevel(constant.ConfigPrefix + ".logger.jupiter")
+// 	if conf.Get(constant.ConfigPrefix+".logger.jupiter") != nil {
+// 		xlog.JupiterLogger = xlog.RawConfig(constant.ConfigPrefix + ".logger.jupiter").Build()
+// 	}
+// 	xlog.JupiterLogger.AutoLevel(constant.ConfigPrefix + ".logger.jupiter")
 
-	return nil
-}
+// 	return nil
+// }
 
 //initTracer init
-func (app *Application) initTracer() error {
-	// init tracing component jaeger
-	if conf.Get("jupiter.trace.jaeger") != nil {
-		var config = jaeger.RawConfig("jupiter.trace.jaeger")
-		trace.SetGlobalTracer(config.Build())
-	}
-	return nil
-}
+// func (app *Application) initTracer() error {
+// 	// init tracing component jaeger
+// 	if conf.Get("jupiter.trace.jaeger") != nil {
+// 		var config = jaeger.RawConfig("jupiter.trace.jaeger")
+// 		trace.SetGlobalTracer(config.Build())
+// 	}
+// 	return nil
+// }
 
 //initSentinel init
-func (app *Application) initSentinel() error {
-	// init reliability component sentinel
-	if conf.Get("jupiter.reliability.sentinel") != nil {
-		app.logger.Info("init sentinel")
-		return sentinel.RawConfig("jupiter.reliability.sentinel").Build()
-	}
-	return nil
-}
+// func (app *Application) initSentinel() error {
+// 	// init reliability component sentinel
+// 	if conf.Get("jupiter.reliability.sentinel") != nil {
+// 		app.logger.Info("init sentinel")
+// 		return sentinel.RawConfig("jupiter.reliability.sentinel").Build()
+// 	}
+// 	return nil
+// }
 
 //initMaxProcs init
 func (app *Application) initMaxProcs() error {
