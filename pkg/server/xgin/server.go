@@ -102,3 +102,17 @@ func (s *Server) Info() *server.ServiceInfo {
 	// info.Name = info.Name + "." + ModName
 	return &info
 }
+
+func (s *Server) Healthz() bool {
+	if s.listener == nil {
+		return false
+	}
+
+	conn, err := s.listener.Accept()
+	if err != nil {
+		return false
+	}
+
+	conn.Close()
+	return true
+}
