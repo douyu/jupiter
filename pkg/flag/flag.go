@@ -259,7 +259,8 @@ type StringFlag struct {
 	EnvVar   string
 	Default  string
 	Variable *string
-	Action   func(string, *FlagSet)
+	// Action hooked after call fs.Parse()
+	Action func(string, *FlagSet)
 }
 
 // Apply implements of Flag Apply function.

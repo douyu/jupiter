@@ -27,6 +27,21 @@ import (
 	"github.com/douyu/jupiter/pkg/xlog"
 )
 
+const ModuleName = "sentinel"
+
+func Load(name string, opts ...conf.LoadOption) *Config {
+	var options = conf.DefaultLoadOptions(ModuleName)
+	for _, opt := range opts {
+		opt(&options)
+	}
+
+	var config = DefaultConfig()
+	if err := conf.UnmarshalKey(options.KeyPath(name), config); err != nil {
+		xlog.Panic("unmarshal key", xlog.Any("err", err))
+	}
+	return config
+}
+
 // StdConfig ...
 func StdConfig(name string) *Config {
 	return RawConfig("jupiter.sentinel." + name)
