@@ -164,7 +164,7 @@ func (client *Client) GetValues(ctx context.Context, keys ...string) (map[string
 		firstRevision = int64(0)
 		vars          = make(map[string]string)
 		maxTxnOps     = 128
-		getOps        = make([]string, 0, maxTxnOps)
+		// getOps        = make([]string, 0, maxTxnOps)
 	)
 
 	doTxn := func(ops []string) error {
