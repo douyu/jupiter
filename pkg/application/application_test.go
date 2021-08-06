@@ -54,6 +54,9 @@ func (s *testServer) GracefulStop(ctx context.Context) error {
 func (s *testServer) Info() *server.ServiceInfo {
 	return &server.ServiceInfo{}
 }
+func (s *testServer) Healthz() bool {
+	return true
+}
 
 var errTest = fmt.Errorf("test error")
 
@@ -222,7 +225,7 @@ func TestApplication_Serve(t *testing.T) {
 		grpcConfig := xgrpc.DefaultConfig()
 		grpcConfig.Port = 0
 		app.initialize()
-		err := app.Serve(grpcConfig.Build())
+		err := app.Serve(grpcConfig.MustBuild())
 		So(err, ShouldBeNil)
 		go func() {
 			// make sure Serve() is called

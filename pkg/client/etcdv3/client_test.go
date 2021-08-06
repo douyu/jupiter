@@ -2,18 +2,20 @@ package etcdv3
 
 import (
 	"context"
+	"testing"
+	"time"
+
 	"github.com/coreos/etcd/clientv3"
 	"github.com/coreos/etcd/clientv3/concurrency"
 	"github.com/stretchr/testify/assert"
-	"testing"
-	"time"
 )
 
 func Test_GetKeyValue(t *testing.T) {
 	config := DefaultConfig()
 	config.Endpoints = []string{"127.0.0.1:2379"}
 	config.TTL = 5
-	etcdCli := newClient(config)
+	etcdCli, err := newClient(config)
+	assert.Nil(t, err)
 
 	ctx := context.TODO()
 
@@ -34,7 +36,8 @@ func Test_MutexLock(t *testing.T) {
 	config := DefaultConfig()
 	config.Endpoints = []string{"127.0.0.1:2379"}
 	config.TTL = 10
-	etcdCli := newClient(config)
+	etcdCli, err := newClient(config)
+	assert.Nil(t, err)
 
 	etcdMutex1, err := etcdCli.NewMutex("/test/lock",
 		concurrency.WithTTL(int(config.TTL)))
