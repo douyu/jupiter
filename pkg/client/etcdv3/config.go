@@ -84,4 +84,15 @@ func (config *Config) WithLogger(logger *xlog.Logger) *Config {
 // Build ...
 func (config *Config) Build() (*Client, error) {
 	return newClient(config)
+<<<<<<< HEAD
+}
+
+func (config *Config) MustBuild() *Client {
+	client, err := config.Build()
+	if err != nil {
+		xlog.Panicf("build etcd client failed: %v", err)
+	}
+	return client
+=======
+>>>>>>> master
 }

@@ -18,7 +18,9 @@ package conf
 type (
 	GetOption  func(o *GetOptions)
 	GetOptions struct {
-		TagName string
+		TagName   string
+		Namespace string
+		Module    string
 	}
 )
 
@@ -34,19 +36,32 @@ func TagName(tag string) GetOption {
 }
 
 func TagNameJSON() GetOption {
-	return func(o *GetOptions) {
-		o.TagName = "json"
-	}
+	return TagName("json")
 }
 
 func TagNameTOML() GetOption {
-	return func(o *GetOptions) {
-		o.TagName = "toml"
-	}
+	return TagName("toml")
 }
 
 func TagNameYAML() GetOption {
+	return TagName("yaml")
+}
+
+func BuildinModule(module string) GetOption {
 	return func(o *GetOptions) {
-		o.TagName = "yaml"
+		o.Namespace = "jupiter"
+		o.Module = module
+	}
+}
+
+func Namespace(namespace string) GetOption {
+	return func(o *GetOptions) {
+		o.Namespace = namespace
+	}
+}
+
+func Module(module string) GetOption {
+	return func(o *GetOptions) {
+		o.Module = module
 	}
 }

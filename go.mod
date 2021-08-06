@@ -19,14 +19,13 @@ require (
 	github.com/fatih/structtag v1.2.0
 	github.com/flosch/pongo2 v0.0.0-20200518135938-dfb43dbdc22a
 	github.com/fsnotify/fsnotify v1.4.9
-	github.com/gin-gonic/gin v1.6.3
+	github.com/gin-gonic/gin v1.7.0
 	github.com/go-redis/redis v6.15.8+incompatible
 	github.com/go-resty/resty/v2 v2.2.0
 	github.com/gobuffalo/packr/v2 v2.2.0 // indirect
 	github.com/gogf/gf v1.13.3
 	github.com/golang/mock v1.4.4 // indirect
 	github.com/golang/protobuf v1.4.2
-	github.com/google/go-cmp v0.5.1 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
 	github.com/gorilla/websocket v1.4.2
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
@@ -54,7 +53,7 @@ require (
 	github.com/uber/jaeger-client-go v2.23.1+incompatible
 	github.com/uber/jaeger-lib v2.2.0+incompatible // indirect
 	github.com/urfave/cli v1.22.5
-	go.mongodb.org/mongo-driver v1.4.1
+	go.mongodb.org/mongo-driver v1.5.1
 	go.uber.org/atomic v1.6.0 // indirect
 	go.uber.org/automaxprocs v1.3.0
 	go.uber.org/multierr v1.5.0

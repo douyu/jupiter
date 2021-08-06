@@ -71,6 +71,11 @@ func Get(key string) interface{} {
 	return defaultConfiguration.Get(key)
 }
 
+// Exists returns whether key exists
+func Exists(key string) bool {
+	return defaultConfiguration.Get(key) != nil
+}
+
 // Set set config value for key
 func Set(key string, val interface{}) {
 	defaultConfiguration.Set(key, val)

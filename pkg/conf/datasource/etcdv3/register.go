@@ -1,11 +1,10 @@
 package etcdv3
 
 import (
-	"net/url"
-
 	"github.com/douyu/jupiter/pkg/client/etcdv3"
 	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/flag"
+	"github.com/douyu/jupiter/pkg/util/xnet"
 	"github.com/douyu/jupiter/pkg/xlog"
 )
 
@@ -24,24 +23,20 @@ func init() {
 		// configAddr is a string in this format:
 		// etcdv3://ip:port?basicAuth=true&username=XXX&password=XXX&key=XXX&certFile=XXX&keyFile=XXX&caCert=XXX&secure=XXX
 
-		urlObj, err := url.Parse(configAddr)
+		urlObj, err := xnet.ParseURL(configAddr)
 		if err != nil {
 			xlog.Panic("parse configAddr error", xlog.FieldErr(err))
 			return nil
 		}
 		etcdConf := etcdv3.DefaultConfig()
 		etcdConf.Endpoints = []string{urlObj.Host}
-		if urlObj.Query().Get("basicAuth") == "true" {
-			etcdConf.BasicAuth = true
-		}
-		if urlObj.Query().Get("secure") == "true" {
-			etcdConf.Secure = true
-		}
+		etcdConf.BasicAuth = urlObj.QueryBool("basicAuth", false)
+		etcdConf.Secure = urlObj.QueryBool("secure", false)
 		etcdConf.CertFile = urlObj.Query().Get("certFile")
 		etcdConf.KeyFile = urlObj.Query().Get("keyFile")
 		etcdConf.CaCert = urlObj.Query().Get("caCert")
 		etcdConf.UserName = urlObj.Query().Get("username")
 		etcdConf.Password = urlObj.Query().Get("password")
-		return NewDataSource(etcdConf.Build(), urlObj.Query().Get("key"))
+		return NewDataSource(etcdConf.MustBuild(), urlObj.Query().Get("key"))
 	})
 }
