@@ -36,6 +36,7 @@ func TagName(tag string) GetOption {
 }
 
 func TagNameJSON() GetOption {
+<<<<<<< HEAD
 	return TagName("json")
 }
 
@@ -63,5 +64,21 @@ func Namespace(namespace string) GetOption {
 func Module(module string) GetOption {
 	return func(o *GetOptions) {
 		o.Module = module
+=======
+	return func(o *GetOptions) {
+		o.TagName = "json"
+	}
+}
+
+func TagNameTOML() GetOption {
+	return func(o *GetOptions) {
+		o.TagName = "toml"
+	}
+}
+
+func TagNameYAML() GetOption {
+	return func(o *GetOptions) {
+		o.TagName = "yaml"
+>>>>>>> master
 	}
 }
