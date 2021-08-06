@@ -22,6 +22,7 @@ import (
 	"net"
 
 	"github.com/douyu/jupiter/pkg/constant"
+	"github.com/douyu/jupiter/pkg/registry"
 	"github.com/douyu/jupiter/pkg/server"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/labstack/echo/v4"
@@ -31,8 +32,9 @@ import (
 // Server ...
 type Server struct {
 	*echo.Echo
-	config   *Config
-	listener net.Listener
+	config     *Config
+	listener   net.Listener
+	registerer registry.Registry
 }
 
 func newServer(config *Config) (*Server, error) {

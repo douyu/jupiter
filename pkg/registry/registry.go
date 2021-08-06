@@ -19,11 +19,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"time"
 
 	"github.com/douyu/jupiter/pkg/server"
-	"github.com/douyu/jupiter/pkg/xlog"
-	"golang.org/x/sync/errgroup"
 )
 
 // Event ...
@@ -126,41 +123,6 @@ func GetService(s string) *server.ServiceInfo {
 	// TODO: 查询服务
 	json.Unmarshal([]byte(s), &si)
 	return &si
-}
-
-func RegisterService(ctx context.Context, bean server.Server) error {
-	var eg errgroup.Group
-	_registerers.Range(func(key interface{}, value interface{}) bool {
-		var registry = value.(Registry)
-		eg.Go(func() error {
-			time.Sleep(time.Second * 3) // 延迟三秒注册
-			if bean.Healthz() {
-				if err := registry.RegisterService(ctx, bean.Info()); err != nil {
-					xlog.Errorf("register service failed: %v", err)
-					return err
-				}
-			}
-			<-ctx.Done()
-			// TODO: 区分stop/gracefulstop
-			_ = UnregisterService(context.TODO(), bean)
-			return nil
-		})
-		return true
-	})
-	return eg.Wait()
-}
-
-// UnregisterService ...
-func UnregisterService(ctx context.Context, bean server.Server) error {
-	var eg errgroup.Group
-	_registerers.Range(func(key interface{}, value interface{}) bool {
-		var registry = value.(Registry)
-		eg.Go(func() error {
-			return registry.UnregisterService(ctx, bean.Info())
-		})
-		return true
-	})
-	return eg.Wait()
 }
 
 // Configuration ...

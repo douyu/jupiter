@@ -16,40 +16,13 @@ package registry
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/douyu/jupiter/pkg/server"
+	"github.com/douyu/jupiter/pkg/xlog"
 )
 
 // Nop registry, used for local development/debugging
-type Nop struct{}
-
-// ListServices ...
-func (n Nop) ListServices(ctx context.Context, s string, s2 string) ([]*server.ServiceInfo, error) {
-	panic("implement me")
-}
-
-// WatchServices ...
-func (n Nop) WatchServices(ctx context.Context, s string, s2 string) (chan Endpoints, error) {
-	panic("implement me")
-}
-
-// RegisterService ...
-func (n Nop) RegisterService(context.Context, *server.ServiceInfo) error { return nil }
-
-// UnregisterService ...
-func (n Nop) UnregisterService(context.Context, *server.ServiceInfo) error { return nil }
-
-// Close ...
-func (n Nop) Close() error { return nil }
-
-// Close ...
-func (n Nop) Kind() string { return "nop" }
-
-// Nop registry, used for local development/debugging
-type Local struct {
-	FileName string `json:"fileName"`
-}
+type Local struct{}
 
 // ListServices ...
 func (n Local) ListServices(ctx context.Context, s string, s2 string) ([]*server.ServiceInfo, error) {
@@ -63,13 +36,13 @@ func (n Local) WatchServices(ctx context.Context, s string, s2 string) (chan End
 
 // RegisterService ...
 func (n Local) RegisterService(ctx context.Context, si *server.ServiceInfo) error {
-	fmt.Printf("register service=%+v\n", si)
+	xlog.Info("register service locally", xlog.FieldMod("registry"), xlog.FieldName(si.Name), xlog.FieldAddr(si.Label()))
 	return nil
 }
 
 // UnregisterService ...
 func (n Local) UnregisterService(ctx context.Context, si *server.ServiceInfo) error {
-	fmt.Printf("unregister service=%+v\n", si)
+	xlog.Info("unregister service locally", xlog.FieldMod("registry"), xlog.FieldName(si.Name), xlog.FieldAddr(si.Label()))
 	return nil
 }
 
@@ -78,8 +51,3 @@ func (n Local) Close() error { return nil }
 
 // Close ...
 func (n Local) Kind() string { return "local" }
-
-func init() {
-	_registerers.Store("local", &Local{})
-	// _registerers.Store("nop", &Nop{})
-}
