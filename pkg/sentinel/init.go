@@ -24,7 +24,6 @@ func init() {
 	// 加载完配置，初始化sentinel
 	conf.OnLoaded(func(c *conf.Configuration) {
 		log.Print("hook config, init sentinel rules")
-<<<<<<< HEAD
 		var config = DefaultConfig()
 		if err := conf.UnmarshalKey("sentinel", &config, conf.BuildinModule("reliability")); err != nil {
 			log.Printf("read sentinel config failed %v", err)
@@ -33,10 +32,5 @@ func init() {
 
 		// initialize global sentinel
 		config.Build()
-=======
-		if conf.Get("jupiter.reliability.sentinel") != nil {
-			RawConfig("jupiter.reliability.sentinel").Build()
-		}
->>>>>>> master
 	})
 }

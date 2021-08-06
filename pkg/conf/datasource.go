@@ -43,7 +43,6 @@ func init() {
 		}
 		log.Printf("load config from datasource[%s] completely!", configAddr)
 	}})
-<<<<<<< HEAD
 
 	flag.Register(&flag.StringFlag{Name: "config-tag", Usage: "--config-tag=mapstructure", Default: "mapstructure", Action: func(key string, fs *flag.FlagSet) {
 		defaultGetOptions.TagName = fs.String("config-tag")
@@ -52,8 +51,6 @@ func init() {
 	flag.Register(&flag.StringFlag{Name: "config-namespace", Usage: "--config-namespace=jupiter, 配置内建组件的默认命名空间, 默认是jupiter", Default: "jupiter", Action: func(key string, fs *flag.FlagSet) {
 		defaultGetOptions.Namespace = fs.String("config-namespace")
 	}})
-=======
->>>>>>> master
 }
 
 // Register registers a dataSource creator function to the registry
