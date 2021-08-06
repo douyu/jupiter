@@ -20,10 +20,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/arschles/assert"
 	"github.com/douyu/jupiter/pkg/constant"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/status"
 )
@@ -59,8 +59,9 @@ func TestServer_Closed(t *testing.T) {
 	convey.Convey("test server stop", t, func() {
 		config := DefaultConfig()
 		config.Port = 0
-		ns := newServer(config)
-		err := ns.Stop()
+		ns, err := newServer(config)
+		assert.Nil(t, err)
+		err = ns.Stop()
 		convey.So(err, convey.ShouldBeNil)
 		err = ns.Serve()
 		convey.So(err, convey.ShouldEqual, grpc.ErrServerStopped)

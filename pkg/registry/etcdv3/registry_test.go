@@ -97,12 +97,14 @@ func Test_etcdv3Registry(t *testing.T) {
 func Test_etcdv3registry_UpdateAddressList(t *testing.T) {
 	etcdConfig := etcdv3.DefaultConfig()
 	etcdConfig.Endpoints = []string{"127.0.0.1:2379"}
-	reg := newETCDRegistry(&Config{
+	reg, err := newETCDRegistry(&Config{
 		Config:      etcdConfig,
 		ReadTimeout: time.Second * 10,
 		Prefix:      "jupiter",
 		logger:      xlog.DefaultLogger,
 	})
+
+	assert.Nil(t, err)
 
 	var routeConfig = registry.RouteConfig{
 		ID:         "1",
@@ -117,7 +119,7 @@ func Test_etcdv3registry_UpdateAddressList(t *testing.T) {
 			},
 		},
 	}
-	_, err := reg.client.Put(context.Background(), "/jupiter/service_1/configurators/grpc:///routes/1", routeConfig.String())
+	_, err = reg.client.Put(context.Background(), "/jupiter/service_1/configurators/grpc:///routes/1", routeConfig.String())
 	assert.Nil(t, err)
 	ctx, cancel := context.WithCancel(context.Background())
 	go func() {

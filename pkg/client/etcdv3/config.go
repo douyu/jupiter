@@ -96,3 +96,11 @@ func (config *Config) MustBuild() *Client {
 =======
 >>>>>>> master
 }
+
+func (config *Config) MustBuild() *Client {
+	client, err := config.Build()
+	if err != nil {
+		xlog.Panicf("build etcd client failed: %v", err)
+	}
+	return client
+}

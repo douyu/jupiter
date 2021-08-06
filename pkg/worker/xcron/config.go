@@ -132,7 +132,7 @@ func newETCDXcron(config *Config) {
 		config.logger = xlog.DefaultLogger
 	}
 	config.logger = config.logger.With(xlog.FieldMod(ecode.ModXcronETCD), xlog.FieldAddrAny(config.Config.Endpoints))
-	config.client = config.Config.Build()
+	config.client = config.Config.MustBuild()
 	if config.TTL == 0 {
 		config.TTL = DefaultTTL
 	}
