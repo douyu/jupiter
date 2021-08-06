@@ -139,8 +139,6 @@ func (reg *etcdv3Registry) WatchServices(ctx context.Context, name string, schem
 			// var snapshot registry.Endpoints
 			// xstruct.CopyStruct(al, &snapshot)
 			out := al.DeepCopy()
-			fmt.Printf("al => %p\n", al.Nodes)
-			fmt.Printf("snapshot => %p\n", out.Nodes)
 			select {
 			// case addresses <- snapshot:
 			case addresses <- *out:
@@ -361,7 +359,7 @@ func updateAddrList(al *registry.Endpoints, prefix, scheme string, kvs ...*mvccp
 				xlog.Error("parse uri", xlog.FieldErrKind(ecode.ErrKindUriErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)))
 				continue
 			}
-			if serviceInfo.Enable == true {
+			if serviceInfo.Enable {
 				al.Nodes[uri.String()] = serviceInfo
 			} else {
 				delete(al.Nodes, uri.String())

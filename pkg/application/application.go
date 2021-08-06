@@ -17,14 +17,12 @@ package application
 import (
 	"context"
 	"fmt"
-	"os"
-	"runtime"
 	"sync"
+	"time"
 
 	job "github.com/douyu/jupiter/pkg/worker/xjob"
 
 	"github.com/BurntSushi/toml"
-	"github.com/douyu/jupiter/pkg"
 	"github.com/douyu/jupiter/pkg/conf"
 
 	//go-lint
@@ -43,7 +41,6 @@ import (
 	"github.com/douyu/jupiter/pkg/util/xgo"
 	"github.com/douyu/jupiter/pkg/worker"
 	"github.com/douyu/jupiter/pkg/xlog"
-	"go.uber.org/automaxprocs/maxprocs"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -66,7 +63,6 @@ type Application struct {
 	workers      []worker.Worker
 	jobs         map[string]job.Runner
 	logger       *xlog.Logger
-	registerer   registry.Registry
 	hooks        map[uint32]*xdefer.DeferStack
 	configParser conf.Unmarshaller
 	disableMap   map[Disable]bool
@@ -130,39 +126,40 @@ func (app *Application) initialize() {
 		app.stopped = make(chan struct{})
 		//private method
 		app.initHooks(StageBeforeStop, StageAfterStop)
-		//public method
-		app.SetRegistry(registry.Nop{}) //default nop without registry
+
+		app.parseFlags()
+		app.printBanner()
 	})
 }
 
-// start up application
-// By default the startup composition is:
-// - parse config, watch, version flags
-// - load config
-// - init default biz logger, jupiter frame logger
-// - init procs
-func (app *Application) startup() (err error) {
-	app.startupOnce.Do(func() {
-		err = xgo.SerialUntilError(
-			app.parseFlags,
-			app.printBanner,
-			// app.loadConfig,
-			// app.initLogger,
-			app.initMaxProcs,
-			// app.initTracer,
-			// app.initSentinel,
-			// app.initGovernor,
-		)()
-	})
-	return
-}
+// // start up application
+// // By default the startup composition is:
+// // - parse config, watch, version flags
+// // - load config
+// // - init default biz logger, jupiter frame logger
+// // - init procs
+// func (app *Application) startup() (err error) {
+// 	app.startupOnce.Do(func() {
+// 		err = xgo.SerialUntilError(
+// 			app.parseFlags,
+// 			// app.printBanner,
+// 			// app.loadConfig,
+// 			// app.initLogger,
+// 			// app.initMaxProcs,
+// 			// app.initTracer,
+// 			// app.initSentinel,
+// 			// app.initGovernor,
+// 		)()
+// 	})
+// 	return
+// }
 
 //Startup ..
 func (app *Application) Startup(fns ...func() error) error {
 	app.initialize()
-	if err := app.startup(); err != nil {
-		return err
-	}
+	// if err := app.startup(); err != nil {
+	// 	return err
+	// }
 	return xgo.SerialUntilError(fns...)()
 }
 
@@ -229,7 +226,7 @@ func (app *Application) Job(runner job.Runner) error {
 
 // SetRegistry set customize registry
 func (app *Application) SetRegistry(reg registry.Registry) {
-	app.registerer = reg
+	registry.DefaultRegisterer = reg
 }
 
 // SetGovernor set governor addr (default 127.0.0.1:0)
@@ -356,7 +353,7 @@ func (app *Application) waitSignals() {
 
 func (app *Application) startServers() error {
 	var eg errgroup.Group
-	var ctx, cancel = context.WithCancel(context.Background())
+	var ctx, cancel = context.WithTimeout(context.Background(), time.Second*10)
 	go func() {
 		<-app.stopped
 		cancel()
@@ -365,8 +362,8 @@ func (app *Application) startServers() error {
 	for _, s := range app.servers {
 		s := s
 		eg.Go(func() (err error) {
-			_ = registry.RegisterService(ctx, s)
-			defer registry.UnregisterService(context.TODO(), s)
+			registry.DefaultRegisterer.RegisterService(ctx, s.Info())
+			defer registry.DefaultRegisterer.UnregisterService(ctx, s.Info())
 			app.logger.Info("start server", xlog.FieldMod(ecode.ModApp), xlog.FieldEvent("init"), xlog.FieldName(s.Info().Name), xlog.FieldAddr(s.Info().Label()), xlog.Any("scheme", s.Info().Scheme))
 			defer app.logger.Info("exit server", xlog.FieldMod(ecode.ModApp), xlog.FieldEvent("exit"), xlog.FieldName(s.Info().Name), xlog.FieldErr(err), xlog.FieldAddr(s.Info().Label()))
 			err = s.Serve()
@@ -421,29 +418,22 @@ func (app *Application) parseFlags() error {
 	// 	Action:  func(name string, fs *flag.FlagSet) {},
 	// })
 
-	flag.Register(&flag.BoolFlag{
-		Name:    "watch",
-		Usage:   "--watch, watch config change event",
-		Default: false,
-		EnvVar:  "JUPITER_CONFIG_WATCH",
-	})
+	// flag.Register(&flag.BoolFlag{
+	// 	Name:    "version",
+	// 	Usage:   "--version, print version",
+	// 	Default: false,
+	// 	Action: func(string, *flag.FlagSet) {
+	// 		pkg.PrintVersion()
+	// 		os.Exit(0)
+	// 	},
+	// })
 
-	flag.Register(&flag.BoolFlag{
-		Name:    "version",
-		Usage:   "--version, print version",
-		Default: false,
-		Action: func(string, *flag.FlagSet) {
-			pkg.PrintVersion()
-			os.Exit(0)
-		},
-	})
-
-	flag.Register(&flag.StringFlag{
-		Name:    "host",
-		Usage:   "--host, print host",
-		Default: "127.0.0.1",
-		Action:  func(string, *flag.FlagSet) {},
-	})
+	// flag.Register(&flag.StringFlag{
+	// 	Name:    "host",
+	// 	Usage:   "--host, print host",
+	// 	Default: "127.0.0.1",
+	// 	Action:  func(string, *flag.FlagSet) {},
+	// })
 	return flag.Parse()
 }
 
@@ -506,17 +496,17 @@ func (app *Application) parseFlags() error {
 // }
 
 //initMaxProcs init
-func (app *Application) initMaxProcs() error {
-	if maxProcs := conf.GetInt("maxProc"); maxProcs != 0 {
-		runtime.GOMAXPROCS(maxProcs)
-	} else {
-		if _, err := maxprocs.Set(); err != nil {
-			app.logger.Panic("auto max procs", xlog.FieldMod(ecode.ModProc), xlog.FieldErrKind(ecode.ErrKindAny), xlog.FieldErr(err))
-		}
-	}
-	app.logger.Info("auto max procs", xlog.FieldMod(ecode.ModProc), xlog.Int64("procs", int64(runtime.GOMAXPROCS(-1))))
-	return nil
-}
+// func (app *Application) initMaxProcs() error {
+// 	if maxProcs := conf.GetInt("maxProc"); maxProcs != 0 {
+// 		runtime.GOMAXPROCS(maxProcs)
+// 	} else {
+// 		if _, err := maxprocs.Set(); err != nil {
+// 			app.logger.Panic("auto max procs", xlog.FieldMod(ecode.ModProc), xlog.FieldErrKind(ecode.ErrKindAny), xlog.FieldErr(err))
+// 		}
+// 	}
+// 	app.logger.Info("auto max procs", xlog.FieldMod(ecode.ModProc), xlog.Int64("procs", int64(runtime.GOMAXPROCS(-1))))
+// 	return nil
+// }
 
 func (app *Application) isDisable(d Disable) bool {
 	b, ok := app.disableMap[d]
@@ -538,7 +528,7 @@ func (app *Application) printBanner() error {
    | | |_| | |_) | | ||  __/ |
   _/ |\__,_| .__/|_|\__\___|_|
  |__/      |_|
- 
+
  Welcome to jupiter, starting application ...
 `
 	fmt.Println(xcolor.Green(banner))

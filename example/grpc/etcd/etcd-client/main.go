@@ -34,7 +34,6 @@ func main() {
 	if err := eng.Run(); err != nil {
 		xlog.Error(err.Error())
 	}
-	fmt.Printf("111 = %+v\n", 111)
 }
 
 type Engine struct {
@@ -53,7 +52,7 @@ func NewEngine() *Engine {
 }
 
 func (eng *Engine) initResolver() error {
-	resolver.Register("etcd", etcdv3.StdConfig("wh").Build())
+	resolver.Register("etcd", etcdv3.StdConfig("wh").MustBuild())
 	return nil
 }
 

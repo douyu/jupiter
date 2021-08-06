@@ -16,12 +16,11 @@ package registry
 
 import (
 	"log"
-	"sync"
 
 	"github.com/douyu/jupiter/pkg/conf"
 )
 
-var _registerers = sync.Map{}
+// var _registerers = sync.Map{}
 var registryBuilder = make(map[string]Builder)
 
 type Config map[string]struct {
@@ -29,6 +28,9 @@ type Config map[string]struct {
 	ConfigKey     string `json:"configKey" description:"底册注册器的配置键"`
 	DeplaySeconds int    `json:"deplaySeconds" description:"延迟注册"`
 }
+
+// default register
+var DefaultRegisterer Registry = &Local{}
 
 func init() {
 	// 初始化注册中心
@@ -50,7 +52,7 @@ func init() {
 				log.Printf("invalid registry kind: %s", itemKind)
 				continue
 			}
-			_registerers.Store(name, build(item.ConfigKey))
+			DefaultRegisterer = build(item.ConfigKey)
 			log.Printf("build registrerer %s with config: %s", name, item.ConfigKey)
 		}
 	})
