@@ -17,7 +17,6 @@ package demo
 import (
 	"time"
 
-	sentinel_echo "github.com/alibaba/sentinel-golang/adapter/echo"
 	"github.com/alibaba/sentinel-golang/core/flow"
 	"github.com/douyu/jupiter"
 	"github.com/douyu/jupiter/example/all/internal/app/greeter"
@@ -28,9 +27,10 @@ import (
 	"github.com/douyu/jupiter/pkg/worker/xcron"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/labstack/echo/v4"
+	sentinel_echo "github.com/sentinel-group/sentinel-go-adapters/echo"
 	"google.golang.org/grpc/examples/helloworld/helloworld"
 
-	sentinel_grpc "github.com/alibaba/sentinel-golang/adapter/grpc"
+	sentinel_grpc "github.com/sentinel-group/sentinel-go-adapters/grpc"
 )
 
 type Engine struct {
