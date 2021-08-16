@@ -11,8 +11,8 @@ var (
 	ErrConfigAddr = errors.New("no config... ")
 	// ErrInvalidDataSource defines an error that the scheme has been registered
 	ErrInvalidDataSource = errors.New("invalid data source, please make sure the scheme has been registered")
-	datasourceBuilders   map[string]DataSourceCreatorFunc
-	configDecoder        map[string]Unmarshaller
+	datasourceBuilders   = make(map[string]DataSourceCreatorFunc)
+	configDecoder        = make(map[string]Unmarshaller)
 )
 
 // DataSourceCreatorFunc represents a dataSource creator function

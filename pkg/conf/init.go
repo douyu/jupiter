@@ -21,8 +21,14 @@ import (
 	"github.com/douyu/jupiter/pkg/flag"
 )
 
+const DefaultEnvPrefix = "APP_"
+
 func init() {
-	datasourceBuilders = make(map[string]DataSourceCreatorFunc)
+	flag.Register(&flag.StringFlag{Name: "envPrefix", Usage: "--envPrefix=APP_", Default: DefaultEnvPrefix, Action: func(key string, fs *flag.FlagSet) {
+		var envPrefix = fs.String(key)
+		defaultConfiguration.LoadEnvironments(envPrefix)
+	}})
+
 	flag.Register(&flag.StringFlag{Name: "config", Usage: "--config=config.toml", Action: func(key string, fs *flag.FlagSet) {
 		var configAddr = fs.String(key)
 		log.Printf("read config: %s", configAddr)

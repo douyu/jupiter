@@ -20,6 +20,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/douyu/jupiter/pkg/component"
 	job "github.com/douyu/jupiter/pkg/worker/xjob"
 
 	"github.com/BurntSushi/toml"
@@ -68,6 +69,7 @@ type Application struct {
 	disableMap   map[Disable]bool
 	HideBanner   bool
 	stopped      chan struct{}
+	components   []component.Component
 }
 
 // New create a new Application instance
@@ -124,6 +126,7 @@ func (app *Application) initialize() {
 		app.configParser = toml.Unmarshal
 		app.disableMap = make(map[Disable]bool)
 		app.stopped = make(chan struct{})
+		app.components = make([]component.Component, 0)
 		//private method
 		app.initHooks(StageBeforeStop, StageAfterStop)
 

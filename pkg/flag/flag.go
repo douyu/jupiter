@@ -107,6 +107,7 @@ func (fs *FlagSet) Parse() error {
 	}
 
 	fs.FlagSet.Visit(func(f *flag.Flag) {
+		// do action hook after parse flagset
 		if action, ok := fs.actions[f.Name]; ok && action != nil {
 			action(f.Name, fs)
 		}

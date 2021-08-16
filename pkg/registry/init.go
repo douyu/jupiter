@@ -61,6 +61,8 @@ func init() {
 
 type Builder func(string) Registry
 
+type BuildFunc func(string) (Registry, error)
+
 func RegisterBuilder(kind string, build Builder) {
 	if _, ok := registryBuilder[kind]; ok {
 		log.Panicf("duplicate register registry builder: %s", kind)
