@@ -24,6 +24,7 @@ const (
 const (
 	// EnvAppName ...
 	EnvAppName = "APP_NAME"
+	EnvAppID   = "APP_ID"
 	// EnvDeployment ...
 	EnvDeployment = "APP_DEPLOYMENT"
 

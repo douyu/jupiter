@@ -16,6 +16,7 @@ package xlog
 
 import (
 	"fmt"
+	"github.com/douyu/jupiter/pkg"
 	"log"
 	"time"
 
@@ -102,18 +103,22 @@ func StdConfig(name string) *Config {
 func DefaultConfig() *Config {
 	return &Config{
 		Name:          "default.log",
-		Dir:           ".",
+		Dir:           pkg.LogDir(),
 		Level:         "info",
 		MaxSize:       500, // 500M
 		MaxAge:        1,   // 1 day
 		MaxBackup:     10,  // 10 backup
 		Interval:      24 * time.Hour,
 		CallerSkip:    1,
-		AddCaller:     false,
+		AddCaller:     true,
 		Async:         true,
 		Queue:         false,
 		QueueSleep:    100 * time.Millisecond,
 		EncoderConfig: DefaultZapConfig(),
+		Fields: []zap.Field{
+			String("aid", pkg.AppID()),
+			String("iid", pkg.UUID()),
+		},
 	}
 }
 
