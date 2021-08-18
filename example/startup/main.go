@@ -44,7 +44,7 @@ func startHTTPServer() server.Server {
 }
 
 func startGRPCServer() server.Server {
-	server := xgrpc.DefaultConfig().Build()
+	server := xgrpc.DefaultConfig().MustBuild()
 	// helloworld.RegisterGreeterServer(server.Server, new(greeter.Greeter))
 	return server
 }

@@ -18,17 +18,14 @@ import (
 	"log"
 
 	"github.com/douyu/jupiter/example/all/internal/app/demo"
-	"github.com/douyu/jupiter/pkg/registry/compound"
 	"github.com/douyu/jupiter/pkg/registry/etcdv3"
 )
 
 func main() {
 	eng := demo.NewEngine()
 
-	eng.SetRegistry( // 多注册中心
-		compound.New(
-			etcdv3.StdConfig("wh01").MustBuild(),
-		),
+	eng.SetRegistry( // 单注册中心
+		etcdv3.StdConfig("wh01").MustBuild(),
 	)
 
 	if err := eng.Run(); err != nil {

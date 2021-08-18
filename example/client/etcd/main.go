@@ -28,7 +28,7 @@ func main() {
 	eng := &jupiter.Application{}
 	err := eng.Startup(
 		func() error {
-			client := etcdv3.StdConfig("myetcd").Build()
+			client := etcdv3.StdConfig("myetcd").MustBuild()
 
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
 			defer cancel()

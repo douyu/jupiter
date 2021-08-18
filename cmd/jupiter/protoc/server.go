@@ -93,7 +93,7 @@ func (server *GRPCServerGen) generateServer() (err error) {
 		err = err1
 		return
 	}
-	fmt.Println(xcolor.Greenf("GRCP server file generate success ,the path :", filePath))
+	fmt.Println(xcolor.Green("GRCP server file generate success ,the path :", filePath))
 	return
 }
 func (server *GRPCServerGen) initPrefix() (err error) {

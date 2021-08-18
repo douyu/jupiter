@@ -21,7 +21,6 @@ import (
 
 	"github.com/douyu/jupiter"
 	"github.com/douyu/jupiter/pkg/client/etcdv3"
-	compound_registry "github.com/douyu/jupiter/pkg/registry/compound"
 	etcdv3_registry "github.com/douyu/jupiter/pkg/registry/etcdv3"
 	"github.com/douyu/jupiter/pkg/server/xgrpc"
 	"github.com/douyu/jupiter/pkg/xlog"
@@ -31,9 +30,7 @@ import (
 func main() {
 	eng := NewEngine()
 	eng.SetRegistry(
-		compound_registry.New(
-			etcdv3_registry.StdConfig("wh").Build(),
-		),
+		etcdv3_registry.StdConfig("wh").MustBuild(),
 	)
 	if err := eng.Run(); err != nil {
 		xlog.Error(err.Error())
@@ -49,7 +46,7 @@ func NewEngine() *Engine {
 	if err := eng.Startup(
 		eng.serveGRPC,
 		func() error {
-			client := etcdv3.StdConfig("myetcd").Build()
+			client := etcdv3.StdConfig("myetcd").MustBuild()
 
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
 			defer cancel()
@@ -67,7 +64,7 @@ func NewEngine() *Engine {
 }
 
 func (eng *Engine) serveGRPC() error {
-	server := xgrpc.StdConfig("grpc").Build()
+	server := xgrpc.StdConfig("grpc").MustBuild()
 	helloworld.RegisterGreeterServer(server.Server, new(Greeter))
 	return eng.Serve(server)
 }

@@ -19,6 +19,7 @@ import (
 
 	"github.com/douyu/jupiter/pkg/constant"
 	"github.com/douyu/jupiter/pkg/xlog"
+
 	//"github.com/douyu/jupiter/pkg/ecode"
 	//"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/douyu/jupiter/pkg/server"
@@ -63,6 +64,11 @@ func (s *Server) Stop() error {
 //GracefulStop ..
 func (s *Server) GracefulStop(ctx context.Context) error {
 	return s.Stop()
+}
+
+//Healthz .. TODO: 服务的健康状态，待完成
+func (s *Server) Healthz() bool {
+	return true
 }
 
 //Info ..

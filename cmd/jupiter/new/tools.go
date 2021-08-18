@@ -58,7 +58,7 @@ func CreateProject(cli *cli.Context) (err error) {
 	if err = doCreateProject(); err != nil {
 		return
 	}
-	fmt.Println(xcolor.Greenf("Project dir:", project.Path))
+	fmt.Println(xcolor.Green("Project dir:", project.Path))
 	fmt.Println(xcolor.Green("Project created successfully"))
 	return
 }
@@ -97,7 +97,7 @@ func doWriteFile(path, tmpl string) (err error) {
 	if err != nil {
 		return
 	}
-	fmt.Println(xcolor.Greenf("File generated----------------------->", path))
+	fmt.Println(xcolor.Green("File generated----------------------->", path))
 	return ioutil.WriteFile(path, data, 0755)
 }
 

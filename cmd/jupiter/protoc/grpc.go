@@ -3,11 +3,12 @@ package protoc
 import (
 	"errors"
 	"fmt"
-	"github.com/douyu/jupiter/pkg/util/xcolor"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/douyu/jupiter/pkg/util/xcolor"
 )
 
 const (
@@ -32,7 +33,7 @@ func installGRPCGen() (err error) {
 			return
 		}
 	}
-	fmt.Println(xcolor.Greenf("protoc-gen-gofast installation was successful, the installation path is:", gofastPath))
+	fmt.Println(xcolor.Green("protoc-gen-gofast installation was successful, the installation path is:", gofastPath))
 	return
 }
 func executeGoGet(address string) error {
@@ -49,7 +50,7 @@ func protocEnvCheck() (err error) {
 		err = errors.New("You haven't installed Protobuf yet，Please visit this page to install with your own system：https://github.com/protocolbuffers/protobuf/releases")
 		return
 	}
-	fmt.Println(xcolor.Greenf("Protoc environment monitoring is successful , the installation path is:", protocPath))
+	fmt.Println(xcolor.Green("Protoc environment monitoring is successful , the installation path is:", protocPath))
 	return
 }
 func doGenerate() (err error) {
@@ -68,7 +69,7 @@ func doGenerate() (err error) {
 		return
 	}
 	if genAbsPath, err := filepath.Abs(option.outputDir); err == nil {
-		fmt.Println(xcolor.Greenf("pb.go file generated successfully. The path is as follows:", genAbsPath))
+		fmt.Println(xcolor.Green("pb.go file generated successfully. The path is as follows:", genAbsPath))
 	}
 	return
 }

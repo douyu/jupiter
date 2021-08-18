@@ -47,7 +47,8 @@ func NewEngine() *Engine {
 }
 
 func (eng *Engine) serveGRPC() error {
-	server := xgrpc.StdConfig("grpc").Build()
+	server := xgrpc.StdConfig("grpc").MustBuild()
+
 	helloworld.RegisterGreeterServer(server.Server, new(Greeter))
 	return eng.Serve(server)
 }
