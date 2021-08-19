@@ -262,6 +262,10 @@ func Test_Unit_Application_Stop(t *testing.T) {
 	Convey("test unit Application.Stop", t, func(c C) {
 		app := &Application{}
 		app.initialize()
+		//Stop will sent message to chan app.stopped.so,here a func to recive chan message
+		go func() {
+			<-app.stopped
+		}()
 		err := app.Stop()
 		c.So(err, ShouldBeNil)
 	})
@@ -271,6 +275,11 @@ func Test_Unit_Application_GracefulStop(t *testing.T) {
 	Convey("test unit Application.GracefulStop", t, func(c C) {
 		app := &Application{}
 		app.initialize()
+		//GracefulStop will sent message to chan app.stopped.so,here a func to recive chan message
+		go func() {
+			<-app.stopped
+		}()
+
 		err := app.GracefulStop(context.TODO())
 		c.So(err, ShouldBeNil)
 	})
