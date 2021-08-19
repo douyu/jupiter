@@ -20,8 +20,16 @@ import (
 
 	"github.com/douyu/jupiter/pkg"
 	"github.com/douyu/jupiter/pkg/governor"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
+
+type Metrics interface {
+	prometheus.Registerer
+	prometheus.Gatherer
+
+	BulkRegister(...prometheus.Collector) error
+}
 
 var (
 	// TypeHTTP ...

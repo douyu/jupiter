@@ -1,4 +1,4 @@
-// Copyright 2020 Douyu
+// Copyright 2021 douyu
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,18 +12,4 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
-
-import (
-	"log"
-
-	"github.com/douyu/jupiter/example/all/internal/app/demo"
-)
-
-func main() {
-	eng := demo.NewEngine()
-
-	if err := eng.Run(); err != nil {
-		log.Fatal(err)
-	}
-}
+package conf

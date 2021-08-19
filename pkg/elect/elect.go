@@ -1,4 +1,4 @@
-// Copyright 2020 Douyu
+// Copyright 2021 rex lv
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,18 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package elect
 
-import (
-	"log"
+type CallbackPhase int
 
-	"github.com/douyu/jupiter/example/all/internal/app/demo"
+const (
+	CallbackPhasePostStarted CallbackPhase = 1
+	CallbackPhasePostStopped CallbackPhase = 2
 )
 
-func main() {
-	eng := demo.NewEngine()
+type LeaderElectCallback func(CallbackPhase)
 
-	if err := eng.Run(); err != nil {
-		log.Fatal(err)
-	}
+type LeaderElector interface {
+	Start(stop <-chan struct{})
+	IsLeader() bool
+	AddCallbacks(...LeaderElectCallback)
 }

@@ -1,4 +1,4 @@
-// Copyright 2020 Douyu
+// Copyright 2021 rex lv
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,18 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package rediselector
 
-import (
-	"log"
+import "github.com/douyu/jupiter/pkg/elect"
 
-	"github.com/douyu/jupiter/example/all/internal/app/demo"
-)
+var _ elect.LeaderElector = &redisLeaderElector{}
 
-func main() {
-	eng := demo.NewEngine()
+type redisLeaderElector struct {
+	callbacks []elect.LeaderElectCallback
+}
 
-	if err := eng.Run(); err != nil {
-		log.Fatal(err)
+func New() *redisLeaderElector {
+	return &redisLeaderElector{
+		callbacks: make([]elect.LeaderElectCallback, 0),
 	}
+}
+
+func (r *redisLeaderElector) IsLeader() bool {
+	return false
+}
+
+func (r *redisLeaderElector) AddCallbacks(callbacks ...elect.LeaderElectCallback) {
+
+}
+
+func (r *redisLeaderElector) Start(stop <-chan struct{}) {
 }

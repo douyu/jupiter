@@ -20,6 +20,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/douyu/jupiter/pkg/component"
 	job "github.com/douyu/jupiter/pkg/worker/xjob"
 
 	"github.com/BurntSushi/toml"
@@ -37,6 +38,7 @@ import (
 	"github.com/douyu/jupiter/pkg/signals"
 	"github.com/douyu/jupiter/pkg/util/xcolor"
 	"github.com/douyu/jupiter/pkg/util/xcycle"
+	"github.com/douyu/jupiter/pkg/util/xdebug"
 	"github.com/douyu/jupiter/pkg/util/xdefer"
 	"github.com/douyu/jupiter/pkg/util/xgo"
 	"github.com/douyu/jupiter/pkg/worker"
@@ -68,6 +70,7 @@ type Application struct {
 	disableMap   map[Disable]bool
 	HideBanner   bool
 	stopped      chan struct{}
+	components   []component.Component
 }
 
 // New create a new Application instance
@@ -124,6 +127,7 @@ func (app *Application) initialize() {
 		app.configParser = toml.Unmarshal
 		app.disableMap = make(map[Disable]bool)
 		app.stopped = make(chan struct{})
+		app.components = make([]component.Component, 0)
 		//private method
 		app.initHooks(StageBeforeStop, StageAfterStop)
 
@@ -225,6 +229,7 @@ func (app *Application) Job(runner job.Runner) error {
 }
 
 // SetRegistry set customize registry
+// Deprecated, please use registry.DefaultRegisterer instead.
 func (app *Application) SetRegistry(reg registry.Registry) {
 	registry.DefaultRegisterer = reg
 }
@@ -519,6 +524,10 @@ func (app *Application) isDisable(d Disable) bool {
 //printBanner init
 func (app *Application) printBanner() error {
 	if app.HideBanner {
+		return nil
+	}
+
+	if xdebug.IsTestingMode() {
 		return nil
 	}
 

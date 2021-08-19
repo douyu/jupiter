@@ -3,9 +3,11 @@ module github.com/douyu/jupiter
 go 1.14
 
 require (
+	cirello.io/pglock v1.8.0 // indirect
 	github.com/BurntSushi/toml v0.3.1
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/alibaba/sentinel-golang v1.0.2
+	github.com/alicebob/miniredis/v2 v2.15.1
 	github.com/apache/rocketmq-client-go/v2 v2.0.0
 	github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd // indirect
 	github.com/codegangsta/inject v0.0.0-20150114235600-33e0aa1cb7c0
@@ -41,6 +43,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.6.0
 	github.com/robfig/cron/v3 v3.0.1
+	github.com/sentinel-group/sentinel-go-adapters v1.0.1 // indirect
 	github.com/sirupsen/logrus v1.7.0 // indirect
 	github.com/smallnest/weighted v0.0.0-20200122032019-adf21c9b8bd1
 	github.com/smartystreets/assertions v0.0.0-20190401211740-f487f9de1cd3 // indirect
@@ -53,9 +56,11 @@ require (
 	github.com/uber/jaeger-client-go v2.23.1+incompatible
 	github.com/uber/jaeger-lib v2.2.0+incompatible // indirect
 	github.com/urfave/cli v1.22.5
+	go.etcd.io/etcd v3.3.25+incompatible // indirect
 	go.mongodb.org/mongo-driver v1.5.1
 	go.uber.org/atomic v1.6.0 // indirect
 	go.uber.org/automaxprocs v1.3.0
+	go.uber.org/goleak v1.1.10
 	go.uber.org/multierr v1.5.0
 	go.uber.org/zap v1.15.0
 	golang.org/x/crypto v0.0.0-20201124201722-c8d3bf9c5392 // indirect

@@ -19,6 +19,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"os"
 	"reflect"
 	"strings"
 	"sync"
@@ -29,9 +30,6 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 )
-
-func init() {
-}
 
 // Configuration provides configuration for application.
 type Configuration struct {
@@ -96,6 +94,19 @@ func (c *Configuration) OnLoaded(fn func(*Configuration)) {
 	}
 
 	c.onLoadeds = append(c.onLoadeds, fn)
+}
+
+// LoadEnvironments reads os environments with prefix such as APP_
+// PREFIX_FIELD1_FIELD2 will be translated into prefix.field1.field2
+func (c *Configuration) LoadEnvironments(prefix string) {
+	for _, env := range os.Environ() {
+		if !strings.HasPrefix(env, prefix) {
+			continue
+		}
+		key := strings.ToLower(strings.ReplaceAll(env, "_", "."))
+		val := os.Getenv(env)
+		c.Set(key, val)
+	}
 }
 
 // LoadFromDataSource ...

@@ -48,6 +48,10 @@ func Blue(msg string, arg ...interface{}) string {
 func Green(msg string, arg ...interface{}) string {
 	return sprint(GreenColor, msg, arg...)
 }
+// Greenf ...
+func Greenf(msg string, arg ...interface{}) string {
+	return sprint(GreenColor, msg, arg...)
+}
 
 // sprint
 func sprint(colorValue int, msg string, arg ...interface{}) string {

@@ -17,10 +17,12 @@ package etcdv3
 import (
 	"context"
 	"fmt"
+	"log"
 	"testing"
 	"time"
 
 	"github.com/douyu/jupiter/pkg/constant"
+	"go.etcd.io/etcd/pkg/mock/mockserver"
 
 	"github.com/douyu/jupiter/pkg/client/etcdv3"
 	"github.com/douyu/jupiter/pkg/registry"
@@ -29,9 +31,24 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func startMockServer() {
+	ms, err := mockserver.StartMockServers(1)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if err := ms.StartAt(0); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func TestMain(m *testing.M) {
+	go startMockServer()
+}
+
 func Test_etcdv3Registry(t *testing.T) {
 	etcdConfig := etcdv3.DefaultConfig()
-	etcdConfig.Endpoints = []string{"127.0.0.1:2379"}
+	etcdConfig.Endpoints = []string{"localhost:0"}
 	registry, err := newETCDRegistry(&Config{
 		Config:      etcdConfig,
 		ReadTimeout: time.Second * 10,
@@ -96,7 +113,7 @@ func Test_etcdv3Registry(t *testing.T) {
 
 func Test_etcdv3registry_UpdateAddressList(t *testing.T) {
 	etcdConfig := etcdv3.DefaultConfig()
-	etcdConfig.Endpoints = []string{"127.0.0.1:2379"}
+	etcdConfig.Endpoints = []string{"localhost:0"}
 	reg, err := newETCDRegistry(&Config{
 		Config:      etcdConfig,
 		ReadTimeout: time.Second * 10,

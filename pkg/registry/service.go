@@ -1,4 +1,4 @@
-// Copyright 2020 Douyu
+// Copyright 2021 rex lv
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,18 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package registry
 
-import (
-	"log"
+import "github.com/douyu/jupiter/pkg/server"
 
-	"github.com/douyu/jupiter/example/all/internal/app/demo"
-)
+type service struct {
+	server.Server
+}
 
-func main() {
-	eng := demo.NewEngine()
+func Service(srv server.Server) server.Server {
+	return &service{Server: srv}
+}
 
-	if err := eng.Run(); err != nil {
-		log.Fatal(err)
-	}
+func (s *service) Serve() error {
+
+	return s.Server.Serve()
 }

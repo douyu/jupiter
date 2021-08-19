@@ -16,17 +16,23 @@ package redis
 
 import (
 	"testing"
+
+	"github.com/alicebob/miniredis/v2"
 )
 
 func TestRedis(t *testing.T) {
 	// TODO(gorexlv): add redis ci
+	mr, err := miniredis.Run()
+	if err != nil {
+		t.Errorf("redis run failed:%v", err)
+	}
 	redisConfig := DefaultRedisConfig()
-	redisConfig.Addrs = []string{"localhost:6379"}
+	redisConfig.Addrs = []string{mr.Addr()}
 	redisConfig.Mode = StubMode
 	redisClient := redisConfig.Build()
-	err := redisClient.Client.Ping().Err()
-	if err != nil {
-		t.Errorf("redis ping failed:%v", err)
+	pingErr := redisClient.Client.Ping().Err()
+	if pingErr != nil {
+		t.Errorf("redis ping failed:%v", pingErr)
 	}
 	st := redisClient.Stub().PoolStats()
 	t.Logf("running status %+v", st)

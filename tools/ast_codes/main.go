@@ -33,7 +33,7 @@ import (
 
 	// "github.com/pelletier/go-toml"
 	"github.com/davecgh/go-spew/spew"
-	"github.com/douyu/pkg/util/xcast"
+	"github.com/douyu/jupiter/pkg/util/xcast"
 )
 
 /*
