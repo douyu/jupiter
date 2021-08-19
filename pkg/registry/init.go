@@ -52,7 +52,6 @@ func init() {
 				log.Printf("invalid registry kind: %s", itemKind)
 				continue
 			}
-			// reset default registerer
 			DefaultRegisterer = build(item.ConfigKey)
 			log.Printf("build registrerer %s with config: %s", name, item.ConfigKey)
 		}
