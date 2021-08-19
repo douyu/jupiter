@@ -23,12 +23,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/coreos/etcd/clientv3/concurrency"
+	"go.etcd.io/etcd/client/v3/concurrency"
 
-	"github.com/coreos/etcd/clientv3"
-	"github.com/coreos/etcd/mvcc/mvccpb"
 	"github.com/douyu/jupiter/pkg/xlog"
 	grpcprom "github.com/grpc-ecosystem/go-grpc-prometheus"
+	clientv3 "go.etcd.io/etcd/client/v3"
+	"go.etcd.io/etcd/mvcc/mvccpb"
 	"google.golang.org/grpc"
 )
 

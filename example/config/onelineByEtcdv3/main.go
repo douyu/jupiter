@@ -16,11 +16,12 @@ package main
 
 import (
 	"context"
-	"github.com/coreos/etcd/clientv3"
+
 	"github.com/douyu/jupiter"
 	"github.com/douyu/jupiter/pkg/conf"
 	_ "github.com/douyu/jupiter/pkg/datasource/etcdv3"
 	"github.com/douyu/jupiter/pkg/xlog"
+	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 //  go run main.go --config=etcdv3://10.0.101.68:2379?key=test

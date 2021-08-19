@@ -71,4 +71,4 @@ configCacheDir
 example/*/*/config-local.toml
 dump.rdb
 default.etcd
-pkg/datasource/apollo/.SampleApp_default
+pkg/conf/datasource/apollo/.SampleApp_default
