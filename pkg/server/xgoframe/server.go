@@ -79,3 +79,9 @@ func (s *Server) Info() *server.ServiceInfo {
 	)
 	return &info
 }
+
+// Healthz
+// TODO(roamerlv):
+func (s *Server) Healthz() bool {
+	return true
+}

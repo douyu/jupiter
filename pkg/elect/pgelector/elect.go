@@ -64,7 +64,7 @@ func (p *postgresLeaderElector) Start(stop <-chan struct{}) {
 			p.leaderLost()
 			return nil
 		}); err != nil {
-			_logger.Errorf(err, "error waiting for lock")
+			_logger.Errorw(err.Error(), "error waiting for lock")
 		}
 
 		select {

@@ -49,6 +49,11 @@ func Green(msg string, arg ...interface{}) string {
 	return sprint(msg, arg...)
 }
 
+// Greenf ...
+func Greenf(msg string, arg ...interface{}) string {
+	return sprint(msg, arg...)
+}
+
 // sprint ...
 func sprint(msg string, arg ...interface{}) string {
 	if arg != nil {

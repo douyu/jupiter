@@ -38,6 +38,7 @@ import (
 	"github.com/douyu/jupiter/pkg/signals"
 	"github.com/douyu/jupiter/pkg/util/xcolor"
 	"github.com/douyu/jupiter/pkg/util/xcycle"
+	"github.com/douyu/jupiter/pkg/util/xdebug"
 	"github.com/douyu/jupiter/pkg/util/xdefer"
 	"github.com/douyu/jupiter/pkg/util/xgo"
 	"github.com/douyu/jupiter/pkg/worker"
@@ -228,6 +229,7 @@ func (app *Application) Job(runner job.Runner) error {
 }
 
 // SetRegistry set customize registry
+// Deprecated, please use registry.DefaultRegisterer instead.
 func (app *Application) SetRegistry(reg registry.Registry) {
 	registry.DefaultRegisterer = reg
 }
@@ -522,6 +524,10 @@ func (app *Application) isDisable(d Disable) bool {
 //printBanner init
 func (app *Application) printBanner() error {
 	if app.HideBanner {
+		return nil
+	}
+
+	if xdebug.IsTestingMode() {
 		return nil
 	}
 

@@ -46,7 +46,7 @@ func (e *electorComponent) Start(stop <-chan struct{}) error {
 	}
 }
 
-func (e *electorComponent) Add(components ...component.Component) error {
+func (e *electorComponent) AddComponent(components ...component.Component) error {
 	e.components = append(e.components, components...)
 	return nil
 }

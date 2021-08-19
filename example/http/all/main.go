@@ -16,8 +16,6 @@ package main
 
 import (
 	"github.com/douyu/jupiter"
-	compound_registry "github.com/douyu/jupiter/pkg/registry/compound"
-	etcdv3_registry "github.com/douyu/jupiter/pkg/registry/etcdv3"
 	"github.com/douyu/jupiter/pkg/server/xecho"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/labstack/echo/v4"
@@ -26,11 +24,6 @@ import (
 func main() {
 	eng := NewEngine()
 	// 多注册中心
-	eng.SetRegistry(
-		compound_registry.New(
-			etcdv3_registry.StdConfig("wh").Build(),
-		),
-	)
 
 	if err := eng.Run(); err != nil {
 		xlog.Panic(err.Error())
