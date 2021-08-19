@@ -1,0 +1,11 @@
+project_name: jupiter
+
+builds:
+- main: ./cmd/jupiter
+  id: "jupiter"
+  binary: jupiter
+  goos:
+    - linux
+    - darwin
+    - windows
+  goarch: [amd64]
