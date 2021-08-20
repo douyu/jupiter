@@ -117,7 +117,7 @@ func DefaultConfig() *Config {
 		EncoderConfig: DefaultZapConfig(),
 		Fields: []zap.Field{
 			String("aid", pkg.AppID()),
-			String("iid", pkg.UUID()),
+			String("iid", pkg.AppInstance()),
 		},
 	}
 }

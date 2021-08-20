@@ -15,7 +15,6 @@
 package pkg
 
 import (
-	"crypto/md5"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -138,10 +137,6 @@ func HostName() string {
 	return hostName
 }
 
-func UUID() string {
-	return fmt.Sprintf("%x", md5.Sum([]byte(fmt.Sprintf("%s:%s", HostName(), AppID()))))
-}
-
 //StartTime get start time
 func StartTime() string {
 	return startTime
@@ -158,11 +153,11 @@ func LogDir() string {
 	if logDir == "" {
 		if appPodIP != "" && appPodName != "" {
 			// k8s 环境
-			return fmt.Sprintf("/home/www/logs/applogs/%s/%s/", Name(), os.Getenv("POD_NAME"))
+			return fmt.Sprintf("/home/www/logs/applogs/%s/%s/", Name(), appPodName)
 		}
-		return fmt.Sprintf("/home/www/logs/applogs/%s/%s/", Name(), UUID())
+		return fmt.Sprintf("/home/www/logs/applogs/%s/%s/", Name(), appInstance)
 	}
-	return fmt.Sprintf("%s/%s/%s/", logDir, Name(), UUID())
+	return fmt.Sprintf("%s/%s/%s/", logDir, Name(), appInstance)
 }
 
 // PrintVersion print formated version info
