@@ -81,6 +81,9 @@ func SetName(s string) {
 
 //AppID get appID
 func AppID() string {
+	if appID == "" {
+		return "1234567890" //default appid when APP_ID Env var not set
+	}
 	return appID
 }
 
@@ -142,6 +145,19 @@ func StartTime() string {
 //GoVersion get go version
 func GoVersion() string {
 	return goVersion
+}
+
+func LogDir() string {
+	// LogDir gets application log directory.
+	logDir := AppLogDir()
+	if logDir == "" {
+		if appPodIP != "" && appPodName != "" {
+			// k8s 环境
+			return fmt.Sprintf("/home/www/logs/applogs/%s/%s/", Name(), appPodName)
+		}
+		return fmt.Sprintf("/home/www/logs/applogs/%s/%s/", Name(), appInstance)
+	}
+	return fmt.Sprintf("%s/%s/%s/", logDir, Name(), appInstance)
 }
 
 // PrintVersion print formated version info
