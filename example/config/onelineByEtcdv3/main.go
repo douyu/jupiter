@@ -19,7 +19,7 @@ import (
 
 	"github.com/douyu/jupiter"
 	"github.com/douyu/jupiter/pkg/conf"
-	_ "github.com/douyu/jupiter/pkg/datasource/etcdv3"
+	_ "github.com/douyu/jupiter/pkg/conf/datasource/etcdv3"
 	"github.com/douyu/jupiter/pkg/xlog"
 	clientv3 "go.etcd.io/etcd/client/v3"
 )

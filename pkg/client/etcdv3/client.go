@@ -28,7 +28,9 @@ import (
 	"github.com/douyu/jupiter/pkg/xlog"
 	grpcprom "github.com/grpc-ecosystem/go-grpc-prometheus"
 	clientv3 "go.etcd.io/etcd/client/v3"
-	"go.etcd.io/etcd/mvcc/mvccpb"
+
+	//"go.etcd.io/etcd/mvcc/mvccpb"
+	mvccpb "go.etcd.io/etcd/api/v3/mvccpb"
 	"google.golang.org/grpc"
 )
 
