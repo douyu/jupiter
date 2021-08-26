@@ -53,6 +53,12 @@ func (s *Server) GracefulStop(ctx context.Context) error {
 	return s.Server.Shutdown(ctx)
 }
 
+// Healthz
+// TODO(roamerlv):
+func (s *Server) Healthz() bool {
+	return true
+}
+
 //Info ..
 func (s *Server) Info() *server.ServiceInfo {
 	serviceAddr := s.listener.Addr().String()
