@@ -9,3 +9,13 @@ builds:
     - darwin
     - windows
   goarch: [amd64]
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore:'
+      - Merge pull request
+      - Merge branch
