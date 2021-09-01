@@ -13,17 +13,6 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - name: Cache dependencies
-        uses: actions/cache@v2
-        with:
-          path: ~/.npm
-          key: npm-${{ hashFiles('assets/package-lock.json') }}
-          restore-keys: npm-
-      - name: npm build dist
-        run: |
-          cd assets
-          npm ci --ignore-scripts
-          npm run build
       - name: Set up Go 1.16
         uses: actions/setup-go@v2
         with:
