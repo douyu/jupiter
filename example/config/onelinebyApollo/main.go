@@ -17,7 +17,7 @@ package main
 import (
 	"github.com/douyu/jupiter"
 	"github.com/douyu/jupiter/pkg/conf"
-	_ "github.com/douyu/jupiter/pkg/datasource/apollo"
+	_ "github.com/douyu/jupiter/pkg/conf/datasource/apollo"
 	"github.com/douyu/jupiter/pkg/xlog"
 )
 

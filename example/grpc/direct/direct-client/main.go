@@ -16,13 +16,14 @@ package main
 
 import (
 	"context"
-	"github.com/douyu/jupiter/pkg/xgrpclog"
 	"time"
 
+	"github.com/douyu/jupiter/pkg/xgrpclog"
+
 	"github.com/douyu/jupiter"
+	"github.com/douyu/jupiter/example/grpc/helloworld/helloworld"
 	"github.com/douyu/jupiter/pkg/client/grpc"
 	"github.com/douyu/jupiter/pkg/xlog"
-	"google.golang.org/grpc/examples/helloworld/helloworld"
 )
 
 func main() {

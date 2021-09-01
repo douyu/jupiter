@@ -18,11 +18,11 @@ import (
 	"context"
 	"sync"
 
-	"github.com/coreos/etcd/clientv3"
-	"github.com/coreos/etcd/mvcc/mvccpb"
 	"github.com/douyu/jupiter/pkg/ecode"
 	"github.com/douyu/jupiter/pkg/util/xgo"
 	"github.com/douyu/jupiter/pkg/xlog"
+	"go.etcd.io/etcd/api/v3/mvccpb"
+	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 // Watch A watch only tells the latest revision

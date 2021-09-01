@@ -19,9 +19,9 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/coreos/etcd/clientv3/concurrency"
 	"github.com/douyu/jupiter/pkg/client/etcdv3"
 	"github.com/douyu/jupiter/pkg/ecode"
+	"go.etcd.io/etcd/client/v3/concurrency"
 
 	"github.com/douyu/jupiter/pkg/metric"
 	"go.uber.org/zap"
