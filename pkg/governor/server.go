@@ -2,11 +2,10 @@ package governor
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"net/http"
 
-	"github.com/douyu/jupiter/pkg/constant"
-	"github.com/douyu/jupiter/pkg/server"
 	"github.com/douyu/jupiter/pkg/xlog"
 )
 
@@ -34,43 +33,27 @@ func newServer(config *Config) *Server {
 }
 
 //Serve ..
-func (s *Server) Serve() error {
-	err := s.Server.Serve(s.listener)
-	if err == http.ErrServerClosed {
-		return nil
-	}
-	return err
-
+func (s *Server) Start(stopCh <-chan struct{}) error {
+	var errCh = make(chan error)
+	go func() {
+		fmt.Println("start governor")
+		errCh <- s.Server.Serve(s.listener)
+		fmt.Println("stop governor")
+	}()
+	go func() {
+		select {
+		case <-stopCh:
+			fmt.Println("stop...")
+			s.Shutdown(context.Background())
+		case <-errCh:
+			fmt.Println("err occur...")
+		}
+		fmt.Println("close err ch")
+		close(errCh)
+	}()
+	return nil
 }
 
-//Stop ..
-func (s *Server) Stop() error {
-	return s.Server.Close()
-}
-
-//GracefulStop ..
-func (s *Server) GracefulStop(ctx context.Context) error {
-	return s.Server.Shutdown(ctx)
-}
-
-// Healthz
-// TODO(roamerlv):
-func (s *Server) Healthz() bool {
+func (s *Server) ShouldBeLeader() bool {
 	return true
-}
-
-//Info ..
-func (s *Server) Info() *server.ServiceInfo {
-	serviceAddr := s.listener.Addr().String()
-	if s.Config.ServiceAddress != "" {
-		serviceAddr = s.Config.ServiceAddress
-	}
-
-	info := server.ApplyOptions(
-		server.WithScheme("http"),
-		server.WithAddress(serviceAddr),
-		server.WithKind(constant.ServiceGovernor),
-	)
-	// info.Name = info.Name + "." + ModName
-	return &info
 }

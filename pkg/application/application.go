@@ -18,9 +18,9 @@ import (
 	"context"
 	"fmt"
 	"sync"
-	"time"
 
 	"github.com/douyu/jupiter/pkg/component"
+	"github.com/douyu/jupiter/pkg/governor"
 	job "github.com/douyu/jupiter/pkg/worker/xjob"
 
 	"github.com/BurntSushi/toml"
@@ -161,6 +161,7 @@ func (app *Application) initialize() {
 //Startup ..
 func (app *Application) Startup(fns ...func() error) error {
 	app.initialize()
+	//app.initGovernor()
 	// if err := app.startup(); err != nil {
 	// 	return err
 	// }
@@ -186,10 +187,15 @@ func (app *Application) Startup(fns ...func() error) error {
 // }
 
 // Serve start server
-func (app *Application) Serve(s ...server.Server) error {
+func (app *Application) Serve(servers ...server.Server) error {
 	app.smu.Lock()
 	defer app.smu.Unlock()
-	app.servers = append(app.servers, s...)
+	// app.servers = append(app.servers, servers...)
+	// return nil
+
+	for _, svr := range servers {
+		app.components = append(app.components, registry.ServerComponent{Server: svr})
+	}
 	return nil
 }
 
@@ -252,8 +258,14 @@ func (app *Application) Run(servers ...server.Server) error {
 	// todo jobs not graceful
 	app.startJobs()
 
+	app.components = append(app.components, governor.StdConfig("governor").MustBuild())
+
+	for _, component := range app.components {
+		component.Start(app.stopped)
+	}
+
 	// start servers and govern server
-	app.cycle.Run(app.startServers)
+	// app.cycle.Run(app.startServers)
 	// start workers
 	app.cycle.Run(app.startWorkers)
 
@@ -275,7 +287,7 @@ func (app *Application) clean() {
 // Stop application immediately after necessary cleanup
 func (app *Application) Stop() (err error) {
 	app.stopOnce.Do(func() {
-		app.stopped <- struct{}{}
+		close(app.stopped)
 		app.runHooks(StageBeforeStop)
 
 		//stop servers
@@ -303,7 +315,7 @@ func (app *Application) Stop() (err error) {
 // GracefulStop application after necessary cleanup
 func (app *Application) GracefulStop(ctx context.Context) (err error) {
 	app.stopOnce.Do(func() {
-		app.stopped <- struct{}{}
+		close(app.stopped)
 		app.runHooks(StageBeforeStop)
 
 		//stop servers
@@ -341,41 +353,6 @@ func (app *Application) waitSignals() {
 			app.Stop()
 		}
 	})
-}
-
-// func (app *Application) initGovernor() error {
-// 	if app.isDisable(DisableDefaultGovernor) {
-// 		app.logger.Info("defualt governor disable", xlog.FieldMod(ecode.ModApp))
-// 		return nil
-// 	}
-
-// 	config := governor.StdConfig("governor")
-// 	if !config.Enable {
-// 		return nil
-// 	}
-// 	return app.Serve(config.Build())
-// }
-
-func (app *Application) startServers() error {
-	var eg errgroup.Group
-	var ctx, cancel = context.WithTimeout(context.Background(), time.Second*10)
-	go func() {
-		<-app.stopped
-		cancel()
-	}()
-	// start multi servers
-	for _, s := range app.servers {
-		s := s
-		eg.Go(func() (err error) {
-			registry.DefaultRegisterer.RegisterService(ctx, s.Info())
-			defer registry.DefaultRegisterer.UnregisterService(ctx, s.Info())
-			app.logger.Info("start server", xlog.FieldMod(ecode.ModApp), xlog.FieldEvent("init"), xlog.FieldName(s.Info().Name), xlog.FieldAddr(s.Info().Label()), xlog.Any("scheme", s.Info().Scheme))
-			defer app.logger.Info("exit server", xlog.FieldMod(ecode.ModApp), xlog.FieldEvent("exit"), xlog.FieldName(s.Info().Name), xlog.FieldErr(err), xlog.FieldAddr(s.Info().Label()))
-			err = s.Serve()
-			return
-		})
-	}
-	return eg.Wait()
 }
 
 func (app *Application) startWorkers() error {

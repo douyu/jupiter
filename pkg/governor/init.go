@@ -29,7 +29,6 @@ import (
 func init() {
 	conf.OnLoaded(func(c *conf.Configuration) {
 		log.Print("hook config, init runtime(governor)")
-
 	})
 
 	registerHandlers()

@@ -2,3 +2,4 @@
     port = 9090
 [jupiter.server.governor]
     port = 19090
+    enable = true

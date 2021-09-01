@@ -67,6 +67,10 @@ func (config *Config) Build() *Server {
 	return newServer(config)
 }
 
+func (config *Config) MustBuild() *Server {
+	return newServer(config)
+}
+
 // Address ...
 func (config Config) Address() string {
 	return fmt.Sprintf("%s:%d", config.Host, config.Port)

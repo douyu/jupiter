@@ -16,6 +16,7 @@ package registry
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/douyu/jupiter/pkg/server"
 	"github.com/douyu/jupiter/pkg/xlog"
@@ -36,12 +37,14 @@ func (n Local) WatchServices(ctx context.Context, s string, s2 string) (chan End
 
 // RegisterService ...
 func (n Local) RegisterService(ctx context.Context, si *server.ServiceInfo) error {
-	xlog.Info("register service locally", xlog.FieldMod("registry"), xlog.FieldName(si.Name), xlog.FieldAddr(si.Label()))
+	xlog.Info("1. register service locally", xlog.FieldMod("registry"), xlog.FieldName(si.Name), xlog.FieldAddr(si.Label()))
+	fmt.Println("register service ", si)
 	return nil
 }
 
 // UnregisterService ...
 func (n Local) UnregisterService(ctx context.Context, si *server.ServiceInfo) error {
+	fmt.Println("2. unregister service ", si)
 	xlog.Info("unregister service locally", xlog.FieldMod("registry"), xlog.FieldName(si.Name), xlog.FieldAddr(si.Label()))
 	return nil
 }
