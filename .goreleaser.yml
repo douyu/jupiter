@@ -1,0 +1,21 @@
+project_name: jupiter
+
+builds:
+- main: ./cmd/jupiter
+  id: "jupiter"
+  binary: jupiter
+  goos:
+    - linux
+    - darwin
+    - windows
+  goarch: [amd64]
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore:'
+      - Merge pull request
+      - Merge branch

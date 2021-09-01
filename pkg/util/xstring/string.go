@@ -31,7 +31,7 @@ func Addr2Hex(str string) (string, error) {
 	}
 
 	ip := net.ParseIP(ipStr).To4()
-	port, err := strconv.Atoi(portStr)
+	port, err := strconv.ParseUint(portStr, 10, 16)
 	if err != nil {
 		return "", nil
 	}

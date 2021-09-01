@@ -18,10 +18,12 @@ import (
 	"context"
 	"fmt"
 
-	"google.golang.org/grpc/examples/helloworld/helloworld"
+	"github.com/douyu/jupiter/example/grpc/helloworld/helloworld"
 )
 
-type Greeter struct{}
+type Greeter struct {
+	helloworld.UnimplementedGreeterServer
+}
 
 func (g Greeter) SayHello(context context.Context, request *helloworld.HelloRequest) (*helloworld.HelloReply, error) {
 	fmt.Printf("Greeter SayHello: %+v\n", request)

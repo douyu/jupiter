@@ -20,6 +20,7 @@ import (
 	"github.com/alibaba/sentinel-golang/core/flow"
 	"github.com/douyu/jupiter"
 	"github.com/douyu/jupiter/example/all/internal/app/greeter"
+	"github.com/douyu/jupiter/example/grpc/helloworld/helloworld"
 	"github.com/douyu/jupiter/pkg/sentinel"
 	"github.com/douyu/jupiter/pkg/server/xecho"
 	"github.com/douyu/jupiter/pkg/server/xgrpc"
@@ -28,7 +29,6 @@ import (
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/labstack/echo/v4"
 	sentinel_echo "github.com/sentinel-group/sentinel-go-adapters/echo"
-	"google.golang.org/grpc/examples/helloworld/helloworld"
 
 	sentinel_grpc "github.com/sentinel-group/sentinel-go-adapters/grpc"
 )
