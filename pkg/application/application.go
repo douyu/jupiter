@@ -20,6 +20,7 @@ import (
 	"sync"
 
 	"github.com/douyu/jupiter/pkg/component"
+	"github.com/douyu/jupiter/pkg/container"
 	"github.com/douyu/jupiter/pkg/governor"
 	job "github.com/douyu/jupiter/pkg/worker/xjob"
 
@@ -56,21 +57,21 @@ const (
 // Application is the framework's instance, it contains the servers, workers, client and configuration settings.
 // Create an instance of Application, by using &Application{}
 type Application struct {
-	cycle        *xcycle.Cycle
-	smu          *sync.RWMutex
-	initOnce     sync.Once
-	startupOnce  sync.Once
-	stopOnce     sync.Once
-	servers      []server.Server
-	workers      []worker.Worker
-	jobs         map[string]job.Runner
-	logger       *xlog.Logger
-	hooks        map[uint32]*xdefer.DeferStack
-	configParser conf.Unmarshaller
-	disableMap   map[Disable]bool
-	HideBanner   bool
-	stopped      chan struct{}
-	components   []component.Component
+	cycle         *xcycle.Cycle
+	smu           *sync.RWMutex
+	initOnce      sync.Once
+	startupOnce   sync.Once
+	stopOnce      sync.Once
+	servers       []server.Server
+	workers       []worker.Worker
+	jobs          map[string]job.Runner
+	logger        *xlog.Logger
+	hooks         map[uint32]*xdefer.DeferStack
+	configParser  conf.Unmarshaller
+	disableMap    map[Disable]bool
+	HideBanner    bool
+	stopped       chan struct{}
+	componentHeap *container.PriorityQueue
 }
 
 // New create a new Application instance
@@ -127,12 +128,14 @@ func (app *Application) initialize() {
 		app.configParser = toml.Unmarshal
 		app.disableMap = make(map[Disable]bool)
 		app.stopped = make(chan struct{})
-		app.components = make([]component.Component, 0)
+		//app.components = make([]component.Component, 0)
+		app.componentHeap = container.NewPriorityQueue()
 		//private method
 		app.initHooks(StageBeforeStop, StageAfterStop)
 
 		app.parseFlags()
 		app.printBanner()
+		app.componentHeap.Push(governor.StdConfig("governor").MustBuild(), 1)
 	})
 }
 
@@ -194,14 +197,15 @@ func (app *Application) Serve(servers ...server.Server) error {
 	// return nil
 
 	for _, svr := range servers {
-		app.components = append(app.components, registry.ServerComponent{Server: svr})
+		app.componentHeap.Push(registry.ServerComponent{Server: svr}, 10)
 	}
 	return nil
 }
 
 // Schedule ..
 func (app *Application) Schedule(w worker.Worker) error {
-	app.workers = append(app.workers, w)
+	// app.workers = append(app.workers, w)
+	app.componentHeap.Push(worker.WorkerComponent{Worker: w}, 15)
 	return nil
 }
 
@@ -258,11 +262,21 @@ func (app *Application) Run(servers ...server.Server) error {
 	// todo jobs not graceful
 	app.startJobs()
 
-	app.components = append(app.components, governor.StdConfig("governor").MustBuild())
+	// app.components = append(app.components, governor.StdConfig("governor").MustBuild())
 
-	for _, component := range app.components {
-		component.Start(app.stopped)
+	for {
+		if app.componentHeap.Len() > 0 {
+			var comp, err = app.componentHeap.Pop()
+			if err != nil {
+				panic(err)
+			}
+			comp.(component.Component).Start(app.stopped)
+		}
 	}
+
+	// for _, component := range app.components {
+	//component.Start(app.stopped)
+	//}
 
 	// start servers and govern server
 	// app.cycle.Run(app.startServers)

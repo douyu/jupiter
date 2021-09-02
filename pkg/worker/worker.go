@@ -14,8 +14,45 @@
 
 package worker
 
+import (
+	"fmt"
+
+	"github.com/douyu/jupiter/pkg/component"
+)
+
 // Worker could scheduled by jupiter or customized scheduler
 type Worker interface {
 	Run() error
 	Stop() error
+}
+
+var _ component.Component = &WorkerComponent{}
+
+type WorkerComponent struct {
+	Worker
+}
+
+func (c WorkerComponent) Start(stopCh <-chan struct{}) error {
+	var errCh = make(chan error)
+	go func() {
+		fmt.Println("before work...")
+		errCh <- c.Run()
+		fmt.Println("after work...")
+	}()
+	go func() {
+		select {
+		case <-stopCh:
+			fmt.Println("stop...")
+			c.Stop()
+		case <-errCh:
+			fmt.Println("err occur...")
+		}
+		fmt.Println("close err ch")
+		close(errCh)
+	}()
+	return nil
+}
+
+func (c WorkerComponent) ShouldBeLeader() bool {
+	return false
 }
