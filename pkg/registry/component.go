@@ -11,6 +11,7 @@ import (
 var _ component.Component = &ServerComponent{}
 
 type ServerComponent struct {
+	component.BaseComponent
 	server.Server
 }
 
@@ -35,8 +36,4 @@ func (c ServerComponent) Start(stopCh <-chan struct{}) error {
 		close(errCh)
 	}()
 	return nil
-}
-
-func (c ServerComponent) ShouldBeLeader() bool {
-	return false
 }

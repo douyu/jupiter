@@ -18,6 +18,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/douyu/jupiter/pkg/component"
 	"github.com/douyu/jupiter/pkg/util/xstring"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/robfig/cron/v3"
@@ -69,19 +70,20 @@ func (f FuncJob) Run() error { return f() }
 // Name ...
 func (f FuncJob) Name() string { return xstring.FunctionName(f) }
 
-// Cron ...
-type Cron struct {
+// CronComponent ...
+type CronComponent struct {
+	component.BaseComponent
 	*Config
 	*cron.Cron
 	entries map[string]EntryID
 }
 
-func newCron(config *Config) *Cron {
+func newCron(config *Config) *CronComponent {
 	if config.logger == nil {
 		config.logger = xlog.JupiterLogger
 	}
 	config.logger = config.logger.With(xlog.FieldMod("worker.cron"))
-	cron := &Cron{
+	cron := &CronComponent{
 		Config: config,
 		Cron: cron.New(
 			cron.WithParser(config.parser),
@@ -93,13 +95,13 @@ func newCron(config *Config) *Cron {
 }
 
 // Schedule ...
-func (c *Cron) Schedule(schedule Schedule, job NamedJob) EntryID {
+func (c *CronComponent) Schedule(schedule Schedule, job NamedJob) EntryID {
 	if c.ImmediatelyRun {
 		schedule = &immediatelyScheduler{
 			Schedule: schedule,
 		}
 	}
-	innnerJob := &wrappedJob{
+	innerJob := &wrappedJob{
 		NamedJob: job,
 		logger:   c.logger,
 
@@ -110,17 +112,17 @@ func (c *Cron) Schedule(schedule Schedule, job NamedJob) EntryID {
 	}
 	// xdebug.PrintKVWithPrefix("worker", "add job", job.Name())
 	c.logger.Info("add job", xlog.String("name", job.Name()))
-	return c.Cron.Schedule(schedule, innnerJob)
+	return c.Cron.Schedule(schedule, innerJob)
 }
 
 // GetEntryByName ...
-func (c *Cron) GetEntryByName(name string) cron.Entry {
+func (c *CronComponent) GetEntryByName(name string) cron.Entry {
 	// todo(gorexlv): data race
 	return c.Entry(c.entries[name])
 }
 
 // AddJob ...
-func (c *Cron) AddJob(spec string, cmd NamedJob) (EntryID, error) {
+func (c *CronComponent) AddJob(spec string, cmd NamedJob) (EntryID, error) {
 	schedule, err := c.parser.Parse(spec)
 	if err != nil {
 		return 0, err
@@ -129,12 +131,19 @@ func (c *Cron) AddJob(spec string, cmd NamedJob) (EntryID, error) {
 }
 
 // AddFunc ...
-func (c *Cron) AddFunc(spec string, cmd func() error) (EntryID, error) {
+func (c *CronComponent) AddFunc(spec string, cmd func() error) (EntryID, error) {
 	return c.AddJob(spec, FuncJob(cmd))
 }
 
+func (c *CronComponent) Start(stop <-chan struct{}) error {
+	// xdebug.PrintKVWithPrefix("worker", "run worker", fmt.Sprintf("%d job scheduled", len(c.Cron.Entries())))
+	c.logger.Info("run worker", xlog.Int("number of scheduled jobs", len(c.Cron.Entries())))
+	c.Cron.Run()
+	return nil
+}
+
 // Run ...
-func (c *Cron) Run() error {
+func (c *CronComponent) Run() error {
 	// xdebug.PrintKVWithPrefix("worker", "run worker", fmt.Sprintf("%d job scheduled", len(c.Cron.Entries())))
 	c.logger.Info("run worker", xlog.Int("number of scheduled jobs", len(c.Cron.Entries())))
 	c.Cron.Run()
@@ -142,7 +151,7 @@ func (c *Cron) Run() error {
 }
 
 // Stop ...
-func (c *Cron) Stop() error {
+func (c *CronComponent) Stop() error {
 	_ = c.Cron.Stop()
 	return nil
 }

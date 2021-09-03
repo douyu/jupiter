@@ -7,7 +7,8 @@ import (
 )
 
 var (
-	ErrEmptyQueue = errors.New("empty queue")
+	ErrEmptyQueue  = errors.New("empty queue")
+	ErrExistedItem = errors.New("existed item")
 )
 
 // PriorityQueue represents the queue
@@ -30,10 +31,10 @@ func (p *PriorityQueue) Len() int {
 }
 
 // Push inserts a new element into the queue. No action is performed on duplicate elements.
-func (p *PriorityQueue) Push(v interface{}, priority int) {
+func (p *PriorityQueue) Push(v interface{}, priority int) error {
 	_, ok := p.lookup[v]
 	if ok {
-		return
+		return ErrExistedItem
 	}
 
 	newItem := &item{
@@ -42,6 +43,7 @@ func (p *PriorityQueue) Push(v interface{}, priority int) {
 	}
 	heap.Push(p.itemHeap, newItem)
 	p.lookup[v] = newItem
+	return nil
 }
 
 // Pop removes the element with the highest priority from the queue and returns it.

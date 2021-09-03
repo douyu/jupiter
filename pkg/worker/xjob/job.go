@@ -1,20 +1,15 @@
 package job
 
-import (
-	"github.com/douyu/jupiter/pkg/flag"
-)
+type JobFunc func()
 
-func init() {
-	flag.Register(
-		&flag.StringFlag{
-			Name:    "job",
-			Usage:   "--job",
-			Default: "",
-		},
-	)
+func (jn JobFunc) Run() {
+	jn()
 }
 
 // Runner ...
 type Runner interface {
 	Run()
+}
+
+type JobComponent struct {
 }

@@ -6,11 +6,13 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/douyu/jupiter/pkg/component"
 	"github.com/douyu/jupiter/pkg/xlog"
 )
 
 // Server ...
 type Server struct {
+	component.BaseComponent
 	*http.Server
 	listener net.Listener
 	*Config
@@ -52,8 +54,4 @@ func (s *Server) Start(stopCh <-chan struct{}) error {
 		close(errCh)
 	}()
 	return nil
-}
-
-func (s *Server) ShouldBeLeader() bool {
-	return true
 }

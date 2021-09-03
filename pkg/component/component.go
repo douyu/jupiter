@@ -14,14 +14,13 @@
 
 package component
 
-import "github.com/douyu/jupiter/pkg/metric"
-
 type Component interface {
 	// Start blocks until the channel is closed or an error occurs.
 	// The component will stop running when the channel is closed.
 	Start(<-chan struct{}) error
 
 	ShouldBeLeader() bool
+	baseMethod()
 }
 
 var _ Component = ComponentFunc(nil)
@@ -36,15 +35,10 @@ func (f ComponentFunc) ShouldBeLeader() bool {
 	return false
 }
 
+func (f ComponentFunc) baseMethod() {}
+
 // Component manager, aggregate multiple components to one
 type Manager interface {
 	Component
 	AddComponent(...Component) error
-}
-
-// Component builder, build component with injecting govern plugin
-type Builder interface {
-	WithComponentManager(Manager) Builder
-	WithMetrics(metric.Metrics) Builder
-	Build() Component
 }

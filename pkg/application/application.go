@@ -9,8 +9,7 @@
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// See the License for the specific language governing permissions and // limitations under the License.
 
 package application
 
@@ -18,6 +17,8 @@ import (
 	"context"
 	"fmt"
 	"sync"
+
+	"go.uber.org/multierr"
 
 	"github.com/douyu/jupiter/pkg/component"
 	"github.com/douyu/jupiter/pkg/container"
@@ -62,7 +63,6 @@ type Application struct {
 	initOnce      sync.Once
 	startupOnce   sync.Once
 	stopOnce      sync.Once
-	servers       []server.Server
 	workers       []worker.Worker
 	jobs          map[string]job.Runner
 	logger        *xlog.Logger
@@ -121,7 +121,6 @@ func (app *Application) initialize() {
 		//assign
 		app.cycle = xcycle.NewCycle()
 		app.smu = &sync.RWMutex{}
-		app.servers = make([]server.Server, 0)
 		app.workers = make([]worker.Worker, 0)
 		app.jobs = make(map[string]job.Runner)
 		app.logger = xlog.JupiterLogger
@@ -171,31 +170,8 @@ func (app *Application) Startup(fns ...func() error) error {
 	return xgo.SerialUntilError(fns...)()
 }
 
-// Defer ..
-// Deprecated: use AfterStop instead
-// func (app *Application) Defer(fns ...func() error) {
-// 	app.AfterStop(fns...)
-// }
-
-// BeforeStop hook
-// Deprecated: use RegisterHooks instead
-// func (app *Application) BeforeStop(fns ...func() error) {
-// 	app.RegisterHooks(StageBeforeStop, fns...)
-// }
-
-// AfterStop hook
-// Deprecated: use RegisterHooks instead
-// func (app *Application) AfterStop(fns ...func() error) {
-// 	app.RegisterHooks(StageAfterStop, fns...)
-// }
-
 // Serve start server
 func (app *Application) Serve(servers ...server.Server) error {
-	app.smu.Lock()
-	defer app.smu.Unlock()
-	// app.servers = append(app.servers, servers...)
-	// return nil
-
 	for _, svr := range servers {
 		app.componentHeap.Push(registry.ServerComponent{Server: svr}, 10)
 	}
@@ -204,9 +180,15 @@ func (app *Application) Serve(servers ...server.Server) error {
 
 // Schedule ..
 func (app *Application) Schedule(w worker.Worker) error {
-	// app.workers = append(app.workers, w)
-	app.componentHeap.Push(worker.WorkerComponent{Worker: w}, 15)
-	return nil
+	return app.AddComponent(15, worker.WorkerComponent{Worker: w})
+}
+
+func (app *Application) AddComponent(priority int, comps ...component.Component) error {
+	var errs error
+	for _, comp := range comps {
+		errs = multierr.Append(errs, app.componentHeap.Push(comp, priority))
+	}
+	return errs
 }
 
 // Job ..
@@ -251,11 +233,7 @@ func (app *Application) SetRegistry(reg registry.Registry) {
 //}
 
 // Run run application
-func (app *Application) Run(servers ...server.Server) error {
-	app.smu.Lock()
-	app.servers = append(app.servers, servers...)
-	app.smu.Unlock()
-
+func (app *Application) Run() error {
 	app.waitSignals() //start signal listen task in goroutine
 	defer app.clean()
 
@@ -304,15 +282,6 @@ func (app *Application) Stop() (err error) {
 		close(app.stopped)
 		app.runHooks(StageBeforeStop)
 
-		//stop servers
-		app.smu.RLock()
-		for _, s := range app.servers {
-			func(s server.Server) {
-				app.cycle.Run(s.Stop)
-			}(s)
-		}
-		app.smu.RUnlock()
-
 		//stop workers
 		for _, w := range app.workers {
 			func(w worker.Worker) {
@@ -331,17 +300,6 @@ func (app *Application) GracefulStop(ctx context.Context) (err error) {
 	app.stopOnce.Do(func() {
 		close(app.stopped)
 		app.runHooks(StageBeforeStop)
-
-		//stop servers
-		app.smu.RLock()
-		for _, s := range app.servers {
-			func(s server.Server) {
-				app.cycle.Run(func() error {
-					return s.GracefulStop(ctx)
-				})
-			}(s)
-		}
-		app.smu.RUnlock()
 
 		//stop workers
 		for _, w := range app.workers {
@@ -406,103 +364,8 @@ func (app *Application) parseFlags() error {
 		app.logger.Info("parseFlags disable", xlog.FieldMod(ecode.ModApp))
 		return nil
 	}
-	// flag.Register(&flag.StringFlag{
-	// 	Name:    "config",
-	// 	Usage:   "--config",
-	// 	EnvVar:  "JUPITER_CONFIG",
-	// 	Default: "",
-	// 	Action:  func(name string, fs *flag.FlagSet) {},
-	// })
-
-	// flag.Register(&flag.BoolFlag{
-	// 	Name:    "version",
-	// 	Usage:   "--version, print version",
-	// 	Default: false,
-	// 	Action: func(string, *flag.FlagSet) {
-	// 		pkg.PrintVersion()
-	// 		os.Exit(0)
-	// 	},
-	// })
-
-	// flag.Register(&flag.StringFlag{
-	// 	Name:    "host",
-	// 	Usage:   "--host, print host",
-	// 	Default: "127.0.0.1",
-	// 	Action:  func(string, *flag.FlagSet) {},
-	// })
 	return flag.Parse()
 }
-
-//loadConfig init
-// func (app *Application) loadConfig() error {
-// 	if app.isDisable(DisableLoadConfig) {
-// 		app.logger.Info("load config disable", xlog.FieldMod(ecode.ModConfig))
-// 		return nil
-// 	}
-
-// 	var configAddr = flag.String("config")
-// 	provider, err := manager.NewDataSource(configAddr)
-// 	if err != manager.ErrConfigAddr {
-// 		if err != nil {
-// 			app.logger.Panic("data source: provider error", xlog.FieldMod(ecode.ModConfig), xlog.FieldErr(err))
-// 		}
-
-// 		if err := conf.LoadFromDataSource(provider, app.configParser); err != nil {
-// 			app.logger.Panic("data source: load config", xlog.FieldMod(ecode.ModConfig), xlog.FieldErrKind(ecode.ErrKindUnmarshalConfigErr), xlog.FieldErr(err))
-// 		}
-// 	} else {
-// 		app.logger.Info("no config... ", xlog.FieldMod(ecode.ModConfig))
-// 	}
-// 	return nil
-// }
-
-//initLogger init
-// func (app *Application) initLogger() error {
-// 	if conf.Get(xlog.ConfigEntry("default")) != nil {
-// 		xlog.DefaultLogger = xlog.RawConfig(constant.ConfigPrefix + ".logger.default").Build()
-// 	}
-// 	xlog.DefaultLogger.AutoLevel(constant.ConfigPrefix + ".logger.default")
-
-// 	if conf.Get(constant.ConfigPrefix+".logger.jupiter") != nil {
-// 		xlog.JupiterLogger = xlog.RawConfig(constant.ConfigPrefix + ".logger.jupiter").Build()
-// 	}
-// 	xlog.JupiterLogger.AutoLevel(constant.ConfigPrefix + ".logger.jupiter")
-
-// 	return nil
-// }
-
-//initTracer init
-// func (app *Application) initTracer() error {
-// 	// init tracing component jaeger
-// 	if conf.Get("jupiter.trace.jaeger") != nil {
-// 		var config = jaeger.RawConfig("jupiter.trace.jaeger")
-// 		trace.SetGlobalTracer(config.Build())
-// 	}
-// 	return nil
-// }
-
-//initSentinel init
-// func (app *Application) initSentinel() error {
-// 	// init reliability component sentinel
-// 	if conf.Get("jupiter.reliability.sentinel") != nil {
-// 		app.logger.Info("init sentinel")
-// 		return sentinel.RawConfig("jupiter.reliability.sentinel").Build()
-// 	}
-// 	return nil
-// }
-
-//initMaxProcs init
-// func (app *Application) initMaxProcs() error {
-// 	if maxProcs := conf.GetInt("maxProc"); maxProcs != 0 {
-// 		runtime.GOMAXPROCS(maxProcs)
-// 	} else {
-// 		if _, err := maxprocs.Set(); err != nil {
-// 			app.logger.Panic("auto max procs", xlog.FieldMod(ecode.ModProc), xlog.FieldErrKind(ecode.ErrKindAny), xlog.FieldErr(err))
-// 		}
-// 	}
-// 	app.logger.Info("auto max procs", xlog.FieldMod(ecode.ModProc), xlog.Int64("procs", int64(runtime.GOMAXPROCS(-1))))
-// 	return nil
-// }
 
 func (app *Application) isDisable(d Disable) bool {
 	b, ok := app.disableMap[d]

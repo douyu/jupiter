@@ -101,7 +101,7 @@ func (config *Config) WithParser(parser Parser) Config {
 }
 
 // Build ...
-func (config Config) Build() *Cron {
+func (config Config) Build() *CronComponent {
 	if config.WithSeconds {
 		config.parser = cron.NewParser(cron.Second | cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow | cron.Descriptor)
 	} else {

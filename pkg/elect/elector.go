@@ -23,6 +23,7 @@ import (
 var _ component.Manager = &electorComponent{}
 
 type electorComponent struct {
+	component.BaseComponent
 	components    []component.Component
 	leaderElector LeaderElector
 }
@@ -49,10 +50,6 @@ func (e *electorComponent) Start(stop <-chan struct{}) error {
 func (e *electorComponent) AddComponent(components ...component.Component) error {
 	e.components = append(e.components, components...)
 	return nil
-}
-
-func (e *electorComponent) ShouldBeLeader() bool {
-	return false
 }
 
 func (e *electorComponent) startNonLeaderComponents(stop <-chan struct{}, errCh chan error) {

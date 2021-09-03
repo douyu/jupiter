@@ -26,9 +26,8 @@ type Worker interface {
 	Stop() error
 }
 
-var _ component.Component = &WorkerComponent{}
-
 type WorkerComponent struct {
+	component.BaseComponent
 	Worker
 }
 
@@ -51,8 +50,4 @@ func (c WorkerComponent) Start(stopCh <-chan struct{}) error {
 		close(errCh)
 	}()
 	return nil
-}
-
-func (c WorkerComponent) ShouldBeLeader() bool {
-	return false
 }
