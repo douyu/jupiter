@@ -20,6 +20,7 @@ import (
 
 	"go.uber.org/multierr"
 
+	_ "github.com/douyu/jupiter/pkg/autoproc"
 	"github.com/douyu/jupiter/pkg/component"
 	"github.com/douyu/jupiter/pkg/container"
 	"github.com/douyu/jupiter/pkg/governor"

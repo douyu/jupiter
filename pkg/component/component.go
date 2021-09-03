@@ -41,4 +41,5 @@ func (f ComponentFunc) baseMethod() {}
 type Manager interface {
 	Component
 	AddComponent(...Component) error
+	// AddPriorityComponent(priority int, comps ...Component) error
 }

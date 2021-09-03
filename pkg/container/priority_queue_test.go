@@ -11,7 +11,7 @@ func TestPriorityQueue(t *testing.T) {
 	pq := NewPriorityQueue()
 	elements := []int{5, 3, 7, 8, 6, 2, 9}
 	for _, e := range elements {
-		pq.Push(e, e)
+		assert.Nil(t, pq.Push(e, e))
 	}
 
 	sort.Ints(elements)
@@ -24,8 +24,8 @@ func TestPriorityQueue(t *testing.T) {
 
 func TestPriorityQueueUpdate(t *testing.T) {
 	pq := NewPriorityQueue()
-	pq.Push("foo", 3)
-	pq.Push("bar", 4)
+	assert.Nil(t, pq.Push("foo", 3))
+	assert.Nil(t, pq.Push("bar", 4))
 	pq.UpdatePriority("bar", 2)
 
 	item, err := pq.Pop()
@@ -36,16 +36,16 @@ func TestPriorityQueueUpdate(t *testing.T) {
 func TestPriorityQueueLen(t *testing.T) {
 	pq := NewPriorityQueue()
 	assert.Equal(t, 0, pq.Len())
-	pq.Push("foo", 1)
-	pq.Push("bar", 1)
+	assert.Nil(t, pq.Push("foo", 1))
+	assert.Nil(t, pq.Push("bar", 1))
 	assert.Equal(t, 2, pq.Len())
 }
 
 func TestDoubleAddition(t *testing.T) {
 	pq := NewPriorityQueue()
-	pq.Push("foo", 2)
-	pq.Push("bar", 3)
-	pq.Push("bar", 1)
+	assert.Nil(t, pq.Push("foo", 2))
+	assert.Nil(t, pq.Push("bar", 3))
+	assert.Nil(t, pq.Push("bar", 1))
 	assert.Equal(t, 2, pq.Len())
 
 	item, _ := pq.Pop()
@@ -61,7 +61,7 @@ func TestPopEmptyQueue(t *testing.T) {
 func TestUpdateNonExistingItem(t *testing.T) {
 	pq := NewPriorityQueue()
 
-	pq.Push("foo", 4)
+	assert.Nil(t, pq.Push("foo", 4))
 	pq.UpdatePriority("bar", 5)
 	assert.Equal(t, 1, pq.Len())
 

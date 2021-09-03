@@ -13,3 +13,10 @@
 // limitations under the License.
 
 package etcdelector
+
+type elector struct {
+}
+
+func NewV3Elector() elect.LeaderElector {
+	return nil
+}
