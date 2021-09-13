@@ -78,6 +78,6 @@ func AppInstance() string {
 	return appInstance
 }
 
-func SetAppInstance(instance string) string {
+func SetAppInstance(instance string) {
 	appInstance = instance
 }
