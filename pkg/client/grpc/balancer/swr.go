@@ -43,7 +43,7 @@ type PickerBuildInfo struct {
 
 // PickerBuilder ...
 type PickerBuilder interface {
-	Build(info PickerBuildInfo) balancer.V2Picker
+	Build(info PickerBuildInfo) balancer.Picker
 }
 
 func init() {
@@ -55,7 +55,7 @@ func init() {
 type swrPickerBuilder struct{}
 
 // Build ...
-func (s swrPickerBuilder) Build(info PickerBuildInfo) balancer.V2Picker {
+func (s swrPickerBuilder) Build(info PickerBuildInfo) balancer.Picker {
 	return newSWRPicker(info)
 }
 

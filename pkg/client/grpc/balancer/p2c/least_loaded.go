@@ -33,7 +33,7 @@ const (
 
 // newBuilder creates a new balance builder.
 func newBuilder() balancer.Builder {
-	return base.NewBalancerBuilderWithConfig(Name, &p2cPickerBuilder{}, base.Config{HealthCheck: true})
+	return base.NewBalancerBuilder(Name, &p2cPickerBuilder{}, base.Config{HealthCheck: true})
 }
 
 func init() {

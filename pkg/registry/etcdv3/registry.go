@@ -24,18 +24,18 @@ import (
 	"sync"
 	"time"
 
-	"github.com/coreos/etcd/clientv3/concurrency"
 	"github.com/douyu/jupiter/pkg"
 	"github.com/douyu/jupiter/pkg/constant"
+	"go.etcd.io/etcd/client/v3/concurrency"
 
-	"github.com/coreos/etcd/clientv3"
-	"github.com/coreos/etcd/mvcc/mvccpb"
 	"github.com/douyu/jupiter/pkg/client/etcdv3"
 	"github.com/douyu/jupiter/pkg/ecode"
 	"github.com/douyu/jupiter/pkg/registry"
 	"github.com/douyu/jupiter/pkg/server"
 	"github.com/douyu/jupiter/pkg/util/xgo"
 	"github.com/douyu/jupiter/pkg/xlog"
+	"go.etcd.io/etcd/api/v3/mvccpb"
+	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 type etcdv3Registry struct {

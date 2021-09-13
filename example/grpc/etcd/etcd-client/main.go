@@ -26,7 +26,7 @@ import (
 	"github.com/douyu/jupiter/pkg/registry/etcdv3"
 	"github.com/douyu/jupiter/pkg/xlog"
 
-	"google.golang.org/grpc/examples/helloworld/helloworld"
+	"github.com/douyu/jupiter/example/grpc/helloworld/helloworld"
 )
 
 func main() {

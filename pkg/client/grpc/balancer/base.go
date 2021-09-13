@@ -64,7 +64,7 @@ func (bb *baseBuilder) Name() string {
 	return bb.name
 }
 
-var _ balancer.V2Balancer = (*baseBalancer)(nil) // Assert that we implement V2Balancer
+var _ balancer.Balancer = (*baseBalancer)(nil) // Assert that we implement V2Balancer
 
 type baseBalancer struct {
 	cc              balancer.ClientConn
@@ -75,7 +75,7 @@ type baseBalancer struct {
 
 	subConns   map[resolver.Address]balancer.SubConn
 	scStates   map[balancer.SubConn]connectivity.State
-	v2Picker   balancer.V2Picker
+	v2Picker   balancer.Picker
 	config     base.Config
 	attributes *attributes.Attributes
 }
@@ -219,7 +219,7 @@ func (b *baseBalancer) Close() {
 }
 
 // NewErrPickerV2 returns a V2Picker that always returns err on Pick().
-func NewErrPickerV2(err error) balancer.V2Picker {
+func NewErrPickerV2(err error) balancer.Picker {
 	return &errPickerV2{err: err}
 }
 

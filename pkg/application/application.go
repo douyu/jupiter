@@ -28,7 +28,7 @@ import (
 
 	//go-lint
 	_ "github.com/douyu/jupiter/pkg/conf/datasource/file"
-	_ "github.com/douyu/jupiter/pkg/datasource/http"
+	_ "github.com/douyu/jupiter/pkg/conf/datasource/http"
 	_ "github.com/douyu/jupiter/pkg/registry/etcdv3"
 
 	"github.com/douyu/jupiter/pkg/ecode"
