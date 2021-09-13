@@ -77,3 +77,7 @@ func SetAppHost(host string) {
 func AppInstance() string {
 	return appInstance
 }
+
+func SetAppInstance(instance string) string {
+	appInstance = instance
+}
