@@ -2,6 +2,9 @@
 [jupiter.sentinel.test]
 appName="test-app"
 logPath="/tmp/sentinel/log"
+etcdFlowRuleKey="test-flow"
+[jupiter.sentinel.test.etcdV3]
+endpoints= ["127.0.0.1:2379"]
 [[jupiter.sentinel.test.flowRules]]
 resource="some-test"
 metricType =1 # flow.QPS

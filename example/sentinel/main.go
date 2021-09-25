@@ -56,7 +56,8 @@ func (eng *Engine) exampleSentinel() (err error) {
 
 	for k := 0; k < 20; k++ {
 		xgo.Go(func() {
-			e, b := sentinel.Entry("some-test")
+			time.Sleep( 1 * time.Second)
+			e, b := sentinel.Entry("some-test2")
 			if b != nil {
 				// 请求被拒绝，在此处进行处理
 				time.Sleep(time.Duration(rand.Uint64()%10) * time.Millisecond)

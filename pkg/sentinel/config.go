@@ -16,6 +16,8 @@ package sentinel
 
 import (
 	"encoding/json"
+	"github.com/douyu/jupiter/pkg/client/etcdv3"
+	"github.com/douyu/jupiter/pkg/sentinel/datasource/etcd"
 	"io/ioutil"
 
 	sentinel "github.com/alibaba/sentinel-golang/api"
@@ -37,6 +39,7 @@ func StdConfig(name string) *Config {
 // RawConfig ...
 func RawConfig(key string) *Config {
 	var config = DefaultConfig()
+	config.EtcdV3 = etcdv3.DefaultConfig()
 	if err := conf.UnmarshalKey(key, config); err != nil {
 		xlog.Panic("unmarshal key", xlog.Any("err", err))
 	}
@@ -45,10 +48,12 @@ func RawConfig(key string) *Config {
 
 // Config ...
 type Config struct {
-	AppName       string       `json:"appName"`
-	LogPath       string       `json:"logPath"`
-	FlowRules     []*flow.Rule `json:"rules"`
-	FlowRulesFile string       `json:"flowRulesFile"`
+	AppName         string         `json:"appName"`
+	LogPath         string         `json:"logPath"`
+	FlowRules       []*flow.Rule   `json:"rules"`
+	FlowRulesFile   string         `json:"flowRulesFile"`
+	EtcdV3          *etcdv3.Config `json:"etcdV3"`
+	EtcdFlowRuleKey string         `json:"etcd_flow_rule_key"`
 }
 
 // DefaultConfig returns default config for sentinel
@@ -78,14 +83,29 @@ func (config *Config) Build() error {
 
 		config.FlowRules = append(config.FlowRules, rules...)
 	}
+	if config.EtcdV3 != nil {
+		config.EtcdFlowRuleKey = "jupiter.sentinel." + config.EtcdFlowRuleKey
+		client, err := config.EtcdV3.Build()
+		if err != nil {
+			xlog.Errorf("build datasource failed: %v", err)
+		}
+		ds, err := etcd.NewDatasource(client, config.EtcdFlowRuleKey, etcd.NewFlowRuleHandler(config.FlowRules))
+		if err != nil {
+			xlog.Errorf("build datasource failed: %v", err)
+		}
+		err = ds.Initialize()
+		if err != nil && len(config.FlowRules) > 0 {
+			_, err = flow.LoadRules(config.FlowRules)
+			if err != nil {
+				xlog.Errorf("load flow rule fail:%s", err)
+			}
+		}
+	}
 
 	configEntity := sentinel_config.NewDefaultConfig()
 	configEntity.Sentinel.App.Name = config.AppName
 	configEntity.Sentinel.Log.Dir = config.LogPath
 
-	if len(config.FlowRules) > 0 {
-		_, _ = flow.LoadRules(config.FlowRules)
-	}
 	return sentinel.InitWithConfig(configEntity)
 }
 
