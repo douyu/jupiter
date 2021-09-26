@@ -20,7 +20,9 @@ import (
 
 	"go.uber.org/multierr"
 
-	_ "github.com/douyu/jupiter/pkg/autoproc"
+	_ "github.com/douyu/jupiter/internal/autoproc"
+	_ "github.com/douyu/jupiter/internal/banner"
+
 	"github.com/douyu/jupiter/pkg/component"
 	"github.com/douyu/jupiter/pkg/container"
 	"github.com/douyu/jupiter/pkg/governor"
@@ -39,9 +41,7 @@ import (
 	"github.com/douyu/jupiter/pkg/registry"
 	"github.com/douyu/jupiter/pkg/server"
 	"github.com/douyu/jupiter/pkg/signals"
-	"github.com/douyu/jupiter/pkg/util/xcolor"
 	"github.com/douyu/jupiter/pkg/util/xcycle"
-	"github.com/douyu/jupiter/pkg/util/xdebug"
 	"github.com/douyu/jupiter/pkg/util/xdefer"
 	"github.com/douyu/jupiter/pkg/util/xgo"
 	"github.com/douyu/jupiter/pkg/worker"
@@ -59,19 +59,21 @@ const (
 // Application is the framework's instance, it contains the servers, workers, client and configuration settings.
 // Create an instance of Application, by using &Application{}
 type Application struct {
-	cycle         *xcycle.Cycle
-	smu           *sync.RWMutex
-	initOnce      sync.Once
-	startupOnce   sync.Once
-	stopOnce      sync.Once
-	workers       []worker.Worker
-	jobs          map[string]job.Runner
-	logger        *xlog.Logger
-	hooks         map[uint32]*xdefer.DeferStack
-	configParser  conf.Unmarshaller
-	disableMap    map[Disable]bool
-	HideBanner    bool
-	stopped       chan struct{}
+	cycle        *xcycle.Cycle
+	smu          *sync.RWMutex
+	initOnce     sync.Once
+	startupOnce  sync.Once
+	stopOnce     sync.Once
+	workers      []worker.Worker
+	jobs         map[string]job.Runner
+	logger       *xlog.Logger
+	hooks        map[uint32]*xdefer.DeferStack
+	configParser conf.Unmarshaller
+	disableMap   map[Disable]bool
+	HideBanner   bool
+	stopped      chan struct{}
+
+	// generic components
 	componentHeap *container.PriorityQueue
 }
 
@@ -133,33 +135,10 @@ func (app *Application) initialize() {
 		//private method
 		app.initHooks(StageBeforeStop, StageAfterStop)
 
-		app.parseFlags()
-		app.printBanner()
 		app.componentHeap.Push(governor.StdConfig("governor").MustBuild(), 1)
+		flag.Parse()
 	})
 }
-
-// // start up application
-// // By default the startup composition is:
-// // - parse config, watch, version flags
-// // - load config
-// // - init default biz logger, jupiter frame logger
-// // - init procs
-// func (app *Application) startup() (err error) {
-// 	app.startupOnce.Do(func() {
-// 		err = xgo.SerialUntilError(
-// 			app.parseFlags,
-// 			// app.printBanner,
-// 			// app.loadConfig,
-// 			// app.initLogger,
-// 			// app.initMaxProcs,
-// 			// app.initTracer,
-// 			// app.initSentinel,
-// 			// app.initGovernor,
-// 		)()
-// 	})
-// 	return
-// }
 
 //Startup ..
 func (app *Application) Startup(fns ...func() error) error {
@@ -223,7 +202,7 @@ func (app *Application) Job(runner job.Runner) error {
 
 // SetRegistry set customize registry
 // Deprecated, please use registry.DefaultRegisterer instead.
-func (app *Application) SetRegistry(reg registry.Registry) {
+func (app *Application) SetReistry(reg registry.Registry) {
 	registry.DefaultRegisterer = reg
 }
 
@@ -232,6 +211,10 @@ func (app *Application) SetRegistry(reg registry.Registry) {
 //func (app *Application) SetGovernor(addr string) {
 //	app.governorAddr = addr
 //}
+
+func (app *Application) Start(stop <-chan struct{}) error {
+	return nil
+}
 
 // Run run application
 func (app *Application) Run() error {
@@ -249,7 +232,13 @@ func (app *Application) Run() error {
 			if err != nil {
 				panic(err)
 			}
-			comp.(component.Component).Start(app.stopped)
+			c := comp.(component.Component)
+			xlog.Infof("start component %s", c.Name())
+			if err = c.Start(app.stopped); err != nil {
+				xlog.Errorf("start component %s failed %+v", c.Name(), err)
+			} else {
+				xlog.Infof("start component %s succeeded", c.Name())
+			}
 		}
 	}
 
@@ -356,45 +345,5 @@ func (app *Application) startJobs() error {
 		})
 	}
 	xgo.Parallel(jobs...)()
-	return nil
-}
-
-//parseFlags init
-func (app *Application) parseFlags() error {
-	if app.isDisable(DisableParserFlag) {
-		app.logger.Info("parseFlags disable", xlog.FieldMod(ecode.ModApp))
-		return nil
-	}
-	return flag.Parse()
-}
-
-func (app *Application) isDisable(d Disable) bool {
-	b, ok := app.disableMap[d]
-	if !ok {
-		return false
-	}
-	return b
-}
-
-//printBanner init
-func (app *Application) printBanner() error {
-	if app.HideBanner {
-		return nil
-	}
-
-	if xdebug.IsTestingMode() {
-		return nil
-	}
-
-	const banner = `
-   (_)_   _ _ __ (_) |_ ___ _ __
-   | | | | | '_ \| | __/ _ \ '__|
-   | | |_| | |_) | | ||  __/ |
-  _/ |\__,_| .__/|_|\__\___|_|
- |__/      |_|
-
- Welcome to jupiter, starting application ...
-`
-	fmt.Println(xcolor.Green(banner))
 	return nil
 }

@@ -14,10 +14,15 @@
 
 package component
 
+import "github.com/douyu/jupiter/pkg/util/xstring"
+
 type Component interface {
 	// Start blocks until the channel is closed or an error occurs.
 	// The component will stop running when the channel is closed.
 	Start(<-chan struct{}) error
+
+	// name of component, should be unique
+	Name() string
 
 	ShouldBeLeader() bool
 	baseMethod()
@@ -36,6 +41,10 @@ func (f ComponentFunc) ShouldBeLeader() bool {
 }
 
 func (f ComponentFunc) baseMethod() {}
+
+func (f ComponentFunc) Name() string {
+	return xstring.FunctionName(f)
+}
 
 // Component manager, aggregate multiple components to one
 type Manager interface {

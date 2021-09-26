@@ -3,8 +3,10 @@ package registry
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/douyu/jupiter/pkg/component"
+	"github.com/douyu/jupiter/pkg/governor"
 	"github.com/douyu/jupiter/pkg/server"
 )
 
@@ -36,4 +38,14 @@ func (c ServerComponent) Start(stopCh <-chan struct{}) error {
 		close(errCh)
 	}()
 	return nil
+}
+
+func (c ServerComponent) Name() string {
+	return c.Server.Info().Name
+}
+
+func (c ServerComponent) HookGovernor(g *governor.Governor) {
+	g.HandleFunc("/server", func(rep http.ResponseWriter, req *http.Request) {
+		// return server metadata, health status
+	})
 }

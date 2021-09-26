@@ -10,43 +10,42 @@ import (
 	"github.com/douyu/jupiter/pkg/xlog"
 )
 
-// Server ...
-type Server struct {
+type Governor struct {
 	component.BaseComponent
-	*http.Server
-	listener net.Listener
-	*Config
+	mux  *http.ServeMux
+	addr string
 }
 
-func newServer(config *Config) *Server {
-	var listener, err = net.Listen("tcp4", config.Address())
+func New(addr string) *Governor {
+	return &Governor{
+		mux:  http.NewServeMux(),
+		addr: addr,
+	}
+}
+
+func (g *Governor) HandleFunc(pattern string, handler http.HandlerFunc) {
+	g.mux.HandleFunc(pattern, handler)
+}
+
+func (g *Governor) PrintRoutes() {}
+
+func (g *Governor) Start(stopCh <-chan struct{}) error {
+	var listener, err = net.Listen("tcp4", g.addr)
 	if err != nil {
 		xlog.Panic("governor start error", xlog.FieldErr(err))
 	}
-
-	return &Server{
-		Server: &http.Server{
-			Addr:    config.Address(),
-			Handler: DefaultServeMux,
-		},
-		listener: listener,
-		Config:   config,
-	}
-}
-
-//Serve ..
-func (s *Server) Start(stopCh <-chan struct{}) error {
+	var server = &http.Server{Addr: g.addr, Handler: g.mux}
 	var errCh = make(chan error)
 	go func() {
 		fmt.Println("start governor")
-		errCh <- s.Server.Serve(s.listener)
+		errCh <- server.Serve(listener)
 		fmt.Println("stop governor")
 	}()
 	go func() {
 		select {
 		case <-stopCh:
 			fmt.Println("stop...")
-			s.Shutdown(context.Background())
+			server.Shutdown(context.Background())
 		case <-errCh:
 			fmt.Println("err occur...")
 		}

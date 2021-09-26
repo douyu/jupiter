@@ -106,8 +106,10 @@ func (fs *FlagSet) Parse() error {
 		return err
 	}
 
+	var actuals = map[string]struct{}{}
 	fs.FlagSet.Visit(func(f *flag.Flag) {
 		// do action hook after parse flagset
+		actuals[f.Name] = struct{}{}
 		if action, ok := fs.actions[f.Name]; ok && action != nil {
 			action(f.Name, fs)
 		}

@@ -72,3 +72,5 @@ example/*/*/config-local.toml
 dump.rdb
 default.etcd
 pkg/conf/datasource/apollo/.SampleApp_default
+
+.history/
