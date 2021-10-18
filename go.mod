@@ -11,6 +11,8 @@ require (
 	github.com/apache/rocketmq-client-go/v2 v2.0.0
 	github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd // indirect
 	github.com/codegangsta/inject v0.0.0-20150114235600-33e0aa1cb7c0
+	github.com/coreos/etcd v3.3.18+incompatible // indirect
+	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
 	github.com/davecgh/go-spew v1.1.1
 	github.com/emicklei/proto v1.9.0
 	github.com/fatih/structtag v1.2.0
@@ -22,15 +24,14 @@ require (
 	github.com/go-resty/resty/v2 v2.2.0
 	github.com/gobuffalo/packr/v2 v2.2.0
 	github.com/gogf/gf v1.13.3
-	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
 	github.com/golang/mock v1.4.4 // indirect
 	github.com/golang/protobuf v1.5.2
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
 	github.com/gorilla/websocket v1.4.2
-	github.com/grpc-ecosystem/go-grpc-middleware v1.1.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/jinzhu/gorm v1.9.12
 	github.com/json-iterator/go v1.1.11
+	github.com/kr/text v0.2.0 // indirect
 	github.com/labstack/echo/v4 v4.1.16
 	github.com/lib/pq v1.3.0 // indirect
 	github.com/mitchellh/mapstructure v1.3.2
@@ -42,23 +43,18 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.11.0
 	github.com/robfig/cron/v3 v3.0.1
-	github.com/sentinel-group/sentinel-go-adapters v1.0.1
 	github.com/sirupsen/logrus v1.7.0 // indirect
 	github.com/smallnest/weighted v0.0.0-20200122032019-adf21c9b8bd1
 	github.com/smartystreets/assertions v0.0.0-20190401211740-f487f9de1cd3 // indirect
 	github.com/smartystreets/goconvey v1.6.4
+	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/stretchr/testify v1.7.0
-	github.com/swaggo/files v0.0.0-20190704085106-630677cd5c14
-	github.com/swaggo/gin-swagger v1.2.0
-	github.com/swaggo/swag v1.6.7
 	github.com/tidwall/pretty v1.0.1
-	github.com/tmc/grpc-websocket-proxy v0.0.0-20200122045848-3419fae592fc // indirect
 	github.com/uber/jaeger-client-go v2.23.1+incompatible
 	github.com/uber/jaeger-lib v2.2.0+incompatible // indirect
 	github.com/urfave/cli v1.22.5
 	go.etcd.io/etcd v3.3.25+incompatible
-	go.etcd.io/etcd/api/v3 v3.5.0 // indirect
-	go.etcd.io/etcd/client/pkg/v3 v3.5.0 // indirect
+	go.etcd.io/etcd/api/v3 v3.5.0
 	go.etcd.io/etcd/client/v3 v3.5.0
 	go.mongodb.org/mongo-driver v1.5.1
 	go.uber.org/automaxprocs v1.3.0
@@ -69,5 +65,5 @@ require (
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	google.golang.org/genproto v0.0.0-20210602131652-f16073e35f0c
 	google.golang.org/grpc v1.40.0
-	gopkg.in/mgo.v2 v2.0.0-20180705113604-9856a29383ce
+	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 )
