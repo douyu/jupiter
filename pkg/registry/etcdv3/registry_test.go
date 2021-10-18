@@ -21,14 +21,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/douyu/jupiter/pkg/constant"
-	"go.etcd.io/etcd/pkg/mock/mockserver"
-
 	"github.com/douyu/jupiter/pkg/client/etcdv3"
+	"github.com/douyu/jupiter/pkg/constant"
 	"github.com/douyu/jupiter/pkg/registry"
 	"github.com/douyu/jupiter/pkg/server"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/stretchr/testify/assert"
+	"go.etcd.io/etcd/client/v3/mock/mockserver"
 )
 
 func startMockServer() {
