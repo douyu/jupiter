@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"go.etcd.io/etcd/client/v3/concurrency"
-	"go.etcd.io/etcd/pkg/mock/mockserver"
+	"go.etcd.io/etcd/client/v3/mock/mockserver"
 )
 
 func startMockServer() {
