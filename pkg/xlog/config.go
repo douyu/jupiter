@@ -109,7 +109,7 @@ func DefaultConfig() *Config {
 		MaxAge:        1,   // 1 day
 		MaxBackup:     10,  // 10 backup
 		Interval:      24 * time.Hour,
-		CallerSkip:    1,
+		CallerSkip:    2,
 		AddCaller:     true,
 		Async:         true,
 		Queue:         false,
