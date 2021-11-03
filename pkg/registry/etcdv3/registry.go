@@ -268,7 +268,7 @@ func (reg *etcdv3Registry) getSession(k string, opts ...concurrency.SessionOptio
 	if ok {
 		return sess, nil
 	}
-	sess, err := concurrency.NewSession(reg.client.Client)
+	sess, err := concurrency.NewSession(reg.client.Client, opts...)
 	if err != nil {
 		return sess, err
 	}
