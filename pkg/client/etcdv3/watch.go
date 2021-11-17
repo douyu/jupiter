@@ -62,7 +62,7 @@ func (client *Client) WatchPrefix(ctx context.Context, prefix string) (*Watch, e
 	xgo.Go(func() {
 		ctx, cancel := context.WithCancel(context.Background())
 		w.cancel = cancel
-		rch := client.Client.Watch(ctx, prefix, clientv3.WithPrefix(), clientv3.WithCreatedNotify(), clientv3.WithRev(w.revision))
+		rch := client.Client.Watch(ctx, prefix, clientv3.WithPrefix(), clientv3.WithPrevKV(), clientv3.WithCreatedNotify(), clientv3.WithRev(w.revision))
 		for {
 			for n := range rch {
 				if n.CompactRevision > w.revision {
