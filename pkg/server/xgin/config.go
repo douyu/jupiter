@@ -19,6 +19,7 @@ import (
 
 	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/ecode"
+	"github.com/douyu/jupiter/pkg/flag"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
@@ -46,7 +47,7 @@ type Config struct {
 // DefaultConfig ...
 func DefaultConfig() *Config {
 	return &Config{
-		Host:                      "127.0.0.1",
+		Host:                      flag.String("host"),
 		Port:                      9091,
 		Mode:                      gin.ReleaseMode,
 		SlowQueryThresholdInMilli: 500, // 500ms
