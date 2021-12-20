@@ -51,11 +51,10 @@ func (b *baseBuilder) Build(target resolver.Target, cc resolver.ClientConn, opts
 			case endpoint := <-endpoints:
 				var state = resolver.State{
 					Addresses: make([]resolver.Address, 0),
-					Attributes: attributes.New(
-						constant.KeyRouteConfig, endpoint.RouteConfigs, // 路由配置
-						constant.KeyProviderConfig, endpoint.ProviderConfigs, // 服务提供方元信息
-						constant.KeyConsumerConfig, endpoint.ConsumerConfigs, // 服务消费方配置信息
-					),
+					Attributes: attributes.
+						New(constant.KeyRouteConfig, endpoint.RouteConfigs).             // 路由配置
+						WithValue(constant.KeyProviderConfig, endpoint.ProviderConfigs). // 服务提供方元信息
+						WithValue(constant.KeyConsumerConfig, endpoint.ConsumerConfigs), // 服务消费方配置信息,
 				}
 				for _, node := range endpoint.Nodes {
 					var address resolver.Address
