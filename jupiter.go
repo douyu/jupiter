@@ -15,14 +15,15 @@
 package jupiter
 
 import (
+	"github.com/douyu/jupiter/internal/hooks"
 	"github.com/douyu/jupiter/pkg/application"
 )
 
 var (
 	//StageAfterStop after app stop
-	StageAfterStop uint32 = application.StageAfterStop
+	StageAfterStop uint32 = uint32(hooks.Stage_AfterStop)
 	//StageBeforeStop before app stop
-	StageBeforeStop = application.StageBeforeStop
+	StageBeforeStop = uint32(hooks.Stage_BeforeStop)
 )
 
 // Application is the framework's instance, it contains the servers, workers, client and configuration settings.

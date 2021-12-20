@@ -31,6 +31,7 @@ import (
 	_ "github.com/douyu/jupiter/pkg/conf/datasource/http"
 	_ "github.com/douyu/jupiter/pkg/registry/etcdv3"
 
+	"github.com/douyu/jupiter/internal/hooks"
 	"github.com/douyu/jupiter/pkg/ecode"
 	"github.com/douyu/jupiter/pkg/flag"
 	"github.com/douyu/jupiter/pkg/registry"
@@ -44,13 +45,6 @@ import (
 	"github.com/douyu/jupiter/pkg/worker"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"golang.org/x/sync/errgroup"
-)
-
-const (
-	//StageAfterStop after app stop
-	StageAfterStop uint32 = iota + 1
-	//StageBeforeStop before app stop
-	StageBeforeStop
 )
 
 // Application is the framework's instance, it contains the servers, workers, client and configuration settings.
@@ -88,30 +82,14 @@ func DefaultApp() *Application {
 	return app
 }
 
-//init hooks
-func (app *Application) initHooks(hookKeys ...uint32) {
-	app.hooks = make(map[uint32]*xdefer.DeferStack, len(hookKeys))
-	for _, k := range hookKeys {
-		app.hooks[k] = xdefer.NewStack()
-	}
-}
-
 //run hooks
-func (app *Application) runHooks(k uint32) {
-	hooks, ok := app.hooks[k]
-	if ok {
-		hooks.Clean()
-	}
+func (app *Application) runHooks(stage hooks.Stage) {
+	hooks.Do(stage)
 }
 
 //RegisterHooks register a stage Hook
-func (app *Application) RegisterHooks(k uint32, fns ...func() error) error {
-	hooks, ok := app.hooks[k]
-	if ok {
-		hooks.Push(fns...)
-		return nil
-	}
-	return fmt.Errorf("hook stage not found")
+func (app *Application) RegisterHooks(stage hooks.Stage, fns ...func()) {
+	hooks.Register(stage, fns...)
 }
 
 // initialize application
@@ -129,7 +107,6 @@ func (app *Application) initialize() {
 		app.stopped = make(chan struct{})
 		app.components = make([]component.Component, 0)
 		//private method
-		app.initHooks(StageBeforeStop, StageAfterStop)
 
 		app.parseFlags()
 		app.printBanner()
@@ -276,7 +253,7 @@ func (app *Application) clean() {
 func (app *Application) Stop() (err error) {
 	app.stopOnce.Do(func() {
 		app.stopped <- struct{}{}
-		app.runHooks(StageBeforeStop)
+		app.runHooks(hooks.Stage_BeforeStop)
 
 		//stop servers
 		app.smu.RLock()
@@ -294,7 +271,7 @@ func (app *Application) Stop() (err error) {
 			}(w)
 		}
 		<-app.cycle.Done()
-		app.runHooks(StageAfterStop)
+		app.runHooks(hooks.Stage_AfterStop)
 		app.cycle.Close()
 	})
 	return
@@ -304,7 +281,7 @@ func (app *Application) Stop() (err error) {
 func (app *Application) GracefulStop(ctx context.Context) (err error) {
 	app.stopOnce.Do(func() {
 		app.stopped <- struct{}{}
-		app.runHooks(StageBeforeStop)
+		app.runHooks(hooks.Stage_BeforeStop)
 
 		//stop servers
 		app.smu.RLock()
@@ -324,7 +301,7 @@ func (app *Application) GracefulStop(ctx context.Context) (err error) {
 			}(w)
 		}
 		<-app.cycle.Done()
-		app.runHooks(StageAfterStop)
+		app.runHooks(hooks.Stage_AfterStop)
 		app.cycle.Close()
 	})
 	return err

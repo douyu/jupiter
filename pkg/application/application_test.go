@@ -21,11 +21,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/douyu/jupiter/pkg/server/xgrpc"
-	"github.com/stretchr/testify/assert"
-
+	"github.com/douyu/jupiter/internal/hooks"
 	"github.com/douyu/jupiter/pkg/server"
+	"github.com/douyu/jupiter/pkg/server/xgrpc"
 	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/assert"
 )
 
 type testServer struct {
@@ -171,9 +171,8 @@ type stopInfo struct {
 	state bool
 }
 
-func (info *stopInfo) Stop() error {
+func (info *stopInfo) Stop() {
 	info.state = true
-	return nil
 }
 
 func TestApplication_BeforeStop(t *testing.T) {
@@ -181,7 +180,7 @@ func TestApplication_BeforeStop(t *testing.T) {
 		si := &stopInfo{}
 		app := &Application{}
 		app.initialize()
-		app.RegisterHooks(StageBeforeStop, si.Stop)
+		app.RegisterHooks(hooks.Stage_AfterStop, si.Stop)
 		go func(si *stopInfo) {
 			time.Sleep(time.Microsecond * 100)
 			err := app.Stop()
@@ -209,7 +208,7 @@ func TestApplication_AfterStop(t *testing.T) {
 		si := &stopInfo{}
 		app := &Application{}
 		app.initialize()
-		app.RegisterHooks(StageAfterStop, si.Stop)
+		app.RegisterHooks(hooks.Stage_AfterStop, si.Stop)
 		go func() {
 			app.Stop()
 		}()
