@@ -36,7 +36,10 @@ func NewDataSource(conf *agollo.Conf, namespace string, key string) conf.DataSou
 		propertyKey: key,
 		changed:     make(chan struct{}, 1),
 	}
-	ap.client.Start()
+	err := ap.client.Start()
+	if err != nil {
+		panic(err)
+	}
 	ap.client.OnUpdate(
 		func(event *agollo.ChangeEvent) {
 			ap.changed <- struct{}{}

@@ -31,7 +31,6 @@ type fileDataSource struct {
 	dir         string
 	enableWatch bool
 	changed     chan struct{}
-	logger      *xlog.Logger
 }
 
 // NewDataSource returns new fileDataSource.

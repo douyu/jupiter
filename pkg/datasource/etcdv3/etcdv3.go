@@ -23,7 +23,6 @@ import (
 	"github.com/douyu/jupiter/pkg/client/etcdv3"
 	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/util/xgo"
-	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/pkg/errors"
 )
 
@@ -35,9 +34,6 @@ type etcdv3DataSource struct {
 	cancel context.CancelFunc
 	// closed indicate whether continuing to watch on the propertyKey
 	// closed util.AtomicBool
-
-	logger *xlog.Logger
-
 	changed chan struct{}
 }
 

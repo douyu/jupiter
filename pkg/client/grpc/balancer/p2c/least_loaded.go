@@ -65,7 +65,7 @@ type p2cPicker struct {
 }
 
 // Pick ...
-func (p *p2cPicker) Pick(ctx context.Context, opts balancer.PickOptions) (balancer.SubConn, func(balancer.DoneInfo), error) {
+func (p *p2cPicker) Pick(ctx context.Context, opts balancer.PickInfo) (balancer.SubConn, func(balancer.DoneInfo), error) {
 
 	item, done := p.p2c.Next()
 	if item == nil {

@@ -68,7 +68,7 @@ func (p *leastLoaded) Next() (interface{}, func(balancer.DoneInfo)) {
 
 		// choose the least loaded item based on inflight
 		if sc.inflight > backsc.inflight {
-			sc, backsc = backsc, sc
+			sc, _ = backsc, sc
 		}
 	}
 

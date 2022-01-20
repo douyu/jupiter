@@ -19,9 +19,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/douyu/jupiter/pkg"
 	"github.com/douyu/jupiter/pkg/xlog"
-	"time"
 
 	"github.com/douyu/jupiter/pkg/ecode"
 	"github.com/douyu/jupiter/pkg/metric"
@@ -58,19 +59,6 @@ func metricUnaryClientInterceptor(name string) func(ctx context.Context, method 
 			metric.ClientHandleHistogram.Observe(time.Since(beg).Seconds(), metric.TypeGRPCUnary, name, method, cc.Target())
 		}
 		return err
-	}
-}
-
-func metricStreamClientInterceptor(name string) func(ctx context.Context, desc *grpc.StreamDesc, cc *grpc.ClientConn, method string, streamer grpc.Streamer, opts ...grpc.CallOption) (grpc.ClientStream, error) {
-	return func(ctx context.Context, desc *grpc.StreamDesc, cc *grpc.ClientConn, method string, streamer grpc.Streamer, opts ...grpc.CallOption) (grpc.ClientStream, error) {
-		beg := time.Now()
-		clientStream, err := streamer(ctx, desc, cc, method, opts...)
-
-		// 暂时用默认的grpc的默认err收敛
-		codes := ecode.ExtractCodes(err)
-		metric.ClientHandleCounter.Inc(metric.TypeGRPCStream, name, method, cc.Target(), codes.GetMessage())
-		metric.ClientHandleHistogram.Observe(time.Since(beg).Seconds(), metric.TypeGRPCStream, name, method, cc.Target())
-		return clientStream, err
 	}
 }
 

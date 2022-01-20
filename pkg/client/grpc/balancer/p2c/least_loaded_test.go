@@ -77,7 +77,10 @@ func startTestServers(count int) (_ *test, err error) {
 		t.addresses = append(t.addresses, lis.Addr().String())
 
 		go func(s *grpc.Server, l net.Listener) {
-			s.Serve(l)
+			err := s.Serve(l)
+			if err != nil {
+				return
+			}
 		}(s, lis)
 	}
 
@@ -95,7 +98,7 @@ func TestOneBackend(t *testing.T) {
 	}
 	defer test.cleanup()
 
-	cc, err := grpc.Dial(r.Scheme()+":///test.server", grpc.WithInsecure(), grpc.WithBalancerName(p2c.Name))
+	cc, err := grpc.Dial(r.Scheme()+":///test.server", grpc.WithInsecure(), grpc.WithDefaultServiceConfig(fmt.Sprintf(`{"LoadBalancingPolicy": "%s"}`, p2c.Name)))
 	if err != nil {
 		t.Fatalf("failed to dial: %v", err)
 	}
@@ -126,7 +129,7 @@ func TestAddressesRemoved(t *testing.T) {
 	}
 	defer test.cleanup()
 
-	cc, err := grpc.Dial(r.Scheme()+":///test.server", grpc.WithInsecure(), grpc.WithBalancerName(p2c.Name))
+	cc, err := grpc.Dial(r.Scheme()+":///test.server", grpc.WithInsecure(), grpc.WithDefaultServiceConfig(fmt.Sprintf(`{"LoadBalancingPolicy": "%s"}`, p2c.Name)))
 	if err != nil {
 		t.Fatalf("failed to dial: %v", err)
 	}
@@ -163,8 +166,7 @@ func TestOneServerDown(t *testing.T) {
 		t.Fatalf("failed to start servers: %v", err)
 	}
 	defer test.cleanup()
-
-	cc, err := grpc.Dial(r.Scheme()+":///test.server", grpc.WithInsecure(), grpc.WithBalancerName(p2c.Name))
+	cc, err := grpc.Dial(r.Scheme()+":///test.server", grpc.WithInsecure(), grpc.WithDefaultServiceConfig(fmt.Sprintf(`{"LoadBalancingPolicy": "%s"}`, p2c.Name)))
 	if err != nil {
 		t.Fatalf("failed to dial: %v", err)
 	}
@@ -261,7 +263,7 @@ func TestBackendsRandom(t *testing.T) {
 	}
 	defer test.cleanup()
 
-	cc, err := grpc.Dial(r.Scheme()+":///test.server", grpc.WithInsecure(), grpc.WithBalancerName(p2c.Name))
+	cc, err := grpc.Dial(r.Scheme()+":///test.server", grpc.WithInsecure(), grpc.WithDefaultServiceConfig(fmt.Sprintf(`{"LoadBalancingPolicy": "%s"}`, p2c.Name)))
 	if err != nil {
 		t.Fatalf("failed to dial: %v", err)
 	}
@@ -316,7 +318,7 @@ func TestCloseWithPendingRPC(t *testing.T) {
 	}
 	defer test.cleanup()
 
-	cc, err := grpc.Dial(r.Scheme()+":///test.server", grpc.WithInsecure(), grpc.WithBalancerName(p2c.Name))
+	cc, err := grpc.Dial(r.Scheme()+":///test.server", grpc.WithInsecure(), grpc.WithDefaultServiceConfig(fmt.Sprintf(`{"LoadBalancingPolicy": "%s"}`, p2c.Name)))
 	if err != nil {
 		t.Fatalf("failed to dial: %v", err)
 	}
@@ -350,7 +352,7 @@ func TestNewAddressWhileBlocking(t *testing.T) {
 	}
 	defer test.cleanup()
 
-	cc, err := grpc.Dial(r.Scheme()+":///test.server", grpc.WithInsecure(), grpc.WithBalancerName(p2c.Name))
+	cc, err := grpc.Dial(r.Scheme()+":///test.server", grpc.WithInsecure(), grpc.WithDefaultServiceConfig(fmt.Sprintf(`{"LoadBalancingPolicy": "%s"}`, p2c.Name)))
 	if err != nil {
 		t.Fatalf("failed to dial: %v", err)
 	}
@@ -379,7 +381,10 @@ func TestNewAddressWhileBlocking(t *testing.T) {
 		go func() {
 			defer wg.Done()
 			// This RPC blocks until NewAddress is called.
-			testc.EmptyCall(context.Background(), &testpb.Empty{})
+			_, err := testc.EmptyCall(context.Background(), &testpb.Empty{})
+			if err != nil {
+				return
+			}
 		}()
 	}
 	time.Sleep(50 * time.Millisecond)
@@ -399,7 +404,7 @@ func TestAllServersDown(t *testing.T) {
 	}
 	defer test.cleanup()
 
-	cc, err := grpc.Dial(r.Scheme()+":///test.server", grpc.WithInsecure(), grpc.WithBalancerName(p2c.Name))
+	cc, err := grpc.Dial(r.Scheme()+":///test.server", grpc.WithInsecure(), grpc.WithDefaultServiceConfig(fmt.Sprintf(`{"LoadBalancingPolicy": "%s"}`, p2c.Name)))
 	if err != nil {
 		t.Fatalf("failed to dial: %v", err)
 	}

@@ -65,3 +65,5 @@ demo.build: ## Build jupiter Demo
 
 license: ## Add license header for all code files
 	@find . -name \*.go -exec sh -c "if ! grep -q 'LICENSE' '{}'; then mv '{}' tmp && cp doc/LICENSEHEADER.txt '{}' && cat tmp >> '{}' && rm tmp; fi" \;
+lintt:
+	docker run --rm -v "$(shell pwd)/:/go/src/github.com/douyu/jupiter" --workdir /go/src/github.com/douyu/jupiter  -it golangci/golangci-lint:v1.42.1 golangci-lint run -v
