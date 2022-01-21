@@ -23,7 +23,6 @@ import (
 // debug=true as default, will be
 var DefaultLogger = Config{
 	Debug: true,
-	Async: true,
 }.Build()
 
 // frame logger
