@@ -344,11 +344,14 @@ func (app *Application) startServers() error {
 	for _, s := range app.servers {
 		s := s
 		eg.Go(func() (err error) {
+			defer func() {
+				registry.DefaultRegisterer.UnregisterService(ctx, s.Info())
+				app.logger.Info("exit server", xlog.FieldMod(ecode.ModApp), xlog.FieldEvent("exit"), xlog.FieldName(s.Info().Name), xlog.FieldErr(err), xlog.FieldAddr(s.Info().Label()))
+			}()
+
 			time.AfterFunc(time.Second, func() {
 				registry.DefaultRegisterer.RegisterService(ctx, s.Info())
-				defer registry.DefaultRegisterer.UnregisterService(ctx, s.Info())
 				app.logger.Info("start server", xlog.FieldMod(ecode.ModApp), xlog.FieldEvent("init"), xlog.FieldName(s.Info().Name), xlog.FieldAddr(s.Info().Label()), xlog.Any("scheme", s.Info().Scheme))
-				defer app.logger.Info("exit server", xlog.FieldMod(ecode.ModApp), xlog.FieldEvent("exit"), xlog.FieldName(s.Info().Name), xlog.FieldErr(err), xlog.FieldAddr(s.Info().Label()))
 			})
 			err = s.Serve()
 			return
