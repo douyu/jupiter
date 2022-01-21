@@ -324,6 +324,16 @@ func (c *Configuration) GetStringSlice(key string) []string {
 	return xcast.ToStringSlice(c.Get(key))
 }
 
+// GetInt64Slice returns the value associated with the key as a slice of int64s, stop when error occurs.
+func GetInt64Slice(key string) []int64 {
+	return defaultConfiguration.GetInt64Slice(key)
+}
+
+// GetInt64Slice returns the value associated with the key as a slice of int64s.
+func (c *Configuration) GetInt64Slice(key string) []int64 {
+	return xcast.ToInt64Slice(c.Get(key))
+}
+
 // GetSlice returns the value associated with the key as a slice of strings with default defaultConfiguration.
 func GetSlice(key string) []interface{} {
 	return defaultConfiguration.GetSlice(key)
