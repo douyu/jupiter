@@ -33,12 +33,12 @@ type Server struct {
 
 func newServer(config *Config) (*Server, error) {
 	var streamInterceptors = append(
-		[]grpc.StreamServerInterceptor{defaultStreamServerInterceptor(config.logger, config.SlowQueryThresholdInMilli)},
+		[]grpc.StreamServerInterceptor{defaultStreamServerInterceptor(config.logger, config)},
 		config.streamInterceptors...,
 	)
 
 	var unaryInterceptors = append(
-		[]grpc.UnaryServerInterceptor{defaultUnaryServerInterceptor(config.logger, config.SlowQueryThresholdInMilli)},
+		[]grpc.UnaryServerInterceptor{defaultUnaryServerInterceptor(config.logger, config)},
 		config.unaryInterceptors...,
 	)
 

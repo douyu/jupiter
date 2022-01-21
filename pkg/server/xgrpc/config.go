@@ -35,6 +35,8 @@ type Config struct {
 	Deployment string `json:"deployment"`
 	// Network network type, tcp4 by default
 	Network string `json:"network" toml:"network"`
+	// EnableAccessLog enable Access Interceptor, true by default
+	EnableAccessLog bool
 	// DisableTrace disbale Trace Interceptor, false by default
 	DisableTrace bool
 	// DisableMetric disable Metric Interceptor, false by default
@@ -81,6 +83,7 @@ func DefaultConfig() *Config {
 		Host:                      flag.String("host"),
 		Port:                      9092,
 		Deployment:                constant.DefaultDeployment,
+		EnableAccessLog:           true,
 		DisableMetric:             false,
 		DisableTrace:              false,
 		SlowQueryThresholdInMilli: 500,

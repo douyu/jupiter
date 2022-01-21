@@ -113,14 +113,14 @@ func extractAID(ctx context.Context) string {
 	return "unknown"
 }
 
-func defaultStreamServerInterceptor(logger *xlog.Logger, slowQueryThresholdInMilli int64) grpc.StreamServerInterceptor {
+func defaultStreamServerInterceptor(logger *xlog.Logger, c *Config) grpc.StreamServerInterceptor {
 	return func(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) (err error) {
 		var beg = time.Now()
 		var fields = make([]xlog.Field, 0, 8)
 		var event = "normal"
 		defer func() {
-			if slowQueryThresholdInMilli > 0 {
-				if int64(time.Since(beg))/1e6 > slowQueryThresholdInMilli {
+			if c.SlowQueryThresholdInMilli > 0 {
+				if int64(time.Since(beg))/1e6 > c.SlowQueryThresholdInMilli {
 					event = "slow"
 				}
 			}
@@ -154,20 +154,23 @@ func defaultStreamServerInterceptor(logger *xlog.Logger, slowQueryThresholdInMil
 				logger.Error("access", fields...)
 				return
 			}
-			logger.Info("access", fields...)
+
+			if c.EnableAccessLog {
+				logger.Info("access", fields...)
+			}
 		}()
 		return handler(srv, stream)
 	}
 }
 
-func defaultUnaryServerInterceptor(logger *xlog.Logger, slowQueryThresholdInMilli int64) grpc.UnaryServerInterceptor {
+func defaultUnaryServerInterceptor(logger *xlog.Logger, c *Config) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 		var beg = time.Now()
 		var fields = make([]xlog.Field, 0, 8)
 		var event = "normal"
 		defer func() {
-			if slowQueryThresholdInMilli > 0 {
-				if int64(time.Since(beg))/1e6 > slowQueryThresholdInMilli {
+			if c.SlowQueryThresholdInMilli > 0 {
+				if int64(time.Since(beg))/1e6 > c.SlowQueryThresholdInMilli {
 					event = "slow"
 				}
 			}
@@ -201,7 +204,10 @@ func defaultUnaryServerInterceptor(logger *xlog.Logger, slowQueryThresholdInMill
 				logger.Error("access", fields...)
 				return
 			}
-			logger.Info("access", fields...)
+
+			if c.EnableAccessLog {
+				logger.Info("access", fields...)
+			}
 		}()
 		return handler(ctx, req)
 	}
