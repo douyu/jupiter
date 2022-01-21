@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/douyu/jupiter/pkg"
+	"github.com/douyu/jupiter/pkg/constant"
 	"github.com/douyu/jupiter/pkg/governor"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -60,91 +61,89 @@ var (
 	CodeCacheMiss = "miss"
 	// CodeCacheHit ...
 	CodeCacheHit = "hit"
-
-	// Namespace
-	DefaultNamespace = "jupiter"
 )
 
 var (
 	// ServerHandleCounter ...
 	ServerHandleCounter = CounterVecOpts{
-		Namespace: DefaultNamespace,
+		Namespace: constant.DefaultNamespace,
 		Name:      "server_handle_total",
-		Labels:    []string{"type", "method", "peer", "code"},
+		Labels:    []string{"type", "method", "client", "code"},
 	}.Build()
 
 	// ServerHandleHistogram ...
 	ServerHandleHistogram = HistogramVecOpts{
-		Namespace: DefaultNamespace,
+		Namespace: constant.DefaultNamespace,
 		Name:      "server_handle_seconds",
-		Labels:    []string{"type", "method", "peer"},
+		Labels:    []string{"type", "method", "client"},
 	}.Build()
 
 	// ClientHandleCounter ...
 	ClientHandleCounter = CounterVecOpts{
-		Namespace: DefaultNamespace,
+		Namespace: constant.DefaultNamespace,
 		Name:      "client_handle_total",
-		Labels:    []string{"type", "name", "method", "peer", "code"},
+		Labels:    []string{"type", "name", "method", "server", "code"},
 	}.Build()
 
 	// ClientHandleHistogram ...
 	ClientHandleHistogram = HistogramVecOpts{
-		Namespace: DefaultNamespace,
+		Namespace: constant.DefaultNamespace,
 		Name:      "client_handle_seconds",
-		Labels:    []string{"type", "name", "method", "peer"},
+		Labels:    []string{"type", "name", "method", "server"},
 	}.Build()
 
 	// JobHandleCounter ...
 	JobHandleCounter = CounterVecOpts{
-		Namespace: DefaultNamespace,
+		Namespace: constant.DefaultNamespace,
 		Name:      "job_handle_total",
 		Labels:    []string{"type", "name", "code"},
 	}.Build()
 
 	// JobHandleHistogram ...
 	JobHandleHistogram = HistogramVecOpts{
-		Namespace: DefaultNamespace,
+		Namespace: constant.DefaultNamespace,
 		Name:      "job_handle_seconds",
 		Labels:    []string{"type", "name"},
 	}.Build()
 
 	LibHandleHistogram = HistogramVecOpts{
-		Namespace: DefaultNamespace,
+		Namespace: constant.DefaultNamespace,
 		Name:      "lib_handle_seconds",
 		Labels:    []string{"type", "method", "address"},
 	}.Build()
 	// LibHandleCounter ...
 	LibHandleCounter = CounterVecOpts{
-		Namespace: DefaultNamespace,
+		Namespace: constant.DefaultNamespace,
 		Name:      "lib_handle_total",
 		Labels:    []string{"type", "method", "address", "code"},
 	}.Build()
 
 	LibHandleSummary = SummaryVecOpts{
-		Namespace: DefaultNamespace,
+		Namespace: constant.DefaultNamespace,
 		Name:      "lib_handle_stats",
 		Labels:    []string{"name", "status"},
 	}.Build()
 
 	// CacheHandleCounter ...
 	CacheHandleCounter = CounterVecOpts{
-		Namespace: DefaultNamespace,
+		Namespace: constant.DefaultNamespace,
 		Name:      "cache_handle_total",
-		Labels:    []string{"type", "name", "action", "code"},
+		Labels:    []string{"type", "name", "method", "code"},
 	}.Build()
 
 	// CacheHandleHistogram ...
 	CacheHandleHistogram = HistogramVecOpts{
-		Namespace: DefaultNamespace,
+		Namespace: constant.DefaultNamespace,
 		Name:      "cache_handle_seconds",
-		Labels:    []string{"type", "name", "action"},
+		Labels:    []string{"type", "name", "method"},
 	}.Build()
 
 	// BuildInfoGauge ...
 	BuildInfoGauge = GaugeVecOpts{
-		Namespace: DefaultNamespace,
+		Namespace: constant.DefaultNamespace,
 		Name:      "build_info",
-		Labels:    []string{"name", "aid", "mode", "region", "zone", "app_version", "jupiter_version", "start_time", "build_time", "go_version"},
+		Labels:    []string{"name", "id", "env", "region", "zone", "version", "go_version"},
+		// Labels:    []string{"name", "aid", "mode", "region", "zone", "app_version", "jupiter_version", "start_time", "build_time", "go_version"},
 	}.Build()
 )
 
@@ -156,9 +155,6 @@ func init() {
 		pkg.AppRegion(),
 		pkg.AppZone(),
 		pkg.AppVersion(),
-		pkg.JupiterVersion(),
-		pkg.StartTime(),
-		pkg.BuildTime(),
 		pkg.GoVersion(),
 	).Set(float64(time.Now().UnixNano() / 1e6))
 

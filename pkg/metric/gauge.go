@@ -14,7 +14,10 @@
 
 package metric
 
-import "github.com/prometheus/client_golang/prometheus"
+import (
+	"github.com/douyu/jupiter/pkg/constant"
+	"github.com/prometheus/client_golang/prometheus"
+)
 
 // GaugeVecOpts ...
 type GaugeVecOpts struct {
@@ -47,7 +50,7 @@ func (opts GaugeVecOpts) Build() *gaugeVec {
 // NewGaugeVec ...
 func NewGaugeVec(name string, labels []string) *gaugeVec {
 	return GaugeVecOpts{
-		Namespace: DefaultNamespace,
+		Namespace: constant.DefaultNamespace,
 		Name:      name,
 		Help:      name,
 		Labels:    labels,

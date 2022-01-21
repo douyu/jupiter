@@ -1,3 +1,8 @@
 package constant
 
-var ConfigPrefix = "jupiter"
+var (
+	// ConfigPrefix 配置前缀
+	ConfigPrefix = "jupiter"
+	// DefaultNamespace 默认命名空间
+	DefaultNamespace = "jupiter"
+)
