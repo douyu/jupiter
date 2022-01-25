@@ -94,7 +94,7 @@ func StdConfig(name string) *Config {
 // DefaultConfig ...
 func DefaultConfig() *Config {
 	return &Config{
-		Name:          "jupiter_default.log",
+		Name:          "jupiter_default.json",
 		Dir:           pkg.LogDir(),
 		Level:         "info",
 		MaxSize:       500, // 500M
