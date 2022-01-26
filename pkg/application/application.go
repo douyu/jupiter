@@ -31,9 +31,9 @@ import (
 	_ "github.com/douyu/jupiter/pkg/conf/datasource/http"
 	_ "github.com/douyu/jupiter/pkg/registry/etcdv3"
 
-	"github.com/douyu/jupiter/internal/hooks"
 	"github.com/douyu/jupiter/pkg/ecode"
 	"github.com/douyu/jupiter/pkg/flag"
+	"github.com/douyu/jupiter/pkg/hooks"
 	"github.com/douyu/jupiter/pkg/registry"
 	"github.com/douyu/jupiter/pkg/server"
 	"github.com/douyu/jupiter/pkg/signals"
