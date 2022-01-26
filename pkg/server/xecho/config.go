@@ -38,6 +38,9 @@ type Config struct {
 	DisableTrace  bool
 	// ServiceAddress service address in registry info, default to 'Host:Port'
 	ServiceAddress string
+	CertFile       string
+	PrivateFile    string
+	EnableTLS      bool
 
 	SlowQueryThresholdInMilli int64
 
@@ -53,6 +56,9 @@ func DefaultConfig() *Config {
 		Deployment:                constant.DefaultDeployment,
 		SlowQueryThresholdInMilli: 500, // 500ms
 		logger:                    xlog.JupiterLogger.With(xlog.FieldMod(ModName)),
+		EnableTLS:                 false,
+		CertFile:                  "cert.pem",
+		PrivateFile:               "private.pem",
 	}
 }
 
