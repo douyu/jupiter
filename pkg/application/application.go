@@ -335,7 +335,7 @@ func (app *Application) waitSignals() {
 
 func (app *Application) startServers() error {
 	var eg errgroup.Group
-	var ctx, cancel = context.WithTimeout(context.Background(), time.Second*10)
+	var ctx, cancel = context.WithTimeout(context.Background(), 3*time.Second)
 	go func() {
 		<-app.stopped
 		cancel()
@@ -345,6 +345,7 @@ func (app *Application) startServers() error {
 		s := s
 		eg.Go(func() (err error) {
 			defer func() {
+				ctx, _ := context.WithTimeout(context.Background(), 3*time.Second)
 				registry.DefaultRegisterer.UnregisterService(ctx, s.Info())
 				app.logger.Info("exit server", xlog.FieldMod(ecode.ModApp), xlog.FieldEvent("exit"), xlog.FieldName(s.Info().Name), xlog.FieldErr(err), xlog.FieldAddr(s.Info().Label()))
 			}()
