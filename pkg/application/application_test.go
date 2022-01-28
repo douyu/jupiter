@@ -21,7 +21,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/douyu/jupiter/internal/hooks"
+	"github.com/douyu/jupiter/pkg/hooks"
 	"github.com/douyu/jupiter/pkg/server"
 	"github.com/douyu/jupiter/pkg/server/xgrpc"
 	. "github.com/smartystreets/goconvey/convey"

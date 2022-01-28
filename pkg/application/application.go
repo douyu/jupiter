@@ -31,9 +31,9 @@ import (
 	_ "github.com/douyu/jupiter/pkg/conf/datasource/http"
 	_ "github.com/douyu/jupiter/pkg/registry/etcdv3"
 
-	"github.com/douyu/jupiter/internal/hooks"
 	"github.com/douyu/jupiter/pkg/ecode"
 	"github.com/douyu/jupiter/pkg/flag"
+	"github.com/douyu/jupiter/pkg/hooks"
 	"github.com/douyu/jupiter/pkg/registry"
 	"github.com/douyu/jupiter/pkg/server"
 	"github.com/douyu/jupiter/pkg/signals"
@@ -335,7 +335,7 @@ func (app *Application) waitSignals() {
 
 func (app *Application) startServers() error {
 	var eg errgroup.Group
-	var ctx, cancel = context.WithTimeout(context.Background(), time.Second*10)
+	var ctx, cancel = context.WithTimeout(context.Background(), 3*time.Second)
 	go func() {
 		<-app.stopped
 		cancel()
@@ -344,10 +344,16 @@ func (app *Application) startServers() error {
 	for _, s := range app.servers {
 		s := s
 		eg.Go(func() (err error) {
-			registry.DefaultRegisterer.RegisterService(ctx, s.Info())
-			defer registry.DefaultRegisterer.UnregisterService(ctx, s.Info())
-			app.logger.Info("start server", xlog.FieldMod(ecode.ModApp), xlog.FieldEvent("init"), xlog.FieldName(s.Info().Name), xlog.FieldAddr(s.Info().Label()), xlog.Any("scheme", s.Info().Scheme))
-			defer app.logger.Info("exit server", xlog.FieldMod(ecode.ModApp), xlog.FieldEvent("exit"), xlog.FieldName(s.Info().Name), xlog.FieldErr(err), xlog.FieldAddr(s.Info().Label()))
+			defer func() {
+				ctx, _ := context.WithTimeout(context.Background(), 3*time.Second)
+				registry.DefaultRegisterer.UnregisterService(ctx, s.Info())
+				app.logger.Info("exit server", xlog.FieldMod(ecode.ModApp), xlog.FieldEvent("exit"), xlog.FieldName(s.Info().Name), xlog.FieldErr(err), xlog.FieldAddr(s.Info().Label()))
+			}()
+
+			time.AfterFunc(time.Second, func() {
+				registry.DefaultRegisterer.RegisterService(ctx, s.Info())
+				app.logger.Info("start server", xlog.FieldMod(ecode.ModApp), xlog.FieldEvent("init"), xlog.FieldName(s.Info().Name), xlog.FieldAddr(s.Info().Label()), xlog.Any("scheme", s.Info().Scheme))
+			})
 			err = s.Serve()
 			return
 		})

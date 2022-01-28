@@ -34,7 +34,7 @@ const (
 	defaultBufferSize = 256 * 1024
 
 	// defaultFlushInterval means the default flush interval
-	defaultFlushInterval = 30 * time.Second
+	defaultFlushInterval = 5 * time.Second
 )
 
 // CloseFunc should be called when the caller exits to clean up buffers.

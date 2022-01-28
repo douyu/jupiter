@@ -15,8 +15,8 @@
 package jupiter
 
 import (
-	"github.com/douyu/jupiter/internal/hooks"
 	"github.com/douyu/jupiter/pkg/application"
+	"github.com/douyu/jupiter/pkg/hooks"
 )
 
 var (

@@ -16,10 +16,11 @@ package xecho
 
 import (
 	"context"
+	"crypto/tls"
+	"io/ioutil"
+	"net"
 	"net/http"
 	"os"
-
-	"net"
 
 	"github.com/douyu/jupiter/pkg/constant"
 	"github.com/douyu/jupiter/pkg/registry"
@@ -38,7 +39,33 @@ type Server struct {
 }
 
 func newServer(config *Config) (*Server, error) {
-	listener, err := net.Listen("tcp", config.Address())
+	var (
+		listener net.Listener
+		err      error
+	)
+
+	if config.EnableTLS {
+		cert, err := ioutil.ReadFile(config.CertFile)
+		if err != nil {
+			return nil, errors.Wrap(err, "read cert failed")
+		}
+
+		key, err := ioutil.ReadFile(config.PrivateFile)
+		if err != nil {
+			return nil, errors.Wrap(err, "read private failed")
+		}
+
+		tlsConfig := new(tls.Config)
+		tlsConfig.Certificates = make([]tls.Certificate, 1)
+
+		if tlsConfig.Certificates[0], err = tls.X509KeyPair(cert, key); err != nil {
+			return nil, errors.Wrap(err, "X509KeyPair failed")
+		}
+
+		listener, err = tls.Listen("tcp", config.Address(), tlsConfig)
+	} else {
+		listener, err = net.Listen("tcp", config.Address())
+	}
 	if err != nil {
 		// config.logger.Panic("new xecho server err", xlog.FieldErrKind(ecode.ErrKindListenErr), xlog.FieldErr(err))
 		return nil, errors.Wrapf(err, "create xecho server failed")
@@ -74,12 +101,20 @@ func (s *Server) Serve() error {
 	for _, route := range s.Echo.Routes() {
 		s.config.logger.Info("add route", xlog.FieldMethod(route.Method), xlog.String("path", route.Path))
 	}
-	s.Echo.Listener = s.listener
-	err := s.Echo.Start("")
+
+	var err error
+
+	if s.config.EnableTLS {
+		s.Echo.TLSListener = s.listener
+		err = s.Echo.StartTLS("", s.config.CertFile, s.config.PrivateFile)
+	} else {
+		s.Echo.Listener = s.listener
+		err = s.Echo.Start("")
+	}
+
 	if err != http.ErrServerClosed {
 		return err
 	}
-
 	s.config.logger.Info("close echo", xlog.FieldAddr(s.config.Address()))
 	return nil
 }

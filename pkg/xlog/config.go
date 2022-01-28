@@ -29,17 +29,11 @@ import (
 func init() {
 	conf.OnLoaded(func(c *conf.Configuration) {
 		log.Print("hook config, init loggers")
-		if c.Get(ConfigEntry("default")) != nil {
-			log.Printf("reload default logger with configKey: %s", ConfigEntry("default"))
-			DefaultLogger = RawConfig(constant.ConfigPrefix + ".logger.default").Build()
-		}
-		DefaultLogger.AutoLevel(constant.ConfigPrefix + ".logger.default")
+		log.Printf("reload default logger with configKey: %s", ConfigEntry("default"))
+		DefaultLogger = RawConfig(constant.ConfigPrefix + ".logger.default").Build()
 
-		if c.Get(constant.ConfigPrefix+".logger.jupiter") != nil {
-			log.Printf("reload default logger with configKey: %s", ConfigEntry("jupiter"))
-			JupiterLogger = RawConfig(constant.ConfigPrefix + ".logger.jupiter").Build()
-		}
-		JupiterLogger.AutoLevel(constant.ConfigPrefix + ".logger.jupiter")
+		log.Printf("reload default logger with configKey: %s", ConfigEntry("jupiter"))
+		JupiterLogger = RawConfig(constant.ConfigPrefix + ".logger.jupiter").Build()
 	})
 }
 
@@ -87,9 +81,7 @@ func ConfigEntry(name string) string {
 // RawConfig ...
 func RawConfig(key string) *Config {
 	var config = DefaultConfig()
-	if err := conf.UnmarshalKey(key, &config); err != nil {
-		panic(err)
-	}
+	config, _ = conf.UnmarshalWithExpect(key, config).(*Config)
 	config.configKey = key
 	return config
 }
@@ -102,7 +94,7 @@ func StdConfig(name string) *Config {
 // DefaultConfig ...
 func DefaultConfig() *Config {
 	return &Config{
-		Name:          "default.log",
+		Name:          "jupiter_default.json",
 		Dir:           pkg.LogDir(),
 		Level:         "info",
 		MaxSize:       500, // 500M

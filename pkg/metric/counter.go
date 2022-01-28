@@ -15,6 +15,7 @@
 package metric
 
 import (
+	"github.com/douyu/jupiter/pkg/constant"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -45,7 +46,7 @@ func (opts CounterVecOpts) Build() *counterVec {
 // NewCounterVec ...
 func NewCounterVec(name string, labels []string) *counterVec {
 	return CounterVecOpts{
-		Namespace: DefaultNamespace,
+		Namespace: constant.DefaultNamespace,
 		Name:      name,
 		Help:      name,
 		Labels:    labels,
