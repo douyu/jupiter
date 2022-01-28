@@ -23,7 +23,4 @@ require (
 	gopkg.in/mgo.v2 v2.0.0-20180705113604-9856a29383ce
 )
 
-replace (
-	github.com/douyu/jupiter => ../
-	google.golang.org/grpc => google.golang.org/grpc v1.40.0
-)
+replace github.com/douyu/jupiter => ../
