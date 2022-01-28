@@ -66,7 +66,10 @@ Contributions are always welcomed! Please see [CONTRIBUTING](CONTRIBUTING.md) fo
 
 You can start with the issues labeled with good first issue.
 
+<a href="https://github.com/douyu/jupiter/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=douyu/jupiter" />
+</a>
+
 ## Contact
 
-- DingTalk: 
-   <img src="doc/dingtalk.png" width = "200" height = "200" alt="" align=center />
+- [Wechat Group](https://jupiter.douyu.com/join/#%E5%BE%AE%E4%BF%A1)
