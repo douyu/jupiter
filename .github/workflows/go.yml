@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        go: ['1.13', '1.14']
+        go: ['1.13', '1.14', '1.15', '1.16', '1.17']
     services:
       mysql:
         image: mysql:5.7
