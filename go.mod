@@ -48,7 +48,8 @@ require (
 	github.com/smartystreets/goconvey v1.6.4
 	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/stretchr/testify v1.7.0
-	github.com/tidwall/pretty v1.0.1
+	github.com/tidwall/gjson v1.13.0 // indirect
+	github.com/tidwall/pretty v1.2.0
 	github.com/uber/jaeger-client-go v2.23.1+incompatible
 	github.com/uber/jaeger-lib v2.2.0+incompatible // indirect
 	github.com/urfave/cli v1.22.5
