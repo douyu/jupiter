@@ -80,7 +80,7 @@ func (pc *Producer) Start() error {
 			SecretKey: pc.SecretKey,
 		}),
 	)
-	if err != nil || client == nil {
+	if err != nil {
 		xlog.Panic("create producer",
 			xlog.FieldName(pc.name),
 			xlog.FieldExtMessage(pc.ProducerConfig),

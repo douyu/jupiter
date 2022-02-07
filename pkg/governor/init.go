@@ -41,7 +41,7 @@ func registerHandlers() {
 		if r.URL.Query().Get("pretty") == "true" {
 			encoder.SetIndent("", "    ")
 		}
-		encoder.Encode(conf.Traverse("."))
+		_ = encoder.Encode(conf.Traverse("."))
 	})
 
 	HandleFunc("/debug/config", func(w http.ResponseWriter, r *http.Request) {

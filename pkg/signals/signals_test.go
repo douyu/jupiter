@@ -24,7 +24,10 @@ import (
 
 func kill(sig os.Signal) {
 	pro, _ := os.FindProcess(os.Getpid())
-	pro.Signal(sig)
+	err := pro.Signal(sig)
+	if err != nil {
+		return
+	}
 }
 func TestShutdownSIGQUIT(t *testing.T) {
 	quit := make(chan struct{})

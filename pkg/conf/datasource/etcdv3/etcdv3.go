@@ -21,7 +21,6 @@ import (
 	"github.com/douyu/jupiter/pkg/client/etcdv3"
 	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/util/xgo"
-	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/pkg/errors"
 	"go.etcd.io/etcd/api/v3/mvccpb"
 	clientv3 "go.etcd.io/etcd/client/v3"
@@ -36,7 +35,7 @@ type etcdv3DataSource struct {
 	// closed indicate whether continuing to watch on the propertyKey
 	// closed util.AtomicBool
 
-	logger *xlog.Logger
+	// logger *xlog.Logger
 
 	changed chan struct{}
 }

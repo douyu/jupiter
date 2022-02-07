@@ -204,32 +204,31 @@ func (w *rashTimer) addTimerInternal(t *timer) {
 	t.index = len(tv[i]) - 1
 }
 
-func (w *rashTimer) cascade(tv [][]*timer, index int) int {
-	vec := tv[index]
-	tv[index] = vec[0:0:defaultTimerSize]
+// func (w *rashTimer) cascade(tv [][]*timer, index int) int {
+// 	vec := tv[index]
+// 	tv[index] = vec[0:0:defaultTimerSize]
 
-	for _, t := range vec {
-		w.addTimerInternal(t)
-	}
+// 	for _, t := range vec {
+// 		w.addTimerInternal(t)
+// 	}
 
-	return index
-}
+// 	return index
+// }
 
-func (w *rashTimer) getIndex(n int) int {
-	return int((w.jiffies >> (tvr_bits + uint64(n)*tvn_bits)) & tvn_mask)
-}
+// func (w *rashTimer) getIndex(n int) int {
+// 	return int((w.jiffies >> (tvr_bits + uint64(n)*tvn_bits)) & tvn_mask)
+// }
 
 func (w *rashTimer) onTick() {
 	w.Lock()
 
 	index := int(w.jiffies & tvr_mask)
 
-	if index == 0 && (w.cascade(w.tv2, w.getIndex(0))) == 0 &&
-		(w.cascade(w.tv3, w.getIndex(1))) == 0 &&
-		(w.cascade(w.tv4, w.getIndex(2))) == 0 &&
-		(w.cascade(w.tv5, w.getIndex(3)) == 0) {
-
-	}
+	// if index == 0 && (w.cascade(w.tv2, w.getIndex(0))) == 0 &&
+	// 	(w.cascade(w.tv3, w.getIndex(1))) == 0 &&
+	// 	(w.cascade(w.tv4, w.getIndex(2))) == 0 &&
+	// 	(w.cascade(w.tv5, w.getIndex(3)) == 0) {
+	// }
 
 	w.jiffies++
 

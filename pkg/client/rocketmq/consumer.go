@@ -124,7 +124,7 @@ func (cc *PushConsumer) Start() error {
 		}
 	}
 
-	if err != nil || client == nil {
+	if err != nil {
 		xlog.Panic("create consumer",
 			xlog.FieldName(cc.name),
 			xlog.FieldExtMessage(cc.ConsumerConfig),

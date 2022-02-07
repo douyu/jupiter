@@ -60,9 +60,9 @@ func (s swrPickerBuilder) Build(info PickerBuildInfo) balancer.Picker {
 }
 
 type swrPicker struct {
-	readySCs     map[balancer.SubConn]base.SubConnInfo
-	mu           sync.Mutex
-	next         int
+	readySCs map[balancer.SubConn]base.SubConnInfo
+	mu       sync.Mutex
+	// next         int
 	buckets      *weighted.SW
 	routeBuckets map[string]*weighted.SW
 	*attributes.Attributes

@@ -46,7 +46,7 @@ type mockServer struct {
 func (s *mockServer) NotificationHandler(rw http.ResponseWriter, req *http.Request) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	req.ParseForm()
+	_ = req.ParseForm()
 	var notifications []notification
 	if err := json.Unmarshal([]byte(req.FormValue("notifications")), &notifications); err != nil {
 		rw.WriteHeader(http.StatusInternalServerError)
@@ -68,12 +68,12 @@ func (s *mockServer) NotificationHandler(rw http.ResponseWriter, req *http.Reque
 		rw.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	rw.Write(bts)
+	_, _ = rw.Write(bts)
 }
 
 // ConfigHandler ...
 func (s *mockServer) ConfigHandler(rw http.ResponseWriter, req *http.Request) {
-	req.ParseForm()
+	_ = req.ParseForm()
 
 	strs := strings.Split(req.RequestURI, "/")
 	var namespace, releaseKey = strings.Split(strs[4], "?")[0], req.FormValue("releaseKey")
@@ -85,7 +85,7 @@ func (s *mockServer) ConfigHandler(rw http.ResponseWriter, req *http.Request) {
 		rw.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	rw.Write(bts)
+	_, _ = rw.Write(bts)
 }
 
 var server *mockServer

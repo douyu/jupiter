@@ -19,7 +19,7 @@ func init() {
 		}
 		var rets = mongoStatus{
 			RuntimeStats: application.NewRuntimeStats(),
-			Mongos:       make(map[string]interface{}, 0),
+			Mongos:       make(map[string]interface{}),
 		}
 		Range(func(name string, cc *mongo.Client) bool {
 			rets.Mongos[name] = map[string]interface{}{

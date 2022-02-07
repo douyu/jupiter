@@ -306,9 +306,9 @@ var codesStatusTableTempldate = `
 
 // MsgInfoVistor ...
 type MsgInfoVistor struct {
-	name  string
-	data  map[string]string
-	pkg   string
+	name string
+	data map[string]string
+	// pkg   string
 	nodes []*Node
 	fset  *token.FileSet
 }

@@ -66,11 +66,3 @@ func (v *configStructVisitor) Visit(n ast.Node) (w ast.Visitor) {
 	// }
 	// return v
 }
-
-type configBuilderVisitor struct {
-	pkgPath string
-}
-
-func (v *configBuilderVisitor) Visit(n ast.Node) (w ast.Visitor) {
-	return v
-}

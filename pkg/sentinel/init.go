@@ -31,6 +31,6 @@ func init() {
 		}
 
 		// initialize global sentinel
-		config.Build()
+		_ = config.Build()
 	})
 }

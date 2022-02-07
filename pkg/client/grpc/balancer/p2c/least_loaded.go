@@ -63,7 +63,6 @@ type p2cPicker struct {
 
 // Pick ...
 func (p *p2cPicker) Pick(opts balancer.PickInfo) (balancer.PickResult, error) {
-
 	item, done := p.p2c.Next()
 	if item == nil {
 		return balancer.PickResult{}, balancer.ErrNoSubConnAvailable

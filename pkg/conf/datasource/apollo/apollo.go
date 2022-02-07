@@ -36,7 +36,7 @@ func NewDataSource(conf *agollo.Conf, namespace string, key string) conf.DataSou
 		propertyKey: key,
 		changed:     make(chan struct{}, 1),
 	}
-	ap.client.Start()
+	_ = ap.client.Start()
 	ap.client.OnUpdate(
 		func(event *agollo.ChangeEvent) {
 			ap.changed <- struct{}{}
@@ -57,7 +57,7 @@ func (ap *apolloDataSource) IsConfigChanged() <-chan struct{} {
 
 // Close stops watching the config changed
 func (ap *apolloDataSource) Close() error {
-	ap.client.Stop()
+	_ = ap.client.Stop()
 	close(ap.changed)
 	return nil
 }

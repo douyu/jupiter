@@ -1,12 +1,14 @@
 package grpc
 
 import (
+	"net"
+	"os"
+	"testing"
+	"time"
+
 	"github.com/douyu/jupiter/pkg/util/xtest/proto/testproto"
 	"github.com/douyu/jupiter/pkg/util/xtest/server/yell"
 	"google.golang.org/grpc"
-	"net"
-	"testing"
-	"time"
 )
 
 var directClient testproto.GreeterClient
@@ -22,6 +24,7 @@ func TestMain(m *testing.M) {
 	directClient = testproto.NewGreeterClient(conn)
 	m.Run()
 	s.Stop()
+	os.Exit(0)
 }
 
 func startServer(addr, name string) (net.Listener, *grpc.Server) {

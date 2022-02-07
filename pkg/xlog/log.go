@@ -155,7 +155,7 @@ func (logger *Logger) AutoLevel(confKey string) {
 		lvText := strings.ToLower(config.GetString(confKey))
 		if lvText != "" {
 			logger.Info("update level", String("level", lvText), String("name", logger.config.Name))
-			logger.lv.UnmarshalText([]byte(lvText))
+			_ = logger.lv.UnmarshalText([]byte(lvText))
 		}
 	})
 }
@@ -364,7 +364,7 @@ func (logger *Logger) DPanicf(template string, args ...interface{}) {
 func (logger *Logger) Fatal(msg string, fields ...Field) {
 	if logger.IsDebugMode() {
 		panicDetail(msg, fields...)
-		msg = normalizeMessage(msg)
+		_ = normalizeMessage(msg)
 		return
 	}
 	logger.desugar.Fatal(msg, fields...)

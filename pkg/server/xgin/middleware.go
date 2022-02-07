@@ -156,10 +156,10 @@ func function(pc uintptr) []byte {
 	return name
 }
 
-func timeFormat(t time.Time) string {
-	timeString := t.Format("2006/01/02 - 15:04:05")
-	return timeString
-}
+// func timeFormat(t time.Time) string {
+// 	timeString := t.Format("2006/01/02 - 15:04:05")
+// 	return timeString
+// }
 
 func metricServerInterceptor() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -167,7 +167,6 @@ func metricServerInterceptor() gin.HandlerFunc {
 		c.Next()
 		metric.ServerHandleHistogram.Observe(time.Since(beg).Seconds(), metric.TypeHTTP, c.Request.Method+"."+c.Request.URL.Path, extractAID(c))
 		metric.ServerHandleCounter.Inc(metric.TypeHTTP, c.Request.Method+"."+c.Request.URL.Path, extractAID(c), http.StatusText(c.Writer.Status()))
-		return
 	}
 }
 

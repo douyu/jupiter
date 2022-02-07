@@ -36,10 +36,12 @@ func NewGRPCServerGen() *GRPCServerGen {
 // Parse IDL files
 func (server *GRPCServerGen) parseProtoFile(protoFilePath string) (err error) {
 	reader, err := os.Open(protoFilePath)
-	defer reader.Close()
 	if err != nil {
 		return
 	}
+	defer func() {
+		_ = reader.Close()
+	}()
 	parser := proto.NewParser(reader)
 	definition, err := parser.Parse()
 	if err != nil {
@@ -125,7 +127,7 @@ func (server *GRPCServerGen) initPrefix() (err error) {
 }
 func (server *GRPCServerGen) render(file *os.File, data string, rpcMeta *RPCMeta) (err error) {
 	t := template.New("main")
-	t, err = t.Parse(data)
+	t, _ = t.Parse(data)
 	err = t.Execute(file, rpcMeta)
 	if err != nil {
 		return

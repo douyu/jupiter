@@ -113,9 +113,8 @@ func (config Config) Build() *Cron {
 		config.wrappers = append(config.wrappers, delayIfStillRunning(config.logger))
 	} else if config.ConcurrentDelay < 0 { // 跳过
 		config.wrappers = append(config.wrappers, skipIfStillRunning(config.logger))
-	} else {
-		// 默认不延迟也不跳过
 	}
+	// 默认不延迟也不跳过
 
 	if config.DistributedTask {
 		// 创建 Etcd Lock
@@ -136,8 +135,6 @@ func newETCDXcron(config *Config) {
 	if config.TTL == 0 {
 		config.TTL = DefaultTTL
 	}
-
-	return
 }
 
 type wrappedLogger struct {
@@ -188,7 +185,9 @@ func (wj wrappedJob) Run() {
 			wj.logger.Info("mutex lock", xlog.String("err", err.Error()))
 			return
 		}
-		defer mutex.Unlock()
+		defer func() {
+			_ = mutex.Unlock()
+		}()
 	}
 	_ = wj.run()
 }

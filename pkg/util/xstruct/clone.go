@@ -26,7 +26,7 @@ func CopyStruct(src, dst interface{}) {
 		name := srcVal.Type().Field(i).Name
 
 		dstValue := dstVal.FieldByName(name)
-		if dstValue.IsValid() == false {
+		if !dstValue.IsValid() {
 			continue
 		}
 		dstValue.Set(value)
