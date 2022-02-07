@@ -125,12 +125,7 @@ func TestAddressesRemoved(t *testing.T) {
 		t.Fatalf("failed to start servers: %v", err)
 	}
 	defer test.cleanup()
-
-<<<<<<< HEAD
 	cc, err := grpc.Dial(r.Scheme()+":///test.server", grpc.WithInsecure(), grpc.WithResolvers(r), grpc.WithBalancerName(p2c.Name))
-=======
-	cc, err := grpc.Dial(r.Scheme()+":///test.server", grpc.WithInsecure(), grpc.WithDefaultServiceConfig(fmt.Sprintf(`{"LoadBalancingPolicy": "%s"}`, p2c.Name)))
->>>>>>> 3e718ca... tmp save
 	if err != nil {
 		t.Fatalf("failed to dial: %v", err)
 	}
@@ -166,12 +161,8 @@ func TestOneServerDown(t *testing.T) {
 		t.Fatalf("failed to start servers: %v", err)
 	}
 	defer test.cleanup()
-<<<<<<< HEAD
-
 	cc, err := grpc.Dial(r.Scheme()+":///test.server", grpc.WithInsecure(), grpc.WithResolvers(r), grpc.WithBalancerName(p2c.Name))
-=======
-	cc, err := grpc.Dial(r.Scheme()+":///test.server", grpc.WithInsecure(), grpc.WithDefaultServiceConfig(fmt.Sprintf(`{"LoadBalancingPolicy": "%s"}`, p2c.Name)))
->>>>>>> 3e718ca... tmp save
+
 	if err != nil {
 		t.Fatalf("failed to dial: %v", err)
 	}
@@ -321,11 +312,7 @@ func TestCloseWithPendingRPC(t *testing.T) {
 	}
 	defer test.cleanup()
 
-<<<<<<< HEAD
 	cc, err := grpc.Dial(r.Scheme()+":///test.server", grpc.WithInsecure(), grpc.WithResolvers(r), grpc.WithBalancerName(p2c.Name))
-=======
-	cc, err := grpc.Dial(r.Scheme()+":///test.server", grpc.WithInsecure(), grpc.WithDefaultServiceConfig(fmt.Sprintf(`{"LoadBalancingPolicy": "%s"}`, p2c.Name)))
->>>>>>> 3e718ca... tmp save
 	if err != nil {
 		t.Fatalf("failed to dial: %v", err)
 	}
@@ -357,12 +344,7 @@ func TestNewAddressWhileBlocking(t *testing.T) {
 		t.Fatalf("failed to start servers: %v", err)
 	}
 	defer test.cleanup()
-
-<<<<<<< HEAD
 	cc, err := grpc.Dial(r.Scheme()+":///test.server", grpc.WithInsecure(), grpc.WithResolvers(r), grpc.WithBalancerName(p2c.Name))
-=======
-	cc, err := grpc.Dial(r.Scheme()+":///test.server", grpc.WithInsecure(), grpc.WithDefaultServiceConfig(fmt.Sprintf(`{"LoadBalancingPolicy": "%s"}`, p2c.Name)))
->>>>>>> 3e718ca... tmp save
 	if err != nil {
 		t.Fatalf("failed to dial: %v", err)
 	}
@@ -412,12 +394,7 @@ func TestAllServersDown(t *testing.T) {
 		t.Fatalf("failed to start servers: %v", err)
 	}
 	defer test.cleanup()
-
-<<<<<<< HEAD
 	cc, err := grpc.Dial(r.Scheme()+":///test.server", grpc.WithInsecure(), grpc.WithResolvers(r), grpc.WithBalancerName(p2c.Name))
-=======
-	cc, err := grpc.Dial(r.Scheme()+":///test.server", grpc.WithInsecure(), grpc.WithDefaultServiceConfig(fmt.Sprintf(`{"LoadBalancingPolicy": "%s"}`, p2c.Name)))
->>>>>>> 3e718ca... tmp save
 	if err != nil {
 		t.Fatalf("failed to dial: %v", err)
 	}
