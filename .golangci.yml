@@ -53,8 +53,9 @@ run:
   allow-parallel-runners: false
 linters:
   disable:
-    - staticcheck
-linters-settings:  
+linters-settings:
+  staticcheck: 
+      checks: ["all", "-SA1019","-SA6002"]
   errcheck:
       # Report about not checking of errors in type assertions: `a := b.(MyStruct)`.
       # Such cases aren't reported by default.
