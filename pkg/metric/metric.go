@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/douyu/jupiter/pkg"
+	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/constant"
 	"github.com/douyu/jupiter/pkg/governor"
 	"github.com/prometheus/client_golang/prometheus"
@@ -148,15 +149,17 @@ var (
 )
 
 func init() {
-	BuildInfoGauge.WithLabelValues(
-		pkg.Name(),
-		pkg.AppID(),
-		pkg.AppMode(),
-		pkg.AppRegion(),
-		pkg.AppZone(),
-		pkg.AppVersion(),
-		pkg.GoVersion(),
-	).Set(float64(time.Now().UnixNano() / 1e6))
+	conf.OnLoaded(func(c *conf.Configuration) {
+		BuildInfoGauge.WithLabelValues(
+			pkg.Name(),
+			pkg.AppID(),
+			pkg.AppMode(),
+			pkg.AppRegion(),
+			pkg.AppZone(),
+			pkg.AppVersion(),
+			pkg.GoVersion(),
+		).Set(float64(time.Now().UnixNano() / 1e6))
+	})
 
 	governor.HandleFunc("/metrics", func(w http.ResponseWriter, r *http.Request) {
 		promhttp.Handler().ServeHTTP(w, r)
