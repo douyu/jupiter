@@ -46,6 +46,37 @@ func TestKickEmpty(t *testing.T) {
 	}
 }
 
+func TestKick(t *testing.T) {
+	type args struct {
+		ss     []string
+		remove func(string) bool
+	}
+	tests := []struct {
+		name string
+		args args
+		want Strings
+	}{
+		// TODO: Add test cases.
+		{
+			name: "testing",
+			args: args{
+				ss: []string{"0", "1", "2", "3"},
+				remove: func(item string) bool {
+					return item == "1" || item == "2"
+				},
+			},
+			want: Strings{"0", "3"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := Kick(tt.args.ss, tt.args.remove); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("KickEmpty() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestAnyBlank(t *testing.T) {
 	type args struct {
 		ss []string

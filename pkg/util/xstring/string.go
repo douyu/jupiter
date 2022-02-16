@@ -21,6 +21,7 @@ import (
 	"net"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 )
 
 // Addr2Hex converts address string to hex string, only support ipv4.
@@ -69,6 +70,16 @@ func KickEmpty(ss []string) Strings {
 	return Strings(ret)
 }
 
+func Kick(ss []string, remove func(item string) bool) Strings {
+	for i := 0; i < len(ss); i++ {
+		if remove(ss[i]) {
+			ss = append(ss[:i], ss[i+1:]...)
+			i--
+		}
+	}
+	return ss
+}
+
 // AnyBlank return true if ss has empty element
 func AnyBlank(ss []string) bool {
 	for _, str := range ss {
@@ -78,6 +89,27 @@ func AnyBlank(ss []string) bool {
 	}
 
 	return false
+}
+
+func Any(ss []string, match func(item string) bool) bool {
+	for _, str := range ss {
+		if match(str) {
+			return true
+		}
+	}
+	return false
+}
+
+func All(ss []string, match func(item string) bool) bool {
+	if len(ss) == 0 {
+		return false
+	}
+	for _, str := range ss {
+		if !match(str) {
+			return false
+		}
+	}
+	return true
 }
 
 // HeadT ...
@@ -142,4 +174,32 @@ func (ss Strings) Head4() (h0, h1, h2, h3 string) {
 // Split ...
 func Split(raw string, sep string) Strings {
 	return Strings(strings.Split(raw, sep))
+}
+
+func Pointer(str string) *string {
+	return &str
+}
+
+func IndexString(ss []string, str string) int {
+	for ind, s := range ss {
+		if str == s {
+			return ind
+		}
+	}
+	return -1
+}
+
+func HasString(ss []string, str string) bool {
+	return IndexString(ss, str) > -1
+}
+
+func Reverse(s string) string {
+	size := len(s)
+	buf := make([]byte, size)
+	for start := 0; start < size; {
+		r, n := utf8.DecodeRuneInString(s[start:])
+		start += n
+		utf8.EncodeRune(buf[size-start:], r)
+	}
+	return string(buf)
 }
