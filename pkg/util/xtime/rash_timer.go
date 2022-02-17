@@ -223,15 +223,11 @@ func (w *rashTimer) onTick() {
 	w.Lock()
 
 	index := int(w.jiffies & tvr_mask)
-
+	//nolint:staticcheck
 	if index == 0 && (w.cascade(w.tv2, w.getIndex(0))) == 0 &&
 		(w.cascade(w.tv3, w.getIndex(1))) == 0 &&
 		(w.cascade(w.tv4, w.getIndex(2))) == 0 &&
 		(w.cascade(w.tv5, w.getIndex(3)) == 0) {
-		//avoid empty if branch
-		for {
-			break
-		}
 	}
 
 	w.jiffies++

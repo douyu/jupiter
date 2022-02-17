@@ -185,9 +185,8 @@ func (wj wrappedJob) Run() {
 			wj.logger.Info("mutex lock", xlog.String("err", err.Error()))
 			return
 		}
-		defer func() {
-			_ = mutex.Unlock()
-		}()
+		//nolint: errcheck
+		defer mutex.Unlock()
 	}
 	_ = wj.run()
 }

@@ -39,9 +39,8 @@ func (server *GRPCServerGen) parseProtoFile(protoFilePath string) (err error) {
 	if err != nil {
 		return
 	}
-	defer func() {
-		_ = reader.Close()
-	}()
+	//nolint: saticcheck
+	defer reader.Close()
 	parser := proto.NewParser(reader)
 	definition, err := parser.Parse()
 	if err != nil {

@@ -39,9 +39,8 @@ func Parallel(fns ...func()) func() {
 	return func() {
 		wg.Add(len(fns))
 		for _, fn := range fns {
-			go func(fn func()) {
-				_ = try2(fn, wg.Done)
-			}(fn)
+			//nolint: errcheck
+			go try2(fn, wg.Done)
 		}
 		wg.Wait()
 	}
@@ -91,9 +90,8 @@ func GoDirect(fn interface{}, args ...interface{}) {
 
 // Go goroutine
 func Go(fn func()) {
-	go func() {
-		_ = try2(fn, nil)
-	}()
+	//nolint: errcheck
+	go try2(fn, nil)
 }
 
 // DelayGo goroutine

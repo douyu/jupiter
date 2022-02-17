@@ -200,6 +200,7 @@ var _asyncBufferPool = sync.Pool{
 // Take care of reopen, I am not sure if there need no lock
 func (l *Logger) run() {
 	var err error
+	//nolint: gosimple
 	for {
 		select {
 		case b := <-l.queue:
@@ -207,8 +208,6 @@ func (l *Logger) run() {
 				panic(err)
 			}
 			_asyncBufferPool.Put(b)
-		default:
-			time.Sleep(time.Millisecond * 100)
 		}
 	}
 }
