@@ -40,7 +40,6 @@ import (
 	"github.com/douyu/jupiter/pkg/util/xcolor"
 	"github.com/douyu/jupiter/pkg/util/xcycle"
 	"github.com/douyu/jupiter/pkg/util/xdebug"
-	"github.com/douyu/jupiter/pkg/util/xdefer"
 	"github.com/douyu/jupiter/pkg/util/xgo"
 	"github.com/douyu/jupiter/pkg/worker"
 	"github.com/douyu/jupiter/pkg/xlog"
@@ -50,16 +49,16 @@ import (
 // Application is the framework's instance, it contains the servers, workers, client and configuration settings.
 // Create an instance of Application, by using &Application{}
 type Application struct {
-	cycle        *xcycle.Cycle
-	smu          *sync.RWMutex
-	initOnce     sync.Once
-	startupOnce  sync.Once
-	stopOnce     sync.Once
-	servers      []server.Server
-	workers      []worker.Worker
-	jobs         map[string]job.Runner
-	logger       *xlog.Logger
-	hooks        map[uint32]*xdefer.DeferStack
+	cycle    *xcycle.Cycle
+	smu      *sync.RWMutex
+	initOnce sync.Once
+	// startupOnce  sync.Once
+	stopOnce sync.Once
+	servers  []server.Server
+	workers  []worker.Worker
+	jobs     map[string]job.Runner
+	logger   *xlog.Logger
+	// hooks        map[uint32]*xdefer.DeferStack
 	configParser conf.Unmarshaller
 	disableMap   map[Disable]bool
 	HideBanner   bool
@@ -108,8 +107,8 @@ func (app *Application) initialize() {
 		app.components = make([]component.Component, 0)
 		//private method
 
-		app.parseFlags()
-		app.printBanner()
+		_ = app.parseFlags()
+		_ = app.printBanner()
 	})
 }
 
@@ -227,7 +226,7 @@ func (app *Application) Run(servers ...server.Server) error {
 	defer app.clean()
 
 	// todo jobs not graceful
-	app.startJobs()
+	_ = app.startJobs()
 
 	// start servers and govern server
 	app.cycle.Run(app.startServers)
@@ -313,9 +312,9 @@ func (app *Application) waitSignals() {
 	signals.Shutdown(func(grace bool) { //when get shutdown signal
 		//todo: support timeout
 		if grace {
-			app.GracefulStop(context.TODO())
+			_ = app.GracefulStop(context.TODO())
 		} else {
-			app.Stop()
+			_ = app.Stop()
 		}
 	})
 }
@@ -345,13 +344,14 @@ func (app *Application) startServers() error {
 		s := s
 		eg.Go(func() (err error) {
 			defer func() {
-				ctx, _ := context.WithTimeout(context.Background(), 3*time.Second)
-				registry.DefaultRegisterer.UnregisterService(ctx, s.Info())
+				ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+				defer cancel()
+				_ = registry.DefaultRegisterer.UnregisterService(ctx, s.Info())
 				app.logger.Info("exit server", xlog.FieldMod(ecode.ModApp), xlog.FieldEvent("exit"), xlog.FieldName(s.Info().Name), xlog.FieldErr(err), xlog.FieldAddr(s.Info().Label()))
 			}()
 
 			time.AfterFunc(time.Second, func() {
-				registry.DefaultRegisterer.RegisterService(ctx, s.Info())
+				_ = registry.DefaultRegisterer.RegisterService(ctx, s.Info())
 				app.logger.Info("start server", xlog.FieldMod(ecode.ModApp), xlog.FieldEvent("init"), xlog.FieldName(s.Info().Name), xlog.FieldAddr(s.Info().Label()), xlog.Any("scheme", s.Info().Scheme))
 			})
 			err = s.Serve()

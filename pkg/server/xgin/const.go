@@ -16,12 +16,12 @@ package xgin
 
 //code
 const (
-	codeMS                   = 1000
-	codeMSInvalidParam       = 1001
-	codeMSInvoke             = 1002
-	codeMSInvokeLen          = 1003
-	codeMSSecondItemNotError = 1004
-	codeMSResErr             = 1005
+	codeMS = 1000
+	// codeMSInvalidParam       = 1001
+	// codeMSInvoke             = 1002
+	// codeMSInvokeLen          = 1003
+	// codeMSSecondItemNotError = 1004
+	// codeMSResErr             = 1005
 )
 const (
 	// StatusContinue ...

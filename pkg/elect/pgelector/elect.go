@@ -75,7 +75,7 @@ func (p *postgresLeaderElector) Start(stop <-chan struct{}) {
 
 		time.Sleep(p.backoffTime)
 	}
-	_logger.Info("Leader Elector stopped")
+	// _logger.Info("Leader Elector stopped")
 }
 
 func (p *postgresLeaderElector) leaderAcquired() {

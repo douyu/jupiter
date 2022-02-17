@@ -51,7 +51,6 @@ func recoverMiddleware(logger *xlog.Logger, slowQueryThresholdInMilli int64) ght
 			)
 
 			logger.Info("access", fields...)
-			return
 		}()
 		r.Middleware.Next()
 	}

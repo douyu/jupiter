@@ -83,11 +83,11 @@ func (fs *FlagSet) Lookup(name string) *flag.Flag {
 	if flag != nil {
 		if flag.Value.String() == "" {
 			if env, ok := fs.environs[name]; ok {
-				flag.Value.Set(env)
+				_ = flag.Value.Set(env)
 			}
 		}
 		if flag.Value.String() == "" {
-			flag.Value.Set(flag.DefValue)
+			_ = flag.Value.Set(flag.DefValue)
 		}
 	}
 	return flag

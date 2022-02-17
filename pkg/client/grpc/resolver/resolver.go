@@ -63,7 +63,7 @@ func (b *baseBuilder) Build(target resolver.Target, cc resolver.ClientConn, opts
 					address.Attributes = attributes.New(constant.KeyServiceInfo, node)
 					state.Addresses = append(state.Addresses, address)
 				}
-				cc.UpdateState(state)
+				_ = cc.UpdateState(state)
 			case <-stop:
 				return
 			}

@@ -100,6 +100,6 @@ func InjectTraceMD(ctx interface{ Set(string, interface{}) }, md *Tracer) {
 type tracerKey struct{}
 
 // NewContext ...
-func NewContext(ctx context.Context, tracer Tracer) context.Context {
+func NewContext(ctx context.Context, tracer *Tracer) context.Context {
 	return context.WithValue(ctx, tracerKey{}, tracer)
 }

@@ -105,7 +105,7 @@ func (c *Configuration) LoadEnvironments(prefix string) {
 		}
 		key := strings.ToLower(strings.ReplaceAll(env, "_", "."))
 		val := os.Getenv(env)
-		c.Set(key, val)
+		_ = c.Set(key, val)
 	}
 }
 

@@ -39,6 +39,7 @@ func Parallel(fns ...func()) func() {
 	return func() {
 		wg.Add(len(fns))
 		for _, fn := range fns {
+			//nolint: errcheck
 			go try2(fn, wg.Done)
 		}
 		wg.Wait()
@@ -55,7 +56,7 @@ func RestrictParallel(restrict int, fns ...func()) func() {
 			go func(fn func()) {
 				defer wg.Done()
 				channel <- struct{}{}
-				try2(fn, nil)
+				_ = try2(fn, nil)
 				<-channel
 			}(fn)
 		}
@@ -89,6 +90,7 @@ func GoDirect(fn interface{}, args ...interface{}) {
 
 // Go goroutine
 func Go(fn func()) {
+	//nolint: errcheck
 	go try2(fn, nil)
 }
 

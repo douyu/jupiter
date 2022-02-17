@@ -16,7 +16,6 @@ package etcdv3
 
 import (
 	"context"
-	"sync"
 
 	"github.com/douyu/jupiter/pkg/ecode"
 	"github.com/douyu/jupiter/pkg/util/xgo"
@@ -30,8 +29,8 @@ type Watch struct {
 	revision  int64
 	cancel    context.CancelFunc
 	eventChan chan *clientv3.Event
-	lock      *sync.RWMutex
-	logger    *xlog.Logger
+	// lock      *sync.RWMutex
+	// logger    *xlog.Logger
 
 	incipientKVs []*mvccpb.KeyValue
 }

@@ -6,13 +6,12 @@ import (
 
 	"github.com/douyu/jupiter/pkg/governor"
 	"github.com/douyu/jupiter/pkg/metric"
-	"github.com/douyu/jupiter/pkg/xlog"
 
 	jsoniter "github.com/json-iterator/go"
 )
 
 var (
-	_logger = xlog.JupiterLogger.With(xlog.FieldMod("gorm"))
+// _logger = xlog.JupiterLogger.With(xlog.FieldMod("gorm"))
 )
 
 func init() {
@@ -20,7 +19,7 @@ func init() {
 		Gorms map[string]interface{} `json:"gorms"`
 	}
 	var rets = gormStatus{
-		Gorms: make(map[string]interface{}, 0),
+		Gorms: make(map[string]interface{}),
 	}
 	governor.HandleFunc("/debug/gorm/stats", func(w http.ResponseWriter, r *http.Request) {
 		rets.Gorms = Stats()

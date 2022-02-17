@@ -121,7 +121,7 @@ func GetServiceValue(s *server.ServiceInfo) string {
 func GetService(s string) *server.ServiceInfo {
 	var si server.ServiceInfo
 	// TODO: 查询服务
-	json.Unmarshal([]byte(s), &si)
+	_ = json.Unmarshal([]byte(s), &si)
 	return &si
 }
 

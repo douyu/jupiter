@@ -30,7 +30,7 @@ var (
 func init() {
 	// 获取全部治理路由
 	HandleFunc("/routes", func(resp http.ResponseWriter, req *http.Request) {
-		json.NewEncoder(resp).Encode(routes)
+		_ = json.NewEncoder(resp).Encode(routes)
 	})
 
 	HandleFunc("/debug/pprof/", pprof.Index)

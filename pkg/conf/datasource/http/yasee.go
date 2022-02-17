@@ -150,7 +150,7 @@ func (y *yaseeDataSource) getConfigInner(addr string, enableWatch bool) (string,
 
 	content, err := y.getConfig(addr, enableWatch)
 	if err != nil {
-		content, err = ReadConfigFromFile(commonKey, "configCacheDir")
+		_, err = ReadConfigFromFile(commonKey, "configCacheDir")
 		if err != nil {
 			return "", errors.New("read config from both server and cache fail")
 		}

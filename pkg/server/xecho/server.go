@@ -23,7 +23,6 @@ import (
 	"os"
 
 	"github.com/douyu/jupiter/pkg/constant"
-	"github.com/douyu/jupiter/pkg/registry"
 	"github.com/douyu/jupiter/pkg/server"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/labstack/echo/v4"
@@ -33,9 +32,9 @@ import (
 // Server ...
 type Server struct {
 	*echo.Echo
-	config     *Config
-	listener   net.Listener
-	registerer registry.Registry
+	config   *Config
+	listener net.Listener
+	// registerer registry.Registry
 }
 
 func newServer(config *Config) (*Server, error) {
@@ -45,12 +44,13 @@ func newServer(config *Config) (*Server, error) {
 	)
 
 	if config.EnableTLS {
-		cert, err := ioutil.ReadFile(config.CertFile)
+		var cert, key []byte
+		cert, err = ioutil.ReadFile(config.CertFile)
 		if err != nil {
 			return nil, errors.Wrap(err, "read cert failed")
 		}
 
-		key, err := ioutil.ReadFile(config.PrivateFile)
+		key, err = ioutil.ReadFile(config.PrivateFile)
 		if err != nil {
 			return nil, errors.Wrap(err, "read private failed")
 		}
@@ -61,7 +61,6 @@ func newServer(config *Config) (*Server, error) {
 		if tlsConfig.Certificates[0], err = tls.X509KeyPair(cert, key); err != nil {
 			return nil, errors.Wrap(err, "X509KeyPair failed")
 		}
-
 		listener, err = tls.Listen("tcp", config.Address(), tlsConfig)
 	} else {
 		listener, err = net.Listen("tcp", config.Address())

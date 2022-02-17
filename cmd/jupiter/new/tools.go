@@ -81,9 +81,7 @@ func doCreateProject() (err error) {
 				return
 			}
 		}
-		if strings.HasSuffix(name, ".tmpl") {
-			name = strings.TrimSuffix(name, ".tmpl")
-		}
+		name = strings.TrimSuffix(name, ".tmpl")
 		if err = doWriteFile(filepath.Join(project.Path, name), tmpl); err != nil {
 			return
 		}

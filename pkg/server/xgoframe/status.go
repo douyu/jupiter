@@ -79,7 +79,7 @@ var (
 	jsonpbMarshaler = jsonpb.Marshaler{
 		EmitDefaults: true,
 	}
-	statusMSDefault *rstatus.Status
+	// statusMSDefault *rstatus.Status
 )
 
 type statusErr struct {
@@ -96,7 +96,7 @@ func (e *statusErr) Proto() *rstatus.Status {
 func init() {
 	s, _ := status.FromError(errMicroDefault)
 	de, _ := statusFromString(s.Message())
-	statusMSDefault = de.Proto()
+	_ = de.Proto()
 }
 func statusFromString(s string) (*statusErr, bool) {
 	i := strings.Index(s, ":")

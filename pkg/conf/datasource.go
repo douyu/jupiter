@@ -12,7 +12,7 @@ var (
 	// ErrInvalidDataSource defines an error that the scheme has been registered
 	ErrInvalidDataSource = errors.New("invalid data source, please make sure the scheme has been registered")
 	datasourceBuilders   = make(map[string]DataSourceCreatorFunc)
-	configDecoder        = make(map[string]Unmarshaller)
+	// configDecoder        = make(map[string]Unmarshaller)
 )
 
 // DataSourceCreatorFunc represents a dataSource creator function

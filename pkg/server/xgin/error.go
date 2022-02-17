@@ -15,18 +15,17 @@
 package xgin
 
 import (
-	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 var (
-	errBadRequest         = status.Errorf(codes.InvalidArgument, createStatusErr(codeMSInvalidParam, "bad request"))
-	errMicroDefault       = status.Errorf(codes.Internal, createStatusErr(codeMS, "micro default"))
-	errMicroInvoke        = status.Errorf(codes.Internal, createStatusErr(codeMSInvoke, "invoke failed"))
-	errMicroInvokeLen     = status.Errorf(codes.Internal, createStatusErr(codeMSInvokeLen, "invoke result not 2 item"))
-	errMicroInvokeInvalid = status.Errorf(codes.Internal, createStatusErr(codeMSSecondItemNotError, "second invoke res not a error"))
-	errMicroResInvalid    = status.Errorf(codes.Internal, createStatusErr(codeMSResErr, "response is not valid"))
+	// errBadRequest     = status.Errorf(codes.InvalidArgument, createStatusErr(codeMSInvalidParam, "bad request"))
+	errMicroDefault = status.Errorf(codes.Internal, createStatusErr(codeMS, "micro default"))
+	// errMicroInvoke  = status.Errorf(codes.Internal, createStatusErr(codeMSInvoke, "invoke failed"))
+	// errMicroInvokeLen = status.Errorf(codes.Internal, createStatusErr(codeMSInvokeLen, "invoke result not 2 item"))
+	// errMicroInvokeInvalid = status.Errorf(codes.Internal, createStatusErr(codeMSSecondItemNotError, "second invoke res not a error"))
+	// errMicroResInvalid = status.Errorf(codes.Internal, createStatusErr(codeMSResErr, "response is not valid"))
 )
 
 // HTTPError wraps handler error.
@@ -58,7 +57,7 @@ var ErrNotFound = HTTPError{
 
 var (
 	// ErrGRPCResponseValid ...
-	ErrGRPCResponseValid = grpc.Errorf(codes.Internal, "response valid")
+	ErrGRPCResponseValid = status.Errorf(codes.Internal, "response valid")
 	// ErrGRPCInvokeLen ...
-	ErrGRPCInvokeLen = grpc.Errorf(codes.Internal, "invoke request without len 2 res")
+	ErrGRPCInvokeLen = status.Errorf(codes.Internal, "invoke request without len 2 res")
 )

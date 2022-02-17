@@ -78,5 +78,5 @@ func Exists(key string) bool {
 
 // Set set config value for key
 func Set(key string, val interface{}) {
-	defaultConfiguration.Set(key, val)
+	_ = defaultConfiguration.Set(key, val)
 }
