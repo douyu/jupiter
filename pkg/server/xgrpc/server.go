@@ -16,12 +16,16 @@ package xgrpc
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
+	"io/ioutil"
 	"net"
 
 	"github.com/douyu/jupiter/pkg/constant"
 	"github.com/douyu/jupiter/pkg/server"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
 // Server ...
@@ -41,6 +45,32 @@ func newServer(config *Config) (*Server, error) {
 		[]grpc.UnaryServerInterceptor{defaultUnaryServerInterceptor(config.logger, config)},
 		config.unaryInterceptors...,
 	)
+
+	if config.EnableTLS {
+		cert, err := tls.LoadX509KeyPair(config.CertFile, config.PrivateFile)
+		if err != nil {
+			panic(err)
+		}
+
+		certPool := x509.NewCertPool()
+		rootBuf, err := ioutil.ReadFile(config.CaFile)
+		if err != nil {
+			panic(err)
+		}
+		if !certPool.AppendCertsFromPEM(rootBuf) {
+			panic("AppendCertsFromPEM failed")
+		}
+
+		tlsConf := &tls.Config{
+			ClientAuth:   tls.RequireAndVerifyClientCert,
+			Certificates: []tls.Certificate{cert},
+			ClientCAs:    certPool,
+		}
+
+		config.serverOptions = append(config.serverOptions,
+			grpc.Creds(credentials.NewTLS(tlsConf)),
+		)
+	}
 
 	config.serverOptions = append(config.serverOptions,
 		grpc.StreamInterceptor(StreamInterceptorChain(streamInterceptors...)),
