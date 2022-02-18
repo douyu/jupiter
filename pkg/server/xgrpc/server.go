@@ -24,6 +24,8 @@ import (
 
 	"github.com/douyu/jupiter/pkg/constant"
 	"github.com/douyu/jupiter/pkg/server"
+	"github.com/douyu/jupiter/pkg/xlog"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )
@@ -49,16 +51,16 @@ func newServer(config *Config) (*Server, error) {
 	if config.EnableTLS {
 		cert, err := tls.LoadX509KeyPair(config.CertFile, config.PrivateFile)
 		if err != nil {
-			panic(err)
+			xlog.Panic("tls.LoadX509KeyPair failed", zap.Error(err))
 		}
 
 		certPool := x509.NewCertPool()
 		rootBuf, err := ioutil.ReadFile(config.CaFile)
 		if err != nil {
-			panic(err)
+			xlog.Panic("ioutil.ReadFile failed", zap.Error(err))
 		}
 		if !certPool.AppendCertsFromPEM(rootBuf) {
-			panic("AppendCertsFromPEM failed")
+			xlog.Panic("certPool.AppendCertsFromPEM failed", zap.Error(err))
 		}
 
 		tlsConf := &tls.Config{
