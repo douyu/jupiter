@@ -18,14 +18,12 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
-	"fmt"
 	"io/ioutil"
 	"net"
 
 	"github.com/douyu/jupiter/pkg/constant"
 	"github.com/douyu/jupiter/pkg/server"
-	"github.com/douyu/jupiter/pkg/xlog"
-	"go.uber.org/zap"
+	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )
@@ -51,16 +49,16 @@ func newServer(config *Config) (*Server, error) {
 	if config.EnableTLS {
 		cert, err := tls.LoadX509KeyPair(config.CertFile, config.PrivateFile)
 		if err != nil {
-			xlog.Panic("tls.LoadX509KeyPair failed", zap.Error(err))
+			return nil, errors.Wrap(err, "tls.LoadX509KeyPair failed")
 		}
 
 		certPool := x509.NewCertPool()
 		rootBuf, err := ioutil.ReadFile(config.CaFile)
 		if err != nil {
-			xlog.Panic("ioutil.ReadFile failed", zap.Error(err))
+			return nil, errors.Wrap(err, "ioutil.ReadFile failed")
 		}
 		if !certPool.AppendCertsFromPEM(rootBuf) {
-			xlog.Panic("certPool.AppendCertsFromPEM failed", zap.Error(err))
+			return nil, errors.New("certPool.AppendCertsFromPEM failed")
 		}
 
 		tlsConf := &tls.Config{
@@ -82,8 +80,7 @@ func newServer(config *Config) (*Server, error) {
 	newServer := grpc.NewServer(config.serverOptions...)
 	listener, err := net.Listen(config.Network, config.Address())
 	if err != nil {
-		// config.logger.Panic("new grpc server err", xlog.FieldErrKind(ecode.ErrKindListenErr), xlog.FieldErr(err))
-		return nil, fmt.Errorf("create grpc server failed: %v", err)
+		return nil, errors.Wrap(err, "net.Listen failed")
 	}
 	config.Port = listener.Addr().(*net.TCPAddr).Port
 
