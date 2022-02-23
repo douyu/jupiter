@@ -119,17 +119,18 @@ func (c *Configuration) LoadFromDataSource(ds DataSource, unmarshaller Unmarshal
 	if err := c.Load(content, unmarshaller); err != nil {
 		return err
 	}
-
-	go func() {
-		for range ds.IsConfigChanged() {
-			if content, err := ds.ReadConfig(); err == nil {
-				_ = c.reflush(content, unmarshaller)
-				for _, change := range c.onChanges {
-					change(c)
+	if ds.IsConfigChanged() != nil {
+		go func() {
+			for range ds.IsConfigChanged() {
+				if content, err := ds.ReadConfig(); err == nil {
+					_ = c.reflush(content, unmarshaller)
+					for _, change := range c.onChanges {
+						change(c)
+					}
 				}
 			}
-		}
-	}()
+		}()
+	}
 
 	return nil
 }
