@@ -45,6 +45,14 @@ type Config struct {
 	SlowQueryThresholdInMilli int64
 	// ServiceAddress service address in registry info, default to 'Host:Port'
 	ServiceAddress string
+	// EnableTLS
+	EnableTLS bool
+	// CaFile
+	CaFile string
+	// CertFile
+	CertFile string
+	// PrivateFile
+	PrivateFile string
 
 	Labels map[string]string `json:"labels"`
 
@@ -86,6 +94,7 @@ func DefaultConfig() *Config {
 		EnableAccessLog:           true,
 		DisableMetric:             false,
 		DisableTrace:              false,
+		EnableTLS:                 false,
 		SlowQueryThresholdInMilli: 500,
 		logger:                    xlog.JupiterLogger.With(xlog.FieldMod("server.grpc")),
 		serverOptions:             []grpc.ServerOption{},
