@@ -53,7 +53,7 @@ func startWorker() worker.Worker {
 }
 // 注册xxl定时任务
 func startXxlJob() executor.Executor {
-	executor := xxl.StdNewExecutor()
+	executor := xxl.DefaultConfig().Build()
 	executor.RegXJob(
 		NewTest(),
 	)

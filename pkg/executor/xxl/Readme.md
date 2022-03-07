@@ -55,7 +55,8 @@ func (eng *Engine) startXxlJob() error {
 		NewTest(),
 		NewTest2(),
 	)
-	return eng.Executor(executor)
+	eng.Executor(executor)
+	return nil
 }
 
 
