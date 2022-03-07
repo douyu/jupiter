@@ -403,8 +403,7 @@ func (app *Application) startJobs() error {
 
 // start executor
 func (app *Application) startExecutors() error {
-	executor.Run()
-	return nil
+	return executor.Run()
 }
 
 //parseFlags init
