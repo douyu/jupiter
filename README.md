@@ -26,7 +26,7 @@ func main() {
 	app.Serve(startHTTPServer())
 	app.Serve(startGRPCServer())
 	app.Schedule(startWorker())
-	app..Executor(startXxlJob())
+	app.Executor(startXxlJob())
 	app.Run()
 }
 
