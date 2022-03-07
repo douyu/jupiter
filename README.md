@@ -26,7 +26,7 @@ func main() {
 	app.Serve(startHTTPServer())
 	app.Serve(startGRPCServer())
 	app.Schedule(startWorker())
-	app.Executor(startXxlJob())
+//	app.Executor(startXxlJob())
 	app.Run()
 }
 
@@ -52,6 +52,7 @@ func startWorker() worker.Worker {
 	return cron
 }
 // 注册xxl定时任务
+/*
 func startXxlJob() executor.Executor {
 	executor := xxl.DefaultConfig().Build()
 	executor.RegXJob(
@@ -59,7 +60,7 @@ func startXxlJob() executor.Executor {
 	)
 	return executor
 }
-
+*/
 ```
 
 More Example:   
