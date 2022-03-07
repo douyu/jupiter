@@ -1,9 +1,13 @@
-package executor
+package xxl
 
 import (
+	"fmt"
+	"strings"
 	"time"
 
+	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/executor/xxl/constants"
+	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/go-basic/ipv4"
 )
 
@@ -29,7 +33,7 @@ var (
 	DefaultExecuteIp     = ipv4.LocalIP()
 )
 
-func NewDefaultOptions() *Options {
+func DefaultOptions() *Options {
 	opt := &Options{
 		ExecutorIp:    DefaultExecuteIp,
 		ExecutorPort:  DefaultExecutorPort,
@@ -40,6 +44,36 @@ func NewDefaultOptions() *Options {
 		Switch:        DefaultSwitch,
 	}
 	return opt
+}
+
+func DefaultConfig() *Options {
+	// 加载框架默认Options
+	options := DefaultOptions()
+	// 加载用户自定义Options
+	if err := conf.UnmarshalKey("xxl.job.executor", options, conf.TagName("toml")); err != nil {
+		xlog.Panicf("unmarshal config", xlog.FieldName("xxl.job.executor"), xlog.FieldErr(err))
+	}
+	if strings.TrimSpace(options.LogDir) == "" {
+		options.LogDir = constants.BasePath + options.RegistryKey + "/jobhandler/"
+	}
+	return options
+}
+
+func (options *Options) Build() *JobExecutor {
+	// 校验配置项，如果校验失败将会panic
+	CheckOptions(options)
+	// 创建执行器
+	executor := &JobExecutor{
+		opts: *options,
+		regList: &taskList{
+			data: make(map[string]*TaskWithPending),
+		},
+		runList: &taskList{
+			data: make(map[string]*TaskWithPending),
+		},
+		address: fmt.Sprintf("%s:%s", options.ExecutorIp, options.ExecutorPort),
+	}
+	return executor
 }
 
 type Option func(o *Options)

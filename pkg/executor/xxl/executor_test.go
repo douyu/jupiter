@@ -31,36 +31,38 @@ func Test_NewExecutor(t *testing.T) {
 	// 测试用例
 	tests := []struct {
 		name string
-		opts []executor.Option
-		want executor.Options
+		opts []Option
+		want Options
 	}{
 		{
 			name: "useDefaultOptions",
-			want: executor.Options{
-				ServerAddr:   "http://127.0.0.1:8080/xxl-job-admin",
-				AccessToken:  "jupiter-token",
-				ExecutorIp:   ipv4.LocalIP(),
-				ExecutorPort: "59001",
-				RegistryKey:  "jupiter-xxl-job-demo",
-				LogDir:       constants.BasePath + "jupiter-xxl-job-demo" + "/jobhandler/",
-				Switch:       true,
-				Debug:        false,
+			want: Options{
+				ServerAddr:    "http://127.0.0.1:8080/xxl-job-admin",
+				AccessToken:   "jupiter-token",
+				ExecutorIp:    ipv4.LocalIP(),
+				ExecutorPort:  "59001",
+				RegistryKey:   "jupiter-xxl-job-demo",
+				RegistryGroup: "EXECUTOR",
+				LogDir:        constants.BasePath + "jupiter-xxl-job-demo" + "/jobhandler/",
+				Switch:        true,
+				Debug:         false,
 			},
 		},
 		{
 			name: "useOptions",
-			opts: []executor.Option{executor.ExecutorHost("127.0.0.1"), executor.ExecutorPort("7894"), executor.AccessToken("test-token"),
-				executor.Debug(), executor.RegistryKey("jupiter-demo"), executor.Switch(false),
-				executor.ServerAddr("http://test/")},
-			want: executor.Options{
-				ServerAddr:   "http://test/",
-				AccessToken:  "test-token",
-				ExecutorIp:   "127.0.0.1",
-				ExecutorPort: "7894",
-				RegistryKey:  "jupiter-demo",
-				LogDir:       constants.BasePath + "jupiter-demo/jobhandler/",
-				Switch:       false,
-				Debug:        true,
+			opts: []Option{ExecutorHost("127.0.0.1"), ExecutorPort("7894"), AccessToken("test-token"),
+				Debug(), RegistryKey("jupiter-demo"), RegistryGroup("CONTAINS"), Switch(false),
+				ServerAddr("http://test/")},
+			want: Options{
+				ServerAddr:    "http://test/",
+				AccessToken:   "test-token",
+				ExecutorIp:    "127.0.0.1",
+				ExecutorPort:  "7894",
+				RegistryKey:   "jupiter-demo",
+				RegistryGroup: "CONTAINS",
+				LogDir:        constants.BasePath + "jupiter-demo/jobhandler/",
+				Switch:        false,
+				Debug:         true,
 			},
 		},
 	}
@@ -76,8 +78,8 @@ func Test_NewExecutor(t *testing.T) {
 func Test_Run(t *testing.T) {
 	tests := []struct {
 		name string
-		opts []executor.Option
-		want executor.Options
+		opts []Option
+		want Options
 	}{}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

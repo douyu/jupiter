@@ -12,18 +12,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/executor"
-	"github.com/douyu/jupiter/pkg/executor/xxl/constants"
 	"github.com/douyu/jupiter/pkg/executor/xxl/logger"
 	"github.com/douyu/jupiter/pkg/util/xdebug"
-	"github.com/douyu/jupiter/pkg/xlog"
 )
 
 var MaxQueueSize = 1
 
 type JobExecutor struct {
-	opts    executor.Options
+	opts    Options
 	address string
 	regList *taskList //注册任务列表
 	runList *taskList //正在执行任务列表
@@ -31,38 +28,20 @@ type JobExecutor struct {
 }
 
 //创建执行器
-func StdNewExecutor(opts ...executor.Option) executor.Executor {
+func StdNewExecutor(opts ...Option) executor.Executor {
 	return newJobExecutor(opts...)
 }
 
 //创建执行器
-func newJobExecutor(opts ...executor.Option) *JobExecutor {
+func newJobExecutor(opts ...Option) *JobExecutor {
 	// 加载默认配置
-	options := executor.NewDefaultOptions()
-	// 加载自定义配置
-	if err := conf.UnmarshalKey("xxl.job.executor", &options, conf.TagName("toml")); err != nil {
-		xlog.Panicf("unmarshal config", xlog.FieldName("xxl.job.executor"), xlog.FieldErr(err))
-	}
-	if strings.TrimSpace(options.LogDir) == "" {
-		options.LogDir = constants.BasePath + options.RegistryKey + "/jobhandler/"
-	}
+	options := DefaultConfig()
 	// 加载参数式配置
 	for _, o := range opts {
 		o(options)
 	}
+	executor := options.Build()
 	// 校验配置项，如果校验失败将会panic
-	executor.CheckOptions(options)
-	// 创建执行器
-	executor := &JobExecutor{
-		opts: *options,
-		regList: &taskList{
-			data: make(map[string]*TaskWithPending),
-		},
-		runList: &taskList{
-			data: make(map[string]*TaskWithPending),
-		},
-		address: fmt.Sprintf("%s:%s", options.ExecutorIp, options.ExecutorPort),
-	}
 	return executor
 }
 
@@ -322,7 +301,7 @@ func (e *JobExecutor) registryRemove() {
 	req := &Registry{
 		RegistryGroup: "EXECUTOR",
 		RegistryKey:   e.opts.RegistryKey,
-		RegistryValue: e.address,
+		RegistryValue: "http" + e.address,
 	}
 	param, err := json.Marshal(req)
 	if err != nil {

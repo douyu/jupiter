@@ -55,7 +55,7 @@ func NewEngine() *Engine {
 }
 
 func (eng *Engine) startXxlJob() error {
-	executor := xxl.StdNewExecutor(executor.ExecutorHost("localhost"))
+	executor := xxl.StdNewExecutor(xxl.ExecutorHost("127.0.0.1"))
 	executor.RegXJob(
 		NewTest(),
 		NewTest2(),
