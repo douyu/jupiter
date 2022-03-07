@@ -6,7 +6,8 @@ require (
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/alibaba/sentinel-golang v1.0.4
 	github.com/apache/rocketmq-client-go/v2 v2.0.0
-	github.com/douyu/jupiter v0.0.0-00010101000000-000000000000
+	github.com/douyu/jupiter v0.4.1
+	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/gin-gonic/gin v1.7.7
 	github.com/gogf/gf v1.13.3
 	github.com/golang/protobuf v1.5.2
