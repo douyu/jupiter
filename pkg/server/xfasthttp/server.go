@@ -71,6 +71,7 @@ func newServer(config *Config) (*Server, error) {
 
 	return &Server{
 		Server: &fasthttp.Server{
+			Concurrency:       config.Concurrency,
 			ReadBufferSize:    config.ReadBufferSize,
 			WriteBufferSize:   config.WriteBufferSize,
 			ReduceMemoryUsage: config.ReduceMemoryUsage,
