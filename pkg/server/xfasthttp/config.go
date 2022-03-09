@@ -47,6 +47,7 @@ type Config struct {
 	ReadBufferSize            int
 	WriteBufferSize           int
 	ReduceMemoryUsage         bool
+	Concurrency               int
 
 	logger *xlog.Logger
 }
@@ -67,6 +68,7 @@ func DefaultConfig() *Config {
 		EnableTLS:                 false,
 		CertFile:                  "cert.pem",
 		PrivateFile:               "private.pem",
+		Concurrency:               1000 * 1000,
 	}
 }
 
