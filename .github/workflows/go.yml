@@ -85,7 +85,6 @@ jobs:
           perl -i -pe's/-Xms8g -Xmx8g -Xmn4g/-Xms2g -Xmx2g -Xmn1g/g' bin/runbroker.sh
           nohup sh bin/mqnamesrv &
           nohup sh bin/mqbroker -n localhost:9876 &
-          sleep 5
           timeout 15s bash -c 'until sh bin/mqadmin updateTopic -n localhost:9876 -b localhost:10911 -t test; do sleep 1; done'
 
       - name: Test
