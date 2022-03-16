@@ -33,6 +33,9 @@ type ConsumerConfig struct {
 	Reconsume       int32         `json:"reconsume" toml:"reconsume"`
 	AccessKey       string        `json:"accessKey" toml:"accessKey"`
 	SecretKey       string        `json:"secretKey" toml:"secretKey"`
+	MessageModel    string        `json:"messageModel" toml:"messageModel"` // 消费模式,默认clustering
+	// client实例名，如果不希望复用client（多nameserver导致启动失败），则可配置此字段
+	InstanceName string `json:"instanceName" toml:"instanceName"`
 }
 
 // ProducerConfig producer config
@@ -87,7 +90,7 @@ func DefaultProducerConfig() ProducerConfig {
 }
 
 // StdPushConsumerConfig ...
-func StdPushConsumerConfig(name string) *ConsumerConfig {
+func StdPushConsumerConfig(name string) ConsumerConfig {
 
 	cc := RawConsumerConfig("jupiter.rocketmq." + name + ".consumer")
 	rc := RawConfig("jupiter.rocketmq." + name)
@@ -105,7 +108,7 @@ func StdPushConsumerConfig(name string) *ConsumerConfig {
 		}
 	}
 
-	return &cc
+	return cc
 }
 
 // StdProducerConfig ...
