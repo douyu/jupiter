@@ -83,8 +83,9 @@ jobs:
           unzip rocketmq-all-4.6.0-bin-release.zip
           cd rocketmq-all-4.6.0-bin-release
           perl -i -pe's/-Xms8g -Xmx8g -Xmn4g/-Xms2g -Xmx2g -Xmn1g/g' bin/runbroker.sh
+          echo "brokerIP1=127.0.0.1" > broker.properties
           nohup sh bin/mqnamesrv &
-          nohup sh bin/mqbroker -n localhost:9876 &
+          nohup sh bin/mqbroker -n localhost:9876 -c broker.properties&
           timeout 15s bash -c 'until sh bin/mqadmin updateTopic -n localhost:9876 -b localhost:10911 -t test; do sleep 1; done'
 
       - name: Test
