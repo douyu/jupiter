@@ -185,10 +185,10 @@ func TestApplication_BeforeStop(t *testing.T) {
 			time.Sleep(time.Microsecond * 100)
 			err := app.Stop()
 			c.So(err, ShouldBeNil)
-			c.So(si.state, ShouldEqual, true)
 		}(si)
 		err := app.Run()
 		c.So(err, ShouldBeNil)
+		c.So(si.state, ShouldEqual, true)
 	})
 }
 func TestApplication_EmptyRun(t *testing.T) {
