@@ -35,7 +35,7 @@ type PushConsumer struct {
 	fInfo        FlowInfo
 }
 
-func (conf *ConsumerConfig) Build() *PushConsumer {
+func (conf ConsumerConfig) Build() *PushConsumer {
 	name := conf.Name
 	if _, ok := _consumers.Load(name); ok {
 		xlog.Panic("duplicated load", xlog.String("name", name))
@@ -45,7 +45,7 @@ func (conf *ConsumerConfig) Build() *PushConsumer {
 
 	pc := &PushConsumer{
 		name:           name,
-		ConsumerConfig: *conf,
+		ConsumerConfig: conf,
 		subscribers:    make(map[string]func(context.Context, ...*primitive.MessageExt) (consumer.ConsumeResult, error)),
 		interceptors:   []primitive.Interceptor{},
 		fInfo: FlowInfo{

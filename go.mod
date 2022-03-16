@@ -35,7 +35,8 @@ require (
 	github.com/mitchellh/mapstructure v1.4.2
 	github.com/modern-go/reflect2 v1.0.2
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
-	github.com/onsi/gomega v1.13.0 // indirect
+	github.com/onsi/ginkgo v1.16.2
+	github.com/onsi/gomega v1.13.0
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/philchia/agollo/v4 v4.1.3
 	github.com/pkg/errors v0.9.1

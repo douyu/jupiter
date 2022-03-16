@@ -171,7 +171,19 @@ func (pc *Producer) SendWithResult(msg []byte, tag string) (*primitive.SendResul
 
 // SendMsg... 自定义消息格式
 func (pc *Producer) SendMsg(msg *primitive.Message) (*primitive.SendResult, error) {
+	msg.Topic = pc.Topic
 	res, err := pc.SendSync(context.Background(), msg)
+	if err != nil {
+		xlog.Error("send message error", xlog.Any("msg", msg))
+		return res, err
+	}
+	return res, nil
+}
+
+// SendWithMsg... 自定义消息格式
+func (pc *Producer) SendWithMsg(ctx context.Context, msg *primitive.Message) (*primitive.SendResult, error) {
+	msg.Topic = pc.Topic
+	res, err := pc.SendSync(ctx, msg)
 	if err != nil {
 		xlog.Error("send message error", xlog.Any("msg", msg))
 		return res, err
