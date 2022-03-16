@@ -66,10 +66,10 @@ jobs:
           wget https://archive.apache.org/dist/rocketmq/4.6.0/rocketmq-all-4.6.0-bin-release.zip
           unzip rocketmq-all-4.6.0-bin-release.zip
           cd rocketmq-all-4.6.0-bin-release
-          sh bin/mqadmin updateTopic -n localhost:9876 -b localhost:10911 -t test
           perl -i -pe's/-Xms8g -Xmx8g -Xmn4g/-Xms2g -Xmx2g -Xmn1g/g' bin/runbroker.sh
           nohup sh bin/mqnamesrv &
           nohup sh bin/mqbroker -n localhost:9876 &
+          sh bin/mqadmin updateTopic -n localhost:9876 -b localhost:10911 -t test
 
       - name: Test
         run: go test -race -coverprofile=coverage.txt -covermode=atomic ./...
