@@ -54,10 +54,15 @@ jobs:
               dep ensure
           fi
 
+      - uses: actions/checkout@v2
+      - uses: actions/setup-java@v2
+        with:
+          distribution: 'temurin' # See 'Supported distributions' for available options
+          java-version: '8'
       - name: setup rocketmq
         run: |
           export PROJECT_PATH=`pwd`
-          cd $PROJECT_PATH
+          cd $HOME
           wget https://archive.apache.org/dist/rocketmq/4.6.0/rocketmq-all-4.6.0-bin-release.zip
           unzip rocketmq-all-4.6.0-bin-release.zip
           cd rocketmq-all-4.6.0-bin-release
