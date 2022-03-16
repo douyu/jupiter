@@ -5,15 +5,22 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/apache/rocketmq-client-go/v2/primitive"
 	"github.com/douyu/jupiter/pkg/application"
 	"github.com/douyu/jupiter/pkg/governor"
+	"github.com/douyu/jupiter/pkg/xlog"
 	jsoniter "github.com/json-iterator/go"
+	"go.uber.org/zap"
 )
 
 var _producers = &sync.Map{}
 var _consumers = &sync.Map{}
 
 func init() {
+	primitive.PanicHandler = func(i interface{}) {
+		xlog.Error("rocketmq panic recovery", zap.Any("error", i))
+	}
+
 	governor.HandleFunc("/debug/rocketmq/stats", func(w http.ResponseWriter, r *http.Request) {
 		type rocketmqStatus struct {
 			application.RuntimeStats
