@@ -86,7 +86,8 @@ jobs:
           echo "brokerIP1=127.0.0.1" > broker.properties
           nohup sh bin/mqnamesrv &
           nohup sh bin/mqbroker -n localhost:9876 -c broker.properties &
-          timeout 15s bash -c 'until sh bin/mqadmin updateTopic -n localhost:9876 -b localhost:10911 -t test|grep failed||false; do sleep 1; done'
+          sleep 10
+          sh bin/mqadmin updateTopic -n localhost:9876 -b localhost:10911 -t test
 
       - name: Test
         run: go test -race -coverprofile=coverage.txt -covermode=atomic ./...
