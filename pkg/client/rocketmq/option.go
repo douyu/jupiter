@@ -66,7 +66,8 @@ func DefaultConfig() Config {
 			Retry: 3,
 		},
 		Consumer: &ConsumerConfig{
-			Reconsume: 3,
+			Reconsume:       3,
+			WaitMaxDuration: 60 * time.Second,
 		},
 	}
 }
@@ -74,9 +75,10 @@ func DefaultConfig() Config {
 // DefaultConsumerConfig ...
 func DefaultConsumerConfig() ConsumerConfig {
 	return ConsumerConfig{
-		DialTimeout: time.Second * 3,
-		RwTimeout:   time.Second * 10,
-		Reconsume:   3,
+		DialTimeout:     time.Second * 3,
+		RwTimeout:       time.Second * 10,
+		Reconsume:       3,
+		WaitMaxDuration: 60 * time.Second,
 	}
 }
 
