@@ -32,7 +32,7 @@ func TestCycleDone(t *testing.T) {
 		select {
 		case <-c.Done():
 			state = "done"
-		case <-time.After(time.Millisecond):
+		case <-time.After(time.Second):
 			state = "close"
 		}
 		c.Close()
