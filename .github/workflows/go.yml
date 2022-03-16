@@ -86,7 +86,7 @@ jobs:
           nohup sh bin/mqnamesrv &
           nohup sh bin/mqbroker -n localhost:9876 &
           sleep 5
-          sh bin/mqadmin updateTopic -n localhost:9876 -b localhost:10911 -t test
+          timeout 15s bash -c 'until sh bin/mqadmin updateTopic -n localhost:9876 -b localhost:10911 -t test; do sleep 1; done'
 
       - name: Test
         run: go test -race -coverprofile=coverage.txt -covermode=atomic ./...
