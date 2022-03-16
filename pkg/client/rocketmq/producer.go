@@ -180,12 +180,12 @@ func (pc *Producer) SendMsg(msg *primitive.Message) (*primitive.SendResult, erro
 }
 
 // SendWithMsg... 自定义消息格式
-func (pc *Producer) SendWithMsg(ctx context.Context, msg *primitive.Message) (*primitive.SendResult, error) {
+func (pc *Producer) SendWithMsg(ctx context.Context, msg *primitive.Message) error {
 	msg.Topic = pc.Topic
-	res, err := pc.SendSync(ctx, msg)
+	_, err := pc.SendSync(ctx, msg)
 	if err != nil {
 		xlog.Error("send message error", xlog.Any("msg", msg))
-		return res, err
+		return err
 	}
-	return res, nil
+	return nil
 }

@@ -75,7 +75,7 @@ var _ = Describe("push and consume", func() {
 			msg := primitive.NewMessage("", []byte("msg"+strconv.Itoa(i)))
 			msg = msg.WithTag("TagB")
 
-			_, err = producerClient.SendWithMsg(context.TODO(), msg)
+			err = producerClient.SendWithMsg(context.TODO(), msg)
 			Expect(err).Should(BeNil())
 		}
 
