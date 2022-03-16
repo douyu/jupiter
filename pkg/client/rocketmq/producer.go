@@ -20,7 +20,6 @@ import (
 	"github.com/apache/rocketmq-client-go/v2"
 	"github.com/apache/rocketmq-client-go/v2/primitive"
 	"github.com/apache/rocketmq-client-go/v2/producer"
-	"github.com/douyu/jupiter/pkg/defers"
 	"github.com/douyu/jupiter/pkg/istats"
 	"github.com/douyu/jupiter/pkg/util/xdebug"
 	"github.com/douyu/jupiter/pkg/xlog"
@@ -98,7 +97,7 @@ func (pc *Producer) Start() error {
 
 	pc.Producer = client
 	// 在应用退出的时候，保证注销
-	defers.Register(pc.Close)
+	// defers.Register(pc.Close)
 	return nil
 }
 
