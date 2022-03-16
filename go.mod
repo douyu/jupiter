@@ -7,7 +7,7 @@ require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/alibaba/sentinel-golang v1.0.4
 	github.com/alicebob/miniredis/v2 v2.15.1
-	github.com/apache/rocketmq-client-go/v2 v2.0.0
+	github.com/apache/rocketmq-client-go/v2 v2.1.1-rc2
 	github.com/aws/aws-sdk-go v1.40.45 // indirect
 	github.com/codegangsta/inject v0.0.0-20150114235600-33e0aa1cb7c0
 	github.com/davecgh/go-spew v1.1.1
