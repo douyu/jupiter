@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/douyu/jupiter/pkg/conf"
+	"github.com/douyu/jupiter/pkg/constant"
 	"github.com/douyu/jupiter/pkg/util/xdebug"
 	"github.com/douyu/jupiter/pkg/xlog"
 )
@@ -108,8 +109,8 @@ func DefaultProducerConfig() ProducerConfig {
 // StdPushConsumerConfig ...
 func StdPushConsumerConfig(name string) ConsumerConfig {
 
-	cc := RawConsumerConfig("jupiter.rocketmq." + name + ".consumer")
-	rc := RawConfig("jupiter.rocketmq." + name)
+	cc := RawConsumerConfig(constant.ConfigPrefix + ".rocketmq." + name + ".consumer")
+	rc := RawConfig(constant.ConfigPrefix + ".rocketmq." + name)
 
 	// 兼容rocket_client_mq变更，addr需要携带shceme
 	if len(cc.Addr) == 0 {
@@ -129,8 +130,8 @@ func StdPushConsumerConfig(name string) ConsumerConfig {
 
 // StdProducerConfig ...
 func StdProducerConfig(name string) *ProducerConfig {
-	pc := RawProducerConfig("jupiter.rocketmq." + name + ".producer")
-	rc := RawConfig("jupiter.rocketmq." + name)
+	pc := RawProducerConfig(constant.ConfigPrefix + ".rocketmq." + name + ".producer")
+	rc := RawConfig(constant.ConfigPrefix + ".rocketmq." + name)
 	// 兼容rocket_client_mq变更，addr需要携带shceme
 	if len(pc.Addr) == 0 {
 		pc.Addr = rc.Addresses
