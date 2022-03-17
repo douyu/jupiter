@@ -26,8 +26,8 @@ type PushConsumer struct {
 
 func (conf ConsumerConfig) Build() *PushConsumer {
 	name := conf.Name
-	if _, ok := _consumers.Load(name); ok {
-		xlog.Panic("duplicated load", xlog.String("name", name))
+	if cc, ok := _consumers.Load(name); ok {
+		return cc.(*PushConsumer)
 	}
 
 	xlog.Debug("rocketmq's config: ", xlog.String("name", name), xlog.Any("conf", conf))

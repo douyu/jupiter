@@ -39,8 +39,8 @@ func StdNewProducer(name string) *Producer {
 
 func (conf *ProducerConfig) Build() *Producer {
 	name := conf.Name
-	if _, ok := _producers.Load(name); ok {
-		xlog.Panic("duplicated load", xlog.String("name", name))
+	if cc, ok := _producers.Load(name); ok {
+		return cc.(*Producer)
 	}
 
 	if xdebug.IsDevelopmentMode() {
