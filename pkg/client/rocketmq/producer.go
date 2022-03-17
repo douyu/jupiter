@@ -96,7 +96,7 @@ func (pc *Producer) Start() error {
 	}
 
 	pc.Producer = client
-	// 在应用退出的时候，保证注销
+	// 进程退出时，producer不Close，避免消息发失败
 	// defers.Register(pc.Close)
 	return nil
 }
