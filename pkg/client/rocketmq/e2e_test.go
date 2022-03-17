@@ -32,12 +32,6 @@ var _ = Describe("push and consume", func() {
 		conf.LoadFromDataSource(file.NewDataSource("../../../test/testdata/rocketmq/conf/rocketmq.toml", false), toml.Unmarshal)
 		consumerClient := rocketmq.StdPushConsumerConfig("example").Build()
 
-		defer func() {
-			if consumerClient.Enable {
-				consumerClient.Close()
-			}
-		}()
-
 		count := int32(0)
 
 		consumerClient.Subscribe(consumerClient.ConsumerConfig.Topic, func(ctx context.Context, ext *primitive.MessageExt) error {
@@ -50,7 +44,6 @@ var _ = Describe("push and consume", func() {
 		Expect(err).Should(BeNil())
 
 		producerClient := rocketmq.StdProducerConfig("example").Build()
-		defer producerClient.Close()
 
 		err = producerClient.Start()
 		Expect(err).Should(BeNil())
@@ -82,17 +75,14 @@ var _ = Describe("push and consume", func() {
 		Eventually(func() int {
 			return int(atomic.LoadInt32(&count))
 		}, 5*time.Second, 500*time.Millisecond).Should(Equal(20))
+
+		consumerClient.Close()
+		producerClient.Close()
 	})
 
 	It("panic recover", func() {
 		conf.LoadFromDataSource(file.NewDataSource("../../../test/testdata/rocketmq/conf/rocketmq.toml", false), toml.Unmarshal)
 		consumerClient := rocketmq.StdPushConsumerConfig("example").Build()
-
-		defer func() {
-			if consumerClient.Enable {
-				consumerClient.Close()
-			}
-		}()
 
 		count := int32(0)
 
@@ -105,7 +95,6 @@ var _ = Describe("push and consume", func() {
 		Expect(err).Should(BeNil())
 
 		producerClient := rocketmq.StdProducerConfig("example").Build()
-		defer producerClient.Close()
 
 		err = producerClient.Start()
 		Expect(err).Should(BeNil())
@@ -115,5 +104,8 @@ var _ = Describe("push and consume", func() {
 			err = producerClient.Send([]byte(msg))
 			Expect(err).Should(BeNil())
 		}
+
+		consumerClient.Close()
+		producerClient.Close()
 	})
 })
