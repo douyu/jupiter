@@ -95,7 +95,7 @@ jobs:
         run: |
           go test `go list ./... | grep -v github.com/douyu/jupiter/pkg/client/rocketmq` -race
           # test rocketmq
-          sh $HOME/bin/mqadmin updateTopic -n localhost:9876 -b localhost:10911 -t test
+          sh $HOME/rocketmq-all-4.6.0-bin-release/bin/mqadmin updateTopic -n localhost:9876 -b localhost:10911 -t test
           go test -coverprofile=coverage.txt -covermode=atomic ./...
 
       - name: Codecov
