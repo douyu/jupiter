@@ -73,7 +73,7 @@ func (pc *Producer) Start() error {
 		producer.WithNameServer(pc.Addr),
 		producer.WithRetry(pc.Retry),
 		producer.WithInterceptor(pc.interceptors...),
-		producer.WithInstanceName(pc.name),
+		producer.WithInstanceName(pc.InstanceName),
 		producer.WithCredentials(primitive.Credentials{
 			AccessKey: pc.AccessKey,
 			SecretKey: pc.SecretKey,
