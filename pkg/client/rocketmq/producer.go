@@ -34,7 +34,7 @@ type Producer struct {
 }
 
 func StdNewProducer(name string) *Producer {
-	return StdProducerConfig("configName").Build()
+	return StdProducerConfig(name).Build()
 }
 
 func (conf *ProducerConfig) Build() *Producer {
