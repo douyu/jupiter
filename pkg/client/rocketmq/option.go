@@ -1,10 +1,27 @@
+// Copyright 2022 Douyu
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package rocketmq
 
 import (
+	"crypto/md5"
+	"fmt"
 	"strings"
 	"time"
 
 	"github.com/douyu/jupiter/pkg/conf"
+	"github.com/douyu/jupiter/pkg/constant"
 	"github.com/douyu/jupiter/pkg/util/xdebug"
 	"github.com/douyu/jupiter/pkg/xlog"
 )
@@ -33,6 +50,9 @@ type ConsumerConfig struct {
 	Reconsume       int32         `json:"reconsume" toml:"reconsume"`
 	AccessKey       string        `json:"accessKey" toml:"accessKey"`
 	SecretKey       string        `json:"secretKey" toml:"secretKey"`
+	MessageModel    string        `json:"messageModel" toml:"messageModel"` // 消费模式,默认clustering
+	// client实例名，如果不希望复用client（多nameserver导致启动失败），则可配置此字段
+	InstanceName string `json:"instanceName" toml:"instanceName"`
 }
 
 // ProducerConfig producer config
@@ -63,7 +83,8 @@ func DefaultConfig() Config {
 			Retry: 3,
 		},
 		Consumer: &ConsumerConfig{
-			Reconsume: 3,
+			Reconsume:       3,
+			WaitMaxDuration: 60 * time.Second,
 		},
 	}
 }
@@ -71,9 +92,10 @@ func DefaultConfig() Config {
 // DefaultConsumerConfig ...
 func DefaultConsumerConfig() ConsumerConfig {
 	return ConsumerConfig{
-		DialTimeout: time.Second * 3,
-		RwTimeout:   time.Second * 10,
-		Reconsume:   3,
+		DialTimeout:     time.Second * 3,
+		RwTimeout:       time.Second * 10,
+		Reconsume:       3,
+		WaitMaxDuration: 60 * time.Second,
 	}
 }
 
@@ -87,15 +109,16 @@ func DefaultProducerConfig() ProducerConfig {
 }
 
 // StdPushConsumerConfig ...
-func StdPushConsumerConfig(name string) *ConsumerConfig {
+func StdPushConsumerConfig(name string) ConsumerConfig {
 
-	cc := RawConsumerConfig("jupiter.rocketmq." + name + ".consumer")
-	rc := RawConfig("jupiter.rocketmq." + name)
+	cc := RawConsumerConfig(constant.ConfigPrefix + ".rocketmq." + name + ".consumer")
+	rc := RawConfig(constant.ConfigPrefix + ".rocketmq." + name)
 
 	// 兼容rocket_client_mq变更，addr需要携带shceme
 	if len(cc.Addr) == 0 {
 		cc.Addr = rc.Addresses
 	}
+
 	cc.Name = name
 	for ind, addr := range cc.Addr {
 		if strings.HasPrefix(addr, "http") {
@@ -105,13 +128,19 @@ func StdPushConsumerConfig(name string) *ConsumerConfig {
 		}
 	}
 
-	return &cc
+	// 这里根据mq集群地址的md5，生成默认InstanceName
+	// 实现自动支持多集群，解决官方库默认不支持多集群消费的问题
+	if cc.InstanceName == "" {
+		cc.InstanceName = fmt.Sprintf("%x", md5.Sum([]byte(strings.Join(cc.Addr, ","))))
+	}
+
+	return cc
 }
 
 // StdProducerConfig ...
 func StdProducerConfig(name string) *ProducerConfig {
-	pc := RawProducerConfig("jupiter.rocketmq." + name + ".producer")
-	rc := RawConfig("jupiter.rocketmq." + name)
+	pc := RawProducerConfig(constant.ConfigPrefix + ".rocketmq." + name + ".producer")
+	rc := RawConfig(constant.ConfigPrefix + ".rocketmq." + name)
 	// 兼容rocket_client_mq变更，addr需要携带shceme
 	if len(pc.Addr) == 0 {
 		pc.Addr = rc.Addresses

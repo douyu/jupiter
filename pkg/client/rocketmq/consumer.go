@@ -1,4 +1,4 @@
-// Copyright 2020 Douyu
+// Copyright 2022 Douyu
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,6 +23,8 @@ import (
 	"github.com/douyu/jupiter/pkg/defers"
 	"github.com/douyu/jupiter/pkg/istats"
 	"github.com/douyu/jupiter/pkg/xlog"
+	"github.com/juju/ratelimit"
+	"go.uber.org/zap"
 )
 
 type PushConsumer struct {
@@ -33,9 +35,10 @@ type PushConsumer struct {
 	subscribers  map[string]func(context.Context, ...*primitive.MessageExt) (consumer.ConsumeResult, error)
 	interceptors []primitive.Interceptor
 	fInfo        FlowInfo
+	bucket       *ratelimit.Bucket
 }
 
-func (conf *ConsumerConfig) Build() *PushConsumer {
+func (conf ConsumerConfig) Build() *PushConsumer {
 	name := conf.Name
 	if _, ok := _consumers.Load(name); ok {
 		xlog.Panic("duplicated load", xlog.String("name", name))
@@ -43,9 +46,14 @@ func (conf *ConsumerConfig) Build() *PushConsumer {
 
 	xlog.Debug("rocketmq's config: ", xlog.String("name", name), xlog.Any("conf", conf))
 
-	pc := &PushConsumer{
+	var bucket *ratelimit.Bucket
+	if conf.Rate > 0 && conf.Capacity > 0 {
+		bucket = ratelimit.NewBucketWithRate(conf.Rate, conf.Capacity)
+	}
+
+	cc := &PushConsumer{
 		name:           name,
-		ConsumerConfig: *conf,
+		ConsumerConfig: conf,
 		subscribers:    make(map[string]func(context.Context, ...*primitive.MessageExt) (consumer.ConsumeResult, error)),
 		interceptors:   []primitive.Interceptor{},
 		fInfo: FlowInfo{
@@ -56,20 +64,20 @@ func (conf *ConsumerConfig) Build() *PushConsumer {
 			Group:        conf.Group,
 			GroupType:    "consumer",
 		},
+		bucket: bucket,
 	}
-	pc.interceptors = append(pc.interceptors, pushConsumerDefaultInterceptor(pc), pushConsumerMDInterceptor(pc), pushConsumerShadowInterceptor(pc, conf.Shadow))
+	cc.interceptors = append(cc.interceptors, pushConsumerDefaultInterceptor(cc), pushConsumerMDInterceptor(cc), pushConsumerShadowInterceptor(cc, conf.Shadow))
 
-	_consumers.Store(name, pc)
-	return pc
+	_consumers.Store(name, cc)
+	return cc
 }
 
-func (cc *PushConsumer) Close() error {
+func (cc *PushConsumer) Close() {
 	err := cc.Shutdown()
 	if err != nil {
-		xlog.Warn("consumer close fail", xlog.Any("error", err.Error()))
-		return err
+		xlog.Warn("consumer close fail", zap.Error(err))
 	}
-	return nil
+	_consumers.Delete(cc.name)
 }
 
 func (cc *PushConsumer) WithInterceptor(fs ...primitive.Interceptor) *PushConsumer {
@@ -79,13 +87,20 @@ func (cc *PushConsumer) WithInterceptor(fs ...primitive.Interceptor) *PushConsum
 
 func (cc *PushConsumer) Subscribe(topic string, f func(context.Context, *primitive.MessageExt) error) *PushConsumer {
 	if _, ok := cc.subscribers[topic]; ok {
-		xlog.Panic("duplicated subscribe", xlog.String("topic", topic))
+		xlog.Panic("duplicated subscribe", zap.String("topic", topic))
 	}
 	fn := func(ctx context.Context, msgs ...*primitive.MessageExt) (consumer.ConsumeResult, error) {
 		for _, msg := range msgs {
+			if cc.bucket != nil {
+				if ok := cc.bucket.WaitMaxDuration(1, cc.WaitMaxDuration); !ok {
+					xlog.Warn("too many messages, reconsume later", zap.String("body", string(msg.Body)), zap.String("topic", cc.Topic))
+					return consumer.ConsumeRetryLater, nil
+				}
+			}
+
 			err := f(ctx, msg)
 			if err != nil {
-				xlog.Error("consumer message", xlog.String("err", err.Error()), xlog.String("field", cc.name), xlog.Any("ext", msg))
+				xlog.Error("consumer message", zap.Error(err), zap.String("field", cc.name), zap.Any("ext", msg))
 				return consumer.ConsumeRetryLater, err
 			}
 		}
@@ -97,9 +112,9 @@ func (cc *PushConsumer) Subscribe(topic string, f func(context.Context, *primiti
 }
 
 func (cc *PushConsumer) Start() error {
-	// 初始化 PushConsumer
-	client, err := rocketmq.NewPushConsumer(
+	var opts = []consumer.Option{
 		consumer.WithGroupName(cc.Group),
+		consumer.WithInstance(cc.InstanceName),
 		consumer.WithNameServer(cc.Addr),
 		consumer.WithMaxReconsumeTimes(cc.Reconsume),
 		consumer.WithInterceptor(cc.interceptors...),
@@ -107,6 +122,14 @@ func (cc *PushConsumer) Start() error {
 			AccessKey: cc.AccessKey,
 			SecretKey: cc.SecretKey,
 		}),
+	}
+	// 增加广播模式
+	if cc.ConsumerConfig.MessageModel == "BroadCasting" {
+		opts = append(opts, consumer.WithConsumerModel(consumer.BroadCasting))
+	}
+	// 初始化 PushConsumer
+	client, err := rocketmq.NewPushConsumer(
+		opts...,
 	)
 	cc.PushConsumer = client
 
@@ -124,11 +147,12 @@ func (cc *PushConsumer) Start() error {
 		}
 	}
 
+	// if client == nil. <--- fix lint: this comparison is never true.
 	if err != nil {
 		xlog.Panic("create consumer",
 			xlog.FieldName(cc.name),
 			xlog.FieldExtMessage(cc.ConsumerConfig),
-			xlog.Any("error", err),
+			xlog.FieldErr(err),
 		)
 	}
 
@@ -137,12 +161,12 @@ func (cc *PushConsumer) Start() error {
 			xlog.Panic("start consumer",
 				xlog.FieldName(cc.name),
 				xlog.FieldExtMessage(cc.ConsumerConfig),
-				xlog.Any("error", err),
+				xlog.FieldErr(err),
 			)
 			return err
 		}
 		// 在应用退出的时候，保证注销
-		defers.Register(cc.Close)
+		defers.Register(func() error { cc.Close(); return nil })
 	}
 
 	return nil

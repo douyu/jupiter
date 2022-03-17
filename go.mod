@@ -7,7 +7,7 @@ require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/alibaba/sentinel-golang v1.0.4
 	github.com/alicebob/miniredis/v2 v2.15.1
-	github.com/apache/rocketmq-client-go/v2 v2.0.0
+	github.com/apache/rocketmq-client-go/v2 v2.1.1-rc2
 	github.com/aws/aws-sdk-go v1.40.45 // indirect
 	github.com/codegangsta/inject v0.0.0-20150114235600-33e0aa1cb7c0
 	github.com/davecgh/go-spew v1.1.1
@@ -28,6 +28,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/jinzhu/gorm v1.9.16
 	github.com/json-iterator/go v1.1.12
+	github.com/juju/ratelimit v1.0.1
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/labstack/echo/v4 v4.6.3
@@ -35,7 +36,8 @@ require (
 	github.com/mitchellh/mapstructure v1.4.2
 	github.com/modern-go/reflect2 v1.0.2
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
-	github.com/onsi/gomega v1.13.0 // indirect
+	github.com/onsi/ginkgo v1.16.2
+	github.com/onsi/gomega v1.13.0
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/philchia/agollo/v4 v4.1.3
 	github.com/pkg/errors v0.9.1

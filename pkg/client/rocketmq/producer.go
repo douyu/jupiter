@@ -20,7 +20,6 @@ import (
 	"github.com/apache/rocketmq-client-go/v2"
 	"github.com/apache/rocketmq-client-go/v2/primitive"
 	"github.com/apache/rocketmq-client-go/v2/producer"
-	"github.com/douyu/jupiter/pkg/defers"
 	"github.com/douyu/jupiter/pkg/istats"
 	"github.com/douyu/jupiter/pkg/util/xdebug"
 	"github.com/douyu/jupiter/pkg/xlog"
@@ -35,7 +34,7 @@ type Producer struct {
 }
 
 func StdNewProducer(name string) *Producer {
-	return StdProducerConfig("configName").Build()
+	return StdProducerConfig(name).Build()
 }
 
 func (conf *ProducerConfig) Build() *Producer {
@@ -97,8 +96,8 @@ func (pc *Producer) Start() error {
 	}
 
 	pc.Producer = client
-	// 在应用退出的时候，保证注销
-	defers.Register(pc.Close)
+	// 进程退出时，producer不Close，避免消息发失败
+	// defers.Register(pc.Close)
 	return nil
 }
 
@@ -171,10 +170,22 @@ func (pc *Producer) SendWithResult(msg []byte, tag string) (*primitive.SendResul
 
 // SendMsg... 自定义消息格式
 func (pc *Producer) SendMsg(msg *primitive.Message) (*primitive.SendResult, error) {
+	msg.Topic = pc.Topic
 	res, err := pc.SendSync(context.Background(), msg)
 	if err != nil {
 		xlog.Error("send message error", xlog.Any("msg", msg))
 		return res, err
 	}
 	return res, nil
+}
+
+// SendWithMsg... 自定义消息格式
+func (pc *Producer) SendWithMsg(ctx context.Context, msg *primitive.Message) error {
+	msg.Topic = pc.Topic
+	_, err := pc.SendSync(ctx, msg)
+	if err != nil {
+		xlog.Error("send message error", xlog.Any("msg", msg))
+		return err
+	}
+	return nil
 }
