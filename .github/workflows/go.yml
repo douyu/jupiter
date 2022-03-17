@@ -7,6 +7,10 @@ on:
   pull_request:
     branches:
       - "master"
+env:
+  GOCACHE: ~/.cache/go-build
+  GOLANGCI_LINT_CACHE: ~/golangci-lint
+
 jobs:
 
   build:
