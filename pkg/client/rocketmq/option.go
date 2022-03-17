@@ -51,7 +51,7 @@ type ConsumerConfig struct {
 	AccessKey       string        `json:"accessKey" toml:"accessKey"`
 	SecretKey       string        `json:"secretKey" toml:"secretKey"`
 	MessageModel    string        `json:"messageModel" toml:"messageModel"` // 消费模式,默认clustering
-	// client实例名，如果不希望复用client（多nameserver导致启动失败），则可配置此字段
+	// client实例名，默认会基于Addr字段生成md5，支持多集群
 	InstanceName string `json:"instanceName" toml:"instanceName"`
 }
 
@@ -67,6 +67,8 @@ type ProducerConfig struct {
 	Shadow      Shadow        `json:"shadow" toml:"shadow"`
 	AccessKey   string        `json:"accessKey" toml:"accessKey"`
 	SecretKey   string        `json:"secretKey" toml:"secretKey"`
+	// client实例名，默认会基于Addr字段生成md5，支持多集群
+	InstanceName string `json:"instanceName" toml:"instanceName"`
 }
 
 type Shadow struct {
@@ -154,6 +156,13 @@ func StdProducerConfig(name string) *ProducerConfig {
 			pc.Addr[ind] = "http://" + addr
 		}
 	}
+
+	// 这里根据mq集群地址的md5，生成默认InstanceName
+	// 实现自动支持多集群，解决官方库默认不支持多集群消费的问题
+	if pc.InstanceName == "" {
+		pc.InstanceName = fmt.Sprintf("%x", md5.Sum([]byte(strings.Join(pc.Addr, ","))))
+	}
+
 	return &pc
 }
 
