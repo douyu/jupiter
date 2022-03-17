@@ -90,11 +90,13 @@ jobs:
           echo "brokerIP1=127.0.0.1" > broker.properties
           nohup sh bin/mqnamesrv &
           nohup sh bin/mqbroker -n localhost:9876 -c broker.properties &
-          sleep 10
-          sh bin/mqadmin updateTopic -n localhost:9876 -b localhost:10911 -t test
 
       - name: Test
-        run: go test -race -coverprofile=coverage.txt -covermode=atomic ./...
+        run: |
+          go test `go list ./... | grep -v github.com/douyu/jupiter/pkg/client/rocketmq` -race
+          # test rocketmq
+          sh bin/mqadmin updateTopic -n localhost:9876 -b localhost:10911 -t test
+          go test -coverprofile=coverage.txt -covermode=atomic ./...
 
       - name: Codecov
         uses: codecov/codecov-action@v2.0.3
