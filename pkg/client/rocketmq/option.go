@@ -15,6 +15,8 @@
 package rocketmq
 
 import (
+	"crypto/md5"
+	"fmt"
 	"strings"
 	"time"
 
@@ -116,6 +118,7 @@ func StdPushConsumerConfig(name string) ConsumerConfig {
 	if len(cc.Addr) == 0 {
 		cc.Addr = rc.Addresses
 	}
+
 	cc.Name = name
 	for ind, addr := range cc.Addr {
 		if strings.HasPrefix(addr, "http") {
@@ -123,6 +126,12 @@ func StdPushConsumerConfig(name string) ConsumerConfig {
 		} else {
 			cc.Addr[ind] = "http://" + addr
 		}
+	}
+
+	// 这里根据mq集群地址的md5，生成默认InstanceName
+	// 实现自动支持多集群，解决官方库默认不支持多集群消费的问题
+	if cc.InstanceName == "" {
+		cc.InstanceName = fmt.Sprintf("%x", md5.Sum([]byte(strings.Join(cc.Addr, ","))))
 	}
 
 	return cc
