@@ -7,9 +7,6 @@ on:
   pull_request:
     branches:
       - "master"
-env:
-  GOCACHE: ~/.cache/go-build
-  GOLANGCI_LINT_CACHE: ~/golangci-lint
 
 jobs:
 
@@ -56,33 +53,24 @@ jobs:
 
       - uses: actions/cache@v2
         with:
-          # In order:
-          # * Module download cache
-          # * Build cache (Linux)
-          # * Build cache (Mac)
-          # * Build cache (Windows)
           path: |
             ~/go/pkg/mod
             ~/.cache/go-build
-            ~/Library/Caches/go-build
-            ~\AppData\Local\go-build
           key: ${{ runner.os }}-go-${{ matrix.go-version }}-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-${{ matrix.go-version }}-
 
       - name: Get dependencies
         run: |
+          go env
           go get -v -t -d ./...
-          if [ -f Gopkg.toml ]; then
-              curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-              dep ensure
-          fi
 
       - uses: actions/checkout@v2
       - uses: actions/setup-java@v2
         with:
           distribution: 'temurin' # See 'Supported distributions' for available options
           java-version: '8'
+
       - name: setup rocketmq
         run: |
           export PROJECT_PATH=`pwd`
