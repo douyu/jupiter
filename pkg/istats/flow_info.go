@@ -1,6 +1,9 @@
 package istats
 
-import "time"
+import (
+	"sync/atomic"
+	"time"
+)
 
 // flowInfo 请求流量信息
 type FlowInfoBase struct {
@@ -17,21 +20,19 @@ type FlowInfoBase struct {
 // UpdateFlow 流量状态更新
 func (f *FlowInfoBase) UpdateFlow() {
 	now := time.Now().Unix()
-	f.LastFlowTime = now
-	if !f.HasFlow {
+	if atomic.CompareAndSwapInt64(&f.FirstFlowTime, 0, now) {
 		f.HasFlow = true
-		f.FirstFlowTime = now
 	}
+	atomic.StoreInt64(&f.LastFlowTime, now)
 }
 
 // UpdateFlow 压测流量状态更新
 func (f *FlowInfoBase) UpdateShadowFlow() {
 	now := time.Now().Unix()
-	f.LastShadowFlowTime = now
-	if !f.HasShadowFlow {
+	if atomic.CompareAndSwapInt64(&f.FirstShadowFlowTime, 0, now) {
 		f.HasShadowFlow = true
-		f.FirstShadowFlowTime = now
 	}
+	atomic.StoreInt64(&f.LastShadowFlowTime, now)
 }
 
 func NewFlowInfoBase(shadowSwitch string) FlowInfoBase {

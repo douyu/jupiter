@@ -1,0 +1,19 @@
+[jupiter.rocketmq.example]
+   [jupiter.rocketmq.example.consumer]
+       enable = true
+       addr = ["127.0.0.1:9876"]
+       group = "testGroup"
+       dialTimeout = "3s"
+       rwTimeout = "3s"
+       topic = "test"
+       subExpression = "TagA || TagB || TagC "
+       rate = 100
+   [jupiter.rocketmq.example.producer]
+       group = "testGroup"
+       addr = ["127.0.0.1:9876"]
+       dialTimeout = "3s"
+       rwTimeout = "3s"
+       topic = "test"
+
+    # - NAME_SERVER_ADDRESS=127.0.0.1:9876
+    # - BROKER_ADDRESS=127.0.0.1:10911
