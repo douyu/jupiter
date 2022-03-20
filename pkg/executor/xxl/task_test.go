@@ -29,6 +29,7 @@ var callback = func(ctx context.Context, status int, msg string) error {
 //TODO: Implement more test
 func Test_Run2(t *testing.T) {
 	job := &TestXJob2{}
+	ctx, cancel := context.WithCancel(context.Background())
 	task := &Task{
 		Id:   1,
 		Name: job.GetJobName(),
@@ -37,6 +38,8 @@ func Test_Run2(t *testing.T) {
 			JobID:          123,
 			ExecutorParams: "",
 		},
+		ctx:    ctx,
+		cancel: cancel,
 	}
 	tests := []struct {
 		name string
@@ -49,7 +52,7 @@ func Test_Run2(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			task.Run(context.Background(), callback)
+			task.Run(ctx, callback)
 		})
 	}
 }
@@ -276,16 +279,12 @@ func Test_Trace(t *testing.T) {
 		cancel: cancel,
 		ctx:    ctx,
 	}
-	tests := []struct {
-		name string
-	}{
-		{
-			name: "Trace",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			task.Trace("succuss")
-		})
-	}
+
+	t.Run("trace1", func(t *testing.T) {
+		task.Trace("succuss")
+	})
+	task = nil
+	t.Run("trace1", func(t *testing.T) {
+		task.Trace("fail")
+	})
 }

@@ -15,6 +15,37 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func Test_StdNewExecutor(t *testing.T) {
+	configStr := `
+	[xxl]
+		[xxl.job]
+			[xxl.job.executor]
+				appname = "jupiter-xxl-job-demo"  # 执行器名称
+				port = "59001"                    # 开启执行器的服务端口
+				access_token = "jupiter-token"    # xxl-job需要的token信息
+				address = "http://127.0.0.1:8080/xxl-job-admin"  # 注意换成XXL调度中心对应环境的域名`
+	// 测试配置加载
+	assert.Nil(t, conf.LoadFromReader(bytes.NewBufferString(configStr), toml.Unmarshal))
+	tests := []struct {
+		name string
+		args string
+		want string
+	}{
+		{
+			name: "get",
+			args: "task1",
+			want: "127.0.0.1:59001",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := StdNewExecutor(ExecutorHost("127.0.0.1")); !reflect.DeepEqual(got.GetAddress(), tt.want) {
+				t.Errorf("StdNewExecutor() = %v, want %v", got.GetAddress(), tt.want)
+			}
+		})
+	}
+}
+
 func Test_NewExecutor(t *testing.T) {
 	configStr := `
 [xxl]
@@ -102,6 +133,39 @@ func Test_RegXJob(t *testing.T) {
 			executor.RegXJob(
 				&TestIJob{},
 			)
+		})
+	}
+}
+
+func Test_GetAddress(t *testing.T) {
+	configStr := `
+	[xxl]
+		[xxl.job]
+			[xxl.job.executor]
+				appname = "jupiter-xxl-job-demo"  # 执行器名称
+				port = "59001"                    # 开启执行器的服务端口
+				access_token = "jupiter-token"    # xxl-job需要的token信息
+				address = "http://127.0.0.1:8080/xxl-job-admin"  # 注意换成XXL调度中心对应环境的域名`
+	// 测试配置加载
+	assert.Nil(t, conf.LoadFromReader(bytes.NewBufferString(configStr), toml.Unmarshal))
+	tests := []struct {
+		name string
+		args string
+		want string
+	}{
+		{
+			name: "get",
+			args: "127.0.0.1",
+			want: "127.0.0.1:59001",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			executor := StdNewExecutor(ExecutorHost(tt.args))
+			got := executor.GetAddress()
+			if got != tt.want {
+				t.Errorf("GetAddress() = %v, want %v", got, tt.want)
+			}
 		})
 	}
 }

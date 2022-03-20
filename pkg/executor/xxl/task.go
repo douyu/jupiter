@@ -190,13 +190,13 @@ func (t *Task) Info() string {
 // 任务跟踪
 func (t *Task) Trace(step string) {
 	if t == nil {
-		log.Fatal("非法任务")
+		log.Println("非法任务")
+	} else {
+		logId := int64(0)
+		p := t.GetParam()
+		if p != nil {
+			logId = p.LogID
+		}
+		logger.Info(logId, t.Info()+"; "+step)
 	}
-
-	logId := int64(0)
-	p := t.GetParam()
-	if p != nil {
-		logId = p.LogID
-	}
-	logger.Info(logId, t.Info()+"; "+step)
 }
