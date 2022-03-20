@@ -161,6 +161,17 @@ func Test_returnLog(t *testing.T) {
 			},
 			want: []byte("{\"error\":200,\"msg\":\"success\",\"data\":{\"fromLineNum\":10,\"toLineNum\":1,\"logContent\":\"\",\"isEnd\":true}}"),
 		},
+		{
+			name: "returnLog单元测试",
+			args: Args{
+				param: &logReq{
+					LogID:       123,
+					FromLineNum: 10,
+				},
+				code: http.StatusBadRequest,
+			},
+			want: []byte("{\"error\":400,\"msg\":\"log err\",\"data\":{\"fromLineNum\":10,\"toLineNum\":1,\"logContent\":\"\",\"isEnd\":true}}"),
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -237,6 +248,14 @@ func Test_returnIdle(t *testing.T) {
 				idel: true,
 			},
 			want: []byte("{\"error\":200,\"msg\":\"\",\"data\":\"{\\\"ip\\\":\\\"127.0.0.1\\\",\\\"idle\\\":true}\"}"),
+		},
+		{
+			name: "returnIdle单元测试",
+			args: Args{
+				ip:   "127.0.0.1",
+				idel: false,
+			},
+			want: []byte("{\"error\":500,\"msg\":\"\",\"data\":\"\"}"),
 		},
 	}
 	for _, tt := range tests {

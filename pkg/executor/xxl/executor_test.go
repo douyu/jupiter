@@ -26,8 +26,6 @@ func Test_NewExecutor(t *testing.T) {
 			address = "http://127.0.0.1:8080/xxl-job-admin"  # 注意换成XXL调度中心对应环境的域名`
 	// 测试配置加载
 	assert.Nil(t, conf.LoadFromReader(bytes.NewBufferString(configStr), toml.Unmarshal))
-	cc := conf.GetString("xxl.job.executor.appname")
-	fmt.Println(cc)
 	// 测试用例
 	tests := []struct {
 		name string
@@ -88,6 +86,22 @@ func Test_Run(t *testing.T) {
 				&TestIJob{},
 			)
 			assert.Nil(t, executor.Run())
+		})
+	}
+}
+
+func Test_RegXJob(t *testing.T) {
+	tests := []struct {
+		name string
+		opts []Option
+		want Options
+	}{}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			executor := StdNewExecutor()
+			executor.RegXJob(
+				&TestIJob{},
+			)
 		})
 	}
 }
