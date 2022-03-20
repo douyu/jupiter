@@ -47,7 +47,7 @@ type killReq struct {
 
 // 日志请求
 type logReq struct {
-	LogDateTim  int64 `json:"logDateTim"`  // 本次调度日志时间
+	LogDateTime int64 `json:"logDateTime"` // 本次调度日志时间
 	LogID       int64 `json:"logId"`       // 本次调度日志ID
 	FromLineNum int32 `json:"fromLineNum"` // 日志开始行号，滚动加载日志
 }

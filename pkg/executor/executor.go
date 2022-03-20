@@ -2,7 +2,6 @@ package executor
 
 import (
 	"context"
-	"net/http"
 	"sync"
 
 	"github.com/douyu/jupiter/pkg/util/xdebug"
@@ -10,16 +9,16 @@ import (
 	"github.com/douyu/jupiter/pkg/xlog"
 )
 
+//全局执行器存储
 var _instances = sync.Map{}
 
-type HttpHandler func(http.ResponseWriter, *http.Request)
-
+// 执行器接口
 type Executor interface {
-	RegXJob(jobs ...XJob) // 注册带参数的XJob
-	Run() error           // 执行器启动
-	GetAddress() string   // 获取执行器服务地址信息
-	GracefulStop()        // 执行器优雅退出，向调度中心取消注册
-	Stop()                // 执行器退出，向调度中心取消注册
+	GetAddress() string   // 执行性标识
+	RegXJob(jobs ...XJob) // 注册执行器任务
+	Run() error           // 启动执行器
+	Stop()                // 退出执行器，向调度中心取消注册
+	GracefulStop()        // 优雅地退出执行器，向调度中心取消注册
 }
 
 // XJob 定时任务接口

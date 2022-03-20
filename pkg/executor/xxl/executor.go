@@ -27,12 +27,12 @@ type JobExecutor struct {
 	quit    chan os.Signal
 }
 
-//创建执行器
+// 创建执行器
 func StdNewExecutor(opts ...Option) executor.Executor {
 	return newJobExecutor(opts...)
 }
 
-//创建执行器
+// 创建Job执行器
 func newJobExecutor(opts ...Option) *JobExecutor {
 	// 加载默认配置
 	options := DefaultConfig()
@@ -67,23 +67,23 @@ func (e *JobExecutor) Run() (err error) {
 		WriteTimeout: time.Second * 3,
 		Handler:      mux,
 	}
-	// 监听端口并提供服务
 	xdebug.PrettyKVWithPrefix("[Executor]", "start xxl-job golang executor server at", e.address)
-
-	// 初始化系统消息hook，用于反注册
+	// 1.初始化系统消息hook，用于反注册
 	e.quit = make(chan os.Signal)
 	e.handlePending()
+	// 2.启动服务器
 	go func() {
 		err := server.ListenAndServe()
 		if err != nil {
 			panic(err)
 		}
 	}()
+	// 3.向xxl-job任务中心注册任务
 	go e.registry()
 	return nil
 }
 
-// 公有方法，注册XJob
+// 注册执行器任务
 func (e *JobExecutor) RegXJob(jobs ...executor.XJob) {
 	for _, j := range jobs {
 		e.regTask(j.GetJobName(), j.Run)
@@ -115,10 +115,10 @@ func (e *JobExecutor) runTaskHandler(writer http.ResponseWriter, request *http.R
 		logger.Info(param.LogID, "任务["+Int64ToStr(param.JobID)+":"+param.ExecutorHandler+"]没有注册")
 		return
 	}
-	// TODO:考虑使用sync.Pool建立一个context pool进行优化
+	//TODO:考虑使用sync.Pool建立一个context pool进行优化
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, logger.DefaultLogIDKey, param.LogID)
-	// 2. 从注册任务列表重，获取任务基础信息并封装参数，context等信息
+	// 2.从注册任务列表重，获取任务基础信息并封装参数，context等信息
 	task := e.regList.Get(param.ExecutorHandler)
 	task.lock.Lock()
 	timeout := time.Duration(param.ExecutorTimeout) * time.Second
@@ -128,7 +128,6 @@ func (e *JobExecutor) runTaskHandler(writer http.ResponseWriter, request *http.R
 	task.timeout = timeout
 	task.ctx = ctx
 	task.lock.Unlock()
-
 	// 如果已经有任务在运行，根据阻塞策略做不同处理
 	if e.runList.Exists(Int64ToStr(task.GetId())) {
 		switch param.ExecutorBlockStrategy {
@@ -240,7 +239,6 @@ func (e *JobExecutor) idleHandler(writer http.ResponseWriter, request *http.Requ
 		_, _ = writer.Write(returnIdle(e.address, true))
 		return
 	}
-
 	_, _ = writer.Write(returnIdle(e.address, false))
 }
 
@@ -322,10 +320,12 @@ func (e *JobExecutor) registryRemove() {
 	xdebug.PrettyKVWithPrefix("[Executor]", "executor stop success: post /api/registryRemove", string(body))
 }
 
+// 执行器优雅地退出
 func (e *JobExecutor) GracefulStop() {
 	e.registryRemove()
 }
 
+// 执行器退出
 func (e *JobExecutor) Stop() {
 	e.registryRemove()
 }
@@ -420,8 +420,11 @@ func (e *JobExecutor) runPendingTasks() bool {
 	return true
 }
 
+// 中间件
+type HttpHandler func(http.ResponseWriter, *http.Request)
+
 // 鉴权中间件
-func (e *JobExecutor) handlerWithAuth(next executor.HttpHandler) executor.HttpHandler {
+func (e *JobExecutor) handlerWithAuth(next HttpHandler) HttpHandler {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		if !e.verifyAuth(request) {
 			_, _ = writer.Write(returnAuthError())

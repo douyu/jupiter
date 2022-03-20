@@ -56,7 +56,7 @@ func returnLog(req *logReq, code int64) []byte {
 	if code != http.StatusOK {
 		msg = "log err"
 	}
-	line, content := logger.ReadLog(req.LogDateTim, req.LogID, req.FromLineNum)
+	line, content := logger.ReadLog(req.LogDateTime, req.LogID, req.FromLineNum)
 	logResult := LogResult{
 		FromLineNum: req.FromLineNum,
 		ToLineNum:   line,
