@@ -15,12 +15,17 @@
 package application
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"testing"
 	"time"
 
+	"github.com/BurntSushi/toml"
+	"github.com/douyu/jupiter/pkg/conf"
+	"github.com/douyu/jupiter/pkg/executor"
+	"github.com/douyu/jupiter/pkg/executor/xxl"
 	"github.com/douyu/jupiter/pkg/hooks"
 	"github.com/douyu/jupiter/pkg/server"
 	"github.com/douyu/jupiter/pkg/server/xgrpc"
@@ -338,6 +343,39 @@ func Test_Unit_Application_startJobs(t *testing.T) {
 		app.jobs["test"] = &namedJobRunner{}
 		err := app.startJobs()
 		assert.Nil(t, err, err)
+	})
+}
+
+type XxlJobDemo struct{}
+
+func (ins *XxlJobDemo) GetJobName() string {
+	return "test"
+}
+
+func (ins *XxlJobDemo) Run(ctx context.Context, param *executor.RunReq) (msg string, err error) {
+	fmt.Println("jupiter xxl job demo")
+	return "success", nil
+}
+
+func Test_Unit_Application_Executor(t *testing.T) {
+	configStr := `
+	[xxl]
+		[xxl.job]
+			[xxl.job.executor]
+				appname = "jupiter-xxl-job-demo"  # 执行器名称
+				port = "59001"                    # 开启执行器的服务端口
+				access_token = "jupiter-token"    # xxl-job需要的token信息
+				address = "http://127.0.0.1:8080/xxl-job-admin"  # 注意换成XXL调度中心对应环境的域名`
+	// 测试配置加载
+	assert.Nil(t, conf.LoadFromReader(bytes.NewBufferString(configStr), toml.Unmarshal))
+	t.Run("xxl-job executor", func(t *testing.T) {
+		app := &Application{}
+		app.initialize()
+		executor := xxl.StdNewExecutor()
+		executor.RegXJob(
+			&XxlJobDemo{},
+		)
+		app.Executor(executor)
 	})
 }
 

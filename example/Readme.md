@@ -24,5 +24,6 @@
     * [组件gRPC直连示例](./grpc/direct/direct-client)
     * [组件gRPC和ETCD示例](./grpc/etcd/etcd-client)
     * [组件Gorm示例](./client/gorm)
+    * [组件XXL-JOB示例](./xxl-job)
 
 

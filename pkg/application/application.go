@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/douyu/jupiter/pkg/component"
+	"github.com/douyu/jupiter/pkg/executor"
 	job "github.com/douyu/jupiter/pkg/worker/xjob"
 
 	"github.com/BurntSushi/toml"
@@ -204,6 +205,11 @@ func (app *Application) Job(runner job.Runner) error {
 	return nil
 }
 
+// Executor ...
+func (app *Application) Executor(e executor.Executor) {
+	executor.Register(e.GetAddress(), e)
+}
+
 // SetRegistry set customize registry
 // Deprecated, please use registry.DefaultRegisterer instead.
 func (app *Application) SetRegistry(reg registry.Registry) {
@@ -232,7 +238,8 @@ func (app *Application) Run(servers ...server.Server) error {
 	app.cycle.Run(app.startServers)
 	// start workers
 	app.cycle.Run(app.startWorkers)
-
+	// start executors
+	app.cycle.Run(app.startExecutors)
 	//blocking and wait quit
 	if err := <-app.cycle.Wait(); err != nil {
 		app.logger.Error("jupiter shutdown with error", xlog.FieldMod(ecode.ModApp), xlog.FieldErr(err))
@@ -253,7 +260,6 @@ func (app *Application) Stop() (err error) {
 	app.stopOnce.Do(func() {
 		app.stopped <- struct{}{}
 		app.runHooks(hooks.Stage_BeforeStop)
-
 		//stop servers
 		app.smu.RLock()
 		for _, s := range app.servers {
@@ -262,14 +268,16 @@ func (app *Application) Stop() (err error) {
 			}(s)
 		}
 		app.smu.RUnlock()
-
 		//stop workers
 		for _, w := range app.workers {
 			func(w worker.Worker) {
 				app.cycle.Run(w.Stop)
 			}(w)
 		}
+		app.cycle.Run(executor.Stop)
+
 		<-app.cycle.Done()
+		// run hook
 		app.runHooks(hooks.Stage_AfterStop)
 		app.cycle.Close()
 	})
@@ -281,7 +289,6 @@ func (app *Application) GracefulStop(ctx context.Context) (err error) {
 	app.stopOnce.Do(func() {
 		app.stopped <- struct{}{}
 		app.runHooks(hooks.Stage_BeforeStop)
-
 		//stop servers
 		app.smu.RLock()
 		for _, s := range app.servers {
@@ -292,14 +299,16 @@ func (app *Application) GracefulStop(ctx context.Context) (err error) {
 			}(s)
 		}
 		app.smu.RUnlock()
-
 		//stop workers
 		for _, w := range app.workers {
 			func(w worker.Worker) {
 				app.cycle.Run(w.Stop)
 			}(w)
 		}
+		// stop executor
+		app.cycle.Run(executor.GracefulStop)
 		<-app.cycle.Done()
+		// run hooks
 		app.runHooks(hooks.Stage_AfterStop)
 		app.cycle.Close()
 	})
@@ -390,6 +399,11 @@ func (app *Application) startJobs() error {
 	}
 	xgo.Parallel(jobs...)()
 	return nil
+}
+
+// start executor
+func (app *Application) startExecutors() error {
+	return executor.Run()
 }
 
 //parseFlags init

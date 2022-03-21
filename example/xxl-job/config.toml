@@ -1,0 +1,9 @@
+[xxl]
+  [xxl.job]
+    [xxl.job.executor]
+      address = "http://127.0.0.1:8080/xxl-job-admin"  # 注意换成XXL调度中心对应环境的域名
+      access_token = "jupiter-token"    # 注册xxl-job执行器需要的token信息
+      appname = "jupiter-xxl-job-demo"  # 启动执行器的名称
+      port = "59000"                    # 启动执行器的服务端口
+      log_dir = "./logs/"                    # 执行器产生的日志文件
+      #host = "127.0.0.1"                        # 启动执行器的主机。默认通过ip.get注册。确保xxl-job能调度该地址
