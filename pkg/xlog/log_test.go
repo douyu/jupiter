@@ -24,7 +24,15 @@ func Test_log(t *testing.T) {
 	xlog.Debug("debug", xlog.Any("a", "b"))
 	xlog.Info("info", xlog.Any("a", "b"))
 	xlog.Warn("warn", xlog.Any("a", "b"))
+	xlog.Error("error", xlog.Any("a", "b"))
+
 	xlog.Debugw("debug", xlog.Any("a", "b"))
 	xlog.Infow("info", xlog.Any("a", "b"))
 	xlog.Warnw("warn", xlog.Any("a", "b"))
+	xlog.Errorw("error", xlog.Any("a", "b"))
+
+	xlog.Debugf("debug", xlog.Any("a", "b"))
+	xlog.Infof("info", xlog.Any("a", "b"))
+	xlog.Warnf("warn", xlog.Any("a", "b"))
+	xlog.Errorf("error", xlog.Any("a", "b"))
 }
