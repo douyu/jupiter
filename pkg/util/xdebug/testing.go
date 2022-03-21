@@ -32,10 +32,6 @@ var (
 	isDevelopmentMode = os.Getenv("JUPITER_MODE") == "dev"
 )
 
-func init() {
-
-}
-
 // IsTestingMode 判断是否在测试模式下
 var onceTest = sync.Once{}
 
