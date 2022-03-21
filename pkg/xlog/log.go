@@ -25,6 +25,7 @@ import (
 	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/defers"
 	"github.com/douyu/jupiter/pkg/util/xcolor"
+	"github.com/douyu/jupiter/pkg/util/xdebug"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -127,7 +128,7 @@ func newLogger(config *Config) *Logger {
 	if core == nil {
 		core = zapcore.NewCore(
 			func() zapcore.Encoder {
-				if config.Debug {
+				if config.Debug || xdebug.IsDevelopmentMode() {
 					return zapcore.NewConsoleEncoder(encoderConfig)
 				}
 				return zapcore.NewJSONEncoder(encoderConfig)

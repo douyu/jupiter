@@ -15,7 +15,6 @@
 package xlog
 
 import (
-	"context"
 	"sync"
 	"time"
 
@@ -95,11 +94,4 @@ func ExtractTraceMD(ctx interface{ Get(string) interface{} }) (md *Tracer, ok bo
 // InjectTraceMD ...
 func InjectTraceMD(ctx interface{ Set(string, interface{}) }, md *Tracer) {
 	ctx.Set(_mdTrace, md)
-}
-
-type tracerKey struct{}
-
-// NewContext ...
-func NewContext(ctx context.Context, tracer *Tracer) context.Context {
-	return context.WithValue(ctx, tracerKey{}, tracer)
 }

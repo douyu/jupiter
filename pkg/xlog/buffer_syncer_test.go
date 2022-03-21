@@ -22,6 +22,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
@@ -106,5 +107,10 @@ func TestBufferWriter(t *testing.T) {
 		bws.Lock()
 		assert.Equal(t, "foofoo", buf.String(), "Unexpected log string")
 		bws.Unlock()
+	})
+
+	t.Run("test log", func(t *testing.T) {
+		Info("infolog", zap.Any("key", "value"))
+		// t.Fail()
 	})
 }
