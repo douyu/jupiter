@@ -379,30 +379,6 @@ func Test_Unit_Application_Executor(t *testing.T) {
 	})
 }
 
-func Test_Unit_Application_startExecutors(t *testing.T) {
-	configStr := `
-	[xxl]
-		[xxl.job]
-			[xxl.job.executor]
-				appname = "jupiter-xxl-job-demo"  # 执行器名称
-				port = "59001"                    # 开启执行器的服务端口
-				access_token = "jupiter-token"    # xxl-job需要的token信息
-				address = "http://127.0.0.1:8080/xxl-job-admin"  # 注意换成XXL调度中心对应环境的域名`
-	// 测试配置加载
-	assert.Nil(t, conf.LoadFromReader(bytes.NewBufferString(configStr), toml.Unmarshal))
-	t.Run("xxl-job executor", func(t *testing.T) {
-		app := &Application{}
-		app.initialize()
-		executor := xxl.StdNewExecutor(xxl.ExecutorPort("59003"))
-		executor.RegXJob(
-			&XxlJobDemo{},
-		)
-		app.Executor(executor)
-		err := app.startExecutors()
-		assert.Nil(t, err)
-	})
-}
-
 func Test_Unit_Application_startWorkers(t *testing.T) {
 	t.Run("without workers", func(t *testing.T) {
 		app := &Application{}
