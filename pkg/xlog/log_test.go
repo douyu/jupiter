@@ -20,6 +20,11 @@ import (
 	"github.com/douyu/jupiter/pkg/xlog"
 )
 
-func Test_Info(t *testing.T) {
-	xlog.Info("hello", xlog.Any("a", "b"))
+func Test_log(t *testing.T) {
+	xlog.Debug("debug", xlog.Any("a", "b"))
+	xlog.Info("info", xlog.Any("a", "b"))
+	xlog.Warn("warn", xlog.Any("a", "b"))
+	xlog.Debugw("debug", xlog.Any("a", "b"))
+	xlog.Infow("info", xlog.Any("a", "b"))
+	xlog.Warnw("warn", xlog.Any("a", "b"))
 }

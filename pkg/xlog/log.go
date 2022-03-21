@@ -90,6 +90,14 @@ var (
 	ByteString = zap.ByteString
 )
 
+const (
+	// defaultBufferSize sizes the buffer associated with each WriterSync.
+	defaultBufferSize = 256 * 1024
+
+	// defaultFlushInterval means the default flush interval
+	defaultFlushInterval = 5 * time.Second
+)
+
 func newLogger(config *Config) *Logger {
 	zapOptions := make([]zap.Option, 0)
 	zapOptions = append(zapOptions, zap.AddStacktrace(zap.DPanicLevel))
@@ -108,10 +116,9 @@ func newLogger(config *Config) *Logger {
 	}
 
 	if config.Async {
-		var close CloseFunc
-		ws, close = Buffer(ws, defaultBufferSize, defaultFlushInterval)
-
-		defers.Register(close)
+		ws = &zapcore.BufferedWriteSyncer{
+			WS: zapcore.AddSync(ws), FlushInterval: defaultBufferSize, Size: defaultBufferSize}
+		defers.Register(ws.Sync)
 	}
 
 	lv := zap.NewAtomicLevelAt(zapcore.InfoLevel)
