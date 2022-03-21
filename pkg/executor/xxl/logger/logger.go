@@ -22,10 +22,8 @@ var (
 )
 
 func Info(logId int64, log string) {
-	nowTime := time.Now()
 	log += "\n"
-	fmt.Println(">>>>>>>>>>", logId, ":", log)
-	if err := writeLog(GetLogPath(nowTime), fmt.Sprintf("%d", logId)+".log", log); err != nil {
+	if err := writeLog(logId, log); err != nil {
 		fmt.Println("xxl job Write Log Error:", err)
 	}
 }
@@ -36,10 +34,8 @@ func InfoWithContext(ctx context.Context, log string) {
 		fmt.Println(log)
 		return
 	}
-	nowTime := time.Now()
 	log += "\n"
-	fmt.Println(">>>>>>>>>>", logId, ":", log)
-	if err := writeLog(GetLogPath(nowTime), fmt.Sprintf("%d", logId)+".log", log); err != nil {
+	if err := writeLog(logId, log); err != nil {
 		fmt.Println("xxl job Write Log Error:", err)
 	}
 }
@@ -57,7 +53,9 @@ func InitLogPath(logPath string) error {
 	return err
 }
 
-func writeLog(logPath, logFile, log string) error {
+func writeLog(logId int64, log string) error {
+	logPath := GetLogPath(time.Now())
+	logFile := fmt.Sprintf("%d.log", logId)
 	if strings.Trim(logFile, " ") != "" {
 		fileFullPath := logPath + "/" + logFile
 		file, err := os.OpenFile(fileFullPath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
@@ -87,13 +85,12 @@ func writeLog(logPath, logFile, log string) error {
 
 func ReadLog(logDateTim, logId int64, fromLineNum int32) (line int32, content string) {
 	nowtime := time.Unix(logDateTim/1000, 0)
-	fileName := GetLogPath(nowtime) + "/" + fmt.Sprintf("%d", logId) + ".log"
+	fileName := fmt.Sprintf("%s/%d.log", GetLogPath(nowtime), logId)
 	file, err := os.Open(fileName)
 	totalLines := int32(1)
 	var buffer bytes.Buffer
 	if err == nil {
 		defer file.Close()
-
 		rd := bufio.NewReader(file)
 		for {
 			line, err := rd.ReadString('\n')
