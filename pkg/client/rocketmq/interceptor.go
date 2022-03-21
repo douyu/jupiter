@@ -24,8 +24,13 @@ import (
 	"github.com/douyu/jupiter/pkg/imeta"
 	"github.com/douyu/jupiter/pkg/istats"
 	"github.com/douyu/jupiter/pkg/metric"
+	"github.com/douyu/jupiter/pkg/trace"
 	"github.com/douyu/jupiter/pkg/util/xdebug"
 	"github.com/douyu/jupiter/pkg/xlog"
+	"github.com/opentracing/opentracing-go"
+	"github.com/opentracing/opentracing-go/ext"
+	"github.com/opentracing/opentracing-go/log"
+	"google.golang.org/grpc/metadata"
 )
 
 type FlowInfo struct {
@@ -58,6 +63,7 @@ func pushConsumerDefaultInterceptor(pushConsumer *PushConsumer) primitive.Interc
 	return func(ctx context.Context, req, reply interface{}, next primitive.Invoker) error {
 		beg := time.Now()
 		msgs := req.([]*primitive.MessageExt)
+
 		err := next(ctx, msgs, reply)
 		if reply == nil {
 			return err
@@ -194,6 +200,27 @@ func producerDefaultInterceptor(producer *Producer) primitive.Interceptor {
 		beg := time.Now()
 		realReq := req.(*primitive.Message)
 		realReply := reply.(*primitive.SendResult)
+
+		var (
+			span opentracing.Span
+		)
+
+		if producer.EnableTrace {
+			span, ctx = trace.StartSpanFromContext(
+				ctx,
+				realReq.Topic,
+				trace.TagComponent("rocketmq"),
+				ext.SpanKindProducer,
+			)
+			defer span.Finish()
+
+			md := metadata.New(nil)
+			ctx = trace.HeaderInjector(ctx, md)
+			for k, v := range md {
+				realReq.WithProperty(k, strings.Join(v, ","))
+			}
+		}
+
 		err := next(ctx, realReq, realReply)
 		if realReply == nil || realReply.MessageQueue == nil {
 			return err
@@ -204,6 +231,13 @@ func producerDefaultInterceptor(producer *Producer) primitive.Interceptor {
 			"message": realReq,
 			"result":  realReply.String(),
 		})
+
+		if producer.EnableTrace {
+			if err != nil {
+				ext.Error.Set(span, true)
+				ext.LogError(span, err, log.Object("req", realReq), log.Object("res", realReply))
+			}
+		}
 
 		// 消息处理结果统计
 		topic := producer.Topic

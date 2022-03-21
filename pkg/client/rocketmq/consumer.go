@@ -22,9 +22,13 @@ import (
 	"github.com/apache/rocketmq-client-go/v2/primitive"
 	"github.com/douyu/jupiter/pkg/defers"
 	"github.com/douyu/jupiter/pkg/istats"
+	"github.com/douyu/jupiter/pkg/trace"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/juju/ratelimit"
+	"github.com/opentracing/opentracing-go"
+	"github.com/opentracing/opentracing-go/ext"
 	"go.uber.org/zap"
+	"google.golang.org/grpc/metadata"
 )
 
 type PushConsumer struct {
@@ -91,6 +95,21 @@ func (cc *PushConsumer) Subscribe(topic string, f func(context.Context, *primiti
 	}
 	fn := func(ctx context.Context, msgs ...*primitive.MessageExt) (consumer.ConsumeResult, error) {
 		for _, msg := range msgs {
+			var (
+				span opentracing.Span
+			)
+
+			if cc.EnableTrace {
+				span, ctx = trace.StartSpanFromContext(
+					ctx,
+					cc.Topic,
+					trace.TagComponent("rocketmq"),
+					ext.SpanKindConsumer,
+					trace.HeaderExtractor(metadata.New(msg.GetProperties())),
+				)
+				defer span.Finish()
+			}
+
 			if cc.bucket != nil {
 				if ok := cc.bucket.WaitMaxDuration(1, cc.WaitMaxDuration); !ok {
 					xlog.Warn("too many messages, reconsume later", zap.String("body", string(msg.Body)), zap.String("topic", cc.Topic))
