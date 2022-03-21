@@ -117,7 +117,7 @@ func newLogger(config *Config) *Logger {
 
 	if config.Async {
 		ws = &zapcore.BufferedWriteSyncer{
-			WS: zapcore.AddSync(ws), FlushInterval: defaultBufferSize, Size: defaultBufferSize}
+			WS: zapcore.AddSync(ws), FlushInterval: defaultFlushInterval, Size: defaultBufferSize}
 		defers.Register(ws.Sync)
 	}
 
