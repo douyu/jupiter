@@ -68,11 +68,10 @@ type (
 
 // StdConfig 返回标准配置
 func StdConfig(name string) Config {
-	return RawConfig("minerva.resty." + name)
+	return RawConfig("jupiter.resty." + name)
 }
 
 // RawConfig 返回配置
-// example: RawConfig("minerva.http.demo")
 func RawConfig(key string) Config {
 	var config = DefaultConfig()
 	if err := conf.UnmarshalKey(key, &config, conf.TagName("toml")); err != nil {
