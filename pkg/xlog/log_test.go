@@ -15,9 +15,11 @@
 package xlog_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/douyu/jupiter/pkg/xlog"
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_log(t *testing.T) {
@@ -35,4 +37,10 @@ func Test_log(t *testing.T) {
 	xlog.Infof("info", xlog.Any("a", "b"))
 	xlog.Warnf("warn", xlog.Any("a", "b"))
 	xlog.Errorf("error", xlog.Any("a", "b"))
+}
+
+func Test_trace(t *testing.T) {
+	ctx := xlog.SetTraceID(context.TODO(), "traceid")
+	assert.Equal(t, xlog.GetTraceID(ctx), "traceid")
+	xlog.FromContext(ctx).Debug("debug", xlog.Any("a", "b"))
 }
