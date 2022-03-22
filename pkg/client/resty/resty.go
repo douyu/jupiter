@@ -61,19 +61,8 @@ type (
 		// 访问日志开关
 		EnableAccessLog bool `json:"enableAccessLog" toml:"enableAccessLog"`
 		// 熔断降级
-		EnableSentinel bool `json:"enableSentinel" toml:"enableSentinel"`
-		// 影子流量开关
-		ShadowSwitch string // on打开， off关闭， watch观察者模式（关闭且打印影子日志）
-		// 默认noHostUrl to mockRes, eg: /test/v1=>"{\"rid\":20}"
-		MockResMap map[string]struct {
-			Url  string `json:"url" toml:"url"`
-			Data string `json:"data" toml:"data"`
-		} `json:"mockRes" toml:"mockRes"`
-		// 所有方法默认返回的mock数据
-		DefaultMockRes string                   `json:"defaultMockRes" toml:"defaultMockRes"`
+		EnableSentinel bool                     `json:"enableSentinel" toml:"enableSentinel"`
 		RetryCondition resty.RetryConditionFunc `json:"-" toml:"-"`
-		// 隐藏 X-DY header
-		DisableDYHeader bool `json:"disableDYHeader" toml:"disableDYHeader"`
 	}
 )
 
@@ -110,8 +99,6 @@ func DefaultConfig() Config {
 		Timeout:          xtime.Duration("3000ms"),
 		EnableAccessLog:  false,
 		EnableSentinel:   true,
-		ShadowSwitch:     "off",
-		DefaultMockRes:   "",
 	}
 }
 
