@@ -93,7 +93,7 @@ func DefaultConfig() Config {
 		RetryMaxWaitTime: xtime.Duration("100ms"),
 		Addr:             "",
 		SlowThreshold:    xtime.Duration("500ms"),
-		Timeout:          xtime.Duration("1000ms"),
+		Timeout:          xtime.Duration("3000ms"),
 		EnableAccessLog:  false,
 		EnableSentinel:   true,
 		ShadowSwitch:     "off",
