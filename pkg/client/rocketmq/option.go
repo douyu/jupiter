@@ -53,6 +53,7 @@ type ConsumerConfig struct {
 	MessageModel    string        `json:"messageModel" toml:"messageModel"` // 消费模式,默认clustering
 	// client实例名，默认会基于Addr字段生成md5，支持多集群
 	InstanceName string `json:"instanceName" toml:"instanceName"`
+	EnableTrace  bool   `json:"enableTrace" toml:"enableTrace"`
 }
 
 // ProducerConfig producer config
@@ -69,6 +70,7 @@ type ProducerConfig struct {
 	SecretKey   string        `json:"secretKey" toml:"secretKey"`
 	// client实例名，默认会基于Addr字段生成md5，支持多集群
 	InstanceName string `json:"instanceName" toml:"instanceName"`
+	EnableTrace  bool   `json:"enableTrace" toml:"enableTrace"`
 }
 
 type Shadow struct {
@@ -183,7 +185,7 @@ func RawConfig(key string) Config {
 func RawConsumerConfig(key string) ConsumerConfig {
 	var config = DefaultConsumerConfig()
 	if err := conf.UnmarshalKey(key, &config); err != nil {
-		xlog.Panic("unmarshal config", xlog.String("key", key), xlog.Any("config", config))
+		xlog.Panic("unmarshal config", xlog.FieldErr(err), xlog.String("key", key), xlog.Any("config", config))
 	}
 
 	return config

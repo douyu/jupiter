@@ -17,6 +17,8 @@ package rocketmq
 import (
 	"fmt"
 	"net/http"
+	"os"
+	"runtime"
 	"sync"
 
 	"github.com/apache/rocketmq-client-go/v2/primitive"
@@ -32,6 +34,9 @@ var _consumers = &sync.Map{}
 
 func init() {
 	primitive.PanicHandler = func(i interface{}) {
+		stack := make([]byte, 1024)
+		length := runtime.Stack(stack, true)
+		fmt.Fprint(os.Stderr, "[rocketmq panic recovery]\n", string(stack[:length]))
 		xlog.Error("rocketmq panic recovery", zap.Any("error", i))
 	}
 
