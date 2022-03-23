@@ -149,7 +149,7 @@ func (config *Config) Build() (*resty.Client, error) {
 			ext.HTTPUrl.Set(span, r.URL)
 			ext.HTTPMethod.Set(span, r.Method)
 
-			r.SetContext(trace.HeaderInjector(ctx, r.Header))
+			r.SetContext(ctx)
 		}
 
 		return nil
