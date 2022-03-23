@@ -25,21 +25,12 @@ import (
 	"github.com/douyu/jupiter/pkg/util/xcolor"
 	"github.com/douyu/jupiter/pkg/util/xstring"
 	"github.com/tidwall/pretty"
-
-	"github.com/douyu/jupiter/pkg/xlog"
 )
 
 var (
 	isTestingMode     bool
 	isDevelopmentMode = os.Getenv("JUPITER_MODE") == "dev"
 )
-
-func init() {
-	if isDevelopmentMode {
-		xlog.DefaultLogger.SetLevel(xlog.DebugLevel)
-		xlog.JupiterLogger.SetLevel(xlog.DebugLevel)
-	}
-}
 
 // IsTestingMode 判断是否在测试模式下
 var onceTest = sync.Once{}

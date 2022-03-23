@@ -25,6 +25,7 @@ import (
 	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/defers"
 	"github.com/douyu/jupiter/pkg/util/xcolor"
+	"github.com/douyu/jupiter/pkg/util/xdebug"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -89,6 +90,14 @@ var (
 	ByteString = zap.ByteString
 )
 
+const (
+	// defaultBufferSize sizes the buffer associated with each WriterSync.
+	defaultBufferSize = 256 * 1024
+
+	// defaultFlushInterval means the default flush interval
+	defaultFlushInterval = 5 * time.Second
+)
+
 func newLogger(config *Config) *Logger {
 	zapOptions := make([]zap.Option, 0)
 	zapOptions = append(zapOptions, zap.AddStacktrace(zap.DPanicLevel))
@@ -107,10 +116,9 @@ func newLogger(config *Config) *Logger {
 	}
 
 	if config.Async {
-		var close CloseFunc
-		ws, close = Buffer(ws, defaultBufferSize, defaultFlushInterval)
-
-		defers.Register(close)
+		ws = &zapcore.BufferedWriteSyncer{
+			WS: zapcore.AddSync(ws), FlushInterval: defaultFlushInterval, Size: defaultBufferSize}
+		defers.Register(ws.Sync)
 	}
 
 	lv := zap.NewAtomicLevelAt(zapcore.InfoLevel)
@@ -127,7 +135,7 @@ func newLogger(config *Config) *Logger {
 	if core == nil {
 		core = zapcore.NewCore(
 			func() zapcore.Encoder {
-				if config.Debug {
+				if config.Debug || xdebug.IsDevelopmentMode() {
 					return zapcore.NewConsoleEncoder(encoderConfig)
 				}
 				return zapcore.NewJSONEncoder(encoderConfig)
