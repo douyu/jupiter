@@ -24,7 +24,7 @@ import (
 
 type Option func(c *ServiceInfo)
 
-// ServiceConfigurator represents service configurator
+// ConfigInfo ServiceConfigurator represents service configurator
 type ConfigInfo struct {
 	Routes []Route
 }
@@ -61,6 +61,17 @@ type Service struct {
 // Label ...
 func (si ServiceInfo) Label() string {
 	return fmt.Sprintf("%s://%s", si.Scheme, si.Address)
+}
+
+// Equal allows the values to be compared by Attributes.Equal, this change is in order
+// to fit the change in grpc-go:
+// attributes: add Equal method; resolver: add AddressMap and State.BalancerAttributes (#4855)
+func (si ServiceInfo) Equal(o interface{}) bool {
+	oa, ok := o.(ServiceInfo)
+	return ok &&
+		oa.Weight == si.Weight &&
+		oa.Name == si.Name &&
+		oa.Address == si.Address
 }
 
 // Server ...
