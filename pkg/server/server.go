@@ -69,9 +69,10 @@ func (si ServiceInfo) Label() string {
 func (si ServiceInfo) Equal(o interface{}) bool {
 	oa, ok := o.(ServiceInfo)
 	return ok &&
-		oa.Weight == si.Weight &&
 		oa.Name == si.Name &&
-		oa.Address == si.Address
+		oa.Address == si.Address &&
+		oa.Kind == si.Kind &&
+		oa.Group == si.Group
 }
 
 // Server ...
