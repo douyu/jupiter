@@ -1,5 +1,5 @@
 [jupiter.client.etcdserver]
-    address = "etcd:///main.exe"
+    address = "etcd:///main"
     balancerName = "round_robin" # 默认值
     block =  false # 默认值
     dialTimeout = "0s" # 默认值

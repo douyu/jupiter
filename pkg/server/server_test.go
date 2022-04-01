@@ -1,12 +1,80 @@
-/*
-@Time : 2022/3/25 17:36
-@Author : 飞花
-*/
+// Copyright 2020 Douyu
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 package server
 
-import "testing"
+import (
+	"github.com/douyu/jupiter/pkg/constant"
+	"google.golang.org/grpc/attributes"
+	"google.golang.org/grpc/resolver"
+	"testing"
+)
 
 func Test_ServiceInfo(t *testing.T) {
-	//todo
+
+	info1 := ServiceInfo{
+		Name:    "main",
+		Address: "127.0.0.1:1234",
+		Weight:  100,
+		Kind:    constant.ServiceProvider,
+		Group:   "g1",
+	}
+
+	info2 := ServiceInfo{
+		Name:    "main",
+		Address: "127.0.0.1:1234",
+		Weight:  100,
+		Kind:    constant.ServiceProvider,
+		Group:   "g1",
+	}
+
+	info3 := ServiceInfo{
+		Name:    "main",
+		Address: "127.0.0.1:1235",
+		Weight:  100,
+		Kind:    constant.ServiceProvider,
+		Group:   "g1",
+	}
+
+	var (
+		address1, address2, address3 resolver.Address
+	)
+
+	address1.Addr = info1.Address
+	address1.Attributes = attributes.New(constant.KeyServiceInfo, info1)
+
+	address2.Addr = info2.Address
+	address2.Attributes = attributes.New(constant.KeyServiceInfo, info2)
+
+	address3.Addr = info3.Address
+	address3.Attributes = attributes.New(constant.KeyServiceInfo, info3)
+
+	// the Equal method will check the info which added to attributes,
+	// two attributes with the same content are Equal.
+	if !address1.Equal(address2) {
+		t.Fatalf("%+v.Equals(%+v) = false; want true", address1, address2)
+	}
+	if !address2.Equal(address1) {
+		t.Fatalf("%+v.Equals(%+v) = false; want true", address2, address1)
+	}
+
+	if address1.Equal(address3) {
+		t.Fatalf("%+v.Equals(%+v) = true; want false", address1, address3)
+	}
+
+	if address3.Equal(address1) {
+		t.Fatalf("%+v.Equals(%+v) = true; want false", address3, address1)
+	}
+
 }
