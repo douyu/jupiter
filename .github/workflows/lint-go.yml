@@ -39,3 +39,4 @@ jobs:
 
           # Optional: if set to true then the action don't cache or restore ~/.cache/go-build.
           # skip-build-cache: true
+          args: "--out-${NO_FUTURE}format colored-line-number"
