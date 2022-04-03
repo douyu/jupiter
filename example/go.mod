@@ -5,7 +5,7 @@ go 1.16
 require (
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/alibaba/sentinel-golang v1.0.4
-	github.com/apache/rocketmq-client-go/v2 v2.0.0
+	github.com/apache/rocketmq-client-go/v2 v2.1.1-rc2
 	github.com/douyu/jupiter v0.0.0-00010101000000-000000000000
 	github.com/gin-gonic/gin v1.7.7
 	github.com/gogf/gf v1.13.3
@@ -19,7 +19,7 @@ require (
 	go.etcd.io/etcd/client/v3 v3.5.0
 	go.mongodb.org/mongo-driver v1.5.1
 	google.golang.org/grpc v1.43.0
-	google.golang.org/protobuf v1.26.0
+	google.golang.org/protobuf v1.27.1
 	gopkg.in/mgo.v2 v2.0.0-20180705113604-9856a29383ce
 )
 
