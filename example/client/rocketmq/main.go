@@ -52,7 +52,7 @@ func (eng *Engine) exampleRocketMQConsumer() (err error) {
 	consumerClient := rocketmq.StdPushConsumerConfig("configName").Build()
 	defer func() {
 		if consumerClient.Enable {
-			_ = consumerClient.Close()
+			consumerClient.Close()
 		}
 	}()
 	consumerClient.Subscribe(consumerClient.ConsumerConfig.Topic, func(ctx context.Context, ext *primitive.MessageExt) error {

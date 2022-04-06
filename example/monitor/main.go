@@ -65,7 +65,9 @@ func (eng *Engine) serveGRPC() error {
 	return eng.Serve(server)
 }
 
-type Greeter struct{}
+type Greeter struct {
+	helloworld.UnimplementedGreeterServer
+}
 
 func (g Greeter) SayHello(context context.Context, request *helloworld.HelloRequest) (*helloworld.HelloReply, error) {
 	return &helloworld.HelloReply{
