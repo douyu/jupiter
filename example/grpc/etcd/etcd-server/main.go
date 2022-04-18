@@ -54,7 +54,7 @@ func (eng *Engine) serveGRPC() error {
 }
 
 type Greeter struct {
-	helloworld.GreeterServer
+	helloworld.UnimplementedGreeterServer
 	server *xgrpc.Server
 }
 
