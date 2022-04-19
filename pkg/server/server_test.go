@@ -15,11 +15,12 @@
 package server
 
 import (
-	"fmt"
+	"testing"
+
 	"github.com/douyu/jupiter/pkg/constant"
+	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/attributes"
 	"google.golang.org/grpc/resolver"
-	"testing"
 )
 
 func Test_ServiceInfo(t *testing.T) {
@@ -86,11 +87,6 @@ func Test_ServiceInfo(t *testing.T) {
 // comparison at runtime results in panic
 func TestNotImplementEqual(t *testing.T) {
 
-	defer func() {
-		if r := recover(); r != nil {
-			fmt.Println(r)
-		}
-	}()
 	// The previous structure:  Equal method is not implemented
 	type ServiceInfo struct {
 		Name     string               `json:"name"`
@@ -112,7 +108,6 @@ func TestNotImplementEqual(t *testing.T) {
 		Services map[string]*Service `json:"services" toml:"services"`
 	}
 
-
 	info1 := ServiceInfo{
 		Name:    "main",
 		Address: "127.0.0.1:1234",
@@ -129,7 +124,6 @@ func TestNotImplementEqual(t *testing.T) {
 		Group:   "g1",
 	}
 
-
 	var (
 		address1, address2 resolver.Address
 	)
@@ -141,10 +135,8 @@ func TestNotImplementEqual(t *testing.T) {
 	address2.Addr = info2.Address
 	address2.Attributes = attributes.New(constant.KeyServiceInfo, info2)
 
-
-	// This will cause panic
-	if !address1.Equal(address2) {
-		t.Fatalf("%+v.Equals(%+v) = false; want true", address1, address2)
-	}
-
+	assert.Panics(t, func() {
+		// This will cause panic
+		address1.Equal(address2)
+	})
 }
