@@ -245,9 +245,10 @@ func (f *BoolFlag) Apply(set *FlagSet) {
 		field = strings.TrimSpace(field)
 		if f.Variable != nil {
 			set.FlagSet.BoolVar(f.Variable, field, f.Default, f.Usage)
+		} else {
+			set.FlagSet.Bool(field, f.Default, f.Usage)
 		}
 
-		set.FlagSet.Bool(field, f.Default, f.Usage)
 		set.actions[field] = f.Action
 		set.environs[field] = os.Getenv(f.EnvVar)
 	}
@@ -270,8 +271,9 @@ func (f *StringFlag) Apply(set *FlagSet) {
 		field = strings.TrimSpace(field)
 		if f.Variable != nil {
 			set.FlagSet.StringVar(f.Variable, field, f.Default, f.Usage)
+		} else {
+			set.FlagSet.String(field, f.Default, f.Usage)
 		}
-		set.FlagSet.String(field, f.Default, f.Usage)
 		set.actions[field] = f.Action
 		set.environs[field] = os.Getenv(f.EnvVar)
 	}
@@ -292,8 +294,9 @@ func (f *IntFlag) Apply(set *FlagSet) {
 		field = strings.TrimSpace(field)
 		if f.Variable != nil {
 			set.FlagSet.IntVar(f.Variable, field, f.Default, f.Usage)
+		} else {
+			set.FlagSet.Int(field, f.Default, f.Usage)
 		}
-		set.FlagSet.Int(field, f.Default, f.Usage)
 		set.actions[field] = f.Action
 	}
 }
@@ -313,8 +316,9 @@ func (f *UintFlag) Apply(set *FlagSet) {
 		field = strings.TrimSpace(field)
 		if f.Variable != nil {
 			set.FlagSet.UintVar(f.Variable, field, f.Default, f.Usage)
+		} else {
+			set.FlagSet.Uint(field, f.Default, f.Usage)
 		}
-		set.FlagSet.Uint(field, f.Default, f.Usage)
 		set.actions[field] = f.Action
 	}
 }
@@ -334,8 +338,9 @@ func (f *Float64Flag) Apply(set *FlagSet) {
 		field = strings.TrimSpace(field)
 		if f.Variable != nil {
 			set.FlagSet.Float64Var(f.Variable, field, f.Default, f.Usage)
+		} else {
+			set.FlagSet.Float64(field, f.Default, f.Usage)
 		}
-		set.FlagSet.Float64(field, f.Default, f.Usage)
 		set.actions[field] = f.Action
 	}
 }
