@@ -33,7 +33,10 @@ func NewEngine() *Engine {
 }
 
 func (eng *Engine) serveHTTP() error {
-	server := xecho.StdConfig("http").MustBuild()
+	server, err := xecho.StdConfig("http").Build()
+    if err != nil {
+        return err
+    }
 	server.GET("/jupiter", func(ctx echo.Context) error {
     	return ctx.JSON(200, "welcome to jupiter")
     })
@@ -50,7 +53,10 @@ func (eng *Engine) serveHTTP() error {
 }
 
 func (eng *Engine) serveGRPC() error {
-	server := xgrpc.StdConfig("grpc").MustBuild()
+	server, err := xgrpc.StdConfig("grpc").Build()
+    if err != nil {
+        return err
+    }
     helloworld.RegisterGreeterServer(server.Server, new(greeter.Greeter))
     return eng.Serve(server)
 }
