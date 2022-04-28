@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"github.com/apache/rocketmq-client-go/v2/primitive"
 	"strconv"
+	"time"
 
 	"github.com/douyu/jupiter"
 	"github.com/douyu/jupiter/pkg/client/rocketmq"
@@ -54,6 +55,7 @@ func (eng *Engine) exampleRocketMQConsumer() (err error) {
 		for i := range msgs {
 			fmt.Printf("subscribe callback: %v \n", msgs[i])
 		}
+		time.Sleep(50 * time.Millisecond)
 		return nil
 	})
 	err = consumerClient.Start()
@@ -70,14 +72,11 @@ func (eng *Engine) exampleRocketMQProducer() (err error) {
 	if err != nil {
 		return
 	}
-	var msgs []*primitive.Message
-	for i := 0; i < 10; i++ {
-		msgs = append(msgs, primitive.NewMessage("test",
-			[]byte("Hello RocketMQ Go Client! num: "+strconv.Itoa(i))))
-	}
-	for i := 0; i < 10; i++ {
+	ctx := context.Background()
+	for i := 0; i < 100; i++ {
 		msg := "a" + strconv.Itoa(i)
-		err = producerClient.Send([]byte(msg))
+		producerClient.SendWithContext(ctx, []byte(msg))
 	}
+
 	return
 }

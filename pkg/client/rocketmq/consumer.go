@@ -108,6 +108,7 @@ func (cc *PushConsumer) Subscribe(topic string, f func(context.Context, *primiti
 					ext.SpanKindConsumer,
 					trace.HeaderExtractor(metadata.New(msg.GetProperties())),
 				)
+				// todo optimize
 				defer span.Finish()
 			}
 
@@ -149,6 +150,7 @@ func (cc *PushConsumer) RegisterSingleMessage(f func(context.Context, *primitive
 					ext.SpanKindConsumer,
 					trace.HeaderExtractor(metadata.New(msg.GetProperties())),
 				)
+				// todo optimize
 				defer span.Finish()
 			}
 
@@ -182,13 +184,17 @@ func (cc *PushConsumer) RegisterBatchMessage(f func(context.Context, ...*primiti
 		)
 
 		if cc.EnableTrace {
-			span, ctx = trace.StartSpanFromContext(
-				ctx,
-				cc.Topic,
-				trace.TagComponent("rocketmq"),
-				ext.SpanKindConsumer,
-			)
-			defer span.Finish()
+			for _, msg := range msgs {
+				span, ctx = trace.StartSpanFromContext(
+					ctx,
+					cc.Topic,
+					trace.TagComponent("rocketmq"),
+					ext.SpanKindConsumer,
+					trace.HeaderExtractor(metadata.New(msg.GetProperties())),
+				)
+				// todo optimize
+				defer span.Finish()
+			}
 		}
 
 		if cc.bucket != nil {
