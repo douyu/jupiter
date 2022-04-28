@@ -17,9 +17,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/apache/rocketmq-client-go/v2/primitive"
 	"strconv"
 
-	"github.com/apache/rocketmq-client-go/v2/primitive"
 	"github.com/douyu/jupiter"
 	"github.com/douyu/jupiter/pkg/client/rocketmq"
 	"github.com/douyu/jupiter/pkg/xlog"
@@ -50,15 +50,10 @@ func main() {
 
 func (eng *Engine) exampleRocketMQConsumer() (err error) {
 	consumerClient := rocketmq.StdPushConsumerConfig("configName").Build()
-	defer func() {
-		if consumerClient.Enable {
-			consumerClient.Close()
+	consumerClient.RegisterBatchMessage(func(ctx context.Context, msgs ...*primitive.MessageExt) error {
+		for i := range msgs {
+			fmt.Printf("subscribe callback: %v \n", msgs[i])
 		}
-	}()
-	consumerClient.Subscribe(consumerClient.ConsumerConfig.Topic, func(ctx context.Context, ext *primitive.MessageExt) error {
-		fmt.Println("msg...", string(ext.Message.Body))
-		fmt.Println("msg topic...", string(ext.Message.Topic))
-		fmt.Println("msg topic tag...", string(ext.Message.GetTags()))
 		return nil
 	})
 	err = consumerClient.Start()
@@ -75,7 +70,11 @@ func (eng *Engine) exampleRocketMQProducer() (err error) {
 	if err != nil {
 		return
 	}
-
+	var msgs []*primitive.Message
+	for i := 0; i < 10; i++ {
+		msgs = append(msgs, primitive.NewMessage("test",
+			[]byte("Hello RocketMQ Go Client! num: "+strconv.Itoa(i))))
+	}
 	for i := 0; i < 10; i++ {
 		msg := "a" + strconv.Itoa(i)
 		err = producerClient.Send([]byte(msg))

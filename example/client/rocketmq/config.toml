@@ -8,6 +8,7 @@ topic = "test_topic"
 subExpression = "*"
 rate = 1
 capacity = 1
+consumeMessageBatchMaxSize = 5
 [jupiter.rocketmq.configName.producer]
 addr = ["127.0.0.1:9876"]
 group = "test_group"

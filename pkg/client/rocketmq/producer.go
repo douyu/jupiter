@@ -61,7 +61,7 @@ func (conf *ProducerConfig) Build() *Producer {
 		},
 	}
 
-	cc.interceptors = append(cc.interceptors, producerDefaultInterceptor(cc), producerMDInterceptor(cc), producerShadowInterceptor(cc, conf.Shadow))
+	cc.interceptors = append(cc.interceptors, producerDefaultInterceptor(cc), producerMDInterceptor(cc))
 
 	_producers.Store(name, cc)
 	return cc

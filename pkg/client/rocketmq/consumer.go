@@ -70,7 +70,7 @@ func (conf ConsumerConfig) Build() *PushConsumer {
 		},
 		bucket: bucket,
 	}
-	cc.interceptors = append(cc.interceptors, pushConsumerDefaultInterceptor(cc), pushConsumerMDInterceptor(cc), pushConsumerShadowInterceptor(cc, conf.Shadow))
+	cc.interceptors = append(cc.interceptors, pushConsumerDefaultInterceptor(cc), pushConsumerMDInterceptor(cc))
 
 	_consumers.Store(name, cc)
 	return cc
@@ -89,6 +89,7 @@ func (cc *PushConsumer) WithInterceptor(fs ...primitive.Interceptor) *PushConsum
 	return cc
 }
 
+// Deprecated: use RegisterSingleMessage or RegisterBatchMessage instead
 func (cc *PushConsumer) Subscribe(topic string, f func(context.Context, *primitive.MessageExt) error) *PushConsumer {
 	if _, ok := cc.subscribers[topic]; ok {
 		xlog.Panic("duplicated subscribe", zap.String("topic", topic))
@@ -130,6 +131,85 @@ func (cc *PushConsumer) Subscribe(topic string, f func(context.Context, *primiti
 	return cc
 }
 
+func (cc *PushConsumer) RegisterSingleMessage(f func(context.Context, *primitive.MessageExt) error) *PushConsumer {
+	if _, ok := cc.subscribers[cc.Topic]; ok {
+		xlog.Panic("duplicated register single message", zap.String("topic", cc.Topic))
+	}
+	fn := func(ctx context.Context, msgs ...*primitive.MessageExt) (consumer.ConsumeResult, error) {
+		for _, msg := range msgs {
+			var (
+				span opentracing.Span
+			)
+
+			if cc.EnableTrace {
+				span, ctx = trace.StartSpanFromContext(
+					ctx,
+					cc.Topic,
+					trace.TagComponent("rocketmq"),
+					ext.SpanKindConsumer,
+					trace.HeaderExtractor(metadata.New(msg.GetProperties())),
+				)
+				defer span.Finish()
+			}
+
+			if cc.bucket != nil {
+				if ok := cc.bucket.WaitMaxDuration(1, cc.WaitMaxDuration); !ok {
+					xlog.Warn("too many messages, reconsume later", zap.String("body", string(msg.Body)), zap.String("topic", cc.Topic))
+					return consumer.ConsumeRetryLater, nil
+				}
+			}
+
+			err := f(ctx, msg)
+			if err != nil {
+				xlog.Error("consumer message", zap.Error(err), zap.String("field", cc.name), zap.Any("ext", msg))
+				return consumer.ConsumeRetryLater, err
+			}
+		}
+
+		return consumer.ConsumeSuccess, nil
+	}
+	cc.subscribers[cc.Topic] = fn
+	return cc
+}
+
+func (cc *PushConsumer) RegisterBatchMessage(f func(context.Context, ...*primitive.MessageExt) error) *PushConsumer {
+	if _, ok := cc.subscribers[cc.Topic]; ok {
+		xlog.Panic("duplicated register batch message", zap.String("topic", cc.Topic))
+	}
+	fn := func(ctx context.Context, msgs ...*primitive.MessageExt) (consumer.ConsumeResult, error) {
+		var (
+			span opentracing.Span
+		)
+
+		if cc.EnableTrace {
+			span, ctx = trace.StartSpanFromContext(
+				ctx,
+				cc.Topic,
+				trace.TagComponent("rocketmq"),
+				ext.SpanKindConsumer,
+			)
+			defer span.Finish()
+		}
+
+		if cc.bucket != nil {
+			if ok := cc.bucket.WaitMaxDuration(int64(len(msgs)), cc.WaitMaxDuration); !ok {
+				xlog.Warn("too many messages, reconsume later", zap.String("topic", cc.Topic))
+				return consumer.ConsumeRetryLater, nil
+			}
+		}
+
+		err := f(ctx, msgs...)
+		if err != nil {
+			xlog.Error("consumer batch message", zap.Error(err), zap.String("field", cc.name))
+			return consumer.ConsumeRetryLater, err
+		}
+
+		return consumer.ConsumeSuccess, nil
+	}
+	cc.subscribers[cc.Topic] = fn
+	return cc
+}
+
 func (cc *PushConsumer) Start() error {
 	var opts = []consumer.Option{
 		consumer.WithGroupName(cc.Group),
@@ -137,6 +217,8 @@ func (cc *PushConsumer) Start() error {
 		consumer.WithNameServer(cc.Addr),
 		consumer.WithMaxReconsumeTimes(cc.Reconsume),
 		consumer.WithInterceptor(cc.interceptors...),
+		consumer.WithConsumeMessageBatchMaxSize(cc.ConsumeMessageBatchMaxSize),
+		consumer.WithPullBatchSize(cc.PullBatchSize),
 		consumer.WithCredentials(primitive.Credentials{
 			AccessKey: cc.AccessKey,
 			SecretKey: cc.SecretKey,
