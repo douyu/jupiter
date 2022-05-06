@@ -54,6 +54,10 @@ type ConsumerConfig struct {
 	// client实例名，默认会基于Addr字段生成md5，支持多集群
 	InstanceName string `json:"instanceName" toml:"instanceName"`
 	EnableTrace  bool   `json:"enableTrace" toml:"enableTrace"`
+	// 批量消费的最大消息数量，取值范围：[1, 1024]，默认值为1
+	ConsumeMessageBatchMaxSize int `json:"consumeMessageBatchMaxSize" toml:"consumeMessageBatchMaxSize"`
+	// 每批次从broker拉取消息的最大个数，取值范围：[1, 1024]，默认值为32
+	PullBatchSize int32 `json:"pullBatchSize" toml:"pullBatchSize"`
 }
 
 // ProducerConfig producer config

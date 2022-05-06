@@ -129,57 +129,6 @@ func pushConsumerMDInterceptor(pushConsumer *PushConsumer) primitive.Interceptor
 	}
 }
 
-func pushConsumerShadowInterceptor(pushConsumer *PushConsumer, config Shadow) primitive.Interceptor {
-	isWitheTopic := func(topicName string) bool {
-		for _, v := range config.WitheTopics {
-			if topicName == v {
-				return true
-			}
-		}
-		return false
-	}
-	addr := strings.Join(pushConsumer.Addr, ",")
-	return func(ctx context.Context, req, reply interface{}, next primitive.Invoker) error {
-		msg := req.([]*primitive.MessageExt)
-		pushConsumer.fInfo.UpdateFlow()
-		if len(msg) > 0 {
-			realReq := msg[0]
-			switch config.Mode {
-			case "off":
-			case "on":
-				if md, ok := imeta.FromContext(ctx); ok && md.IsShadow() {
-					pushConsumer.fInfo.UpdateShadowFlow()
-					if !isWitheTopic(realReq.Topic) {
-						xlog.Info(
-							"SHADOW_DROP_MSG",
-							xlog.FieldAddr(addr),
-							xlog.FieldMethod(realReq.Topic),
-							xlog.String("body", string(realReq.Body)),
-							xlog.FieldType("consumer"),
-						)
-						return nil
-					}
-				}
-			case "watch":
-				var wouldDrop bool
-				if md, ok := imeta.FromContext(ctx); ok && md.IsShadow() && !isWitheTopic(realReq.Topic) {
-					wouldDrop = true
-				}
-				xlog.Info("SHADOW_WATCH_MSG",
-					xlog.FieldAddr(addr),
-					xlog.FieldMethod(realReq.Topic),
-					xlog.Any("wouldDrop", wouldDrop),
-					xlog.Any("WitheTopics", config.WitheTopics),
-					xlog.FieldType("consumer"),
-				)
-			}
-		}
-
-		err := next(ctx, req, reply)
-		return err
-	}
-}
-
 func produceResultStr(result primitive.SendStatus) string {
 	switch result {
 	case primitive.SendOK:
@@ -282,54 +231,6 @@ func producerMDInterceptor(producer *Producer) primitive.Interceptor {
 			for k, v := range md {
 				realReq.WithProperty(k, strings.Join(v, ","))
 			}
-		}
-		err := next(ctx, req, reply)
-		return err
-	}
-}
-
-func producerShadowInterceptor(producer *Producer, config Shadow) primitive.Interceptor {
-	isWitheTopic := func(topicName string) bool {
-		for _, v := range config.WitheTopics {
-			if topicName == v {
-				return true
-			}
-		}
-		return false
-	}
-	addr := strings.Join(producer.Addr, ",")
-	return func(ctx context.Context, req, reply interface{}, next primitive.Invoker) error {
-		realReq := req.(*primitive.Message)
-		producer.fInfo.UpdateFlow()
-		switch config.Mode {
-		case "off":
-		case "on":
-			if md, ok := imeta.FromContext(ctx); ok && md.IsShadow() {
-				producer.fInfo.UpdateShadowFlow()
-				if !isWitheTopic(realReq.Topic) {
-					// 压测模式非白名单topic直接丢弃
-					xlog.Info(
-						"SHADOW_DROP_MSG",
-						xlog.FieldAddr(addr),
-						xlog.FieldMethod(realReq.Topic),
-						xlog.String("body", string(realReq.Body)),
-						xlog.FieldType("producer"),
-					)
-					return nil
-				}
-			}
-		case "watch":
-			var wouldDrop bool
-			if md, ok := imeta.FromContext(ctx); ok && md.IsShadow() && !isWitheTopic(realReq.Topic) {
-				wouldDrop = true
-			}
-			xlog.Info("SHADOW_WATCH_MSG",
-				xlog.FieldAddr(addr),
-				xlog.FieldMethod(realReq.Topic),
-				xlog.Any("wouldDrop", wouldDrop),
-				xlog.Any("WitheTopics", config.WitheTopics),
-				xlog.FieldType("producer"),
-			)
 		}
 		err := next(ctx, req, reply)
 		return err
