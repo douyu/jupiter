@@ -12,22 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package xlog
+// +build linux
+
+package rotate_test
 
 import (
-	"io"
+	"log"
+	"os"
+	"os/signal"
+	"syscall"
 
-	"github.com/douyu/jupiter/pkg/xlog/v2/rotate"
+	"github.com/douyu/jupiter/pkg/xlog/rotate"
 )
 
-func newRotate(config *Config) io.Writer {
-	rotateLog := rotate.NewLogger()
-	rotateLog.Filename = config.Filename()
-	rotateLog.MaxSize = config.MaxSize // MB
-	rotateLog.MaxAge = config.MaxAge   // days
-	rotateLog.MaxBackups = config.MaxBackup
-	rotateLog.Interval = config.Interval
-	rotateLog.LocalTime = true
-	rotateLog.Compress = false
-	return rotateLog
+// Example of how to rotate in response to SIGHUP.
+func ExampleLogger_Rotate() {
+	l := &rotate.Logger{}
+	log.SetOutput(l)
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGHUP)
+
+	go func() {
+		for {
+			<-c
+			l.Rotate()
+		}
+	}()
 }

@@ -12,22 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package xlog
+// +build !linux
+
+package rotate
 
 import (
-	"io"
-
-	"github.com/douyu/jupiter/pkg/xlog/v2/rotate"
+	"os"
 )
 
-func newRotate(config *Config) io.Writer {
-	rotateLog := rotate.NewLogger()
-	rotateLog.Filename = config.Filename()
-	rotateLog.MaxSize = config.MaxSize // MB
-	rotateLog.MaxAge = config.MaxAge   // days
-	rotateLog.MaxBackups = config.MaxBackup
-	rotateLog.Interval = config.Interval
-	rotateLog.LocalTime = true
-	rotateLog.Compress = false
-	return rotateLog
+func chown(_ string, _ os.FileInfo) error {
+	return nil
 }

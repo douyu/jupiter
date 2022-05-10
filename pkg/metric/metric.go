@@ -146,6 +146,9 @@ var (
 		Labels:    []string{"name", "id", "env", "region", "zone", "version", "go_version"},
 		// Labels:    []string{"name", "aid", "mode", "region", "zone", "app_version", "jupiter_version", "start_time", "build_time", "go_version"},
 	}.Build()
+
+	// LogLevelCounter ...
+	LogLevelCounter = NewCounterVec("log_level_total", []string{"name", "lv"})
 )
 
 func init() {

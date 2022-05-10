@@ -12,22 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package xlog
+// +build linux
+
+package rotate
 
 import (
-	"io"
-
-	"github.com/douyu/jupiter/pkg/xlog/v2/rotate"
+	"os"
+	"syscall"
 )
 
-func newRotate(config *Config) io.Writer {
-	rotateLog := rotate.NewLogger()
-	rotateLog.Filename = config.Filename()
-	rotateLog.MaxSize = config.MaxSize // MB
-	rotateLog.MaxAge = config.MaxAge   // days
-	rotateLog.MaxBackups = config.MaxBackup
-	rotateLog.Interval = config.Interval
-	rotateLog.LocalTime = true
-	rotateLog.Compress = false
-	return rotateLog
+// os_Chown is a var so we can mock it out during tests.
+var os_Chown = os.Chown
+
+func chown(name string, info os.FileInfo) error {
+	f, err := os.OpenFile(name, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, info.Mode())
+	if err != nil {
+		return err
+	}
+	f.Close()
+	stat := info.Sys().(*syscall.Stat_t)
+	return os_Chown(name, int(stat.Uid), int(stat.Gid))
 }

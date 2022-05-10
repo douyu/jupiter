@@ -12,22 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package xlog
+package rotate_test
 
 import (
-	"io"
+	"log"
 
-	"github.com/douyu/jupiter/pkg/xlog/v2/rotate"
+	"github.com/douyu/jupiter/pkg/xlog/rotate"
 )
 
-func newRotate(config *Config) io.Writer {
-	rotateLog := rotate.NewLogger()
-	rotateLog.Filename = config.Filename()
-	rotateLog.MaxSize = config.MaxSize // MB
-	rotateLog.MaxAge = config.MaxAge   // days
-	rotateLog.MaxBackups = config.MaxBackup
-	rotateLog.Interval = config.Interval
-	rotateLog.LocalTime = true
-	rotateLog.Compress = false
-	return rotateLog
+// To use rotate with the standard library's log package, just pass it into
+// the SetOutput function when your application starts.
+func Example() {
+	log.SetOutput(&rotate.Logger{
+		Filename:   "/var/log/myapp/foo.log",
+		MaxSize:    500, // megabytes
+		MaxBackups: 3,
+		MaxAge:     28,   // days
+		Compress:   true, // disabled by default
+	})
 }

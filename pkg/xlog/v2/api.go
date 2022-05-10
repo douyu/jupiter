@@ -1,4 +1,4 @@
-// Copyright 2020 Douyu
+// Copyright 2022 Douyu
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,20 +14,16 @@
 
 package xlog
 
-import (
-	"io"
+// DefaultLogger default logger
+// Biz Log
+// debug=true as default, will be
+var DefaultLogger = Config{
+	Name:  "default",
+	Debug: true,
+}.Build()
 
-	"github.com/douyu/jupiter/pkg/xlog/v2/rotate"
-)
-
-func newRotate(config *Config) io.Writer {
-	rotateLog := rotate.NewLogger()
-	rotateLog.Filename = config.Filename()
-	rotateLog.MaxSize = config.MaxSize // MB
-	rotateLog.MaxAge = config.MaxAge   // days
-	rotateLog.MaxBackups = config.MaxBackup
-	rotateLog.Interval = config.Interval
-	rotateLog.LocalTime = true
-	rotateLog.Compress = false
-	return rotateLog
-}
+// frame logger
+var JupiterLogger = Config{
+	Name:  "jupiter",
+	Debug: true,
+}.Build()
