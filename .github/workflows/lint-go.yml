@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3.0.2
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v2
+        uses: golangci/golangci-lint-action@v3.2.0
         with:
           args: "--out-${NO_FUTURE}format colored-line-number"
           # Optional: working directory, useful for monorepos
