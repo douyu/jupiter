@@ -84,8 +84,8 @@ type Shadow struct {
 }
 
 // DefaultConfig ...
-func DefaultConfig() Config {
-	return Config{
+func DefaultConfig() *Config {
+	return &Config{
 		Addresses: make([]string, 0),
 		Producer: &ProducerConfig{
 			Retry: 3,
@@ -98,8 +98,8 @@ func DefaultConfig() Config {
 }
 
 // DefaultConsumerConfig ...
-func DefaultConsumerConfig() ConsumerConfig {
-	return ConsumerConfig{
+func DefaultConsumerConfig() *ConsumerConfig {
+	return &ConsumerConfig{
 		DialTimeout:     time.Second * 3,
 		RwTimeout:       time.Second * 10,
 		Reconsume:       3,
@@ -108,8 +108,8 @@ func DefaultConsumerConfig() ConsumerConfig {
 }
 
 // DefaultProducerConfig ...
-func DefaultProducerConfig() ProducerConfig {
-	return ProducerConfig{
+func DefaultProducerConfig() *ProducerConfig {
+	return &ProducerConfig{
 		Retry:       3,
 		DialTimeout: time.Second * 3,
 		RwTimeout:   0,
@@ -117,7 +117,7 @@ func DefaultProducerConfig() ProducerConfig {
 }
 
 // StdPushConsumerConfig ...
-func StdPushConsumerConfig(name string) ConsumerConfig {
+func StdPushConsumerConfig(name string) *ConsumerConfig {
 
 	cc := RawConsumerConfig(constant.ConfigPrefix + ".rocketmq." + name + ".consumer")
 	rc := RawConfig(constant.ConfigPrefix + ".rocketmq." + name)
@@ -169,11 +169,11 @@ func StdProducerConfig(name string) *ProducerConfig {
 		pc.InstanceName = fmt.Sprintf("%x", md5.Sum([]byte(strings.Join(pc.Addr, ","))))
 	}
 
-	return &pc
+	return pc
 }
 
 // RawConfig 返回配置
-func RawConfig(key string) Config {
+func RawConfig(key string) *Config {
 	var config = DefaultConfig()
 	if err := conf.UnmarshalKey(key, &config, conf.TagName("toml")); err != nil {
 		xlog.Panic("unmarshal config", xlog.String("field", key), xlog.Any("ext", config))
@@ -186,7 +186,7 @@ func RawConfig(key string) Config {
 }
 
 // RawConsumerConfig 返回配置
-func RawConsumerConfig(key string) ConsumerConfig {
+func RawConsumerConfig(key string) *ConsumerConfig {
 	var config = DefaultConsumerConfig()
 	if err := conf.UnmarshalKey(key, &config); err != nil {
 		xlog.Panic("unmarshal config", xlog.FieldErr(err), xlog.String("key", key), xlog.Any("config", config))
@@ -196,7 +196,7 @@ func RawConsumerConfig(key string) ConsumerConfig {
 }
 
 // RawProducerConfig ...
-func RawProducerConfig(key string) ProducerConfig {
+func RawProducerConfig(key string) *ProducerConfig {
 	var config = DefaultProducerConfig()
 	if err := conf.UnmarshalKey(key, &config); err != nil {
 		xlog.Panic("unmarshal config", xlog.String("key", key))
