@@ -25,7 +25,6 @@ require (
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
 	github.com/gorilla/websocket v1.4.2
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
-	github.com/hnlq715/struct2interface v0.0.2
 	github.com/imdario/mergo v0.3.12
 	github.com/jinzhu/gorm v1.9.16
 	github.com/json-iterator/go v1.1.12
@@ -66,11 +65,17 @@ require (
 
 require (
 	github.com/aws/aws-sdk-go v1.40.45 // indirect
+	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
+	github.com/golang/mock v1.6.0 // indirect
+	github.com/golang/snappy v0.0.3 // indirect
+	github.com/google/go-cmp v0.5.6 // indirect
+	github.com/kr/pretty v0.2.0 // indirect
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/smartystreets/assertions v0.0.0-20190401211740-f487f9de1cd3 // indirect
 	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/tidwall/gjson v1.13.0 // indirect
 	github.com/uber/jaeger-lib v2.2.0+incompatible // indirect
+	go.etcd.io/etcd/client/pkg/v3 v3.5.1 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 )
