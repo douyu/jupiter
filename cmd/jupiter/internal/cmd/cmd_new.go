@@ -67,7 +67,7 @@ func generate(c *cli.Context, cmd string) error {
 		Comments: []string{
 			// "run to compile......",
 			fmt.Sprintf("Generate %s project success", cmd),
-			"\ncd  " + filepath.Join(goDir),
+			"\ncd " + goDir,
 			"\njupiter run -c cmd/exampleserver/.jupiter.toml",
 			"\nEnjoy coding~~",
 		},
@@ -208,13 +208,9 @@ func getFileInfosByGit(name string) (
 	finalTemplateDir := "local_temp_jupiter_layout"
 	fmt.Println("git", "clone", gitPath)
 
-	cmd := exec.Command("git", "clone", gitPath, finalTemplateDir)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	cmd := exec.Command("git", "clone", gitPath, finalTemplateDir, "-b", "main", "--depth=1")
 	if err := cmd.Run(); err != nil {
-		fmt.Printf("[jupiter] Clone template git codebase failed:template_name=[%v] gitPath=[%v] err=[%v]",
-			name, gitPath, err)
-		return fileInfos
+		panic(err)
 	}
 
 	// 获取模板的文件流
