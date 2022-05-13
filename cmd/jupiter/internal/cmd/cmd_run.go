@@ -20,7 +20,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/douyu/jupiter/cmd/jupiter/internal/runner"
+	"github.com/cosmtrek/air/runner"
 	"github.com/urfave/cli"
 )
 

@@ -9,10 +9,9 @@ require (
 	github.com/alicebob/miniredis/v2 v2.15.1
 	github.com/apache/rocketmq-client-go/v2 v2.1.1-rc2
 	github.com/codegangsta/inject v0.0.0-20150114235600-33e0aa1cb7c0
-	github.com/creack/pty v1.1.11
 	github.com/davecgh/go-spew v1.1.1
 	github.com/dimiro1/banner v1.1.0
-	github.com/fatih/color v1.13.0
+	github.com/fatih/color v1.13.0 // indirect
 	github.com/fatih/structtag v1.2.0
 	github.com/flosch/pongo2 v0.0.0-20200518135938-dfb43dbdc22a
 	github.com/fsnotify/fsnotify v1.5.1
@@ -25,7 +24,6 @@ require (
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
 	github.com/gorilla/websocket v1.4.2
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
-	github.com/imdario/mergo v0.3.12
 	github.com/jinzhu/gorm v1.9.16
 	github.com/json-iterator/go v1.1.12
 	github.com/juju/ratelimit v1.0.1
@@ -38,7 +36,7 @@ require (
 	github.com/onsi/ginkgo v1.16.2
 	github.com/onsi/gomega v1.13.0
 	github.com/opentracing/opentracing-go v1.2.0
-	github.com/pelletier/go-toml v1.9.4
+	github.com/pelletier/go-toml v1.9.4 // indirect
 	github.com/philchia/agollo/v4 v4.1.3
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.12.1
@@ -65,6 +63,7 @@ require (
 
 require (
 	github.com/aws/aws-sdk-go v1.40.45 // indirect
+	github.com/cosmtrek/air v0.0.0-20220504050646-0c5e73afb027
 	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/golang/snappy v0.0.3 // indirect
