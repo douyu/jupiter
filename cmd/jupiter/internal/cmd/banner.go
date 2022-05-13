@@ -12,28 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package cmd
 
 import (
-	"log"
-	"os"
-	"sort"
-
-	"github.com/douyu/jupiter/cmd/jupiter/internal/cmd"
-	"github.com/urfave/cli"
+	"github.com/dimiro1/banner"
+	"github.com/mattn/go-colorable"
 )
 
-func main() {
+func init() {
 
-	app := cli.NewApp()
-	app.Usage = "Fast bootstrap tool for jupiter framework"
-	app.Commands = cmd.Commands
+	tpl := `                                     
+	(_)_   _ _ __ (_) |_ ___ _ __
+	| | | | | '_ \| | __/ _ \ '__|
+	| | |_| | |_) | | ||  __/ |
+   _/ |\__,_| .__/|_|\__\___|_|
+  |__/      |_|	  
+							   
+GoVersion: {{ .GoVersion }}
+GOOS: {{ .GOOS }}
+GOARCH: {{ .GOARCH }}
+NumCPU: {{ .NumCPU }}
+GOPATH: {{ .GOPATH }}
+GOROOT: {{ .GOROOT }}
+Compiler: {{ .Compiler }}
+ENV: {{ .Env "GOPATH" }}
+Now: {{ .Now "Monday, 2 Jan 2006" }}
 
-	sort.Sort(cli.FlagsByName(app.Flags))
-	sort.Sort(cli.CommandsByName(app.Commands))
-
-	err := app.Run(os.Args)
-	if err != nil {
-		log.Fatal(err)
-	}
+`
+	banner.InitString(colorable.NewColorableStdout(), true, true, tpl)
 }

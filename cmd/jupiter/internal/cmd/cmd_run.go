@@ -1,4 +1,4 @@
-// Copyright 2021 rex lv
+// Copyright 2022 Douyu
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,15 +12,39 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package client
+package cmd
 
-import "github.com/douyu/jupiter/pkg/client/rocketmq"
+import (
+	"log"
+	"os"
+	"os/signal"
+	"syscall"
 
-type Config struct {
-	EndpointProducer rocketmq.ProducerConfig `conf:"producer" gen:"Producer"`
-	EndpointConsumer rocketmq.ConsumerConfig `conf:"consumer" gen:"Consumer"`
-}
+	"github.com/cosmtrek/air/runner"
+	"github.com/urfave/cli"
+)
 
-func (c Config) String() string {
-	return ""
+// Run 运行程序
+func Run(c *cli.Context) error {
+	debugMode := c.Bool("debug")
+	cfgPath := c.String("c")
+
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
+	var err error
+	r, err := runner.NewEngine(cfgPath, debugMode)
+	if err != nil {
+		log.Fatal(err)
+		return err
+	}
+
+	go func() {
+		<-sigs
+		r.Stop()
+	}()
+
+	r.Run()
+
+	return nil
 }
