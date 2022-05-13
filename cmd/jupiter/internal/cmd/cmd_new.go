@@ -54,7 +54,7 @@ func generate(c *cli.Context, cmd string) error {
 			// "run to compile......",
 			fmt.Sprintf("Generate %s project success", cmd),
 			"\ncd  " + filepath.Join(goDir),
-			"\njupiter run",
+			"\njupiter run -c cmd/exampleserver/.jupiter.toml",
 			"\nEnjoy coding~~",
 		},
 	}

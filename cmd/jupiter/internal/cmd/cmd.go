@@ -45,19 +45,4 @@ var Commands = []cli.Command{
 			return Update(c)
 		},
 	},
-	{
-		Name:    "struct2interface",
-		Aliases: []string{"s2i"},
-		Usage:   "Auto generate interface from struct for golang",
-		Action: func(c *cli.Context) error {
-			return Struct2Interface(c)
-		},
-		Flags: []cli.Flag{
-			cli.StringFlag{
-				Name:  "d,dir",
-				Usage: "指定Go代码路径",
-				Value: ".",
-			},
-		},
-	},
 }
