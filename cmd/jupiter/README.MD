@@ -63,7 +63,6 @@ USAGE:
 COMMANDS:
    new, n                              generate code framework
    run, r                              auto restart program when files changed
-   struct2interface, s2i  Auto generate interface from struct for golang
    update, upgrade                     Upgrade to the latest version
    help, h                             Shows a list of commands or help for one command
 
