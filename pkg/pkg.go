@@ -97,10 +97,10 @@ func AppVersion() string {
 	return buildAppVersion
 }
 
-//appVersion not defined
-// func SetAppVersion(s string) {
-// 	appVersion = s
-// }
+// SetAppVersion set appVersion
+func SetAppVersion(s string) {
+	buildAppVersion = s
+}
 
 //JupiterVersion get jupiterVersion
 func JupiterVersion() string {
