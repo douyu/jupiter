@@ -25,8 +25,6 @@ type GetUuidBySnowflakeRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
-
-	NodeId int32 `protobuf:"varint,1,opt,name=nodeId,proto3" json:"nodeId,omitempty"`
 }
 
 func (x *GetUuidBySnowflakeRequest) Reset() {
@@ -61,21 +59,18 @@ func (*GetUuidBySnowflakeRequest) Descriptor() ([]byte, []int) {
 	return file_uuid_v1_uuid_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *GetUuidBySnowflakeRequest) GetNodeId() int32 {
-	if x != nil {
-		return x.NodeId
-	}
-	return 0
-}
-
 // The response message containing the UUID.
 type GetUuidBySnowflakeRequestResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// message ...
-	Uuid string `protobuf:"bytes,1,opt,name=uuid,proto3" json:"uuid,omitempty"`
+	// error
+	Error uint32 `protobuf:"varint,1,opt,name=error,proto3" json:"error,omitempty"`
+	// msg
+	Msg string `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
+	// data ...
+	Data *GetUuidBySnowflakeRequestResponse_Data `protobuf:"bytes,3,opt,name=data,proto3" json:"data,omitempty"`
 }
 
 func (x *GetUuidBySnowflakeRequestResponse) Reset() {
@@ -110,11 +105,25 @@ func (*GetUuidBySnowflakeRequestResponse) Descriptor() ([]byte, []int) {
 	return file_uuid_v1_uuid_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *GetUuidBySnowflakeRequestResponse) GetUuid() string {
+func (x *GetUuidBySnowflakeRequestResponse) GetError() uint32 {
 	if x != nil {
-		return x.Uuid
+		return x.Error
+	}
+	return 0
+}
+
+func (x *GetUuidBySnowflakeRequestResponse) GetMsg() string {
+	if x != nil {
+		return x.Msg
 	}
 	return ""
+}
+
+func (x *GetUuidBySnowflakeRequestResponse) GetData() *GetUuidBySnowflakeRequestResponse_Data {
+	if x != nil {
+		return x.Data
+	}
+	return nil
 }
 
 // The request message is null.
@@ -162,8 +171,12 @@ type GetUuidByGoogleUUIDV4Response struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// message ...
-	Uuid string `protobuf:"bytes,1,opt,name=uuid,proto3" json:"uuid,omitempty"`
+	// error
+	Error uint32 `protobuf:"varint,1,opt,name=error,proto3" json:"error,omitempty"`
+	// msg
+	Msg string `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
+	// data ...
+	Data *GetUuidByGoogleUUIDV4Response_Data `protobuf:"bytes,3,opt,name=data,proto3" json:"data,omitempty"`
 }
 
 func (x *GetUuidByGoogleUUIDV4Response) Reset() {
@@ -198,7 +211,119 @@ func (*GetUuidByGoogleUUIDV4Response) Descriptor() ([]byte, []int) {
 	return file_uuid_v1_uuid_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *GetUuidByGoogleUUIDV4Response) GetUuid() string {
+func (x *GetUuidByGoogleUUIDV4Response) GetError() uint32 {
+	if x != nil {
+		return x.Error
+	}
+	return 0
+}
+
+func (x *GetUuidByGoogleUUIDV4Response) GetMsg() string {
+	if x != nil {
+		return x.Msg
+	}
+	return ""
+}
+
+func (x *GetUuidByGoogleUUIDV4Response) GetData() *GetUuidByGoogleUUIDV4Response_Data {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+// Data ...
+type GetUuidBySnowflakeRequestResponse_Data struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// message ...
+	Uuid string `protobuf:"bytes,1,opt,name=uuid,proto3" json:"uuid,omitempty"`
+}
+
+func (x *GetUuidBySnowflakeRequestResponse_Data) Reset() {
+	*x = GetUuidBySnowflakeRequestResponse_Data{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_uuid_v1_uuid_proto_msgTypes[4]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetUuidBySnowflakeRequestResponse_Data) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetUuidBySnowflakeRequestResponse_Data) ProtoMessage() {}
+
+func (x *GetUuidBySnowflakeRequestResponse_Data) ProtoReflect() protoreflect.Message {
+	mi := &file_uuid_v1_uuid_proto_msgTypes[4]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetUuidBySnowflakeRequestResponse_Data.ProtoReflect.Descriptor instead.
+func (*GetUuidBySnowflakeRequestResponse_Data) Descriptor() ([]byte, []int) {
+	return file_uuid_v1_uuid_proto_rawDescGZIP(), []int{1, 0}
+}
+
+func (x *GetUuidBySnowflakeRequestResponse_Data) GetUuid() string {
+	if x != nil {
+		return x.Uuid
+	}
+	return ""
+}
+
+// Data ...
+type GetUuidByGoogleUUIDV4Response_Data struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// message ...
+	Uuid string `protobuf:"bytes,1,opt,name=uuid,proto3" json:"uuid,omitempty"`
+}
+
+func (x *GetUuidByGoogleUUIDV4Response_Data) Reset() {
+	*x = GetUuidByGoogleUUIDV4Response_Data{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_uuid_v1_uuid_proto_msgTypes[5]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetUuidByGoogleUUIDV4Response_Data) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetUuidByGoogleUUIDV4Response_Data) ProtoMessage() {}
+
+func (x *GetUuidByGoogleUUIDV4Response_Data) ProtoReflect() protoreflect.Message {
+	mi := &file_uuid_v1_uuid_proto_msgTypes[5]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetUuidByGoogleUUIDV4Response_Data.ProtoReflect.Descriptor instead.
+func (*GetUuidByGoogleUUIDV4Response_Data) Descriptor() ([]byte, []int) {
+	return file_uuid_v1_uuid_proto_rawDescGZIP(), []int{3, 0}
+}
+
+func (x *GetUuidByGoogleUUIDV4Response_Data) GetUuid() string {
 	if x != nil {
 		return x.Uuid
 	}
@@ -209,18 +334,31 @@ var File_uuid_v1_uuid_proto protoreflect.FileDescriptor
 
 var file_uuid_v1_uuid_proto_rawDesc = []byte{
 	0x0a, 0x12, 0x75, 0x75, 0x69, 0x64, 0x2f, 0x76, 0x31, 0x2f, 0x75, 0x75, 0x69, 0x64, 0x2e, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x12, 0x07, 0x75, 0x75, 0x69, 0x64, 0x2e, 0x76, 0x31, 0x22, 0x33, 0x0a,
+	0x72, 0x6f, 0x74, 0x6f, 0x12, 0x07, 0x75, 0x75, 0x69, 0x64, 0x2e, 0x76, 0x31, 0x22, 0x1b, 0x0a,
 	0x19, 0x47, 0x65, 0x74, 0x55, 0x75, 0x69, 0x64, 0x42, 0x79, 0x53, 0x6e, 0x6f, 0x77, 0x66, 0x6c,
-	0x61, 0x6b, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x16, 0x0a, 0x06, 0x6e, 0x6f,
-	0x64, 0x65, 0x49, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x06, 0x6e, 0x6f, 0x64, 0x65,
-	0x49, 0x64, 0x22, 0x37, 0x0a, 0x21, 0x47, 0x65, 0x74, 0x55, 0x75, 0x69, 0x64, 0x42, 0x79, 0x53,
-	0x6e, 0x6f, 0x77, 0x66, 0x6c, 0x61, 0x6b, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x52,
-	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x75, 0x75, 0x69, 0x64, 0x18,
-	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x75, 0x75, 0x69, 0x64, 0x22, 0x1e, 0x0a, 0x1c, 0x47,
-	0x65, 0x74, 0x55, 0x75, 0x69, 0x64, 0x42, 0x79, 0x47, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x55, 0x55,
-	0x49, 0x44, 0x56, 0x34, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0x33, 0x0a, 0x1d, 0x47,
-	0x65, 0x74, 0x55, 0x75, 0x69, 0x64, 0x42, 0x79, 0x47, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x55, 0x55,
-	0x49, 0x44, 0x56, 0x34, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x12, 0x0a, 0x04,
+	0x61, 0x6b, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0xac, 0x01, 0x0a, 0x21, 0x47,
+	0x65, 0x74, 0x55, 0x75, 0x69, 0x64, 0x42, 0x79, 0x53, 0x6e, 0x6f, 0x77, 0x66, 0x6c, 0x61, 0x6b,
+	0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
+	0x12, 0x14, 0x0a, 0x05, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0d, 0x52,
+	0x05, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x12, 0x10, 0x0a, 0x03, 0x6d, 0x73, 0x67, 0x18, 0x02, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x03, 0x6d, 0x73, 0x67, 0x12, 0x43, 0x0a, 0x04, 0x64, 0x61, 0x74, 0x61,
+	0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x2f, 0x2e, 0x75, 0x75, 0x69, 0x64, 0x2e, 0x76, 0x31,
+	0x2e, 0x47, 0x65, 0x74, 0x55, 0x75, 0x69, 0x64, 0x42, 0x79, 0x53, 0x6e, 0x6f, 0x77, 0x66, 0x6c,
+	0x61, 0x6b, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x2e, 0x44, 0x61, 0x74, 0x61, 0x52, 0x04, 0x64, 0x61, 0x74, 0x61, 0x1a, 0x1a, 0x0a,
+	0x04, 0x44, 0x61, 0x74, 0x61, 0x12, 0x12, 0x0a, 0x04, 0x75, 0x75, 0x69, 0x64, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x04, 0x75, 0x75, 0x69, 0x64, 0x22, 0x1e, 0x0a, 0x1c, 0x47, 0x65, 0x74,
+	0x55, 0x75, 0x69, 0x64, 0x42, 0x79, 0x47, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x55, 0x55, 0x49, 0x44,
+	0x56, 0x34, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0xa4, 0x01, 0x0a, 0x1d, 0x47, 0x65,
+	0x74, 0x55, 0x75, 0x69, 0x64, 0x42, 0x79, 0x47, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x55, 0x55, 0x49,
+	0x44, 0x56, 0x34, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x14, 0x0a, 0x05, 0x65,
+	0x72, 0x72, 0x6f, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x05, 0x65, 0x72, 0x72, 0x6f,
+	0x72, 0x12, 0x10, 0x0a, 0x03, 0x6d, 0x73, 0x67, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03,
+	0x6d, 0x73, 0x67, 0x12, 0x3f, 0x0a, 0x04, 0x64, 0x61, 0x74, 0x61, 0x18, 0x03, 0x20, 0x01, 0x28,
+	0x0b, 0x32, 0x2b, 0x2e, 0x75, 0x75, 0x69, 0x64, 0x2e, 0x76, 0x31, 0x2e, 0x47, 0x65, 0x74, 0x55,
+	0x75, 0x69, 0x64, 0x42, 0x79, 0x47, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x55, 0x55, 0x49, 0x44, 0x56,
+	0x34, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x2e, 0x44, 0x61, 0x74, 0x61, 0x52, 0x04,
+	0x64, 0x61, 0x74, 0x61, 0x1a, 0x1a, 0x0a, 0x04, 0x44, 0x61, 0x74, 0x61, 0x12, 0x12, 0x0a, 0x04,
 	0x75, 0x75, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x75, 0x75, 0x69, 0x64,
 	0x32, 0xd8, 0x01, 0x0a, 0x04, 0x55, 0x75, 0x69, 0x64, 0x12, 0x66, 0x0a, 0x12, 0x47, 0x65, 0x74,
 	0x55, 0x75, 0x69, 0x64, 0x42, 0x79, 0x53, 0x6e, 0x6f, 0x77, 0x66, 0x6c, 0x61, 0x6b, 0x65, 0x12,
@@ -257,23 +395,27 @@ func file_uuid_v1_uuid_proto_rawDescGZIP() []byte {
 	return file_uuid_v1_uuid_proto_rawDescData
 }
 
-var file_uuid_v1_uuid_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_uuid_v1_uuid_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_uuid_v1_uuid_proto_goTypes = []interface{}{
-	(*GetUuidBySnowflakeRequest)(nil),         // 0: uuid.v1.GetUuidBySnowflakeRequest
-	(*GetUuidBySnowflakeRequestResponse)(nil), // 1: uuid.v1.GetUuidBySnowflakeRequestResponse
-	(*GetUuidByGoogleUUIDV4Request)(nil),      // 2: uuid.v1.GetUuidByGoogleUUIDV4Request
-	(*GetUuidByGoogleUUIDV4Response)(nil),     // 3: uuid.v1.GetUuidByGoogleUUIDV4Response
+	(*GetUuidBySnowflakeRequest)(nil),              // 0: uuid.v1.GetUuidBySnowflakeRequest
+	(*GetUuidBySnowflakeRequestResponse)(nil),      // 1: uuid.v1.GetUuidBySnowflakeRequestResponse
+	(*GetUuidByGoogleUUIDV4Request)(nil),           // 2: uuid.v1.GetUuidByGoogleUUIDV4Request
+	(*GetUuidByGoogleUUIDV4Response)(nil),          // 3: uuid.v1.GetUuidByGoogleUUIDV4Response
+	(*GetUuidBySnowflakeRequestResponse_Data)(nil), // 4: uuid.v1.GetUuidBySnowflakeRequestResponse.Data
+	(*GetUuidByGoogleUUIDV4Response_Data)(nil),     // 5: uuid.v1.GetUuidByGoogleUUIDV4Response.Data
 }
 var file_uuid_v1_uuid_proto_depIdxs = []int32{
-	0, // 0: uuid.v1.Uuid.GetUuidBySnowflake:input_type -> uuid.v1.GetUuidBySnowflakeRequest
-	2, // 1: uuid.v1.Uuid.GetUuidByGoogleUUIDV4:input_type -> uuid.v1.GetUuidByGoogleUUIDV4Request
-	1, // 2: uuid.v1.Uuid.GetUuidBySnowflake:output_type -> uuid.v1.GetUuidBySnowflakeRequestResponse
-	3, // 3: uuid.v1.Uuid.GetUuidByGoogleUUIDV4:output_type -> uuid.v1.GetUuidByGoogleUUIDV4Response
-	2, // [2:4] is the sub-list for method output_type
-	0, // [0:2] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	4, // 0: uuid.v1.GetUuidBySnowflakeRequestResponse.data:type_name -> uuid.v1.GetUuidBySnowflakeRequestResponse.Data
+	5, // 1: uuid.v1.GetUuidByGoogleUUIDV4Response.data:type_name -> uuid.v1.GetUuidByGoogleUUIDV4Response.Data
+	0, // 2: uuid.v1.Uuid.GetUuidBySnowflake:input_type -> uuid.v1.GetUuidBySnowflakeRequest
+	2, // 3: uuid.v1.Uuid.GetUuidByGoogleUUIDV4:input_type -> uuid.v1.GetUuidByGoogleUUIDV4Request
+	1, // 4: uuid.v1.Uuid.GetUuidBySnowflake:output_type -> uuid.v1.GetUuidBySnowflakeRequestResponse
+	3, // 5: uuid.v1.Uuid.GetUuidByGoogleUUIDV4:output_type -> uuid.v1.GetUuidByGoogleUUIDV4Response
+	4, // [4:6] is the sub-list for method output_type
+	2, // [2:4] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_uuid_v1_uuid_proto_init() }
@@ -330,6 +472,30 @@ func file_uuid_v1_uuid_proto_init() {
 				return nil
 			}
 		}
+		file_uuid_v1_uuid_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetUuidBySnowflakeRequestResponse_Data); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_uuid_v1_uuid_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetUuidByGoogleUUIDV4Response_Data); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -337,7 +503,7 @@ func file_uuid_v1_uuid_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_uuid_v1_uuid_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

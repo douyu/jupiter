@@ -6,8 +6,8 @@ package server
 import (
 	"github.com/douyu/jupiter"
 	"github.com/google/wire"
-	"uuid/internal/uuidserver/controller"
-	"uuid/internal/uuidserver/service"
+	"uuid/internal/app/uuidserver/controller"
+	"uuid/internal/app/uuidserver/service"
 )
 
 func InitApp(app *jupiter.Application) error {

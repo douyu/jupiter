@@ -7,7 +7,7 @@ import (
 	"github.com/douyu/jupiter/pkg/xlog"
 	"go.uber.org/zap"
 	uuidv1 "uuid/gen/api/go/uuid/v1"
-	"uuid/internal/uuidserver/service"
+	"uuid/internal/app/uuidserver/service"
 )
 
 type UuidGrpc struct {

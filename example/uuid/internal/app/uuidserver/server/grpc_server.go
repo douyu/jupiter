@@ -3,7 +3,7 @@ package server
 import (
 	"github.com/douyu/jupiter/pkg/server/xgrpc"
 	uuidv1 "uuid/gen/api/go/uuid/v1"
-	"uuid/internal/uuidserver/controller"
+	"uuid/internal/app/uuidserver/controller"
 )
 
 // var GrpcProviderSet = wire.NewSet(NewGrpcServer)

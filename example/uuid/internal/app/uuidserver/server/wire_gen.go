@@ -8,8 +8,8 @@ package server
 
 import (
 	"github.com/douyu/jupiter/pkg/application"
-	"uuid/internal/uuidserver/controller"
-	"uuid/internal/uuidserver/service"
+	"uuid/internal/app/uuidserver/controller"
+	"uuid/internal/app/uuidserver/service"
 )
 
 // Injectors from wire.go:

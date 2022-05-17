@@ -4,7 +4,7 @@
 package e2e
 
 import (
-	"uuid/internal/uuidserver/service"
+	"uuid/internal/app/uuidserver/service"
 	// "uuid/internal/pkg/mysql"
 	// "uuid/internal/pkg/redis"
 	"github.com/google/wire"

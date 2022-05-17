@@ -3,7 +3,7 @@ package server
 import (
 	"github.com/douyu/jupiter"
 	"github.com/google/wire"
-	"uuid/internal/uuidserver/controller"
+	"uuid/internal/app/uuidserver/controller"
 )
 
 var ProviderSet = wire.NewSet(

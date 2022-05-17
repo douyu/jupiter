@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/douyu/jupiter"
 	"github.com/douyu/jupiter/pkg/flag"
-	"uuid/internal/uuidserver/server"
+	"uuid/internal/app/uuidserver/server"
 )
 
 func main() {

@@ -1,16 +1,14 @@
 package controller
 
 import (
-	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/douyu/jupiter/pkg/util/xerror"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 	uuidv1 "uuid/gen/api/go/uuid/v1"
-	"uuid/internal/uuidserver/service"
+	"uuid/internal/app/uuidserver/service"
 )
 
 type UuidHTTP struct {
@@ -24,15 +22,7 @@ func NewUuidHTTPController(uuid *service.Uuid) *UuidHTTP {
 }
 
 func (s *UuidHTTP) GetUuidBySnowflake(c echo.Context) error {
-	nodeId, err := strconv.Atoi(c.QueryParam("nodeId"))
-	if err != nil {
-		xlog.Error("getUuidBySnowflake failed", zap.Error(err))
-		return c.JSON(http.StatusOK, fmt.Errorf("nodeId invalid err:%v", err))
-	}
-
-	req := &uuidv1.GetUuidBySnowflakeRequest{
-		NodeId: int32(nodeId),
-	}
+	req := &uuidv1.GetUuidBySnowflakeRequest{}
 
 	res, err := s.uuid.GetUuidBySnowflake(c.Request().Context(), req)
 	if err != nil {

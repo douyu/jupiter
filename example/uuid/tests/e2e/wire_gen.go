@@ -7,7 +7,7 @@
 package e2e
 
 import (
-	"uuid/internal/uuidserver/service"
+	"uuid/internal/app/uuidserver/service"
 )
 
 // Injectors from wire.go:
