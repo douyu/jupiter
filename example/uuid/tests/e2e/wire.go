@@ -4,7 +4,6 @@
 package e2e
 
 import (
-	"uuid/internal/pkg/grpc"
 	"uuid/internal/uuidserver/service"
 	// "uuid/internal/pkg/mysql"
 	// "uuid/internal/pkg/redis"
@@ -14,7 +13,7 @@ import (
 func CreateUuidService() *service.Uuid {
 	panic(wire.Build(
 		service.NewUuidService,
-		grpc.ProviderSet,
+		// grpc.ProviderSet,
 		wire.Struct(new(service.Options), "*"),
 	))
 }

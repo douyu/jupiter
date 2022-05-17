@@ -5,13 +5,12 @@ package service
 
 import (
 	"github.com/google/wire"
-	"uuid/internal/pkg/grpc"
 )
 
 func createMockUuidService() *Uuid {
 	panic(wire.Build(
 		NewUuidService,
-		grpc.ProviderSet,
+		// grpc.ProviderSet,
 		wire.Struct(new(Options), "*"),
 	))
 }

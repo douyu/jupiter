@@ -7,17 +7,13 @@
 package e2e
 
 import (
-	"uuid/internal/pkg/grpc"
 	"uuid/internal/uuidserver/service"
 )
 
 // Injectors from wire.go:
 
 func CreateUuidService() *service.Uuid {
-	uuidInterface := grpc.NewUuid()
-	options := service.Options{
-		UuidGrpc: uuidInterface,
-	}
+	options := service.Options{}
 	uuid := service.NewUuidService(options)
 	return uuid
 }

@@ -8,7 +8,6 @@ package server
 
 import (
 	"github.com/douyu/jupiter/pkg/application"
-	"uuid/internal/pkg/grpc"
 	"uuid/internal/uuidserver/controller"
 	"uuid/internal/uuidserver/service"
 )
@@ -16,17 +15,16 @@ import (
 // Injectors from wire.go:
 
 func InitApp(app *application.Application) error {
-	uuidInterface := grpc.NewUuid()
-	options := service.Options{
-		UuidGrpc: uuidInterface,
-	}
+	options := service.Options{}
 	uuid := service.NewUuidService(options)
 	uuidHTTP := controller.NewUuidHTTPController(uuid)
+	uuidGrpc := controller.NewUUuidGrpcController(uuid)
 	controllerOptions := controller.Options{
 		UuidHTTP: uuidHTTP,
+		UuidGrpc: uuidGrpc,
 	}
 	httpServer := NewHttpServer(controllerOptions)
-	grpcServer := NewGrpcServer(uuid)
+	grpcServer := NewGrpcServer(controllerOptions)
 	serverOptions := Options{
 		http: httpServer,
 		grpc: grpcServer,

@@ -6,17 +6,10 @@
 
 package service
 
-import (
-	"uuid/internal/pkg/grpc"
-)
-
 // Injectors from wire.go:
 
 func createMockUuidService() *Uuid {
-	uuidInterface := grpc.NewUuid()
-	options := Options{
-		UuidGrpc: uuidInterface,
-	}
+	options := Options{}
 	uuid := NewUuidService(options)
 	return uuid
 }

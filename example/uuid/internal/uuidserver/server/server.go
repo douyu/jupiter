@@ -24,9 +24,6 @@ func initApp(app *jupiter.Application, opts Options) error {
 	}
 
 	// grpc
-
-	// 执行 grpc 的注册
-	opts.grpc.Mux()
 	if err := app.Serve(opts.grpc); err != nil {
 		return err
 	}
