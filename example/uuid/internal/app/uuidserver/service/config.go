@@ -28,13 +28,32 @@ func init() {
 
 // Config uuid service config
 type Config struct {
-	NodeId int64
+	// Epoch is set to the twitter snowflake epoch of Nov 04 2010 01:42:54 UTC in milliseconds
+	// You may customize this to set a different epoch for your application.
+	Epoch int64
+	// NodeBits holds the number of bits to use for Node
+	// Remember, you have a total 22 bits to share between Node/Step
+	NodeBits uint8
+	// StepBits holds the number of bits to use for Step
+	// Remember, you have a total 22 bits to share between Node/Step
+	StepBits uint8
+
+	// NodeID determine the specific value of the node id; 0 nodeID are not used by default
+	NodeID int64
+
+	// EnableRedis whether to enable the use of redis to assign node IDs
+	EnableRedis bool
+	// RedisAddr redis addr, default to 'Host:Port'
+	RedisAddr string
 }
 
 // DefaultConfig ...
 func DefaultConfig() *Config {
 	return &Config{
-		NodeId: flag.Int("nodeId"),
+		Epoch:    snowflake.Epoch,
+		NodeBits: snowflake.NodeBits,
+		StepBits: snowflake.StepBits,
+		NodeID:   flag.Int("nodeId"),
 	}
 }
 
@@ -63,10 +82,35 @@ func (config *Config) MustBuild() *Uuid {
 
 // Build create server instance, then initialize it with necessary interceptor
 func (config *Config) Build() (*Uuid, error) {
-	// 判断 NodeID 的值 是否正常
+	// get node id through redis
+	if config.EnableRedis {
+		// todo 通过什么方式来确认 NodeId 的唯一分配？
+		// config.NodeID = ???
+	}
+
+	if config.Epoch != 0 {
+		snowflake.Epoch = config.Epoch
+	}
+
+	if config.NodeBits != 0 {
+		snowflake.NodeBits = config.NodeBits
+	}
+
+	if config.StepBits != 0 {
+		snowflake.StepBits = config.StepBits
+	}
+
+	if snowflake.NodeBits+snowflake.StepBits != 22 {
+		return nil, fmt.Errorf("snowflake NodeBits:%v and StepBits:%v err,sum dont 22", snowflake.NodeBits, snowflake.StepBits)
+	}
+
+	if config.NodeID == 0 {
+		// use the default node id -> 1
+		config.NodeID = 1
+	}
 
 	// Create a new Node with a Node number of nodeId
-	node, err := snowflake.NewNode(config.NodeId)
+	node, err := snowflake.NewNode(config.NodeID)
 	if err != nil {
 		return nil, fmt.Errorf("snowflake NewNode err:%v", err)
 	}

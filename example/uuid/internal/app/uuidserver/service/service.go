@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
 	"github.com/bwmarrin/snowflake"
@@ -40,21 +39,26 @@ func NewUuidService(options Options) *Uuid {
 }
 
 func (u *Uuid) GetUuidBySnowflake(ctx context.Context, req *uuidv1.GetUuidBySnowflakeRequest) (*uuidv1.GetUuidBySnowflakeRequestResponse, error) {
-	nodeId := req.GetNodeId()
-	if req == nil || nodeId <= 0 || nodeId > 1023 {
-		return nil, fmt.Errorf("the requested parameter is invalid")
-	}
-
 	u.snowflakeRw.RLock()
 	// Generate a snowflake ID.
 	id := u.snowflakeMap.Generate()
 	u.snowflakeRw.RUnlock()
 
 	return &uuidv1.GetUuidBySnowflakeRequestResponse{
-		Uuid: id.String(),
+		Error: 0,
+		Msg:   "success",
+		Data: &uuidv1.GetUuidBySnowflakeRequestResponse_Data{
+			Uuid: id.String(),
+		},
 	}, nil
 }
 
 func (u *Uuid) GetUuidByGoogleUUIDV4(ctx context.Context, req *uuidv1.GetUuidByGoogleUUIDV4Request) (*uuidv1.GetUuidByGoogleUUIDV4Response, error) {
-	return &uuidv1.GetUuidByGoogleUUIDV4Response{Uuid: uuid.New().String()}, nil
+	return &uuidv1.GetUuidByGoogleUUIDV4Response{
+		Error: 0,
+		Msg:   "success",
+		Data: &uuidv1.GetUuidByGoogleUUIDV4Response_Data{
+			Uuid: uuid.New().String(),
+		},
+	}, nil
 }
