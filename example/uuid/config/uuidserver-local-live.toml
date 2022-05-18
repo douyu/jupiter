@@ -11,6 +11,6 @@
     nodeBits = 10
     stepBits = 12
     nodeId = 1
-    enableRedis = true
+    enableRedis = false
 [jupiter.redis.uuid]
-    addrs = ["10.1.0.86:6379"]
+    addrs = ["127.0.0.1:6379"]
