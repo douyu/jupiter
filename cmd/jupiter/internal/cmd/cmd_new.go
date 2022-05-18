@@ -36,11 +36,11 @@ const (
 
 // New 生成项目
 func New(c *cli.Context) error {
-	return generate(c, c.String("type"), c.Bool("refresh"))
+	return generate(c, c.String("type"), c.Bool("clean"))
 }
 
 // generate 生成项目
-func generate(c *cli.Context, cmd string, refresh bool) error {
+func generate(c *cli.Context, cmd string, clean bool) error {
 	if len(c.Args().First()) == 0 {
 		return errors.New("no project name like test-go found")
 	}
@@ -53,7 +53,7 @@ func generate(c *cli.Context, cmd string, refresh bool) error {
 
 	files := make([]file, 0)
 
-	gitFileInfos := getFileInfosByGit(cmd, refresh)
+	gitFileInfos := getFileInfosByGit(cmd, clean)
 	for _, f := range gitFileInfos {
 		files = append(files, *f)
 	}
@@ -197,18 +197,15 @@ func write(c config, file, tmpl string) error {
 
 // getFileInfosByGit 从git拉取最新的模板代码 并抽象成map[相对路径]文件流
 // name: 生成的项目类型
-func getFileInfosByGit(name string, refresh bool) (fileInfos map[string]*file) {
-	// 设置clone别名 避免冲突
-	// 查看临时文件之中是否已经存在该文件夹
-	tempPath := filepath.Join(os.TempDir(), "local_temp_jupiter_layout")
-	if refresh {
-		// 需要刷新，提前清理缓存的文件
-		err := os.RemoveAll(tempPath)
-		if err != nil {
+func getFileInfosByGit(name string, clean bool) (fileInfos map[string]*file) {
+	if clean {
+		if err := cleanTempLayout(); err != nil {
 			panic(err)
 		}
 	}
-
+	// 设置clone别名 避免冲突
+	// 查看临时文件之中是否已经存在该文件夹
+	tempPath := filepath.Join(os.TempDir(), "local_temp_jupiter_layout")
 	// os.Stat 获取文件信息
 	_, err := os.Stat(tempPath)
 	if os.IsNotExist(err) {

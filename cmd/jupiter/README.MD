@@ -61,10 +61,11 @@ USAGE:
    jupiter [global options] command [command options] [arguments...]
 
 COMMANDS:
-   new, n                              generate code framework
-   run, r                              auto restart program when files changed
-   update, upgrade                     Upgrade to the latest version
-   help, h                             Shows a list of commands or help for one command
+   clean                clear all cached
+   new, n               generate code framework
+   run, r               auto restart program when files changed
+   update, upgrade      Upgrade to the latest version
+   help, h              Shows a list of commands or help for one command
 
 GLOBAL OPTIONS:
    --help, -h  show help
