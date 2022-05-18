@@ -27,6 +27,10 @@ var Commands = []cli.Command{
 				Usage: "choose template",
 				Value: "jupiter-layout",
 			},
+			cli.BoolFlag{
+				Name:  "refresh",
+				Usage: "clear cached and re pull templates",
+			},
 		},
 		Action: func(c *cli.Context) error {
 			return New(c)
