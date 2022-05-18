@@ -220,7 +220,10 @@ func getFileInfosByGit(name string, clean bool) (fileInfos map[string]*file) {
 		if err := cmd.Run(); err != nil {
 			panic(err)
 		}
-	} else if err != nil && !os.IsExist(err) {
+	} else if os.IsExist(err) || err == nil {
+		// 	判断是否需要刷新模板信息
+		// todo ... 后面有时间再加上
+	} else {
 		// 这里的错误，是说明出现了未知的错误，应该抛出
 		panic(err)
 	}
