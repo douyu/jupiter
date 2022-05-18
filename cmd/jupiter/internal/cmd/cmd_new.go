@@ -235,15 +235,12 @@ func getFileInfosByGit(name string, refresh bool) (fileInfos map[string]*file) {
 	err = filepath.Walk(tempPath, func(path string, info os.FileInfo, err error) error {
 		// 过滤git目录中文件
 		if !info.IsDir() && !strings.Contains(strings.ReplaceAll(path, "\\", "/"), ".git/") {
-			fullPath := path
-			bs, err := ioutil.ReadFile(fullPath)
+			bs, err := ioutil.ReadFile(path)
 			if err != nil {
-				fmt.Printf("[jupiter] Read file failed: fullPath=[%v] err=[%v]",
-					fullPath, err)
-
+				fmt.Printf("[jupiter] Read file failed: fullPath=[%v] err=[%v]", path, err)
 			}
 
-			fullPath = strings.ReplaceAll(path, tempPath, "")
+			fullPath := strings.ReplaceAll(path, tempPath, "")
 			fileInfos[fullPath] = &file{fullPath, bs}
 		}
 		return nil
