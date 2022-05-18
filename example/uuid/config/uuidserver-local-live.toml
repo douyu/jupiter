@@ -6,3 +6,11 @@
 [jupiter.client.uuid]
     address = "127.0.0.1:9528"
     onDialError = "error"
+[jupiter.server.uuid]
+    epoch = 1288834974657
+    nodeBits = 10
+    stepBits = 12
+    nodeId = 1
+    enableRedis = true
+[jupiter.redis.uuid]
+    addrs = ["10.1.0.86:6379"]

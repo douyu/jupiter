@@ -8,12 +8,16 @@ package e2e
 
 import (
 	"uuid/internal/app/uuidserver/service"
+	"uuid/internal/pkg/redis"
 )
 
 // Injectors from wire.go:
 
 func CreateUuidService() *service.Uuid {
-	options := service.Options{}
+	redisRedis := redis.NewRedis()
+	options := service.Options{
+		Redis: redisRedis,
+	}
 	uuid := service.NewUuidService(options)
 	return uuid
 }

@@ -10,12 +10,16 @@ import (
 	"github.com/douyu/jupiter/pkg/application"
 	"uuid/internal/app/uuidserver/controller"
 	"uuid/internal/app/uuidserver/service"
+	"uuid/internal/pkg/redis"
 )
 
 // Injectors from wire.go:
 
 func InitApp(app *application.Application) error {
-	options := service.Options{}
+	redisRedis := redis.NewRedis()
+	options := service.Options{
+		Redis: redisRedis,
+	}
 	uuid := service.NewUuidService(options)
 	uuidHTTP := controller.NewUuidHTTPController(uuid)
 	uuidGrpc := controller.NewUUuidGrpcController(uuid)

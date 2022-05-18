@@ -82,12 +82,6 @@ func (config *Config) MustBuild() *Uuid {
 
 // Build create server instance, then initialize it with necessary interceptor
 func (config *Config) Build() (*Uuid, error) {
-	// get node id through redis
-	if config.EnableRedis {
-		// todo 通过什么方式来确认 NodeId 的唯一分配？
-		// config.NodeID = ???
-	}
-
 	if config.Epoch != 0 {
 		snowflake.Epoch = config.Epoch
 	}
@@ -109,14 +103,9 @@ func (config *Config) Build() (*Uuid, error) {
 		config.NodeID = 1
 	}
 
-	// Create a new Node with a Node number of nodeId
-	node, err := snowflake.NewNode(config.NodeID)
-	if err != nil {
-		return nil, fmt.Errorf("snowflake NewNode err:%v", err)
-	}
-
 	return &Uuid{
-		snowflakeRw:  &sync.RWMutex{},
-		snowflakeMap: node,
+		snowflakeRw: &sync.RWMutex{},
+		nodeId:      config.NodeID,
+		enableRedis: config.EnableRedis,
 	}, nil
 }

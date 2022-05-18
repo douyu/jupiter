@@ -2,18 +2,20 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	"github.com/bwmarrin/snowflake"
 	"github.com/google/uuid"
 	"github.com/google/wire"
 	"uuid/gen/api/go/uuid/v1"
+	redisCli "uuid/internal/pkg/redis"
 )
 
 var ProviderSet = wire.NewSet(
 	NewUuidService,
 	wire.Struct(new(Options), "*"),
-	// grpc.ProviderSet,
+	redisCli.ProviderSet,
 )
 
 // Options wireservice
@@ -21,7 +23,7 @@ type Options struct {
 	// 没有依赖任何服务，这里就不存在client
 	// UuidGrpc grpc.UuidInterface
 	// ExampleMysql mysql.ExampleInterface
-	// ExampleRedis redis.ExampleInterface
+	Redis *redisCli.Redis
 }
 
 type Uuid struct {
@@ -29,13 +31,34 @@ type Uuid struct {
 	// The uuid generator corresponding to the global node
 	snowflakeRw  *sync.RWMutex
 	snowflakeMap *snowflake.Node
-
+	nodeId       int64
+	enableRedis  bool
 	Options
 }
 
 // NewUuidService 创建uuid服务
 func NewUuidService(options Options) *Uuid {
-	return StdConfig(ModName).MustBuild()
+	uuidServer := StdConfig(ModName).MustBuild()
+	uuidServer.Options = options
+
+	// get node id through redis
+	if uuidServer.enableRedis {
+		nodeId, err := options.Redis.GetNodeId()
+		if err != nil {
+			panic(fmt.Errorf("get redis node id is %v", err))
+		}
+		uuidServer.nodeId = nodeId
+	}
+
+	// Create a new Node with a Node number of nodeId
+	node, err := snowflake.NewNode(uuidServer.nodeId)
+	if err != nil {
+		panic(fmt.Errorf("snowflake NewNode err:%v", err))
+	}
+
+	uuidServer.snowflakeMap = node
+
+	return uuidServer
 }
 
 func (u *Uuid) GetUuidBySnowflake(ctx context.Context, req *uuidv1.GetUuidBySnowflakeRequest) (*uuidv1.GetUuidBySnowflakeRequestResponse, error) {

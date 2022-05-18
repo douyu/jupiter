@@ -6,10 +6,17 @@
 
 package service
 
+import (
+	"uuid/internal/pkg/redis"
+)
+
 // Injectors from wire.go:
 
 func createMockUuidService() *Uuid {
-	options := Options{}
+	redisRedis := redis.NewRedis()
+	options := Options{
+		Redis: redisRedis,
+	}
 	uuid := NewUuidService(options)
 	return uuid
 }
