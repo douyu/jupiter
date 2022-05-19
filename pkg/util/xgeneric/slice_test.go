@@ -60,3 +60,16 @@ func TestShuffle(t *testing.T) {
 	assert.NotEqual(t, result1, []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10})
 	assert.Equal(t, result2, []int{})
 }
+
+func TestFilter(t *testing.T) {
+
+	result1 := Filter([]int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, func(v int, i int) bool {
+		return v == 8
+	})
+	result2 := Filter([]int{}, func(v int, i int) bool {
+		return false
+	})
+
+	assert.NotEqual(t, result1, []int{0, 1, 2, 3, 4, 5, 6, 7, 9, 10})
+	assert.Equal(t, result2, []int{})
+}

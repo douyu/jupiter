@@ -82,3 +82,16 @@ func Shuffle[T any](collection []T) []T {
 
 	return collection
 }
+
+// Filter iterates over elements of collection, returning an array of all elements predicate returns truthy for.
+func Filter[V any](collection []V, predicate func(V, int) bool) []V {
+	result := []V{}
+
+	for i, item := range collection {
+		if predicate(item, i) {
+			result = append(result, item)
+		}
+	}
+
+	return result
+}
