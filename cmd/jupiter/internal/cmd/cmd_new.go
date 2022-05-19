@@ -36,11 +36,11 @@ const (
 
 // New 生成项目
 func New(c *cli.Context) error {
-	return generate(c, c.String("type"))
+	return generate(c, c.String("type"), c.Bool("clean"))
 }
 
 // generate 生成项目
-func generate(c *cli.Context, cmd string) error {
+func generate(c *cli.Context, cmd string, clean bool) error {
 	if len(c.Args().First()) == 0 {
 		return errors.New("no project name like test-go found")
 	}
@@ -53,7 +53,7 @@ func generate(c *cli.Context, cmd string) error {
 
 	files := make([]file, 0)
 
-	gitFileInfos := getFileInfosByGit(cmd)
+	gitFileInfos := getFileInfosByGit(cmd, clean)
 	for _, f := range gitFileInfos {
 		files = append(files, *f)
 	}
@@ -165,7 +165,7 @@ func create(c config) error {
 		// 替换为真实的c.Dir
 		tpl := strings.ReplaceAll(
 			string(file.Tmpl),
-			gitOriginModulePath, //+"/"+c.Type,
+			gitOriginModulePath, // +"/"+c.Type,
 			c.Dir)
 
 		if err := write(c, f, tpl); err != nil {
@@ -197,49 +197,54 @@ func write(c config, file, tmpl string) error {
 
 // getFileInfosByGit 从git拉取最新的模板代码 并抽象成map[相对路径]文件流
 // name: 生成的项目类型
-func getFileInfosByGit(name string) (
-	fileInfos map[string]*file) {
-	fileInfos = make(map[string]*file)
-	// 存放于git的模板地址
-	gitPath := "https://" + gitOriginModulePath + ".git"
-
-	// clone最新仓库的master分支
+func getFileInfosByGit(name string, clean bool) (fileInfos map[string]*file) {
+	if clean {
+		if err := cleanTempLayout(); err != nil {
+			panic(err)
+		}
+	}
 	// 设置clone别名 避免冲突
-	finalTemplateDir := "local_temp_jupiter_layout"
-	fmt.Println("git", "clone", gitPath)
+	// 查看临时文件之中是否已经存在该文件夹
+	tempPath := filepath.Join(os.TempDir(), "local_temp_jupiter_layout")
+	// os.Stat 获取文件信息
+	_, err := os.Stat(tempPath)
+	if os.IsNotExist(err) {
+		// 存放于git的模板地址
+		gitPath := "https://" + gitOriginModulePath + ".git"
 
-	cmd := exec.Command("git", "clone", gitPath, finalTemplateDir, "-b", "main", "--depth=1")
-	if err := cmd.Run(); err != nil {
+		fmt.Println("git", "clone", gitPath)
+
+		// clone最新仓库的master分支
+		// 不存在则拉取模板
+		cmd := exec.Command("git", "clone", gitPath, tempPath, "-b", "main", "--depth=1")
+		if err := cmd.Run(); err != nil {
+			panic(err)
+		}
+	} else if os.IsExist(err) || err == nil {
+		// 	判断是否需要刷新模板信息
+		// todo ... 后面有时间再加上
+	} else {
+		// 这里的错误，是说明出现了未知的错误，应该抛出
 		panic(err)
 	}
 
+	fileInfos = make(map[string]*file)
 	// 获取模板的文件流
 	// io/fs为1.16新增标准库 低版本不支持
 	// os.FileInfo实现了和io/fs.FileInfo相同的接口 确保go低版本可以成功编译通过
-	err := filepath.Walk("./"+finalTemplateDir, func(path string, info os.FileInfo, err error) error {
-
+	err = filepath.Walk(tempPath, func(path string, info os.FileInfo, err error) error {
 		// 过滤git目录中文件
-		if !info.IsDir() && !strings.Contains(path, ".git/") {
-
-			fullPath := strings.ReplaceAll(path, "\\", "/")
-			bs, err := ioutil.ReadFile(fullPath)
+		if !info.IsDir() && !strings.Contains(strings.ReplaceAll(path, "\\", "/"), ".git/") {
+			bs, err := ioutil.ReadFile(path)
 			if err != nil {
-				fmt.Printf("[jupiter] Read file failed: fullPath=[%v] err=[%v]",
-					fullPath, err)
-
+				fmt.Printf("[jupiter] Read file failed: fullPath=[%v] err=[%v]", path, err)
 			}
 
-			fullPath = strings.ReplaceAll(fullPath, finalTemplateDir, "")
+			fullPath := strings.ReplaceAll(path, tempPath, "")
 			fileInfos[fullPath] = &file{fullPath, bs}
 		}
 		return nil
 	})
-	if err != nil {
-		panic(err)
-	}
-
-	// 删除clone的仓库
-	err = os.RemoveAll("./" + finalTemplateDir)
 	if err != nil {
 		panic(err)
 	}

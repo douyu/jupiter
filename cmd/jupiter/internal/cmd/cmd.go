@@ -27,6 +27,10 @@ var Commands = []cli.Command{
 				Usage: "choose template",
 				Value: "jupiter-layout",
 			},
+			cli.BoolFlag{
+				Name:  "clean",
+				Usage: "clear cached and re pull templates",
+			},
 		},
 		Action: func(c *cli.Context) error {
 			return New(c)
@@ -57,6 +61,13 @@ var Commands = []cli.Command{
 		Usage:   "Upgrade to the latest version",
 		Action: func(c *cli.Context) error {
 			return Update(c)
+		},
+	},
+	{
+		Name:  "clean",
+		Usage: "clear all cached",
+		Action: func(c *cli.Context) error {
+			return Clean(c)
 		},
 	},
 }
