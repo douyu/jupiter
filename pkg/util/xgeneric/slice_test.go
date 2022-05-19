@@ -47,4 +47,7 @@ func TestSubset(t *testing.T) {
 
 	assert.Equal(t, Subset([]int{1, 2, 2, 3, 3, 4, 4}, 4, 4), []int([]int{3, 4, 4}))
 	assert.Equal(t, Subset([]int{1, 2, 2, 3, 3, 4, 4}, 8, 4), []int([]int{}))
+
+	assert.Equal(t, Subset([]int{1, 2, 2, 3, 3, 4, 4}, -1, 4), []int([]int{4}))
+	assert.Equal(t, Subset([]int{1, 2, 2, 3, 3, 4, 4}, -9, 4), []int{1, 2, 2, 3})
 }
