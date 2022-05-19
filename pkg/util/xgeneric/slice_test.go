@@ -51,3 +51,12 @@ func TestSubset(t *testing.T) {
 	assert.Equal(t, Subset([]int{1, 2, 2, 3, 3, 4, 4}, -1, 4), []int([]int{4}))
 	assert.Equal(t, Subset([]int{1, 2, 2, 3, 3, 4, 4}, -9, 4), []int{1, 2, 2, 3})
 }
+
+func TestShuffle(t *testing.T) {
+
+	result1 := Shuffle([]int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10})
+	result2 := Shuffle([]int{})
+
+	assert.NotEqual(t, result1, []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10})
+	assert.Equal(t, result2, []int{})
+}

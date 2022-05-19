@@ -1,5 +1,7 @@
 package xgeneric
 
+import "math/rand"
+
 // Uniq returns a duplicate-free version of an array
 func Uniq[T comparable](collection []T) []T {
 	result := make([]T, 0, len(collection))
@@ -18,7 +20,7 @@ func Uniq[T comparable](collection []T) []T {
 }
 
 // Chunk returns an array of elements split into groups the length of size.
-func Chunk[T comparable](collection []T, size int) [][]T {
+func Chunk[T any](collection []T, size int) [][]T {
 	if size <= 0 {
 		panic("size must bigger than 0")
 	}
@@ -70,4 +72,13 @@ func Subset[T any](collection []T, offset int, limit uint) []T {
 	}
 
 	return collection[offset : offset+int(limit)]
+}
+
+// Shuffle returns an array of shuffled values. Uses the Fisher-Yates shuffle algorithm.
+func Shuffle[T any](collection []T) []T {
+	rand.Shuffle(len(collection), func(i, j int) {
+		collection[i], collection[j] = collection[j], collection[i]
+	})
+
+	return collection
 }
