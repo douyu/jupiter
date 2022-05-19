@@ -49,3 +49,25 @@ func Map[T any, R any](collection []T, iteratee func(T, int) R) []R {
 
 	return result
 }
+
+// Subset return part of a slice.
+func Subset[T any](collection []T, offset int, limit uint) []T {
+	size := len(collection)
+
+	if offset < 0 {
+		offset = size + offset
+		if offset < 0 {
+			offset = 0
+		}
+	}
+
+	if offset > size {
+		return []T{}
+	}
+
+	if limit > uint(size)-uint(offset) {
+		limit = uint(size - offset)
+	}
+
+	return collection[offset : offset+int(limit)]
+}

@@ -38,3 +38,13 @@ func TestMap(t *testing.T) {
 	assert.Equal(t, len(result), 7)
 	assert.Equal(t, result, []string([]string{"1", "2", "2", "3", "3", "4", "4"}))
 }
+
+func TestSubset(t *testing.T) {
+	result := Subset([]int{1, 2, 2, 3, 3, 4, 4}, 0, 4)
+
+	assert.Equal(t, len(result), 4)
+	assert.Equal(t, result, []int([]int{1, 2, 2, 3}))
+
+	assert.Equal(t, Subset([]int{1, 2, 2, 3, 3, 4, 4}, 4, 4), []int([]int{3, 4, 4}))
+	assert.Equal(t, Subset([]int{1, 2, 2, 3, 3, 4, 4}, 8, 4), []int([]int{}))
+}
