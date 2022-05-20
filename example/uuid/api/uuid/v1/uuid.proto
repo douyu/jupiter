@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.douyu.uuid.v1";
+option java_outer_classname = "UuidProtoV1";
+option go_package = "uuid/v1;uuidv1";
+
+package uuid.v1;
+
+// The uuid service definition.
+service Uuid {
+  // Get a uuid through the snowflake algorithm
+  rpc GetUuidBySnowflake (GetUuidBySnowflakeRequest) returns (GetUuidBySnowflakeRequestResponse) {}
+
+  // Get a uuid through the google uuid v4
+  rpc GetUuidByGoogleUUIDV4 (GetUuidByGoogleUUIDV4Request) returns (GetUuidByGoogleUUIDV4Response) {}
+}
+
+// The request message is contains the nodeId.
+message GetUuidBySnowflakeRequest {}
+
+// The response message containing the UUID.
+message GetUuidBySnowflakeRequestResponse {
+  // Data ...
+  message Data {
+    // message ...
+    string uuid = 1;
+  }
+
+  // error
+  uint32 error = 1;
+  // msg
+  string msg = 2;
+  // data ...
+  Data data = 3;
+}
+
+// The request message is null.
+message GetUuidByGoogleUUIDV4Request {}
+
+// The response message containing the UUID.
+message GetUuidByGoogleUUIDV4Response {
+  // Data ...
+  message Data {
+    // message ...
+    string uuid = 1;
+  }
+
+  // error
+  uint32 error = 1;
+  // msg
+  string msg = 2;
+  // data ...
+  Data data = 3;
+}

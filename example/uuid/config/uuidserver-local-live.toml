@@ -1,0 +1,16 @@
+[jupiter.server.http]
+    port = 9527
+    debug = true
+[jupiter.server.grpc]
+    port = 9528
+[jupiter.client.uuid]
+    address = "127.0.0.1:9528"
+    onDialError = "error"
+[jupiter.server.uuid]
+    epoch = 1288834974657
+    nodeBits = 10
+    stepBits = 12
+    nodeId = 1
+    enableRedis = false
+[jupiter.redis.uuid]
+    addrs = ["127.0.0.1:6379"]

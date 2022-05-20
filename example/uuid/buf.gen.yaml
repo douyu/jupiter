@@ -1,0 +1,14 @@
+version: v1
+managed:
+  enabled: true
+
+  # Go
+  go_package_prefix:
+    default: 
+plugins:
+  - remote: buf.build/protocolbuffers/plugins/go:v1.27.1-1
+    out: gen/api/go
+  - remote: buf.build/library/plugins/go-grpc:v1.1.0-2
+    out: gen/api/go
+    opt:
+      - require_unimplemented_servers=false
