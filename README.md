@@ -65,7 +65,7 @@ func startXxlJob() executor.Executor {
 
 More Example:   
 - [Quick Start](doc/wiki-cn/quickstart.md)  
-- [Examples](http://jupiter.douyu.com/jupiter/1.2example.html)
+- [Examples](https://github.com/douyu/jupiter-examples)
 - [Project Layout](https://github.com/douyu/jupiter-layout)
 
 ## Bugs and Feedback

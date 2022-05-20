@@ -1,7 +1,0 @@
-[jupiter.logger.default]
-    debug = false  # 是否在命令行输出
-    enableConsole = false # 是否按命令行格式输出
-    level = "info"
-    name = "default.json"
-    dir = "."
-    async = false
