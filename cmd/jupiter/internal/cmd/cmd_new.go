@@ -15,15 +15,20 @@
 package cmd
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"github.com/fatih/color"
+	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"os/exec"
 	"path"
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/urfave/cli"
 	"github.com/xlab/treeprint"
@@ -32,6 +37,14 @@ import (
 const (
 	// 存放于git上的模板module
 	gitOriginModulePath = "github.com/douyu/jupiter-layout"
+	gitOriginModuleName = "douyu/jupiter-layout"
+	// 设置clone别名 避免冲突
+	localLayoutName = "local_temp_jupiter_layout"
+)
+
+var (
+	// 项目模板存在的位置
+	globalLayoutPath = filepath.Join(os.TempDir(), localLayoutName)
 )
 
 // New 生成项目
@@ -198,17 +211,29 @@ func write(c config, file, tmpl string) error {
 // getFileInfosByGit 从git拉取最新的模板代码 并抽象成map[相对路径]文件流
 // name: 生成的项目类型
 func getFileInfosByGit(name string, clean bool) (fileInfos map[string]*file) {
-	if clean {
+	// 判断是否需要拉取模板
+	var needCloneFile bool
+
+	// 查看临时文件之中是否已经存在该文件夹
+	// os.Stat 获取文件信息
+	_, err := os.Stat(globalLayoutPath)
+	if os.IsNotExist(err) {
+		needCloneFile = true
+	} else if err != nil {
+		// 这里的错误，是说明出现了未知的错误，应该抛出
+		panic(err)
+	}
+
+	// 判断是否需要刷新模板信息
+	// 存在文件才检查更新
+	if (err == nil && checkUpgrade()) || clean {
 		if err := cleanTempLayout(); err != nil {
 			panic(err)
 		}
+		needCloneFile = true
 	}
-	// 设置clone别名 避免冲突
-	// 查看临时文件之中是否已经存在该文件夹
-	tempPath := filepath.Join(os.TempDir(), "local_temp_jupiter_layout")
-	// os.Stat 获取文件信息
-	_, err := os.Stat(tempPath)
-	if os.IsNotExist(err) {
+
+	if needCloneFile {
 		// 存放于git的模板地址
 		gitPath := "https://" + gitOriginModulePath + ".git"
 
@@ -216,23 +241,17 @@ func getFileInfosByGit(name string, clean bool) (fileInfos map[string]*file) {
 
 		// clone最新仓库的master分支
 		// 不存在则拉取模板
-		cmd := exec.Command("git", "clone", gitPath, tempPath, "-b", "main", "--depth=1")
+		cmd := exec.Command("git", "clone", gitPath, globalLayoutPath, "-b", "main", "--depth=1")
 		if err := cmd.Run(); err != nil {
 			panic(err)
 		}
-	} else if os.IsExist(err) || err == nil {
-		// 	判断是否需要刷新模板信息
-		// todo ... 后面有时间再加上
-	} else {
-		// 这里的错误，是说明出现了未知的错误，应该抛出
-		panic(err)
 	}
 
 	fileInfos = make(map[string]*file)
 	// 获取模板的文件流
 	// io/fs为1.16新增标准库 低版本不支持
 	// os.FileInfo实现了和io/fs.FileInfo相同的接口 确保go低版本可以成功编译通过
-	err = filepath.Walk(tempPath, func(path string, info os.FileInfo, err error) error {
+	err = filepath.Walk(globalLayoutPath, func(path string, info os.FileInfo, err error) error {
 		// 过滤git目录中文件
 		if !info.IsDir() && !strings.Contains(strings.ReplaceAll(path, "\\", "/"), ".git/") {
 			bs, err := ioutil.ReadFile(path)
@@ -240,7 +259,7 @@ func getFileInfosByGit(name string, clean bool) (fileInfos map[string]*file) {
 				fmt.Printf("[jupiter] Read file failed: fullPath=[%v] err=[%v]", path, err)
 			}
 
-			fullPath := strings.ReplaceAll(path, tempPath, "")
+			fullPath := strings.ReplaceAll(path, globalLayoutPath, "")
 			fileInfos[fullPath] = &file{fullPath, bs}
 		}
 		return nil
@@ -250,4 +269,44 @@ func getFileInfosByGit(name string, clean bool) (fileInfos map[string]*file) {
 	}
 
 	return fileInfos
+}
+
+// checkUpgrade 通过 https://api.github.com/repos/xxx/commits/branch 获取最后一次提交sha,判断本地提交是否一致，不一致则需要更新
+func checkUpgrade() bool {
+	color.Green("check upgrade ....")
+	httpCli := http.Client{
+		Timeout: 3 * time.Second,
+	}
+
+	request, _ := http.NewRequest("GET", "https://api.github.com/repos/"+gitOriginModuleName+"/commits/main", nil)
+	request.Header.Set("Accept", "application/vnd.github.v3.sha")
+
+	resp, err := httpCli.Do(request)
+	if err != nil {
+		color.Red("check upgrade filed:%v", err)
+		return false
+	}
+
+	defer resp.Body.Close()
+	remoteLastSha, err := io.ReadAll(resp.Body)
+	if err != nil {
+		color.Red("check upgrade filed:%v", err)
+		return false
+	}
+
+	return strings.TrimSpace(getLocalLastSha()) != strings.TrimSpace(string(remoteLastSha))
+}
+
+// getLocalLastSha 获取本地最后一次的提交sha
+func getLocalLastSha() string {
+	cmd := exec.Command("git", "rev-parse", "main")
+	cmd.Dir = globalLayoutPath
+
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	if err := cmd.Run(); err != nil {
+		panic(err)
+	}
+
+	return out.String()
 }
