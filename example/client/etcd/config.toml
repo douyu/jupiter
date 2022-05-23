@@ -1,3 +1,0 @@
-[jupiter.etcdv3.myetcd]
-    endpoints = ["127.0.0.1:2379"]
-    connectTimeout = "10s"

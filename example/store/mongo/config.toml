@@ -1,7 +1,0 @@
-[jupiter.mongo]
-[jupiter.mongo.test]
-dsn="mongodb://xxx:xxx@xxx.xxx.xxx.xxx:27027/admin?replicaSet=live"
-socketTimeout="3s"
-poolLimit=5
-[jupiter.server.http]
-port=50000

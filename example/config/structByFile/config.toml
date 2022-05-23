@@ -1,7 +1,0 @@
-[people]
-    name = "jupiter"
-[jupiter.logger.default]
-    debug = true
-    enableConsole = true
-
-

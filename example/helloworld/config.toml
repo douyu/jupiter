@@ -1,4 +1,0 @@
-[jupiter.server.http]
-    port = 9090
-[jupiter.server.governor]
-    port = 19090
