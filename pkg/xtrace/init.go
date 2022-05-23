@@ -12,32 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package trace
+package xtrace
 
 import (
-	"strings"
+	"log"
+
+	"github.com/douyu/jupiter/pkg/conf"
+	"github.com/douyu/jupiter/pkg/xtrace/jaeger"
 )
 
-// MetadataReaderWriter ...
-type MetadataReaderWriter struct {
-	MD map[string][]string
-}
-
-// Set ...
-func (w MetadataReaderWriter) Set(key, val string) {
-	key = strings.ToLower(key)
-	w.MD[key] = append(w.MD[key], val)
-}
-
-// ForeachKey ...
-func (w MetadataReaderWriter) ForeachKey(handler func(key, val string) error) error {
-	for k, vals := range w.MD {
-		for _, v := range vals {
-			if err := handler(k, v); err != nil {
-				return err
-			}
+func init() {
+	// 加载完配置，初始化trace
+	conf.OnLoaded(func(c *conf.Configuration) {
+		log.Print("hook config, init trace config")
+		if conf.Get("jupiter.trace.jaeger") != nil {
+			var config = jaeger.RawConfig("jupiter.trace.jaeger")
+			SetGlobalTracer(config.Build())
 		}
-	}
-
-	return nil
+	})
 }
