@@ -73,7 +73,7 @@ func (eng *Engine) exampleRocketMQProducer() (err error) {
 		return
 	}
 	ctx := context.Background()
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 30; i++ {
 		msg := "a" + strconv.Itoa(i)
 		producerClient.SendWithContext(ctx, []byte(msg))
 	}

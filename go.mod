@@ -23,7 +23,6 @@ require (
 	github.com/gogf/gf v1.13.3
 	github.com/golang/protobuf v1.5.2
 	github.com/golang/snappy v0.0.3 // indirect
-	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
 	github.com/gorilla/websocket v1.4.2
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
@@ -39,7 +38,6 @@ require (
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/onsi/ginkgo v1.16.2
 	github.com/onsi/gomega v1.13.0
-	github.com/opentracing/opentracing-go v1.2.0
 	github.com/philchia/agollo/v4 v4.1.3
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.12.1
@@ -48,16 +46,18 @@ require (
 	github.com/smartystreets/assertions v0.0.0-20190401211740-f487f9de1cd3 // indirect
 	github.com/smartystreets/goconvey v1.6.4
 	github.com/stretchr/objx v0.2.0 // indirect
-	github.com/stretchr/testify v1.7.0
+	github.com/stretchr/testify v1.7.1
 	github.com/tidwall/gjson v1.13.0 // indirect
 	github.com/tidwall/pretty v1.2.0
-	github.com/uber/jaeger-client-go v2.23.1+incompatible
-	github.com/uber/jaeger-lib v2.2.0+incompatible // indirect
 	github.com/urfave/cli v1.22.5
 	github.com/valyala/fasthttp v1.34.0
 	go.etcd.io/etcd/api/v3 v3.5.0
 	go.etcd.io/etcd/client/v3 v3.5.0
 	go.mongodb.org/mongo-driver v1.5.1
+	go.opentelemetry.io/otel v1.7.0
+	go.opentelemetry.io/otel/exporters/jaeger v1.7.0
+	go.opentelemetry.io/otel/sdk v1.7.0
+	go.opentelemetry.io/otel/trace v1.7.0
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/automaxprocs v1.4.0
 	go.uber.org/multierr v1.7.0

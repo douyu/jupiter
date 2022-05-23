@@ -27,7 +27,6 @@ import (
 	"github.com/douyu/jupiter/pkg/client/rocketmq"
 	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/conf/datasource/file"
-	"github.com/douyu/jupiter/pkg/trace"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -52,9 +51,6 @@ var _ = Describe("push and consume", func() {
 		consumerClient.Subscribe(consumerClient.ConsumerConfig.Topic, func(ctx context.Context, ext *primitive.MessageExt) error {
 			atomic.AddInt32(&count, 1)
 			fmt.Println("msg...", string(ext.Message.Body), string(ext.Message.Topic), string(ext.Message.GetTags()), atomic.LoadInt32(&count))
-			if span := trace.SpanFromContext(ctx); span != nil {
-				fmt.Println("Trace:", span.Context())
-			}
 
 			return nil
 		})

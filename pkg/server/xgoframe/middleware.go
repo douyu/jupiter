@@ -19,7 +19,6 @@ import (
 	"time"
 
 	"github.com/douyu/jupiter/pkg/metric"
-	"github.com/douyu/jupiter/pkg/trace"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/gogf/gf/net/ghttp"
 	"go.uber.org/zap"
@@ -68,18 +67,7 @@ func metricServerInterceptor() ghttp.HandlerFunc {
 }
 func traceServerInterceptor() ghttp.HandlerFunc {
 	return func(r *ghttp.Request) {
-		span, ctx := trace.StartSpanFromContext(
-			r.Context(),
-			r.Method+" "+r.URL.Path,
-			trace.TagComponent("http"),
-			trace.TagSpanKind("server"),
-			trace.HeaderExtractor(r.Header),
-			trace.CustomTag("http.url", r.URL.Path),
-			trace.CustomTag("http.method", r.Method),
-			trace.CustomTag("peer.ipv4", r.GetClientIp()),
-		)
-		r.Request = r.WithContext(ctx)
-		defer span.Finish()
+		r.Request = r.WithContext(r.Context())
 		r.Middleware.Next()
 	}
 }

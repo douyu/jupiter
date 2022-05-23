@@ -1,7 +1,7 @@
 [jupiter.server.http]
-    port = 9090
+    port = 9099
 [jupiter.etcdv3.default]
-    endpoints=["127.0.0.1:2379"]
+    endpoints=["etcd-naming.dz11.com:2379"]
     secure = false
 [jupiter.registry.wh]
     configKey="jupiter.etcdv3.default"
@@ -11,3 +11,6 @@
     enableConsole = false # 是否按命令行格式输出
     name = "default.json"
     dir = "."
+[jupiter.trace.jaeger]
+endpoint="http://localhost:14268/api/traces"
+sample=1

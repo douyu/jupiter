@@ -16,18 +16,21 @@ package resty
 
 import (
 	"errors"
+	"github.com/douyu/jupiter/pkg/xtrace"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/propagation"
 	"net/http"
 	"time"
 
 	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/metric"
-	"github.com/douyu/jupiter/pkg/trace"
 	"github.com/douyu/jupiter/pkg/util/xdebug"
 	"github.com/douyu/jupiter/pkg/util/xtime"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/go-resty/resty/v2"
-	"github.com/opentracing/opentracing-go"
-	"github.com/opentracing/opentracing-go/ext"
+	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
@@ -125,33 +128,34 @@ func (config *Config) Build() (*resty.Client, error) {
 
 	client.OnError(func(r *resty.Request, err error) {
 		if config.EnableTrace {
-			span := opentracing.SpanFromContext(r.Context())
-			ext.LogError(span, err)
-			span.Finish()
+			span := trace.SpanFromContext(r.Context())
+			if err != nil {
+				span.RecordError(err)
+				span.SetStatus(codes.Error, err.Error())
+			}
+			span.End()
 		}
-
 		if config.EnableMetric {
 			metric.ClientHandleCounter.WithLabelValues(metric.TypeHTTP, "resty", r.Method, r.RawRequest.Host, "error").Inc()
 		}
+
 	})
 
 	client.OnBeforeRequest(func(c *resty.Client, r *resty.Request) error {
 		if config.EnableTrace {
-			// 设置trace
-			span, ctx := trace.StartSpanFromContext(
-				r.Context(),
-				"http_client_request",
-				trace.MetadataExtractor(r.Header),
+			tracer := xtrace.NewTracer(trace.SpanKindClient)
+			attrs := []attribute.KeyValue{
+				semconv.RPCSystemKey.String("http"),
+			}
+			ctx, span := tracer.Start(r.Context(), r.Method, propagation.HeaderCarrier(r.Header), trace.WithAttributes(attrs...))
+			span.SetAttributes(
+				semconv.RPCSystemKey.String("http"),
+				semconv.PeerServiceKey.String("http_client_request"),
+				semconv.HTTPMethodKey.String(r.Method),
+				semconv.HTTPURLKey.String(r.URL),
 			)
-
-			ext.SpanKindRPCClient.Set(span)
-			ext.Component.Set(span, "http")
-			ext.HTTPUrl.Set(span, r.URL)
-			ext.HTTPMethod.Set(span, r.Method)
-
 			r.SetContext(ctx)
 		}
-
 		return nil
 	})
 
@@ -170,7 +174,11 @@ func (config *Config) Build() (*resty.Client, error) {
 		}
 
 		if config.EnableTrace {
-			trace.SpanFromContext(r.Request.Context()).Finish()
+			span := trace.SpanFromContext(r.Request.Context())
+			span.SetAttributes(
+				semconv.HTTPStatusCodeKey.Int64(int64(r.StatusCode())),
+			)
+			span.End()
 		}
 
 		if config.SlowThreshold > time.Duration(0) {
@@ -195,7 +203,7 @@ func (config *Config) Build() (*resty.Client, error) {
 func (c *Config) MustBuild() *resty.Client {
 	cc, err := c.Build()
 	if err != nil {
-		xlog.Panic("resty build failed", zap.Error(err))
+		xlog.Panic("resty build failed", zap.Error(err), zap.Any("config", c))
 	}
 
 	return cc

@@ -16,19 +16,20 @@ package rocketmq
 
 import (
 	"context"
+	"github.com/douyu/jupiter/pkg/xtrace"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/propagation"
 
 	"github.com/apache/rocketmq-client-go/v2"
 	"github.com/apache/rocketmq-client-go/v2/consumer"
 	"github.com/apache/rocketmq-client-go/v2/primitive"
 	"github.com/douyu/jupiter/pkg/defers"
 	"github.com/douyu/jupiter/pkg/istats"
-	"github.com/douyu/jupiter/pkg/trace"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/juju/ratelimit"
-	"github.com/opentracing/opentracing-go"
-	"github.com/opentracing/opentracing-go/ext"
+	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
-	"google.golang.org/grpc/metadata"
 )
 
 type PushConsumer struct {
@@ -97,19 +98,23 @@ func (cc *PushConsumer) Subscribe(topic string, f func(context.Context, *primiti
 	fn := func(ctx context.Context, msgs ...*primitive.MessageExt) (consumer.ConsumeResult, error) {
 		for _, msg := range msgs {
 			var (
-				span opentracing.Span
+				span trace.Span
 			)
-
 			if cc.EnableTrace {
-				span, ctx = trace.StartSpanFromContext(
-					ctx,
-					cc.Topic,
-					trace.TagComponent("rocketmq"),
-					ext.SpanKindConsumer,
-					trace.HeaderExtractor(metadata.New(msg.GetProperties())),
+				carrier := propagation.MapCarrier{}
+				tracer := xtrace.NewTracer(trace.SpanKindConsumer)
+				attrs := []attribute.KeyValue{
+					semconv.MessagingSystemKey.String("rocketmq"),
+				}
+				for key, value := range msg.GetProperties() {
+					carrier[key] = value
+				}
+
+				ctx, span = tracer.Start(ctx, "rocketmq", carrier, trace.WithAttributes(attrs...))
+				defer span.End()
+				span.SetAttributes(
+					semconv.MessagingDestinationKindKey.String(msg.Topic),
 				)
-				// todo optimize
-				defer span.Finish()
 			}
 
 			if cc.bucket != nil {
@@ -139,19 +144,24 @@ func (cc *PushConsumer) RegisterSingleMessage(f func(context.Context, *primitive
 	fn := func(ctx context.Context, msgs ...*primitive.MessageExt) (consumer.ConsumeResult, error) {
 		for _, msg := range msgs {
 			var (
-				span opentracing.Span
+				span trace.Span
 			)
 
 			if cc.EnableTrace {
-				span, ctx = trace.StartSpanFromContext(
-					ctx,
-					cc.Topic,
-					trace.TagComponent("rocketmq"),
-					ext.SpanKindConsumer,
-					trace.HeaderExtractor(metadata.New(msg.GetProperties())),
+				carrier := propagation.MapCarrier{}
+				tracer := xtrace.NewTracer(trace.SpanKindConsumer)
+				attrs := []attribute.KeyValue{
+					semconv.MessagingSystemKey.String("rocketmq"),
+				}
+				for key, value := range msg.GetProperties() {
+					carrier[key] = value
+				}
+
+				ctx, span = tracer.Start(ctx, "rocketmq", carrier, trace.WithAttributes(attrs...))
+				defer span.End()
+				span.SetAttributes(
+					semconv.MessagingDestinationKindKey.String(msg.Topic),
 				)
-				// todo optimize
-				defer span.Finish()
 			}
 
 			if cc.bucket != nil {
@@ -179,21 +189,26 @@ func (cc *PushConsumer) RegisterBatchMessage(f func(context.Context, ...*primiti
 		xlog.Panic("duplicated register batch message", zap.String("topic", cc.Topic))
 	}
 	fn := func(ctx context.Context, msgs ...*primitive.MessageExt) (consumer.ConsumeResult, error) {
-		var (
-			span opentracing.Span
-		)
 
 		if cc.EnableTrace {
 			for _, msg := range msgs {
-				span, ctx = trace.StartSpanFromContext(
-					ctx,
-					cc.Topic,
-					trace.TagComponent("rocketmq"),
-					ext.SpanKindConsumer,
-					trace.HeaderExtractor(metadata.New(msg.GetProperties())),
+				var (
+					span trace.Span
 				)
-				// todo optimize
-				defer span.Finish()
+
+				carrier := propagation.MapCarrier{}
+				tracer := xtrace.NewTracer(trace.SpanKindConsumer)
+				attrs := []attribute.KeyValue{
+					semconv.MessagingSystemKey.String("rocketmq"),
+				}
+				for key, value := range msg.GetProperties() {
+					carrier[key] = value
+				}
+				ctx, span = tracer.Start(ctx, msg.Topic, carrier, trace.WithAttributes(attrs...))
+				defer span.End()
+				span.SetAttributes(
+					semconv.MessagingDestinationKindKey.String(msg.Topic),
+				)
 			}
 		}
 
