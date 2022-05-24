@@ -12,28 +12,39 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package cmd
 
 import (
-	"log"
+	"fmt"
 	"os"
-	"sort"
+	"os/exec"
+	"runtime"
 
-	"github.com/douyu/jupiter/cmd/jupiter/internal/cmd"
 	"github.com/urfave/cli"
 )
 
-func main() {
+// Update 更新到最新版本
+func Update(c *cli.Context) error {
+	update := "go install github.com/douyu/jupiter/cmd/jupiter@latest\n"
 
-	app := cli.NewApp()
-	app.Usage = "Fast bootstrap tool for jupiter framework"
-	app.Commands = cmd.Commands
-
-	sort.Sort(cli.FlagsByName(app.Flags))
-	sort.Sort(cli.CommandsByName(app.Commands))
-
-	err := app.Run(os.Args)
-	if err != nil {
-		log.Fatal(err)
+	if runtime.Version() < "go1.16" {
+		fmt.Println("当前安装的golang版本小于1.16，请升级！")
+		return nil
 	}
+
+	cmds := []string{update}
+
+	for _, cmd := range cmds {
+		fmt.Println(cmd)
+		cmd := exec.Command("bash", "-c", cmd)
+		cmd.Stderr = os.Stderr
+		cmd.Stdout = os.Stdout
+
+		err := cmd.Run()
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
