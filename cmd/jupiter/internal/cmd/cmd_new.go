@@ -18,7 +18,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/fatih/color"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -30,6 +29,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fatih/color"
 	"github.com/urfave/cli"
 	"github.com/xlab/treeprint"
 )
@@ -40,11 +40,16 @@ const (
 	gitOriginModuleName = "douyu/jupiter-layout"
 	// 设置clone别名 避免冲突
 	localLayoutName = "local_temp_jupiter_layout"
+	// 本地文件锁，修改时间用于检查更新
+	localLayoutNameLock = "local_temp_jupiter_layout.lock"
+	oneDayUnix          = 24 * int64(time.Hour)
 )
 
 var (
 	// 项目模板存在的位置
 	globalLayoutPath = filepath.Join(os.TempDir(), localLayoutName)
+	// 项目时间检查的文件所在位置
+	globalLayoutLockPath = filepath.Join(os.TempDir(), localLayoutNameLock)
 )
 
 // New 生成项目
@@ -274,27 +279,72 @@ func getFileInfosByGit(name string, clean bool) (fileInfos map[string]*file) {
 // checkUpgrade 通过 https://api.github.com/repos/xxx/commits/branch 获取最后一次提交sha,判断本地提交是否一致，不一致则需要更新
 func checkUpgrade() bool {
 	color.Green("check upgrade ....")
-	httpCli := http.Client{
-		Timeout: 3 * time.Second,
+
+	// 检查今天是否已经检查过更新
+	if !checkDays() {
+		return false
 	}
 
+	// 获取远端最后一次提交的 SHA
+	remoteLastSha, err := getRemoteLastCommitSha()
+	if err != nil {
+		return false
+	}
+
+	// 和本地对比，如果一致，那么不需要更新
+	if getLocalLastSha() == remoteLastSha {
+		return false
+	}
+
+	// 由用户选择是否更新
+	return userSelectUpgrade()
+}
+
+// checkDays
+// 	存在文件，首先判断时间是否需要进行更新
+// 	不存在文件肯定是需要创建文件，并确定需要更新
+//  存在文件但是时间不是同一天，那么也需要进行更新
+//  需要更新的同时，更新文件的修改时间
+func checkDays() bool {
+	fileInfo, err := os.Stat(globalLayoutLockPath)
+	if err == nil && fileInfo.ModTime().Unix()/oneDayUnix == time.Now().Unix()/oneDayUnix {
+		return false
+	} else if os.IsNotExist(err) {
+	} else if err != nil {
+		// 这里的错误，是说明出现了未知的错误，应该抛出
+		panic(err)
+	}
+
+	f, err := os.Create(globalLayoutLockPath)
+	if err != nil {
+		panic(err)
+	}
+	_ = f.Close()
+
+	return true
+}
+
+func getRemoteLastCommitSha() (string, error) {
 	request, _ := http.NewRequest("GET", "https://api.github.com/repos/"+gitOriginModuleName+"/commits/main", nil)
 	request.Header.Set("Accept", "application/vnd.github.v3.sha")
 
+	httpCli := http.Client{
+		Timeout: 3 * time.Second,
+	}
 	resp, err := httpCli.Do(request)
 	if err != nil {
-		color.Red("check upgrade filed:%v", err)
-		return false
+		color.Red("check remote upgrade filed:%v", err)
+		return "", err
 	}
 
 	defer resp.Body.Close()
 	remoteLastSha, err := io.ReadAll(resp.Body)
 	if err != nil {
-		color.Red("check upgrade filed:%v", err)
-		return false
+		color.Red("check remote upgrade filed:%v", err)
+		return "", err
 	}
 
-	return strings.TrimSpace(getLocalLastSha()) != strings.TrimSpace(string(remoteLastSha))
+	return strings.TrimSpace(string(remoteLastSha)), nil
 }
 
 // getLocalLastSha 获取本地最后一次的提交sha
@@ -308,5 +358,27 @@ func getLocalLastSha() string {
 		panic(err)
 	}
 
-	return out.String()
+	return strings.TrimSpace(out.String())
+}
+
+func userSelectUpgrade() bool {
+	var upgrade string
+	for {
+		color.Blue(`the current template has been updated, please select whether it needs to be updated?`)
+		fmt.Print("yes/no:")
+
+		_, err := fmt.Scanln(&upgrade)
+		if err != nil {
+			panic(err)
+		}
+
+		switch strings.TrimSpace(upgrade) {
+		case "yes", "y", "Y":
+			return true
+		case "no", "n", "N":
+			return false
+		default:
+			color.Red("you chose wrong please choose again")
+		}
+	}
 }
