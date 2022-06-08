@@ -24,6 +24,7 @@ import (
 	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/util/xstring"
 	jsoniter "github.com/json-iterator/go"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func init() {
@@ -69,5 +70,9 @@ func registerHandlers() {
 			"goVersion":      pkg.GoVersion(),
 		}
 		_ = jsoniter.NewEncoder(w).Encode(serverStats)
+	})
+
+	HandleFunc("/metrics", func(w http.ResponseWriter, r *http.Request) {
+		promhttp.Handler().ServeHTTP(w, r)
 	})
 }

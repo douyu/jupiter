@@ -36,13 +36,13 @@ func (n Local) WatchServices(ctx context.Context, s string, s2 string) (chan End
 
 // RegisterService ...
 func (n Local) RegisterService(ctx context.Context, si *server.ServiceInfo) error {
-	xlog.Info("register service locally", xlog.FieldMod("registry"), xlog.FieldName(si.Name), xlog.FieldAddr(si.Label()))
+	xlog.Jupiter().Info("register service locally", xlog.FieldMod("registry"), xlog.FieldName(si.Name), xlog.FieldAddr(si.Label()))
 	return nil
 }
 
 // UnregisterService ...
 func (n Local) UnregisterService(ctx context.Context, si *server.ServiceInfo) error {
-	xlog.Info("unregister service locally", xlog.FieldMod("registry"), xlog.FieldName(si.Name), xlog.FieldAddr(si.Label()))
+	xlog.Jupiter().Info("unregister service locally", xlog.FieldMod("registry"), xlog.FieldName(si.Name), xlog.FieldAddr(si.Label()))
 	return nil
 }
 

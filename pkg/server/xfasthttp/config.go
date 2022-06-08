@@ -23,6 +23,7 @@ import (
 	"github.com/douyu/jupiter/pkg/flag"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
 )
 
 //ModName named a mod
@@ -108,7 +109,7 @@ func (config *Config) WithPort(port int) *Config {
 func (config *Config) MustBuild() *Server {
 	server, err := config.Build()
 	if err != nil {
-		xlog.Panicf("build echo server failed: %v", err)
+		xlog.Jupiter().Panic("build echo server failed", zap.Error(err))
 	}
 	return server
 }

@@ -16,7 +16,7 @@ func init() {
 			configAddr  = flag.String("config")
 		)
 		if configAddr == "" {
-			xlog.Panic("new file dataSource, configAddr is empty")
+			xlog.Jupiter().Panic("new file dataSource, configAddr is empty")
 			return nil
 		}
 		return NewDataSource(configAddr, watchConfig)

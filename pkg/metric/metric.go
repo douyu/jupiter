@@ -15,15 +15,12 @@
 package metric
 
 import (
-	"net/http"
 	"time"
 
 	"github.com/douyu/jupiter/pkg"
 	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/constant"
-	"github.com/douyu/jupiter/pkg/governor"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 type Metrics interface {
@@ -162,9 +159,5 @@ func init() {
 			pkg.AppVersion(),
 			pkg.GoVersion(),
 		).Set(float64(time.Now().UnixNano() / 1e6))
-	})
-
-	governor.HandleFunc("/metrics", func(w http.ResponseWriter, r *http.Request) {
-		promhttp.Handler().ServeHTTP(w, r)
 	})
 }

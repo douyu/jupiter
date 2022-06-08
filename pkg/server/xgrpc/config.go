@@ -18,6 +18,7 @@ import (
 	"fmt"
 
 	"github.com/douyu/jupiter/pkg/flag"
+	"go.uber.org/zap"
 
 	"github.com/douyu/jupiter/pkg/constant"
 	"github.com/douyu/jupiter/pkg/ecode"
@@ -137,7 +138,7 @@ func (config *Config) WithUnaryInterceptor(intes ...grpc.UnaryServerInterceptor)
 func (config *Config) MustBuild() *Server {
 	server, err := config.Build()
 	if err != nil {
-		xlog.Panicf("build xgrpc server: %v", err)
+		xlog.Jupiter().Panic("build xgrpc server", zap.Error(err))
 	}
 	return server
 }

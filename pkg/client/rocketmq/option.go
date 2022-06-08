@@ -176,7 +176,7 @@ func StdProducerConfig(name string) *ProducerConfig {
 func RawConfig(key string) *Config {
 	var config = DefaultConfig()
 	if err := conf.UnmarshalKey(key, &config, conf.TagName("toml")); err != nil {
-		xlog.Panic("unmarshal config", xlog.FieldErr(err), xlog.String("key", key), xlog.Any("config", config))
+		xlog.Jupiter().Panic("unmarshal config", xlog.FieldErr(err), xlog.String("key", key), xlog.Any("config", config))
 	}
 
 	if xdebug.IsDevelopmentMode() {
@@ -189,7 +189,7 @@ func RawConfig(key string) *Config {
 func RawConsumerConfig(key string) *ConsumerConfig {
 	var config = DefaultConsumerConfig()
 	if err := conf.UnmarshalKey(key, &config); err != nil {
-		xlog.Panic("unmarshal config", xlog.FieldErr(err), xlog.String("key", key), xlog.Any("config", config))
+		xlog.Jupiter().Panic("unmarshal config", xlog.FieldErr(err), xlog.String("key", key), xlog.Any("config", config))
 	}
 
 	return config
@@ -199,7 +199,7 @@ func RawConsumerConfig(key string) *ConsumerConfig {
 func RawProducerConfig(key string) *ProducerConfig {
 	var config = DefaultProducerConfig()
 	if err := conf.UnmarshalKey(key, &config); err != nil {
-		xlog.Panic("unmarshal config", xlog.FieldErr(err), xlog.String("key", key), xlog.Any("config", config))
+		xlog.Jupiter().Panic("unmarshal config", xlog.FieldErr(err), xlog.String("key", key), xlog.Any("config", config))
 	}
 	return config
 }

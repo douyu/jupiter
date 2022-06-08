@@ -38,7 +38,7 @@ func StdConfig(name string) *Config {
 func RawConfig(key string) *Config {
 	var config = DefaultConfig()
 	if err := conf.UnmarshalKey(key, config); err != nil {
-		xlog.Panic("unmarshal key", xlog.Any("err", err))
+		xlog.Jupiter().Panic("unmarshal key", xlog.Any("err", err))
 	}
 	return config
 }
@@ -69,11 +69,11 @@ func (config *Config) Build() error {
 		var rules []*flow.Rule
 		content, err := ioutil.ReadFile(config.FlowRulesFile)
 		if err != nil {
-			xlog.Error("load sentinel flow rules", xlog.FieldErr(err), xlog.FieldKey(config.FlowRulesFile))
+			xlog.Jupiter().Error("load sentinel flow rules", xlog.FieldErr(err), xlog.FieldKey(config.FlowRulesFile))
 		}
 
 		if err := json.Unmarshal(content, &rules); err != nil {
-			xlog.Error("load sentinel flow rules", xlog.FieldErr(err), xlog.FieldKey(config.FlowRulesFile))
+			xlog.Jupiter().Error("load sentinel flow rules", xlog.FieldErr(err), xlog.FieldKey(config.FlowRulesFile))
 		}
 
 		config.FlowRules = append(config.FlowRules, rules...)

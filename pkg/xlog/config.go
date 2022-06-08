@@ -1,4 +1,4 @@
-// Copyright 2020 Douyu
+// Copyright 2022 Douyu
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -123,8 +123,6 @@ func (config Config) Build() *Logger {
 		config.EncoderConfig.EncodeLevel = DebugEncodeLevel
 	}
 	logger := newLogger(&config)
-	if config.configKey != "" {
-		logger.AutoLevel(config.configKey + ".level")
-	}
+
 	return logger
 }

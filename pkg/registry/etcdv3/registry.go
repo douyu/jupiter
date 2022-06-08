@@ -94,7 +94,7 @@ func (reg *etcdv3Registry) ListServices(ctx context.Context, name string, scheme
 	for _, kv := range getResp.Kvs {
 		var service server.ServiceInfo
 		if err := json.Unmarshal(kv.Value, &service); err != nil {
-			reg.logger.Warnf("invalid service", xlog.FieldErr(err))
+			reg.logger.Warn("invalid service", xlog.FieldErr(err))
 			continue
 		}
 		services = append(services, &service)
@@ -143,7 +143,7 @@ func (reg *etcdv3Registry) WatchServices(ctx context.Context, name string, schem
 			// case addresses <- snapshot:
 			case addresses <- *out:
 			default:
-				xlog.Warnf("invalid")
+				xlog.Jupiter().Warn("invalid")
 			}
 		}
 	})
@@ -314,7 +314,7 @@ func deleteAddrList(al *registry.Endpoints, prefix, scheme string, kvs ...*mvccp
 			}
 			uri, err := url.Parse(addr)
 			if err != nil {
-				xlog.Error("parse uri", xlog.FieldErrKind(ecode.ErrKindUriErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)))
+				xlog.Jupiter().Error("parse uri", xlog.FieldErrKind(ecode.ErrKindUriErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)))
 				continue
 			}
 			delete(al.Nodes, uri.String())
@@ -328,7 +328,7 @@ func deleteAddrList(al *registry.Endpoints, prefix, scheme string, kvs ...*mvccp
 			}
 			uri, err := url.Parse(addr)
 			if err != nil {
-				xlog.Error("parse uri", xlog.FieldErrKind(ecode.ErrKindUriErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)))
+				xlog.Jupiter().Error("parse uri", xlog.FieldErrKind(ecode.ErrKindUriErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)))
 				continue
 			}
 			delete(al.RouteConfigs, uri.String())
@@ -351,12 +351,12 @@ func updateAddrList(al *registry.Endpoints, prefix, scheme string, kvs ...*mvccp
 			addr = strings.TrimPrefix(addr, "providers/")
 			uri, err := url.Parse(addr)
 			if err != nil {
-				xlog.Error("parse uri", xlog.FieldErrKind(ecode.ErrKindUriErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)))
+				xlog.Jupiter().Error("parse uri", xlog.FieldErrKind(ecode.ErrKindUriErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)))
 				continue
 			}
 			var serviceInfo server.ServiceInfo
 			if err := json.Unmarshal(kv.Value, &serviceInfo); err != nil {
-				xlog.Error("parse uri", xlog.FieldErrKind(ecode.ErrKindUriErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)))
+				xlog.Jupiter().Error("parse uri", xlog.FieldErrKind(ecode.ErrKindUriErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)))
 				continue
 			}
 			if serviceInfo.Enable {
@@ -370,14 +370,14 @@ func updateAddrList(al *registry.Endpoints, prefix, scheme string, kvs ...*mvccp
 
 			uri, err := url.Parse(addr)
 			if err != nil {
-				xlog.Error("parse uri", xlog.FieldErrKind(ecode.ErrKindUriErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)))
+				xlog.Jupiter().Error("parse uri", xlog.FieldErrKind(ecode.ErrKindUriErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)))
 				continue
 			}
 
 			if strings.HasPrefix(uri.Path, "/routes/") { // 路由配置
 				var routeConfig registry.RouteConfig
 				if err := json.Unmarshal(kv.Value, &routeConfig); err != nil {
-					xlog.Error("parse uri", xlog.FieldErrKind(ecode.ErrKindUriErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)))
+					xlog.Jupiter().Error("parse uri", xlog.FieldErrKind(ecode.ErrKindUriErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)))
 					continue
 				}
 				routeConfig.ID = strings.TrimPrefix(uri.Path, "/routes/")
@@ -389,7 +389,7 @@ func updateAddrList(al *registry.Endpoints, prefix, scheme string, kvs ...*mvccp
 			if strings.HasPrefix(uri.Path, "/providers/") {
 				var providerConfig registry.ProviderConfig
 				if err := json.Unmarshal(kv.Value, &providerConfig); err != nil {
-					xlog.Error("parse uri", xlog.FieldErrKind(ecode.ErrKindUriErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)))
+					xlog.Jupiter().Error("parse uri", xlog.FieldErrKind(ecode.ErrKindUriErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)))
 					continue
 				}
 				providerConfig.ID = strings.TrimPrefix(uri.Path, "/providers/")
@@ -401,7 +401,7 @@ func updateAddrList(al *registry.Endpoints, prefix, scheme string, kvs ...*mvccp
 			if strings.HasPrefix(uri.Path, "/consumers/") {
 				var consumerConfig registry.ConsumerConfig
 				if err := json.Unmarshal(kv.Value, &consumerConfig); err != nil {
-					xlog.Error("parse uri", xlog.FieldErrKind(ecode.ErrKindUriErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)))
+					xlog.Jupiter().Error("parse uri", xlog.FieldErrKind(ecode.ErrKindUriErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)))
 					continue
 				}
 				consumerConfig.ID = strings.TrimPrefix(uri.Path, "/consumers/")

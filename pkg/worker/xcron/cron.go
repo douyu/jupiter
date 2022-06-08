@@ -86,7 +86,7 @@ func newCron(config *Config) *Cron {
 		Cron: cron.New(
 			cron.WithParser(config.parser),
 			cron.WithChain(config.wrappers...),
-			cron.WithLogger(&wrappedLogger{config.logger}),
+			cron.WithLogger(&wrappedLogger{config.logger.Sugar()}),
 		),
 	}
 	return cron

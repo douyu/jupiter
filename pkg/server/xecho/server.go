@@ -27,6 +27,7 @@ import (
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
 )
 
 // Server ...
@@ -96,7 +97,7 @@ func (s *Server) Serve() error {
 	s.Echo.Logger.SetOutput(os.Stdout)
 	s.Echo.Debug = s.config.Debug
 	s.Echo.HideBanner = true
-	s.Echo.StdLogger = xlog.JupiterLogger.StdLog()
+	s.Echo.StdLogger = zap.NewStdLog(xlog.JupiterLogger)
 	for _, route := range s.Echo.Routes() {
 		s.config.logger.Info("add route", xlog.FieldMethod(route.Method), xlog.String("path", route.Path))
 	}

@@ -18,14 +18,14 @@ func init() {
 			configAddr = flag.String("config")
 		)
 		if configAddr == "" {
-			xlog.Panic("new apollo dataSource, configAddr is empty")
+			xlog.Jupiter().Panic("new apollo dataSource, configAddr is empty")
 			return nil
 		}
 		// configAddr is a string in this format:
 		// apollo://ip:port?appId=XXX&cluster=XXX&namespaceName=XXX&key=XXX&accesskeySecret=XXX&insecureSkipVerify=XXX&cacheDir=XXX
 		urlObj, err := url.Parse(configAddr)
 		if err != nil {
-			xlog.Panic("parse configAddr error", xlog.FieldErr(err))
+			xlog.Jupiter().Panic("parse configAddr error", xlog.FieldErr(err))
 			return nil
 		}
 		apolloConf := agollo.Conf{

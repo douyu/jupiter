@@ -21,6 +21,7 @@ import (
 
 	"github.com/douyu/jupiter/pkg/util/xfile"
 	"github.com/douyu/jupiter/pkg/xlog"
+	"go.uber.org/zap"
 )
 
 // GetFileName ...
@@ -31,13 +32,13 @@ func GetFileName(cacheKey string, cacheDir string) string {
 // WriteConfigToFile ...
 func WriteConfigToFile(cacheKey string, cacheDir string, content string) {
 	if err := xfile.MkdirIfNecessary(cacheDir); err != nil {
-		xlog.Errorf("[ERROR]:faild to MkdirIfNecessary config ,value:%s ,err:%s \n", string(content), err.Error())
+		xlog.Jupiter().Error("[ERROR]:faild to MkdirIfNecessary config\n", zap.String("content", content), zap.Error(err))
 		return
 	}
 	fileName := GetFileName(cacheKey, cacheDir)
 	err := ioutil.WriteFile(fileName, []byte(content), 0666)
 	if err != nil {
-		xlog.Errorf("[ERROR]:faild to write config  cache:%s ,value:%s ,err:%s \n", fileName, string(content), err.Error())
+		xlog.Jupiter().Error("[ERROR]:faild to write\n", zap.String("config", fileName), zap.String("content", content), zap.Error(err))
 	}
 }
 

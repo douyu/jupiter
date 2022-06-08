@@ -16,12 +16,13 @@ package resty
 
 import (
 	"errors"
+	"net/http"
+	"time"
+
 	"github.com/douyu/jupiter/pkg/xtrace"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/propagation"
-	"net/http"
-	"time"
 
 	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/metric"
@@ -78,7 +79,7 @@ func StdConfig(name string) Config {
 func RawConfig(key string) Config {
 	var config = DefaultConfig()
 	if err := conf.UnmarshalKey(key, &config, conf.TagName("toml")); err != nil {
-		xlog.Panic("unmarshal config", xlog.FieldName(key), xlog.FieldExtMessage(config))
+		xlog.Jupiter().Panic("unmarshal config", xlog.FieldName(key), xlog.FieldExtMessage(config))
 	}
 
 	if xdebug.IsDevelopmentMode() {
@@ -203,7 +204,7 @@ func (config *Config) Build() (*resty.Client, error) {
 func (c *Config) MustBuild() *resty.Client {
 	cc, err := c.Build()
 	if err != nil {
-		xlog.Panic("resty build failed", zap.Error(err), zap.Any("config", c))
+		xlog.Jupiter().Panic("resty build failed", zap.Error(err), zap.Any("config", c))
 	}
 
 	return cc

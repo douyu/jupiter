@@ -26,12 +26,12 @@ import (
 func init() {
 	// 初始化注册中心
 	if _, err := maxprocs.Set(); err != nil {
-		xlog.Panic("auto max procs", xlog.FieldMod(ecode.ModProc), xlog.FieldErrKind(ecode.ErrKindAny), xlog.FieldErr(err))
+		xlog.Jupiter().Panic("auto max procs", xlog.FieldMod(ecode.ModProc), xlog.FieldErrKind(ecode.ErrKindAny), xlog.FieldErr(err))
 	}
 	conf.OnLoaded(func(c *conf.Configuration) {
 		if maxProcs := conf.GetInt("maxProc"); maxProcs != 0 {
 			runtime.GOMAXPROCS(maxProcs)
 		}
-		xlog.Info("auto max procs", xlog.FieldMod(ecode.ModProc), xlog.Int64("procs", int64(runtime.GOMAXPROCS(-1))))
+		xlog.Jupiter().Info("auto max procs", xlog.FieldMod(ecode.ModProc), xlog.Int64("procs", int64(runtime.GOMAXPROCS(-1))))
 	})
 }

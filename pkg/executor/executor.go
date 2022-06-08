@@ -59,8 +59,8 @@ func Run() error {
 		address := key.(string)
 		if executor, ok := val.(Executor); ok {
 			executors = append(executors, func() {
-				xlog.Info("xxl-job executor run begin for ", xlog.FieldName(address))
-				defer xlog.Info("xxl-job executor run exit for ", xlog.FieldName(address))
+				xlog.Jupiter().Info("xxl-job executor run begin for ", xlog.FieldName(address))
+				defer xlog.Jupiter().Info("xxl-job executor run exit for ", xlog.FieldName(address))
 				_ = executor.Run()
 			})
 		}
@@ -78,8 +78,8 @@ func Stop() error {
 		address := key.(string)
 		if stopper, ok := val.(interface{ Stop() }); ok {
 			executors = append(executors, func() {
-				xlog.Info("xxl-job executor stop for ", xlog.FieldName(address))
-				defer xlog.Info("xxl-job executor exit for ", xlog.FieldName(address))
+				xlog.Jupiter().Info("xxl-job executor stop for ", xlog.FieldName(address))
+				defer xlog.Jupiter().Info("xxl-job executor exit for ", xlog.FieldName(address))
 				stopper.Stop()
 			})
 		}
@@ -97,8 +97,8 @@ func GracefulStop() error {
 		address := key.(string)
 		if stopper, ok := val.(interface{ GracefulStop() }); ok {
 			executors = append(executors, func() {
-				xlog.Info("xxl-job executor stop begin for ", xlog.FieldName(address))
-				defer xlog.Info("xxl-job executor stop exit for", xlog.FieldName(address))
+				xlog.Jupiter().Info("xxl-job executor stop begin for ", xlog.FieldName(address))
+				defer xlog.Jupiter().Info("xxl-job executor stop exit for", xlog.FieldName(address))
 				stopper.GracefulStop()
 			})
 		}

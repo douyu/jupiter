@@ -40,7 +40,7 @@ func StdConfig(name string) Config {
 func RawConfig(key string) Config {
 	var config = DefaultConfig()
 	if err := conf.UnmarshalKey(key, &config); err != nil {
-		xlog.Panic("unmarshal", xlog.String("key", key))
+		xlog.Jupiter().Panic("unmarshal", xlog.String("key", key))
 	}
 
 	if config.DistributedTask {
@@ -138,17 +138,17 @@ func newETCDXcron(config *Config) {
 }
 
 type wrappedLogger struct {
-	*xlog.Logger
+	*zap.SugaredLogger
 }
 
 // Info logs routine messages about cron's operation.
 func (wl *wrappedLogger) Info(msg string, keysAndValues ...interface{}) {
-	wl.Infow("cron "+msg, keysAndValues...)
+	wl.SugaredLogger.Infow("cron "+msg, keysAndValues...)
 }
 
 // Error logs an error condition.
 func (wl *wrappedLogger) Error(err error, msg string, keysAndValues ...interface{}) {
-	wl.Errorw("cron "+msg, append(keysAndValues, "err", err)...)
+	wl.SugaredLogger.Errorw("cron "+msg, keysAndValues...)
 }
 
 type wrappedJob struct {

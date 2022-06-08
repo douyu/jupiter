@@ -99,12 +99,12 @@ func main() {
 	_ = flag.Parse()
 	spew.Dump("")
 
-	xlog.Info("ast codes start")
+	xlog.Default().Info("ast codes start")
 	for _, pkg := range packages {
 		fset := token.NewFileSet()
 		fpkgs, err := parser.ParseDir(fset, "../../"+pkg, nil, parser.ParseComments)
 		if err != nil {
-			xlog.Panic("pkg parse panic", xlog.FieldErr(err))
+			xlog.Default().Panic("pkg parse panic", xlog.FieldErr(err))
 		}
 
 		for _, f := range fpkgs {
@@ -114,7 +114,7 @@ func main() {
 				name:  pkg,
 				fset:  fset,
 			}
-			xlog.Info("pkg wark", xlog.FieldMod(pkg))
+			xlog.Default().Info("pkg wark", xlog.FieldMod(pkg))
 			ast.Walk(pvv, f)
 		}
 	}
@@ -125,7 +125,7 @@ func main() {
 			data[mod] = make(map[string][]map[string]interface{})
 		}
 
-		xlog.Info("nodes info", xlog.FieldMod(mod), xlog.FieldValueAny(ns))
+		xlog.Default().Info("nodes info", xlog.FieldMod(mod), xlog.FieldValueAny(ns))
 
 		for _, n := range ns {
 			if data[mod][n.Level] == nil {
@@ -416,7 +416,7 @@ func (pvv *MsgInfoVistor) Visit(node ast.Node) (w ast.Visitor) {
 						nodes[pvv.name] = make([]*Node, 0)
 					}
 					nodes[pvv.name] = append(nodes[pvv.name], node)
-					xlog.Info("logger info", xlog.FieldMod(pvv.name), xlog.String("level", fun.Sel.Name), xlog.String("msg", node.Message), xlog.Any("pos", pvv.fset.Position(fun.Pos())))
+					xlog.Default().Info("logger info", xlog.FieldMod(pvv.name), xlog.String("level", fun.Sel.Name), xlog.String("msg", node.Message), xlog.Any("pos", pvv.fset.Position(fun.Pos())))
 				}
 
 			}

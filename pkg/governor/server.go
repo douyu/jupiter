@@ -20,7 +20,7 @@ type Server struct {
 func newServer(config *Config) *Server {
 	var listener, err = net.Listen("tcp4", config.Address())
 	if err != nil {
-		xlog.Panic("governor start error", xlog.FieldErr(err))
+		xlog.Jupiter().Panic("governor start error", xlog.FieldErr(err))
 	}
 
 	return &Server{

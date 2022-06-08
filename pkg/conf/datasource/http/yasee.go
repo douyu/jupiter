@@ -98,12 +98,12 @@ func (y *yaseeDataSource) watch() {
 		resp, err := y.client.R().SetQueryParam("watch", strconv.FormatBool(y.enableWatch)).Get(y.addr)
 		// client get err
 		if err != nil {
-			xlog.Error("yaseeDataSource", xlog.String("listenConfig curl err", err.Error()))
+			xlog.Jupiter().Error("yaseeDataSource", xlog.String("listenConfig curl err", err.Error()))
 			time.Sleep(time.Second * 1)
 			continue
 		}
 		if resp.StatusCode() != 200 {
-			xlog.Error("yaseeDataSource", xlog.String("listenConfig status err", resp.Status()))
+			xlog.Jupiter().Error("yaseeDataSource", xlog.String("listenConfig status err", resp.Status()))
 			time.Sleep(time.Second * 1)
 			continue
 		}
@@ -115,7 +115,7 @@ func (y *yaseeDataSource) watch() {
 		}
 		// default code != 200 means not change
 		if yaseeRes.Code != 200 {
-			xlog.Info("yaseeDataSource", xlog.Int64("code", int64(yaseeRes.Code)))
+			xlog.Jupiter().Info("yaseeDataSource", xlog.Int64("code", int64(yaseeRes.Code)))
 			time.Sleep(time.Second * 1)
 			continue
 		}
@@ -129,7 +129,7 @@ func (y *yaseeDataSource) updateConfig(data string, version int64) {
 		// record the config change data
 		y.data = data
 		y.lastRevision = version
-		xlog.Info("yaseeDataSource", xlog.String("change", data))
+		xlog.Jupiter().Info("yaseeDataSource", xlog.String("change", data))
 	default:
 	}
 }
