@@ -105,6 +105,7 @@ func (cc *PushConsumer) Subscribe(topic string, f func(context.Context, *primiti
 				tracer := xtrace.NewTracer(trace.SpanKindConsumer)
 				attrs := []attribute.KeyValue{
 					semconv.MessagingSystemKey.String("rocketmq"),
+					semconv.MessagingDestinationKindKey.String(msg.Topic),
 				}
 				for key, value := range msg.GetProperties() {
 					carrier[key] = value
@@ -112,9 +113,6 @@ func (cc *PushConsumer) Subscribe(topic string, f func(context.Context, *primiti
 
 				ctx, span = tracer.Start(ctx, "rocketmq", carrier, trace.WithAttributes(attrs...))
 				defer span.End()
-				span.SetAttributes(
-					semconv.MessagingDestinationKindKey.String(msg.Topic),
-				)
 			}
 
 			if cc.bucket != nil {
@@ -152,6 +150,7 @@ func (cc *PushConsumer) RegisterSingleMessage(f func(context.Context, *primitive
 				tracer := xtrace.NewTracer(trace.SpanKindConsumer)
 				attrs := []attribute.KeyValue{
 					semconv.MessagingSystemKey.String("rocketmq"),
+					semconv.MessagingDestinationKindKey.String(msg.Topic),
 				}
 				for key, value := range msg.GetProperties() {
 					carrier[key] = value
@@ -159,9 +158,6 @@ func (cc *PushConsumer) RegisterSingleMessage(f func(context.Context, *primitive
 
 				ctx, span = tracer.Start(ctx, "rocketmq", carrier, trace.WithAttributes(attrs...))
 				defer span.End()
-				span.SetAttributes(
-					semconv.MessagingDestinationKindKey.String(msg.Topic),
-				)
 			}
 
 			if cc.bucket != nil {
