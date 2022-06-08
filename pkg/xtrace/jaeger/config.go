@@ -36,7 +36,7 @@ type Config struct {
 func RawConfig(key string) *Config {
 	var config = DefaultConfig()
 	if err := conf.UnmarshalKey(key, config); err != nil {
-		xlog.Panic("unmarshal key", xlog.Any("err", err))
+		xlog.Jupiter().Panic("unmarshal key", xlog.Any("err", err))
 	}
 	return config
 }
@@ -55,7 +55,7 @@ func (config *Config) Build() trace.TracerProvider {
 	// Create the Jaeger exporter
 	exp, err := jaeger.New(jaeger.WithCollectorEndpoint(jaeger.WithEndpoint(config.Endpoint)))
 	if err != nil {
-		xlog.Panic("new jaeger", xlog.FieldMod("build"), xlog.FieldErr(err))
+		xlog.Jupiter().Panic("new jaeger", xlog.FieldMod("build"), xlog.FieldErr(err))
 		return nil
 	}
 	tp := tracesdk.NewTracerProvider(
