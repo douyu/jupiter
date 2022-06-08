@@ -200,15 +200,13 @@ func (cc *PushConsumer) RegisterBatchMessage(f func(context.Context, ...*primiti
 				tracer := xtrace.NewTracer(trace.SpanKindConsumer)
 				attrs := []attribute.KeyValue{
 					semconv.MessagingSystemKey.String("rocketmq"),
+					semconv.MessagingDestinationKindKey.String(msg.Topic),
 				}
 				for key, value := range msg.GetProperties() {
 					carrier[key] = value
 				}
 				ctx, span = tracer.Start(ctx, msg.Topic, carrier, trace.WithAttributes(attrs...))
 				defer span.End()
-				span.SetAttributes(
-					semconv.MessagingDestinationKindKey.String(msg.Topic),
-				)
 			}
 		}
 
