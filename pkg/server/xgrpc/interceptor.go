@@ -17,22 +17,24 @@ package xgrpc
 import (
 	"context"
 	"fmt"
+	"go.opentelemetry.io/otel/attribute"
+	"google.golang.org/grpc/status"
 	"net"
 	"runtime"
 	"strings"
 	"time"
 
 	"github.com/douyu/jupiter/pkg/ecode"
-	"github.com/douyu/jupiter/pkg/trace"
 	"github.com/douyu/jupiter/pkg/xlog"
-	"github.com/opentracing/opentracing-go/ext"
+	"go.opentelemetry.io/otel/codes"
 	"go.uber.org/zap"
-	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
-	"google.golang.org/grpc/status"
 
 	"github.com/douyu/jupiter/pkg/metric"
+	"github.com/douyu/jupiter/pkg/xtrace"
+	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
+	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
 )
 
@@ -54,29 +56,40 @@ func prometheusStreamServerInterceptor(srv interface{}, ss grpc.ServerStream, in
 	return err
 }
 
-func traceUnaryServerInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-	span, ctx := trace.StartSpanFromContext(
-		ctx,
-		info.FullMethod,
-		trace.FromIncomingContext(ctx),
-		trace.TagComponent("gRPC"),
-		trace.TagSpanKind("server.unary"),
-	)
-
-	defer span.Finish()
-
-	resp, err := handler(ctx, req)
-
-	if err != nil {
-		code := codes.Unknown
-		if s, ok := status.FromError(err); ok {
-			code = s.Code()
-		}
-		span.SetTag("code", code)
-		ext.Error.Set(span, true)
-		span.LogFields(trace.String("event", "error"), trace.String("message", err.Error()))
+func traceUnaryServerInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (reply interface{}, err error) {
+	var remote string
+	md, ok := metadata.FromIncomingContext(ctx)
+	if ok {
+		md = md.Copy()
+	} else {
+		md = metadata.MD{}
 	}
-	return resp, err
+	tracer := xtrace.NewTracer(trace.SpanKindServer)
+	operation, mAttrs := xtrace.ParseFullMethod(info.FullMethod)
+	attrs := []attribute.KeyValue{
+		semconv.RPCSystemKey.String("grpc"),
+	}
+	attrs = append(attrs, mAttrs...)
+	if p, ok := peer.FromContext(ctx); ok {
+		remote = p.Addr.String()
+	}
+	attrs = append(attrs, xtrace.PeerAttr(remote)...)
+	ctx, span := tracer.Start(ctx, operation, xtrace.MetadataReaderWriter(md), trace.WithAttributes(attrs...))
+	defer func() {
+		if err != nil {
+			span.RecordError(err)
+			s, ok := status.FromError(err)
+			if ok {
+				span.SetAttributes(semconv.RPCGRPCStatusCodeKey.Int64(int64(s.Code())))
+			} else {
+				span.SetStatus(codes.Error, err.Error())
+			}
+		} else {
+			span.SetStatus(codes.Ok, "OK")
+		}
+		span.End()
+	}()
+	return handler(ctx, req)
 }
 
 type contextedServerStream struct {
@@ -90,16 +103,26 @@ func (css contextedServerStream) Context() context.Context {
 }
 
 func traceStreamServerInterceptor(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
-	span, ctx := trace.StartSpanFromContext(
-		ss.Context(),
-		info.FullMethod,
-		trace.FromIncomingContext(ss.Context()),
-		trace.TagComponent("gRPC"),
-		trace.TagSpanKind("server.stream"),
-		trace.CustomTag("isServerStream", info.IsServerStream),
-	)
-	defer span.Finish()
-
+	var remote string
+	md, ok := metadata.FromIncomingContext(ss.Context())
+	if ok {
+		md = md.Copy()
+	} else {
+		md = metadata.MD{}
+	}
+	tracer := xtrace.NewTracer(trace.SpanKindServer)
+	operation, mAttrs := xtrace.ParseFullMethod(info.FullMethod)
+	attrs := []attribute.KeyValue{
+		semconv.RPCSystemKey.String("grpc"),
+	}
+	attrs = append(attrs, mAttrs...)
+	if p, ok := peer.FromContext(ss.Context()); ok {
+		remote = p.Addr.String()
+	}
+	attrs = append(attrs, xtrace.PeerAttr(remote)...)
+	//ctx, span := tracer.Start(ss.Context(), operation, propagation.HeaderCarrier(md), trace.WithAttributes(attrs...))
+	ctx, span := tracer.Start(ss.Context(), operation, xtrace.MetadataReaderWriter(md), trace.WithAttributes(attrs...))
+	defer span.End()
 	return handler(srv, contextedServerStream{
 		ServerStream: ss,
 		ctx:          ctx,

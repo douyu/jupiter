@@ -20,8 +20,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/douyu/jupiter/pkg/trace"
-	"github.com/douyu/jupiter/pkg/trace/jaeger"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -36,12 +34,6 @@ var _ = Describe("normal case", func() {
 		config := DefaultConfig()
 		config.Addr = "https://httpbin.org"
 		config.EnableTrace = true
-
-		jaegerConfig := jaeger.DefaultConfig()
-		// fast flush trace
-		jaegerConfig.Reporter.BufferFlushInterval = time.Millisecond
-		trace.SetGlobalTracer(jaegerConfig.Build())
-
 		res, err := config.MustBuild().R().Get("/get")
 		Expect(err).Should(BeNil())
 		Expect(res.Status()).Should(Equal("200 OK"))
@@ -61,10 +53,6 @@ var _ = Describe("normal case", func() {
 	It("on error", func() {
 		config := DefaultConfig()
 		config.Addr = "https://httpbin.org"
-		jaegerConfig := jaeger.DefaultConfig()
-		// fast flush trace
-		jaegerConfig.Reporter.BufferFlushInterval = time.Millisecond
-		trace.SetGlobalTracer(jaegerConfig.Build())
 
 		res, err := config.MustBuild().R().Get("/status/302")
 		Expect(err.(*url.Error).Err).Should(BeEquivalentTo(errors.New("auto redirect is disabled")))

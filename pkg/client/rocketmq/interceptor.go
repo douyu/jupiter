@@ -16,6 +16,10 @@ package rocketmq
 
 import (
 	"context"
+	"github.com/douyu/jupiter/pkg/xtrace"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/propagation"
 	"strings"
 	"time"
 
@@ -24,12 +28,10 @@ import (
 	"github.com/douyu/jupiter/pkg/imeta"
 	"github.com/douyu/jupiter/pkg/istats"
 	"github.com/douyu/jupiter/pkg/metric"
-	"github.com/douyu/jupiter/pkg/trace"
 	"github.com/douyu/jupiter/pkg/util/xdebug"
 	"github.com/douyu/jupiter/pkg/xlog"
-	"github.com/opentracing/opentracing-go"
-	"github.com/opentracing/opentracing-go/ext"
-	"github.com/opentracing/opentracing-go/log"
+	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
+	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -151,23 +153,23 @@ func producerDefaultInterceptor(producer *Producer) primitive.Interceptor {
 		realReply := reply.(*primitive.SendResult)
 
 		var (
-			span opentracing.Span
+			span trace.Span
 		)
 
 		if producer.EnableTrace {
-			span, ctx = trace.StartSpanFromContext(
-				ctx,
-				realReq.Topic,
-				trace.TagComponent("rocketmq"),
-				ext.SpanKindProducer,
-			)
-			defer span.Finish()
-
-			md := metadata.New(nil)
-			ctx = trace.HeaderInjector(ctx, md)
-			for k, v := range md {
-				realReq.WithProperty(k, strings.Join(v, ","))
+			tracer := xtrace.NewTracer(trace.SpanKindProducer)
+			attrs := []attribute.KeyValue{
+				semconv.MessagingSystemKey.String("rocketmq"),
 			}
+			md := metadata.New(nil)
+			ctx, span = tracer.Start(ctx, realReq.Topic, propagation.HeaderCarrier(md), trace.WithAttributes(attrs...))
+
+			defer span.End()
+
+			for k, v := range md {
+				realReq.WithProperty(strings.ToLower(k), strings.Join(v, ","))
+			}
+
 		}
 
 		err := next(ctx, realReq, realReply)
@@ -183,8 +185,12 @@ func producerDefaultInterceptor(producer *Producer) primitive.Interceptor {
 
 		if producer.EnableTrace {
 			if err != nil {
-				ext.Error.Set(span, true)
-				ext.LogError(span, err, log.Object("req", realReq), log.Object("res", realReply))
+				span := trace.SpanFromContext(ctx)
+				if err != nil {
+					span.RecordError(err)
+					span.SetStatus(codes.Error, err.Error())
+				}
+				span.End()
 			}
 		}
 

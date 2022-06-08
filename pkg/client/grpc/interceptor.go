@@ -19,6 +19,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/douyu/jupiter/pkg/xtrace"
+	"go.opentelemetry.io/otel/attribute"
 	"time"
 
 	"github.com/douyu/jupiter/pkg"
@@ -26,15 +28,15 @@ import (
 
 	"github.com/douyu/jupiter/pkg/ecode"
 	"github.com/douyu/jupiter/pkg/metric"
-	"github.com/douyu/jupiter/pkg/trace"
 	"github.com/douyu/jupiter/pkg/util/xcolor"
 	"github.com/douyu/jupiter/pkg/util/xstring"
-	"github.com/opentracing/opentracing-go/ext"
+
+	"go.opentelemetry.io/otel/codes"
+	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
+	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
-	"google.golang.org/grpc/status"
 )
 
 var (
@@ -96,34 +98,32 @@ func debugUnaryClientInterceptor(addr string) grpc.UnaryClientInterceptor {
 }
 
 func traceUnaryClientInterceptor() grpc.UnaryClientInterceptor {
-	return func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+	return func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) (err error) {
 		md, ok := metadata.FromOutgoingContext(ctx)
 		if !ok {
 			md = metadata.New(nil)
 		} else {
 			md = md.Copy()
 		}
-
-		span, ctx := trace.StartSpanFromContext(
-			ctx,
-			method,
-			trace.TagSpanKind("client"),
-			trace.TagComponent("grpc"),
-		)
-		defer span.Finish()
-
-		err := invoker(trace.MetadataInjector(ctx, md), method, req, reply, cc, opts...)
-		if err != nil {
-			code := codes.Unknown
-			if s, ok := status.FromError(err); ok {
-				code = s.Code()
-			}
-			span.SetTag("response_code", code)
-			ext.Error.Set(span, true)
-
-			span.LogFields(trace.String("event", "error"), trace.String("message", err.Error()))
+		tracer := xtrace.NewTracer(trace.SpanKindClient)
+		attrs := []attribute.KeyValue{
+			semconv.RPCSystemKey.String("grpc"),
 		}
-		return err
+
+		ctx, span := tracer.Start(ctx, method, xtrace.MetadataReaderWriter(md), trace.WithAttributes(attrs...))
+		ctx = metadata.NewOutgoingContext(ctx, md)
+		span.SetAttributes(
+			semconv.RPCMethodKey.String(method),
+		)
+		defer func() {
+			if err != nil {
+				span.RecordError(err)
+				span.SetStatus(codes.Error, err.Error())
+			}
+			span.SetStatus(codes.Ok, "ok")
+			span.End()
+		}()
+		return invoker(ctx, method, req, reply, cc, opts...)
 	}
 }
 

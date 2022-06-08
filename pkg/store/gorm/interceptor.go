@@ -15,13 +15,11 @@
 package gorm
 
 import (
-	"context"
 	"fmt"
 	"github.com/douyu/jupiter/pkg/metric"
 	"strconv"
 	"time"
 
-	"github.com/douyu/jupiter/pkg/trace"
 	"github.com/douyu/jupiter/pkg/util/xcolor"
 	"github.com/douyu/jupiter/pkg/xlog"
 )
@@ -93,30 +91,6 @@ func logSQL(sql string, args []interface{}, containArgs bool) string {
 func traceInterceptor(dsn *DSN, op string, options *Config) func(Handler) Handler {
 	return func(next Handler) Handler {
 		return func(scope *Scope) {
-			if val, ok := scope.Get("_context"); ok {
-				if ctx, ok := val.(context.Context); ok {
-					span, _ := trace.StartSpanFromContext(
-						ctx,
-						"GORM", // TODO this op value is op or GORM
-						trace.TagComponent("mysql"),
-						trace.TagSpanKind("client"),
-					)
-					defer span.Finish()
-
-					// 延迟执行 scope.CombinedConditionSql() 避免sqlVar被重复追加
-					next(scope)
-
-					span.SetTag("sql.inner", dsn.DBName)
-					span.SetTag("sql.addr", dsn.Addr)
-					span.SetTag("span.kind", "client")
-					span.SetTag("peer.service", "mysql")
-					span.SetTag("db.instance", dsn.DBName)
-					span.SetTag("peer.address", dsn.Addr)
-					span.SetTag("peer.statement", logSQL(scope.SQL, scope.SQLVars, options.DetailSQL))
-					return
-				}
-			}
-
 			next(scope)
 		}
 	}
