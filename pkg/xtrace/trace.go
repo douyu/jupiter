@@ -16,6 +16,7 @@ package xtrace
 
 import (
 	"context"
+
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
 
@@ -25,7 +26,7 @@ import (
 
 // SetGlobalTracer ...
 func SetGlobalTracer(tp trace.TracerProvider) {
-	xlog.Info("set global tracer", xlog.FieldMod("trace"))
+	xlog.Jupiter().Info("set global tracer", xlog.FieldMod("trace"))
 	otel.SetTracerProvider(tp)
 }
 
