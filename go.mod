@@ -66,7 +66,7 @@ require (
 
 require (
 	github.com/aws/aws-sdk-go v1.40.45 // indirect
-	github.com/cosmtrek/air v1.29.0
+	github.com/cosmtrek/air v1.40.1
 	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/kr/pretty v0.2.0 // indirect
