@@ -26,7 +26,7 @@ import (
 
 func Test_log(t *testing.T) {
 
-	stdlog := xlog.DefaultLogger
+	stdlog := xlog.Default()
 	stdlog.Debug("debug", xlog.Any("a", "b"))
 	stdlog.Info("info", xlog.Any("a", "b"))
 	stdlog.Warn("warn", xlog.Any("a", "b"))
@@ -59,7 +59,7 @@ func Test_log(t *testing.T) {
 
 func Test_trace(t *testing.T) {
 
-	log := xlog.DefaultLogger.With(xlog.String("traceid", "a:b:c:1"))
+	log := xlog.Jupiter().With(xlog.String("traceid", "a:b:c:1"))
 	ctx := xlog.NewContext(context.TODO(), log)
 
 	stdlog := xlog.FromContext(ctx)
@@ -80,7 +80,7 @@ func Test_trace(t *testing.T) {
 
 			fmt.Println(v.GetMetric())
 			for _, vv := range v.GetMetric() {
-				if vv.Counter.GetValue() != 2 {
+				if vv.Counter.GetValue() != 1 {
 					assert.FailNow(t, "should be 1")
 				}
 			}
