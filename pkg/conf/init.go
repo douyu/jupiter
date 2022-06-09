@@ -19,6 +19,7 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/douyu/jupiter/pkg/flag"
+	"github.com/douyu/jupiter/pkg/hooks"
 )
 
 const DefaultEnvPrefix = "APP_"
@@ -30,6 +31,8 @@ func init() {
 	}})
 
 	flag.Register(&flag.StringFlag{Name: "config", Usage: "--config=config.toml", Action: func(key string, fs *flag.FlagSet) {
+		hooks.Do(hooks.Stage_BeforeLoadConfig)
+
 		var configAddr = fs.String(key)
 		log.Printf("read config: %s", configAddr)
 		datasource, err := NewDataSource(configAddr)
@@ -40,6 +43,8 @@ func init() {
 			log.Fatalf("load config from datasource[%s] failed: %v", configAddr, err)
 		}
 		log.Printf("load config from datasource[%s] completely!", configAddr)
+
+		hooks.Do(hooks.Stage_AfterLoadConfig)
 	}})
 
 	flag.Register(&flag.StringFlag{Name: "config-tag", Usage: "--config-tag=mapstructure", Default: "mapstructure", Action: func(key string, fs *flag.FlagSet) {
