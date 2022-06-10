@@ -42,7 +42,7 @@ const (
 	localLayoutName = "local_temp_jupiter_layout"
 	// 本地文件锁，修改时间用于检查更新
 	localLayoutNameLock = "local_temp_jupiter_layout.lock"
-	oneDayUnix          = 24 * int64(time.Hour)
+	oneDayUnix          = 24 * 60 * 60
 )
 
 var (
@@ -54,11 +54,11 @@ var (
 
 // New 生成项目
 func New(c *cli.Context) error {
-	return generate(c, c.String("type"), c.Bool("clean"))
+	return generate(c, c.String("type"))
 }
 
 // generate 生成项目
-func generate(c *cli.Context, cmd string, clean bool) error {
+func generate(c *cli.Context, cmd string) error {
 	if len(c.Args().First()) == 0 {
 		return errors.New("no project name like test-go found")
 	}
@@ -71,7 +71,7 @@ func generate(c *cli.Context, cmd string, clean bool) error {
 
 	files := make([]file, 0)
 
-	gitFileInfos := getFileInfosByGit(cmd, clean)
+	gitFileInfos := getFileInfosByGit(cmd)
 	for _, f := range gitFileInfos {
 		files = append(files, *f)
 	}
@@ -215,15 +215,13 @@ func write(c config, file, tmpl string) error {
 
 // getFileInfosByGit 从git拉取最新的模板代码 并抽象成map[相对路径]文件流
 // name: 生成的项目类型
-func getFileInfosByGit(name string, clean bool) (fileInfos map[string]*file) {
-	// 判断是否需要拉取模板
-	var needCloneFile bool
-
+func getFileInfosByGit(name string) (fileInfos map[string]*file) {
 	// 查看临时文件之中是否已经存在该文件夹
 	// os.Stat 获取文件信息
 	_, err := os.Stat(globalLayoutPath)
 	if os.IsNotExist(err) {
-		needCloneFile = true
+		// 不存在，拉取对应的仓库
+		cloneGitRepo()
 	} else if err != nil {
 		// 这里的错误，是说明出现了未知的错误，应该抛出
 		panic(err)
@@ -231,25 +229,8 @@ func getFileInfosByGit(name string, clean bool) (fileInfos map[string]*file) {
 
 	// 判断是否需要刷新模板信息
 	// 存在文件才检查更新
-	if (err == nil && checkUpgrade()) || clean {
-		if err := cleanTempLayout(); err != nil {
-			panic(err)
-		}
-		needCloneFile = true
-	}
-
-	if needCloneFile {
-		// 存放于git的模板地址
-		gitPath := "https://" + gitOriginModulePath + ".git"
-
-		fmt.Println("git", "clone", gitPath)
-
-		// clone最新仓库的master分支
-		// 不存在则拉取模板
-		cmd := exec.Command("git", "clone", gitPath, globalLayoutPath, "-b", "main", "--depth=1")
-		if err := cmd.Run(); err != nil {
-			panic(err)
-		}
+	if err == nil && checkUpgrade() {
+		pullGitRepo()
 	}
 
 	fileInfos = make(map[string]*file)
@@ -276,9 +257,43 @@ func getFileInfosByGit(name string, clean bool) (fileInfos map[string]*file) {
 	return fileInfos
 }
 
+// 拉取 jupiter-layout 仓库
+func cloneGitRepo() {
+	// 存放于git的模板地址
+	gitPath := "https://" + gitOriginModulePath + ".git"
+
+	fmt.Println("git", "clone", gitPath)
+
+	// clone最新仓库的master分支
+	// 不存在则拉取模板
+	var stdErr bytes.Buffer
+	cmd := exec.Command("git", "clone", gitPath, globalLayoutPath, "-b", "main", "--depth=1")
+	cmd.Stderr = &stdErr
+	if err := cmd.Run(); err != nil {
+		panic(stdErr.String())
+	}
+}
+
+// 更新 jupiter-layout 仓库
+func pullGitRepo() {
+	fmt.Println("git", "pull", gitOriginModulePath)
+
+	// pull 最新仓库的master分支
+	// 不存在则拉取模板
+	var stdErr bytes.Buffer
+	cmd := exec.Command("git", "pull")
+	cmd.Dir = globalLayoutPath
+	cmd.Stderr = &stdErr
+	if err := cmd.Run(); err != nil {
+		panic(stdErr.String())
+	}
+}
+
 // checkUpgrade 通过 https://api.github.com/repos/xxx/commits/branch 获取最后一次提交sha,判断本地提交是否一致，不一致则需要更新
 func checkUpgrade() bool {
-	color.Green("check upgrade ....")
+	color.Green("check upgrade ...")
+
+	checkGitCorrectness()
 
 	// 检查今天是否已经检查过更新
 	if !checkDays() {
@@ -300,6 +315,41 @@ func checkUpgrade() bool {
 	return userSelectUpgrade()
 }
 
+// 检查模板的正确性
+func checkGitCorrectness() {
+	cmd := exec.Command("git", "status")
+	cmd.Dir = globalLayoutPath
+
+	var out bytes.Buffer
+	var stdErr bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = &stdErr
+	err := cmd.Run()
+	if err == nil {
+		return
+	}
+
+	if !strings.Contains(stdErr.String(), "not a git repository") {
+		panic(stdErr.String())
+	}
+
+	color.Red("jupiter-layout is broken pull it again")
+
+	err = cleanTempLayout()
+	if err != nil {
+		panic(err)
+	}
+
+	err = cleanTempLayoutLock()
+	if err != nil {
+		panic(err)
+	}
+
+	cloneGitRepo()
+
+	createTempLock()
+}
+
 // checkDays
 // 	存在文件，首先判断时间是否需要进行更新
 // 	不存在文件肯定是需要创建文件，并确定需要更新
@@ -315,13 +365,17 @@ func checkDays() bool {
 		panic(err)
 	}
 
+	createTempLock()
+
+	return true
+}
+
+func createTempLock() {
 	f, err := os.Create(globalLayoutLockPath)
 	if err != nil {
 		panic(err)
 	}
 	_ = f.Close()
-
-	return true
 }
 
 func getRemoteLastCommitSha() (string, error) {
