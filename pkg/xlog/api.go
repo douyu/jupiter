@@ -16,26 +16,26 @@ package xlog
 
 import "go.uber.org/zap"
 
-// DefaultLogger default logger
+// defaultLogger default logger
 // Biz Log
 // debug=true as default, will be
-var DefaultLogger = Config{
+var defaultLogger = Config{
 	Name:  "default",
 	Debug: true,
 }.Build()
 
-// frame logger
-var JupiterLogger = Config{
+// jupiterLogger frame logger
+var jupiterLogger = Config{
 	Name:  "jupiter",
 	Debug: true,
 }.Build()
 
 // Jupiter returns framework logger
 func Jupiter() *zap.Logger {
-	return JupiterLogger
+	return jupiterLogger
 }
 
 // Default returns default logger
 func Default() *zap.Logger {
-	return DefaultLogger
+	return defaultLogger
 }

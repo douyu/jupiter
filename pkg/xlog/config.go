@@ -30,10 +30,10 @@ func init() {
 	conf.OnLoaded(func(c *conf.Configuration) {
 		log.Print("hook config, init loggers")
 		log.Printf("reload default logger with configKey: %s", ConfigEntry("default"))
-		DefaultLogger = RawConfig(constant.ConfigPrefix + ".logger.default").Build()
+		defaultLogger = RawConfig(constant.ConfigPrefix + ".logger.default").Build()
 
 		log.Printf("reload default logger with configKey: %s", ConfigEntry("jupiter"))
-		JupiterLogger = RawConfig(constant.ConfigPrefix + ".logger.jupiter").Build()
+		jupiterLogger = RawConfig(constant.ConfigPrefix + ".logger.jupiter").Build()
 	})
 }
 

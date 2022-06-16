@@ -38,7 +38,7 @@ func NewContext(ctx context.Context, l *Logger) context.Context {
 func FromContext(ctx context.Context) *Logger {
 	l, ok := ctx.Value(loggerKey{}).(*Logger)
 	if !ok {
-		return DefaultLogger // default logger
+		return defaultLogger // default logger
 	}
 	return l
 }

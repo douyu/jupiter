@@ -32,4 +32,4 @@ func init() {
 	})
 }
 
-var _logger = xlog.JupiterLogger.With(xlog.FieldMod("mongodb"))
+var _logger = xlog.Jupiter().With(xlog.FieldMod("mongodb"))

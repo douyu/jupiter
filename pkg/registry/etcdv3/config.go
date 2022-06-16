@@ -17,13 +17,12 @@ package etcdv3
 import (
 	"time"
 
-	"github.com/douyu/jupiter/pkg/ecode"
-	"github.com/douyu/jupiter/pkg/registry"
-	"go.uber.org/zap"
-
 	"github.com/douyu/jupiter/pkg/client/etcdv3"
 	"github.com/douyu/jupiter/pkg/conf"
+	"github.com/douyu/jupiter/pkg/ecode"
+	"github.com/douyu/jupiter/pkg/registry"
 	"github.com/douyu/jupiter/pkg/xlog"
+	"go.uber.org/zap"
 )
 
 // StdConfig ...
@@ -51,7 +50,7 @@ func DefaultConfig() *Config {
 		Config:      etcdv3.DefaultConfig(),
 		ReadTimeout: time.Second * 3,
 		Prefix:      "jupiter",
-		logger:      xlog.JupiterLogger,
+		logger:      xlog.Jupiter(),
 		ServiceTTL:  0,
 	}
 }

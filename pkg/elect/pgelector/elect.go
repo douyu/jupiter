@@ -25,7 +25,7 @@ import (
 	"go.uber.org/zap"
 )
 
-var _logger = xlog.DefaultLogger.With(xlog.FieldMod("pgelector"))
+var _logger = xlog.Jupiter().With(xlog.FieldMod("pgelector"))
 
 // postgresLeaderElector implements leader election using PostgreSQL DB.
 // pglock does not rely on timestamps, which eliminates the problem of clock skews, but the cost is that first leader election can happen only after lease duration

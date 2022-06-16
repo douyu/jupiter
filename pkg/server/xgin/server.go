@@ -16,9 +16,8 @@ package xgin
 
 import (
 	"context"
-	"net/http"
-
 	"net"
+	"net/http"
 
 	"github.com/douyu/jupiter/pkg/constant"
 	"github.com/douyu/jupiter/pkg/ecode"
@@ -58,7 +57,7 @@ func (s *Server) Upgrade(ws *WebSocket) gin.IRoutes {
 
 // Serve implements server.Server interface.
 func (s *Server) Serve() error {
-	// s.Gin.StdLogger = xlog.JupiterLogger.StdLog()
+	// s.Gin.StdLogger = xlog.Jupiter().StdLog()
 	for _, route := range s.Engine.Routes() {
 		s.config.logger.Info("add route", xlog.FieldMethod(route.Method), xlog.String("path", route.Path))
 	}

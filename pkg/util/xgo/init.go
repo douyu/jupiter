@@ -25,7 +25,7 @@ import (
 )
 
 var (
-	_logger = xlog.JupiterLogger.With(zap.String("mod", "xgo"))
+	_logger = xlog.Jupiter().With(zap.String("mod", "xgo"))
 )
 
 func try(fn func() error, cleaner func()) (ret error) {

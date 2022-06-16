@@ -58,7 +58,7 @@ func DefaultConfig() *Config {
 		Host:    host,
 		Network: "tcp4",
 		Port:    port,
-		logger:  xlog.JupiterLogger.With(xlog.FieldMod(ModName)),
+		logger:  xlog.Jupiter().With(xlog.FieldMod(ModName)),
 	}
 }
 

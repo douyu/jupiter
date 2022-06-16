@@ -78,7 +78,7 @@ type Cron struct {
 
 func newCron(config *Config) *Cron {
 	if config.logger == nil {
-		config.logger = xlog.JupiterLogger
+		config.logger = xlog.Jupiter()
 	}
 	config.logger = config.logger.With(xlog.FieldMod("worker.cron"))
 	cron := &Cron{

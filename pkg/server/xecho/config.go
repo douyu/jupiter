@@ -56,7 +56,7 @@ func DefaultConfig() *Config {
 		Debug:                     false,
 		Deployment:                constant.DefaultDeployment,
 		SlowQueryThresholdInMilli: 500, // 500ms
-		logger:                    xlog.JupiterLogger.With(xlog.FieldMod(ModName)),
+		logger:                    xlog.Jupiter().With(xlog.FieldMod(ModName)),
 		EnableTLS:                 false,
 		CertFile:                  "cert.pem",
 		PrivateFile:               "private.pem",

@@ -64,7 +64,7 @@ func DefaultConfig() *Config {
 		ReadBufferSize:            1024, // 1KB
 		WriteBufferSize:           1024, // 1KB
 		ReduceMemoryUsage:         true,
-		logger:                    xlog.JupiterLogger.With(xlog.FieldMod(ModName)),
+		logger:                    xlog.Jupiter().With(xlog.FieldMod(ModName)),
 		DisablePrintStack:         false,
 		EnableTLS:                 false,
 		CertFile:                  "cert.pem",

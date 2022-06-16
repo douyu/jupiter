@@ -51,7 +51,7 @@ func DefaultConfig() *Config {
 		Port:                      9091,
 		Mode:                      gin.ReleaseMode,
 		SlowQueryThresholdInMilli: 500, // 500ms
-		logger:                    xlog.JupiterLogger.With(xlog.FieldMod(ModName)),
+		logger:                    xlog.Jupiter().With(xlog.FieldMod(ModName)),
 	}
 }
 

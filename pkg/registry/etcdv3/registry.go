@@ -25,10 +25,8 @@ import (
 	"time"
 
 	"github.com/douyu/jupiter/pkg"
-	"github.com/douyu/jupiter/pkg/constant"
-	"go.etcd.io/etcd/client/v3/concurrency"
-
 	"github.com/douyu/jupiter/pkg/client/etcdv3"
+	"github.com/douyu/jupiter/pkg/constant"
 	"github.com/douyu/jupiter/pkg/ecode"
 	"github.com/douyu/jupiter/pkg/registry"
 	"github.com/douyu/jupiter/pkg/server"
@@ -36,6 +34,7 @@ import (
 	"github.com/douyu/jupiter/pkg/xlog"
 	"go.etcd.io/etcd/api/v3/mvccpb"
 	clientv3 "go.etcd.io/etcd/client/v3"
+	"go.etcd.io/etcd/client/v3/concurrency"
 )
 
 type etcdv3Registry struct {
@@ -49,7 +48,7 @@ type etcdv3Registry struct {
 
 func newETCDRegistry(config *Config) (*etcdv3Registry, error) {
 	if config.logger == nil {
-		config.logger = xlog.JupiterLogger
+		config.logger = xlog.Jupiter()
 	}
 	config.logger = config.logger.With(xlog.FieldMod(ecode.ModRegistryETCD), xlog.FieldAddrAny(config.Config.Endpoints))
 	etcdv3Client, err := config.Config.Build()

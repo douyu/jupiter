@@ -52,7 +52,7 @@ func Test_etcdv3Registry(t *testing.T) {
 		Config:      etcdConfig,
 		ReadTimeout: time.Second * 10,
 		Prefix:      "jupiter",
-		logger:      xlog.DefaultLogger,
+		logger:      xlog.Jupiter(),
 	})
 
 	assert.Nil(t, err)
@@ -117,7 +117,7 @@ func Test_etcdv3registry_UpdateAddressList(t *testing.T) {
 		Config:      etcdConfig,
 		ReadTimeout: time.Second * 10,
 		Prefix:      "jupiter",
-		logger:      xlog.DefaultLogger,
+		logger:      xlog.Jupiter(),
 	})
 
 	assert.Nil(t, err)

@@ -97,7 +97,7 @@ func (s *Server) Serve() error {
 	s.Echo.Logger.SetOutput(os.Stdout)
 	s.Echo.Debug = s.config.Debug
 	s.Echo.HideBanner = true
-	s.Echo.StdLogger = zap.NewStdLog(xlog.JupiterLogger)
+	s.Echo.StdLogger = zap.NewStdLog(xlog.Jupiter())
 	for _, route := range s.Echo.Routes() {
 		s.config.logger.Info("add route", xlog.FieldMethod(route.Method), xlog.String("path", route.Path))
 	}
