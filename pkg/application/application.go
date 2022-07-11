@@ -344,6 +344,8 @@ func (app *Application) waitSignals() {
 func (app *Application) startServers() error {
 	var eg errgroup.Group
 	var ctx, cancel = context.WithTimeout(context.Background(), 3*time.Second)
+	app.smu.Lock()
+	defer app.smu.Unlock()
 	go func() {
 		<-app.stopped
 		cancel()
@@ -351,8 +353,6 @@ func (app *Application) startServers() error {
 	// start multi servers
 	for _, s := range app.servers {
 		s := s
-		app.smu.Lock()
-		defer app.smu.Unlock()
 		eg.Go(func() (err error) {
 			defer func() {
 				ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
