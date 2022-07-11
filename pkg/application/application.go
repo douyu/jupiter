@@ -261,13 +261,13 @@ func (app *Application) Stop() (err error) {
 		app.stopped <- struct{}{}
 		app.runHooks(hooks.Stage_BeforeStop)
 		//stop servers
-		app.smu.RLock()
 		for _, s := range app.servers {
 			func(s server.Server) {
+				app.smu.RLock()
+				defer app.smu.RUnlock()
 				app.cycle.Run(s.Stop)
 			}(s)
 		}
-		app.smu.RUnlock()
 		//stop workers
 		for _, w := range app.workers {
 			func(w worker.Worker) {
@@ -290,15 +290,15 @@ func (app *Application) GracefulStop(ctx context.Context) (err error) {
 		app.stopped <- struct{}{}
 		app.runHooks(hooks.Stage_BeforeStop)
 		//stop servers
-		app.smu.RLock()
 		for _, s := range app.servers {
 			func(s server.Server) {
 				app.cycle.Run(func() error {
+					app.smu.RLock()
+					defer app.smu.RUnlock()
 					return s.GracefulStop(ctx)
 				})
 			}(s)
 		}
-		app.smu.RUnlock()
 		//stop workers
 		for _, w := range app.workers {
 			func(w worker.Worker) {
@@ -349,6 +349,8 @@ func (app *Application) startServers() error {
 		cancel()
 	}()
 	// start multi servers
+	app.smu.Lock()
+	defer app.smu.Unlock()
 	for _, s := range app.servers {
 		s := s
 		eg.Go(func() (err error) {
