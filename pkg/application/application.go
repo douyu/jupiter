@@ -368,8 +368,9 @@ func (app *Application) startServers() error {
 			return
 		})
 	}
-	defer app.smu.Unlock()
-	return eg.Wait()
+	err := eg.Wait()
+	app.smu.Unlock()
+	return err
 }
 
 func (app *Application) startWorkers() error {
