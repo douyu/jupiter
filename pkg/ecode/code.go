@@ -56,7 +56,7 @@ func init() {
 // Add ...
 func Add(code int, message string) *spbStatus {
 	if code > maxCustomizeCode {
-		xlog.Panic("customize code must less than 9999", xlog.Any("code", code))
+		xlog.Jupiter().Panic("customize code must less than 9999", xlog.Any("code", code))
 	}
 
 	return add(aid*10000+code, message)

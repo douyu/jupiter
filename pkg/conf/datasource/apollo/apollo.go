@@ -18,6 +18,7 @@ import (
 	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/philchia/agollo/v4"
+	"go.uber.org/zap"
 )
 
 type apolloDataSource struct {
@@ -29,7 +30,9 @@ type apolloDataSource struct {
 
 // NewDataSource creates an apolloDataSource
 func NewDataSource(conf *agollo.Conf, namespace string, key string) conf.DataSource {
-	client := agollo.NewClient(conf, agollo.WithLogger(&agolloLogger{}))
+	client := agollo.NewClient(conf, agollo.WithLogger(&agolloLogger{
+		sugar: xlog.Jupiter().Sugar(),
+	}))
 	ap := &apolloDataSource{
 		client:      client,
 		namespace:   namespace,
@@ -63,14 +66,15 @@ func (ap *apolloDataSource) Close() error {
 }
 
 type agolloLogger struct {
+	sugar *zap.SugaredLogger
 }
 
 // Infof ...
 func (l *agolloLogger) Infof(format string, args ...interface{}) {
-	xlog.Infof(format, args...)
+	l.sugar.Infof(format, args...)
 }
 
 // Errorf ...
 func (l *agolloLogger) Errorf(format string, args ...interface{}) {
-	xlog.Errorf(format, args...)
+	l.sugar.Errorf(format, args...)
 }

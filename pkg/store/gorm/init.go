@@ -6,12 +6,11 @@ import (
 
 	"github.com/douyu/jupiter/pkg/governor"
 	"github.com/douyu/jupiter/pkg/metric"
-
 	jsoniter "github.com/json-iterator/go"
 )
 
 var (
-// _logger = xlog.JupiterLogger.With(xlog.FieldMod("gorm"))
+// _logger = xlog.Jupiter().With(xlog.FieldMod("gorm"))
 )
 
 func init() {

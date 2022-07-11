@@ -17,13 +17,12 @@ package xgrpc
 import (
 	"fmt"
 
-	"github.com/douyu/jupiter/pkg/flag"
-
+	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/constant"
 	"github.com/douyu/jupiter/pkg/ecode"
+	"github.com/douyu/jupiter/pkg/flag"
 	"github.com/douyu/jupiter/pkg/xlog"
-
-	"github.com/douyu/jupiter/pkg/conf"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
 
@@ -96,7 +95,7 @@ func DefaultConfig() *Config {
 		DisableTrace:              false,
 		EnableTLS:                 false,
 		SlowQueryThresholdInMilli: 500,
-		logger:                    xlog.JupiterLogger.With(xlog.FieldMod("server.grpc")),
+		logger:                    xlog.Jupiter().With(xlog.FieldMod("server.grpc")),
 		serverOptions:             []grpc.ServerOption{},
 		streamInterceptors:        []grpc.StreamServerInterceptor{},
 		unaryInterceptors:         []grpc.UnaryServerInterceptor{},
@@ -137,7 +136,7 @@ func (config *Config) WithUnaryInterceptor(intes ...grpc.UnaryServerInterceptor)
 func (config *Config) MustBuild() *Server {
 	server, err := config.Build()
 	if err != nil {
-		xlog.Panicf("build xgrpc server: %v", err)
+		xlog.Jupiter().Panic("build xgrpc server", zap.Error(err))
 	}
 	return server
 }

@@ -23,6 +23,7 @@ import (
 	"github.com/douyu/jupiter/pkg/flag"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
 )
 
 //ModName named a mod
@@ -55,7 +56,7 @@ func DefaultConfig() *Config {
 		Debug:                     false,
 		Deployment:                constant.DefaultDeployment,
 		SlowQueryThresholdInMilli: 500, // 500ms
-		logger:                    xlog.JupiterLogger.With(xlog.FieldMod(ModName)),
+		logger:                    xlog.Jupiter().With(xlog.FieldMod(ModName)),
 		EnableTLS:                 false,
 		CertFile:                  "cert.pem",
 		PrivateFile:               "private.pem",
@@ -98,7 +99,7 @@ func (config *Config) WithPort(port int) *Config {
 func (config *Config) MustBuild() *Server {
 	server, err := config.Build()
 	if err != nil {
-		xlog.Panicf("build echo server failed: %v", err)
+		config.logger.Panic("build echo server failed", zap.Error(err))
 	}
 	return server
 }

@@ -16,10 +16,6 @@ package resty
 
 import (
 	"errors"
-	"github.com/douyu/jupiter/pkg/xtrace"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/codes"
-	"go.opentelemetry.io/otel/propagation"
 	"net/http"
 	"time"
 
@@ -28,13 +24,16 @@ import (
 	"github.com/douyu/jupiter/pkg/util/xdebug"
 	"github.com/douyu/jupiter/pkg/util/xtime"
 	"github.com/douyu/jupiter/pkg/xlog"
+	"github.com/douyu/jupiter/pkg/xtrace"
 	"github.com/go-resty/resty/v2"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/propagation"
 	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
-var _logger = xlog.DefaultLogger.With(xlog.FieldMod("resty"))
 var errSlowCommand = errors.New("http resty slow command")
 
 // Config ...
@@ -64,8 +63,11 @@ type (
 		// 访问日志开关
 		EnableAccessLog bool `json:"enableAccessLog" toml:"enableAccessLog"`
 		// 熔断降级
-		EnableSentinel bool                     `json:"enableSentinel" toml:"enableSentinel"`
+		EnableSentinel bool `json:"enableSentinel" toml:"enableSentinel"`
+		// 重试
 		RetryCondition resty.RetryConditionFunc `json:"-" toml:"-"`
+		// 日志
+		logger *zap.Logger
 	}
 )
 
@@ -78,7 +80,7 @@ func StdConfig(name string) Config {
 func RawConfig(key string) Config {
 	var config = DefaultConfig()
 	if err := conf.UnmarshalKey(key, &config, conf.TagName("toml")); err != nil {
-		xlog.Panic("unmarshal config", xlog.FieldName(key), xlog.FieldExtMessage(config))
+		xlog.Jupiter().Panic("unmarshal config", xlog.FieldName(key), xlog.FieldExtMessage(config))
 	}
 
 	if xdebug.IsDevelopmentMode() {
@@ -101,6 +103,7 @@ func DefaultConfig() Config {
 		Timeout:          xtime.Duration("3000ms"),
 		EnableAccessLog:  false,
 		EnableSentinel:   true,
+		logger:           xlog.Jupiter().With(xlog.FieldMod("resty")),
 	}
 }
 
@@ -184,7 +187,7 @@ func (config *Config) Build() (*resty.Client, error) {
 		if config.SlowThreshold > time.Duration(0) {
 			// 慢日志
 			if cost > config.SlowThreshold {
-				_logger.Error("slow",
+				config.logger.Error("slow",
 					xlog.FieldErr(errSlowCommand),
 					xlog.FieldMethod(r.Request.Method),
 					xlog.FieldCost(cost),
@@ -203,7 +206,7 @@ func (config *Config) Build() (*resty.Client, error) {
 func (c *Config) MustBuild() *resty.Client {
 	cc, err := c.Build()
 	if err != nil {
-		xlog.Panic("resty build failed", zap.Error(err), zap.Any("config", c))
+		xlog.Jupiter().Panic("resty build failed", zap.Error(err), zap.Any("config", c))
 	}
 
 	return cc

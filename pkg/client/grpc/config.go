@@ -15,11 +15,11 @@
 package grpc
 
 import (
-	"github.com/douyu/jupiter/pkg/util/xtime"
 	"time"
 
 	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/ecode"
+	"github.com/douyu/jupiter/pkg/util/xtime"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/balancer/roundrobin"
@@ -57,7 +57,7 @@ func DefaultConfig() *Config {
 		dialOptions: []grpc.DialOption{
 			grpc.WithInsecure(),
 		},
-		logger:                 xlog.JupiterLogger.With(xlog.FieldMod(ecode.ModClientGrpc)),
+		logger:                 xlog.Jupiter().With(xlog.FieldMod(ecode.ModClientGrpc)),
 		BalancerName:           roundrobin.Name, // round robin by default
 		DialTimeout:            time.Second * 3,
 		ReadTimeout:            xtime.Duration("1s"),

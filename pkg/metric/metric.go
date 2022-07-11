@@ -15,15 +15,12 @@
 package metric
 
 import (
-	"net/http"
 	"time"
 
 	"github.com/douyu/jupiter/pkg"
 	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/constant"
-	"github.com/douyu/jupiter/pkg/governor"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 type Metrics interface {
@@ -146,6 +143,9 @@ var (
 		Labels:    []string{"name", "id", "env", "region", "zone", "version", "go_version"},
 		// Labels:    []string{"name", "aid", "mode", "region", "zone", "app_version", "jupiter_version", "start_time", "build_time", "go_version"},
 	}.Build()
+
+	// LogLevelCounter ...
+	LogLevelCounter = NewCounterVec("log_level_total", []string{"name", "lv"})
 )
 
 func init() {
@@ -159,9 +159,5 @@ func init() {
 			pkg.AppVersion(),
 			pkg.GoVersion(),
 		).Set(float64(time.Now().UnixNano() / 1e6))
-	})
-
-	governor.HandleFunc("/metrics", func(w http.ResponseWriter, r *http.Request) {
-		promhttp.Handler().ServeHTTP(w, r)
 	})
 }

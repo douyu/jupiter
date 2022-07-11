@@ -2,18 +2,21 @@ package xgrpclog
 
 import (
 	"fmt"
+
 	"github.com/douyu/jupiter/pkg/xlog"
+	"go.uber.org/zap"
 	"google.golang.org/grpc/grpclog"
 )
 
 // SetLogger sets loggerWrapper to grpclog
 func SetLogger(logger *xlog.Logger) {
-	grpclog.SetLoggerV2(&loggerWrapper{logger: logger})
+	grpclog.SetLoggerV2(&loggerWrapper{logger: logger, sugar: logger.Sugar()})
 }
 
 // loggerWrapper wraps xlog.Logger into a LoggerV2.
 type loggerWrapper struct {
 	logger *xlog.Logger
+	sugar  *zap.SugaredLogger
 }
 
 // Info logs to INFO log
@@ -28,7 +31,7 @@ func (l *loggerWrapper) Infoln(args ...interface{}) {
 
 // Infof logs to INFO log
 func (l *loggerWrapper) Infof(format string, args ...interface{}) {
-	l.logger.Infof(sprintf(format, args...))
+	l.sugar.Infof(sprintf(format, args...))
 }
 
 // Warning logs to WARNING log
@@ -58,7 +61,7 @@ func (l *loggerWrapper) Errorln(args ...interface{}) {
 
 // Errorf logs to ERROR log
 func (l *loggerWrapper) Errorf(format string, args ...interface{}) {
-	l.logger.Errorf(sprintf(format, args...))
+	l.sugar.Errorf(sprintf(format, args...))
 }
 
 // Fatal logs to ERROR log
@@ -73,7 +76,7 @@ func (l *loggerWrapper) Fatalln(args ...interface{}) {
 
 // Error logs to ERROR log
 func (l *loggerWrapper) Fatalf(format string, args ...interface{}) {
-	l.logger.Fatalf(sprintf(format, args...))
+	l.sugar.Fatalf(sprintf(format, args...))
 }
 
 // v returns true for all verbose level.

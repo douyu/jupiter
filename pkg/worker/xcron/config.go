@@ -20,15 +20,13 @@ import (
 	"time"
 
 	"github.com/douyu/jupiter/pkg/client/etcdv3"
-	"github.com/douyu/jupiter/pkg/ecode"
-	"go.etcd.io/etcd/client/v3/concurrency"
-
-	"github.com/douyu/jupiter/pkg/metric"
-	"go.uber.org/zap"
-
 	"github.com/douyu/jupiter/pkg/conf"
+	"github.com/douyu/jupiter/pkg/ecode"
+	"github.com/douyu/jupiter/pkg/metric"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/robfig/cron/v3"
+	"go.etcd.io/etcd/client/v3/concurrency"
+	"go.uber.org/zap"
 )
 
 // StdConfig ...
@@ -40,7 +38,7 @@ func StdConfig(name string) Config {
 func RawConfig(key string) Config {
 	var config = DefaultConfig()
 	if err := conf.UnmarshalKey(key, &config); err != nil {
-		xlog.Panic("unmarshal", xlog.String("key", key))
+		xlog.Jupiter().Panic("unmarshal", xlog.String("key", key))
 	}
 
 	if config.DistributedTask {
@@ -53,7 +51,7 @@ func RawConfig(key string) Config {
 // DefaultConfig ...
 func DefaultConfig() Config {
 	return Config{
-		logger:          xlog.JupiterLogger,
+		logger:          xlog.Jupiter(),
 		wrappers:        []JobWrapper{},
 		WithSeconds:     false,
 		ImmediatelyRun:  false,
@@ -128,7 +126,7 @@ func (config Config) Build() *Cron {
 
 func newETCDXcron(config *Config) {
 	if config.logger == nil {
-		config.logger = xlog.DefaultLogger
+		config.logger = xlog.Jupiter()
 	}
 	config.logger = config.logger.With(xlog.FieldMod(ecode.ModXcronETCD), xlog.FieldAddrAny(config.Config.Endpoints))
 	config.client = config.Config.MustBuild()
@@ -138,17 +136,17 @@ func newETCDXcron(config *Config) {
 }
 
 type wrappedLogger struct {
-	*xlog.Logger
+	*zap.SugaredLogger
 }
 
 // Info logs routine messages about cron's operation.
 func (wl *wrappedLogger) Info(msg string, keysAndValues ...interface{}) {
-	wl.Infow("cron "+msg, keysAndValues...)
+	wl.SugaredLogger.Infow("cron "+msg, keysAndValues...)
 }
 
 // Error logs an error condition.
 func (wl *wrappedLogger) Error(err error, msg string, keysAndValues ...interface{}) {
-	wl.Errorw("cron "+msg, append(keysAndValues, "err", err)...)
+	wl.SugaredLogger.Errorw("cron "+msg, keysAndValues...)
 }
 
 type wrappedJob struct {

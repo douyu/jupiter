@@ -84,14 +84,14 @@ func pushConsumerDefaultInterceptor(pushConsumer *PushConsumer) primitive.Interc
 			topic := msg.Topic
 			result := consumeResultStr(holder.ConsumeResult)
 			if err != nil {
-				xlog.Error("push consumer",
+				xlog.Jupiter().Error("push consumer",
 					xlog.String("topic", topic),
 					xlog.String("host", host),
 					xlog.String("result", result),
 					xlog.Any("err", err))
 
 			} else {
-				xlog.Info("push consumer",
+				xlog.Jupiter().Info("push consumer",
 					xlog.String("topic", topic),
 					xlog.String("host", host),
 					xlog.String("result", result),
@@ -102,7 +102,7 @@ func pushConsumerDefaultInterceptor(pushConsumer *PushConsumer) primitive.Interc
 		}
 		if pushConsumer.RwTimeout > time.Duration(0) {
 			if time.Since(beg) > pushConsumer.RwTimeout {
-				xlog.Error("slow",
+				xlog.Jupiter().Error("slow",
 					xlog.String("topic", pushConsumer.Topic),
 					xlog.String("result", consumeResultStr(holder.ConsumeResult)),
 					xlog.Any("cost", time.Since(beg).Seconds()),
@@ -197,7 +197,7 @@ func producerDefaultInterceptor(producer *Producer) primitive.Interceptor {
 		// 消息处理结果统计
 		topic := producer.Topic
 		if err != nil {
-			xlog.Error("produce",
+			xlog.Jupiter().Error("produce",
 				xlog.String("topic", topic),
 				xlog.String("queue", ""),
 				xlog.String("result", realReply.String()),
@@ -206,7 +206,7 @@ func producerDefaultInterceptor(producer *Producer) primitive.Interceptor {
 			metric.ClientHandleCounter.Inc(metric.TypeRocketMQ, topic, "produce", "unknown", err.Error())
 			metric.ClientHandleHistogram.Observe(time.Since(beg).Seconds(), metric.TypeRocketMQ, topic, "produce", "unknown")
 		} else {
-			xlog.Info("produce",
+			xlog.Jupiter().Info("produce",
 				xlog.String("topic", topic),
 				xlog.Any("queue", realReply.MessageQueue),
 				xlog.String("result", produceResultStr(realReply.Status)),
@@ -217,7 +217,7 @@ func producerDefaultInterceptor(producer *Producer) primitive.Interceptor {
 
 		if producer.RwTimeout > time.Duration(0) {
 			if time.Since(beg) > producer.RwTimeout {
-				xlog.Error("slow",
+				xlog.Jupiter().Error("slow",
 					xlog.String("topic", topic),
 					xlog.String("result", realReply.String()),
 					xlog.Any("cost", time.Since(beg).Seconds()),

@@ -17,12 +17,12 @@ package etcdv3
 import (
 	"time"
 
-	"github.com/douyu/jupiter/pkg/ecode"
-	"github.com/douyu/jupiter/pkg/registry"
-
 	"github.com/douyu/jupiter/pkg/client/etcdv3"
 	"github.com/douyu/jupiter/pkg/conf"
+	"github.com/douyu/jupiter/pkg/ecode"
+	"github.com/douyu/jupiter/pkg/registry"
 	"github.com/douyu/jupiter/pkg/xlog"
+	"go.uber.org/zap"
 )
 
 // StdConfig ...
@@ -35,11 +35,11 @@ func RawConfig(key string) *Config {
 	var config = DefaultConfig()
 	// 解析最外层配置
 	if err := conf.UnmarshalKey(key, &config); err != nil {
-		xlog.Panic("unmarshal key", xlog.FieldMod("registry.etcd"), xlog.FieldErrKind(ecode.ErrKindUnmarshalConfigErr), xlog.FieldErr(err), xlog.String("key", key), xlog.Any("config", config))
+		xlog.Jupiter().Panic("unmarshal key", xlog.FieldMod("registry.etcd"), xlog.FieldErrKind(ecode.ErrKindUnmarshalConfigErr), xlog.FieldErr(err), xlog.String("key", key), xlog.Any("config", config))
 	}
 	// 解析嵌套配置
 	if err := conf.UnmarshalKey(key, &config.Config); err != nil {
-		xlog.Panic("unmarshal key", xlog.FieldMod("registry.etcd"), xlog.FieldErrKind(ecode.ErrKindUnmarshalConfigErr), xlog.FieldErr(err), xlog.String("key", key), xlog.Any("config", config))
+		xlog.Jupiter().Panic("unmarshal key", xlog.FieldMod("registry.etcd"), xlog.FieldErrKind(ecode.ErrKindUnmarshalConfigErr), xlog.FieldErr(err), xlog.String("key", key), xlog.Any("config", config))
 	}
 	return config
 }
@@ -50,7 +50,7 @@ func DefaultConfig() *Config {
 		Config:      etcdv3.DefaultConfig(),
 		ReadTimeout: time.Second * 3,
 		Prefix:      "jupiter",
-		logger:      xlog.JupiterLogger,
+		logger:      xlog.Jupiter(),
 		ServiceTTL:  0,
 	}
 }
@@ -76,7 +76,7 @@ func (config Config) Build() (registry.Registry, error) {
 func (config Config) MustBuild() registry.Registry {
 	reg, err := config.Build()
 	if err != nil {
-		xlog.Panicf("build registry failed: %v", err)
+		xlog.Jupiter().Panic("build registry failed", zap.Error(err))
 	}
 	return reg
 }

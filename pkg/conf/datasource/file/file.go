@@ -37,7 +37,7 @@ type fileDataSource struct {
 func NewDataSource(path string, watch bool) *fileDataSource {
 	absolutePath, err := filepath.Abs(path)
 	if err != nil {
-		xlog.Panic("new datasource", xlog.Any("err", err))
+		xlog.Jupiter().Panic("new datasource", xlog.Any("err", err))
 	}
 
 	dir := xfile.CheckAndGetParentDir(absolutePath)
@@ -69,7 +69,7 @@ func (fp *fileDataSource) IsConfigChanged() <-chan struct{} {
 func (fp *fileDataSource) watch() {
 	w, err := fsnotify.NewWatcher()
 	if err != nil {
-		xlog.Fatal("new file watcher", xlog.FieldMod("file datasource"), xlog.Any("err", err))
+		xlog.Jupiter().Fatal("new file watcher", xlog.FieldMod("file datasource"), xlog.Any("err", err))
 	}
 
 	defer w.Close()
@@ -78,7 +78,7 @@ func (fp *fileDataSource) watch() {
 		for {
 			select {
 			case event := <-w.Events:
-				xlog.Debug("read watch event",
+				xlog.Jupiter().Debug("read watch event",
 					xlog.FieldMod("file datasource"),
 					xlog.String("event", filepath.Clean(event.Name)),
 					xlog.String("path", filepath.Clean(fp.path)),
@@ -96,7 +96,7 @@ func (fp *fileDataSource) watch() {
 				}
 			case err := <-w.Errors:
 				// log.Println("error: ", err)
-				xlog.Error("read watch error", xlog.FieldMod("file datasource"), xlog.Any("err", err))
+				xlog.Jupiter().Error("read watch error", xlog.FieldMod("file datasource"), xlog.Any("err", err))
 			}
 		}
 	}()

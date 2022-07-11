@@ -1,4 +1,4 @@
-// Copyright 2020 Douyu
+// Copyright 2022 Douyu
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -30,10 +30,10 @@ func init() {
 	conf.OnLoaded(func(c *conf.Configuration) {
 		log.Print("hook config, init loggers")
 		log.Printf("reload default logger with configKey: %s", ConfigEntry("default"))
-		DefaultLogger = RawConfig(constant.ConfigPrefix + ".logger.default").Build()
+		defaultLogger = RawConfig(constant.ConfigPrefix + ".logger.default").Build()
 
 		log.Printf("reload default logger with configKey: %s", ConfigEntry("jupiter"))
-		JupiterLogger = RawConfig(constant.ConfigPrefix + ".logger.jupiter").Build()
+		jupiterLogger = RawConfig(constant.ConfigPrefix + ".logger.jupiter").Build()
 	})
 }
 
@@ -123,8 +123,6 @@ func (config Config) Build() *Logger {
 		config.EncoderConfig.EncodeLevel = DebugEncodeLevel
 	}
 	logger := newLogger(&config)
-	if config.configKey != "" {
-		logger.AutoLevel(config.configKey + ".level")
-	}
+
 	return logger
 }

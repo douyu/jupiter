@@ -23,6 +23,7 @@ import (
 	"github.com/douyu/jupiter/pkg/flag"
 	"github.com/douyu/jupiter/pkg/util/xtime"
 	"github.com/douyu/jupiter/pkg/xlog"
+	"go.uber.org/zap"
 )
 
 var ConfigPrefix = constant.ConfigPrefix + ".etcdv3"
@@ -57,7 +58,7 @@ func DefaultConfig() *Config {
 		BasicAuth:      false,
 		ConnectTimeout: xtime.Duration("5s"),
 		Secure:         false,
-		logger:         xlog.JupiterLogger.With(xlog.FieldMod("client.etcd")),
+		logger:         xlog.Jupiter().With(xlog.FieldMod("client.etcd")),
 	}
 }
 
@@ -89,7 +90,7 @@ func (config *Config) Build() (*Client, error) {
 func (config *Config) MustBuild() *Client {
 	client, err := config.Build()
 	if err != nil {
-		xlog.Panicf("build etcd client failed: %v", err)
+		xlog.Jupiter().Panic("build etcd client failed", zap.Error(err))
 	}
 	return client
 }

@@ -37,7 +37,7 @@ func init() {
 		stack := make([]byte, 1024)
 		length := runtime.Stack(stack, true)
 		fmt.Fprint(os.Stderr, "[rocketmq panic recovery]\n", string(stack[:length]))
-		xlog.Error("rocketmq panic recovery", zap.Any("error", i))
+		xlog.Jupiter().Error("rocketmq panic recovery", zap.Any("error", i))
 	}
 
 	governor.HandleFunc("/debug/rocketmq/stats", func(w http.ResponseWriter, r *http.Request) {

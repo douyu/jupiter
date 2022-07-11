@@ -1,4 +1,4 @@
-// Copyright 2020 Douyu
+// Copyright 2022 Douyu
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,30 +16,79 @@ package xlog_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/douyu/jupiter/pkg/xlog"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_log(t *testing.T) {
-	xlog.Debug("debug", xlog.Any("a", "b"))
-	xlog.Info("info", xlog.Any("a", "b"))
-	xlog.Warn("warn", xlog.Any("a", "b"))
-	xlog.Error("error", xlog.Any("a", "b"))
 
-	xlog.Debugw("debug", xlog.Any("a", "b"))
-	xlog.Infow("info", xlog.Any("a", "b"))
-	xlog.Warnw("warn", xlog.Any("a", "b"))
-	xlog.Errorw("error", xlog.Any("a", "b"))
+	stdlog := xlog.Default()
+	stdlog.Debug("debug", xlog.Any("a", "b"))
+	stdlog.Info("info", xlog.Any("a", "b"))
+	stdlog.Warn("warn", xlog.Any("a", "b"))
+	stdlog.Error("error", xlog.Any("a", "b"))
 
-	xlog.Debugf("debug", xlog.Any("a", "b"))
-	xlog.Infof("info", xlog.Any("a", "b"))
-	xlog.Warnf("warn", xlog.Any("a", "b"))
-	xlog.Errorf("error", xlog.Any("a", "b"))
+	data, err := prometheus.DefaultGatherer.Gather()
+	assert.Nil(t, err)
+
+	found := false
+	for _, v := range data {
+
+		if v.GetName() == "jupiter_log_level_total" {
+			assert.NotEmpty(t, v.GetMetric())
+			found = true
+
+			fmt.Println(v.GetMetric())
+			for _, vv := range v.GetMetric() {
+				if vv.Counter.GetValue() != 1 {
+					t.Fail()
+				}
+			}
+		}
+	}
+
+	// no metrics found
+	if !found {
+		assert.FailNow(t, "should never reach here")
+	}
 }
 
 func Test_trace(t *testing.T) {
-	log := xlog.DefaultLogger.With(xlog.String("traceid", "a:b:c:1"))
+
+	log := xlog.Jupiter().With(xlog.String("traceid", "a:b:c:1"))
 	ctx := xlog.NewContext(context.TODO(), log)
-	xlog.FromContext(ctx).Warn("warn", xlog.Any("a", "b"))
+
+	stdlog := xlog.FromContext(ctx)
+	stdlog.Debug("debug", xlog.Any("a", "b"))
+	stdlog.Info("info", xlog.Any("a", "b"))
+	stdlog.Warn("warn", xlog.Any("a", "b"))
+	stdlog.Error("error", xlog.Any("a", "b"))
+
+	data, err := prometheus.DefaultGatherer.Gather()
+	assert.Nil(t, err)
+
+	found := false
+	for _, v := range data {
+
+		if v.GetName() == "jupiter_log_level_total" {
+			assert.NotEmpty(t, v.GetMetric())
+			found = true
+
+			fmt.Println(v.GetMetric())
+			for _, vv := range v.GetMetric() {
+				if vv.Counter.GetValue() != 1 {
+					assert.FailNow(t, "should be 1")
+				}
+			}
+		}
+	}
+
+	// no metrics found
+	if !found {
+		assert.FailNow(t, "should never reach here")
+	}
 }

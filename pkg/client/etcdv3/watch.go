@@ -71,14 +71,14 @@ func (client *Client) WatchPrefix(ctx context.Context, prefix string) (*Watch, e
 					w.revision = n.Header.GetRevision()
 				}
 				if err := n.Err(); err != nil {
-					xlog.Error(ecode.MsgWatchRequestErr, xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err), xlog.FieldAddr(prefix))
+					xlog.Jupiter().Error(ecode.MsgWatchRequestErr, xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err), xlog.FieldAddr(prefix))
 					continue
 				}
 				for _, ev := range n.Events {
 					select {
 					case w.eventChan <- ev:
 					default:
-						xlog.Error("watch etcd with prefix", xlog.Any("err", "block event chan, drop event message"))
+						xlog.Jupiter().Error("watch etcd with prefix", xlog.Any("err", "block event chan, drop event message"))
 					}
 				}
 			}

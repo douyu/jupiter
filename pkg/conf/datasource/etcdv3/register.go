@@ -17,7 +17,7 @@ func init() {
 			configAddr = flag.String("config")
 		)
 		if configAddr == "" {
-			xlog.Panic("new apollo dataSource, configAddr is empty")
+			xlog.Jupiter().Panic("new apollo dataSource, configAddr is empty")
 			return nil
 		}
 		// configAddr is a string in this format:
@@ -25,7 +25,7 @@ func init() {
 
 		urlObj, err := xnet.ParseURL(configAddr)
 		if err != nil {
-			xlog.Panic("parse configAddr error", xlog.FieldErr(err))
+			xlog.Jupiter().Panic("parse configAddr error", xlog.FieldErr(err))
 			return nil
 		}
 		etcdConf := etcdv3.DefaultConfig()

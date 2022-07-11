@@ -15,12 +15,11 @@
 package gorm
 
 import (
-	"github.com/douyu/jupiter/pkg/metric"
 	"time"
 
-	"github.com/douyu/jupiter/pkg/ecode"
-
 	"github.com/douyu/jupiter/pkg/conf"
+	"github.com/douyu/jupiter/pkg/ecode"
+	"github.com/douyu/jupiter/pkg/metric"
 	"github.com/douyu/jupiter/pkg/util/xtime"
 	"github.com/douyu/jupiter/pkg/xlog"
 )
@@ -35,7 +34,7 @@ func StdConfig(name string) *Config {
 func RawConfig(key string) *Config {
 	var config = DefaultConfig()
 	if err := conf.UnmarshalKey(key, config, conf.TagName("toml")); err != nil {
-		xlog.Panic("unmarshal key", xlog.FieldMod("gorm"), xlog.FieldErr(err), xlog.FieldKey(key))
+		xlog.Jupiter().Panic("unmarshal key", xlog.FieldMod("gorm"), xlog.FieldErr(err), xlog.FieldKey(key))
 	}
 	config.Name = key
 	return config
@@ -90,7 +89,7 @@ func DefaultConfig() *Config {
 		DisableMetric:   false,
 		DisableTrace:    false,
 		raw:             nil,
-		logger:          xlog.JupiterLogger,
+		logger:          xlog.Jupiter(),
 	}
 }
 

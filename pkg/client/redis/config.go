@@ -86,7 +86,7 @@ func DefaultRedisConfig() Config {
 		EnableTrace:   false,
 		SlowThreshold: xtime.Duration("250ms"),
 		OnDialError:   "panic",
-		logger:        xlog.JupiterLogger,
+		logger:        xlog.Jupiter(),
 	}
 }
 
@@ -100,7 +100,7 @@ func RawRedisConfig(key string) Config {
 	var config = DefaultRedisConfig()
 
 	if err := conf.UnmarshalKey(key, &config); err != nil {
-		xlog.Panic("unmarshal redisConfig",
+		xlog.Jupiter().Panic("unmarshal redisConfig",
 			xlog.String("key", key),
 			xlog.Any("redisConfig", config),
 			xlog.String("error", err.Error()))

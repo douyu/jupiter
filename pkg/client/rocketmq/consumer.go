@@ -46,10 +46,10 @@ type PushConsumer struct {
 func (conf *ConsumerConfig) Build() *PushConsumer {
 	name := conf.Name
 	if _, ok := _consumers.Load(name); ok {
-		xlog.Panic("duplicated load", xlog.String("name", name))
+		xlog.Jupiter().Panic("duplicated load", xlog.String("name", name))
 	}
 
-	xlog.Debug("rocketmq's config: ", xlog.String("name", name), xlog.Any("conf", conf))
+	xlog.Jupiter().Debug("rocketmq's config: ", xlog.String("name", name), xlog.Any("conf", conf))
 
 	var bucket *ratelimit.Bucket
 	if conf.Rate > 0 && conf.Capacity > 0 {
@@ -80,7 +80,7 @@ func (conf *ConsumerConfig) Build() *PushConsumer {
 func (cc *PushConsumer) Close() {
 	err := cc.Shutdown()
 	if err != nil {
-		xlog.Warn("consumer close fail", zap.Error(err))
+		xlog.Jupiter().Warn("consumer close fail", zap.Error(err))
 	}
 	_consumers.Delete(cc.name)
 }
@@ -93,7 +93,7 @@ func (cc *PushConsumer) WithInterceptor(fs ...primitive.Interceptor) *PushConsum
 // Deprecated: use RegisterSingleMessage or RegisterBatchMessage instead
 func (cc *PushConsumer) Subscribe(topic string, f func(context.Context, *primitive.MessageExt) error) *PushConsumer {
 	if _, ok := cc.subscribers[topic]; ok {
-		xlog.Panic("duplicated subscribe", zap.String("topic", topic))
+		xlog.Jupiter().Panic("duplicated subscribe", zap.String("topic", topic))
 	}
 	fn := func(ctx context.Context, msgs ...*primitive.MessageExt) (consumer.ConsumeResult, error) {
 		for _, msg := range msgs {
@@ -117,14 +117,14 @@ func (cc *PushConsumer) Subscribe(topic string, f func(context.Context, *primiti
 
 			if cc.bucket != nil {
 				if ok := cc.bucket.WaitMaxDuration(1, cc.WaitMaxDuration); !ok {
-					xlog.Warn("too many messages, reconsume later", zap.String("body", string(msg.Body)), zap.String("topic", cc.Topic))
+					xlog.Jupiter().Warn("too many messages, reconsume later", zap.String("body", string(msg.Body)), zap.String("topic", cc.Topic))
 					return consumer.ConsumeRetryLater, nil
 				}
 			}
 
 			err := f(ctx, msg)
 			if err != nil {
-				xlog.Error("consumer message", zap.Error(err), zap.String("field", cc.name), zap.Any("ext", msg))
+				xlog.Jupiter().Error("consumer message", zap.Error(err), zap.String("field", cc.name), zap.Any("ext", msg))
 				return consumer.ConsumeRetryLater, err
 			}
 		}
@@ -137,7 +137,7 @@ func (cc *PushConsumer) Subscribe(topic string, f func(context.Context, *primiti
 
 func (cc *PushConsumer) RegisterSingleMessage(f func(context.Context, *primitive.MessageExt) error) *PushConsumer {
 	if _, ok := cc.subscribers[cc.Topic]; ok {
-		xlog.Panic("duplicated register single message", zap.String("topic", cc.Topic))
+		xlog.Jupiter().Panic("duplicated register single message", zap.String("topic", cc.Topic))
 	}
 	fn := func(ctx context.Context, msgs ...*primitive.MessageExt) (consumer.ConsumeResult, error) {
 		for _, msg := range msgs {
@@ -162,14 +162,14 @@ func (cc *PushConsumer) RegisterSingleMessage(f func(context.Context, *primitive
 
 			if cc.bucket != nil {
 				if ok := cc.bucket.WaitMaxDuration(1, cc.WaitMaxDuration); !ok {
-					xlog.Warn("too many messages, reconsume later", zap.String("body", string(msg.Body)), zap.String("topic", cc.Topic))
+					xlog.Jupiter().Warn("too many messages, reconsume later", zap.String("body", string(msg.Body)), zap.String("topic", cc.Topic))
 					return consumer.ConsumeRetryLater, nil
 				}
 			}
 
 			err := f(ctx, msg)
 			if err != nil {
-				xlog.Error("consumer message", zap.Error(err), zap.String("field", cc.name), zap.Any("ext", msg))
+				xlog.Jupiter().Error("consumer message", zap.Error(err), zap.String("field", cc.name), zap.Any("ext", msg))
 				return consumer.ConsumeRetryLater, err
 			}
 		}
@@ -182,7 +182,7 @@ func (cc *PushConsumer) RegisterSingleMessage(f func(context.Context, *primitive
 
 func (cc *PushConsumer) RegisterBatchMessage(f func(context.Context, ...*primitive.MessageExt) error) *PushConsumer {
 	if _, ok := cc.subscribers[cc.Topic]; ok {
-		xlog.Panic("duplicated register batch message", zap.String("topic", cc.Topic))
+		xlog.Jupiter().Panic("duplicated register batch message", zap.String("topic", cc.Topic))
 	}
 	fn := func(ctx context.Context, msgs ...*primitive.MessageExt) (consumer.ConsumeResult, error) {
 
@@ -208,14 +208,14 @@ func (cc *PushConsumer) RegisterBatchMessage(f func(context.Context, ...*primiti
 
 		if cc.bucket != nil {
 			if ok := cc.bucket.WaitMaxDuration(int64(len(msgs)), cc.WaitMaxDuration); !ok {
-				xlog.Warn("too many messages, reconsume later", zap.String("topic", cc.Topic))
+				xlog.Jupiter().Warn("too many messages, reconsume later", zap.String("topic", cc.Topic))
 				return consumer.ConsumeRetryLater, nil
 			}
 		}
 
 		err := f(ctx, msgs...)
 		if err != nil {
-			xlog.Error("consumer batch message", zap.Error(err), zap.String("field", cc.name))
+			xlog.Jupiter().Error("consumer batch message", zap.Error(err), zap.String("field", cc.name))
 			return consumer.ConsumeRetryLater, err
 		}
 
@@ -265,7 +265,7 @@ func (cc *PushConsumer) Start() error {
 
 	// if client == nil. <--- fix lint: this comparison is never true.
 	if err != nil {
-		xlog.Panic("create consumer",
+		xlog.Jupiter().Panic("create consumer",
 			xlog.FieldName(cc.name),
 			xlog.FieldExtMessage(cc.ConsumerConfig),
 			xlog.FieldErr(err),
@@ -274,7 +274,7 @@ func (cc *PushConsumer) Start() error {
 
 	if cc.Enable {
 		if err := client.Start(); err != nil {
-			xlog.Panic("start consumer",
+			xlog.Jupiter().Panic("start consumer",
 				xlog.FieldName(cc.name),
 				xlog.FieldExtMessage(cc.ConsumerConfig),
 				xlog.FieldErr(err),
