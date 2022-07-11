@@ -351,6 +351,8 @@ func (app *Application) startServers() error {
 	// start multi servers
 	for _, s := range app.servers {
 		s := s
+		app.smu.Lock()
+		defer app.smu.Unlock()
 		eg.Go(func() (err error) {
 			defer func() {
 				ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -363,9 +365,7 @@ func (app *Application) startServers() error {
 				_ = registry.DefaultRegisterer.RegisterService(ctx, s.Info())
 				app.logger.Info("start server", xlog.FieldMod(ecode.ModApp), xlog.FieldEvent("init"), xlog.FieldName(s.Info().Name), xlog.FieldAddr(s.Info().Label()), xlog.Any("scheme", s.Info().Scheme))
 			})
-			app.smu.Lock()
 			err = s.Serve()
-			app.smu.Unlock()
 			return
 		})
 	}
