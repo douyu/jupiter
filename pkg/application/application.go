@@ -345,7 +345,6 @@ func (app *Application) startServers() error {
 	var eg errgroup.Group
 	var ctx, cancel = context.WithTimeout(context.Background(), 3*time.Second)
 	app.smu.Lock()
-	defer app.smu.Unlock()
 	go func() {
 		<-app.stopped
 		cancel()
@@ -369,6 +368,7 @@ func (app *Application) startServers() error {
 			return
 		})
 	}
+	defer app.smu.Unlock()
 	return eg.Wait()
 }
 
