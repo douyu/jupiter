@@ -264,8 +264,8 @@ func (app *Application) Stop() (err error) {
 		for _, s := range app.servers {
 			func(s server.Server) {
 				app.smu.RLock()
-				defer app.smu.RUnlock()
 				app.cycle.Run(s.Stop)
+				app.smu.RUnlock()
 			}(s)
 		}
 		//stop workers
@@ -350,7 +350,6 @@ func (app *Application) startServers() error {
 	}()
 	// start multi servers
 	app.smu.Lock()
-	defer app.smu.Unlock()
 	for _, s := range app.servers {
 		s := s
 		eg.Go(func() (err error) {
@@ -369,6 +368,7 @@ func (app *Application) startServers() error {
 			return
 		})
 	}
+	app.smu.Unlock()
 	return eg.Wait()
 }
 
