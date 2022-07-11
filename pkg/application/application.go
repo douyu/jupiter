@@ -344,12 +344,12 @@ func (app *Application) waitSignals() {
 func (app *Application) startServers() error {
 	var eg errgroup.Group
 	var ctx, cancel = context.WithTimeout(context.Background(), 3*time.Second)
-	app.smu.Lock()
 	go func() {
 		<-app.stopped
 		cancel()
 	}()
 	// start multi servers
+	app.smu.Lock()
 	for _, s := range app.servers {
 		s := s
 		eg.Go(func() (err error) {
