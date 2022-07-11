@@ -350,6 +350,7 @@ func (app *Application) startServers() error {
 	}()
 	// start multi servers
 	app.smu.Lock()
+	defer app.smu.Unlock()
 	for _, s := range app.servers {
 		s := s
 		eg.Go(func() (err error) {
@@ -368,7 +369,6 @@ func (app *Application) startServers() error {
 			return
 		})
 	}
-	app.smu.Unlock()
 	return eg.Wait()
 }
 
