@@ -368,6 +368,7 @@ func (app *Application) startServers() error {
 			return
 		})
 	}
+
 	app.smu.Unlock()
 	return eg.Wait()
 }
