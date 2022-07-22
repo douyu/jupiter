@@ -21,8 +21,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/douyu/jupiter/pkg/util/xcast"
 	"github.com/mitchellh/mapstructure"
+	xcast "github.com/spf13/cast"
 )
 
 // Unmarshaller ...
@@ -138,11 +138,6 @@ func (flat *FlatMap) GetStringMap(key string) map[string]interface{} {
 // GetStringMapString returns the value associated with the key as a map of strings.
 func (flat *FlatMap) GetStringMapString(key string) map[string]string {
 	return xcast.ToStringMapString(flat.Get(key))
-}
-
-// GetSliceStringMap returns the value associated with the slice of maps.
-func (flat *FlatMap) GetSliceStringMap(key string) []map[string]interface{} {
-	return xcast.ToSliceStringMap(flat.Get(key))
 }
 
 // GetStringMapStringSlice returns the value associated with the key as a map to a slice of strings.
