@@ -17,7 +17,6 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 
 	"github.com/fatih/color"
 	"github.com/urfave/cli"
@@ -30,6 +29,10 @@ func Clean(c *cli.Context) error {
 		return err
 	}
 
+	if err := cleanTempLayoutLock(); err != nil {
+		return err
+	}
+
 	// 2. clean other ...
 
 	color.Green("clear complete ...")
@@ -39,10 +42,20 @@ func Clean(c *cli.Context) error {
 // 清除已经存在的临时模板文件
 func cleanTempLayout() error {
 	fmt.Println("clear temp project layout ...")
-	// 查看临时文件之中是否已经存在该文件夹
-	tempPath := filepath.Join(os.TempDir(), "local_temp_jupiter_layout")
+
 	// 需要刷新，提前清理缓存的文件
-	if err := os.RemoveAll(tempPath); err != nil {
+	if err := os.RemoveAll(globalLayoutPath); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// 清除已经存在的临时模板文件文件锁
+func cleanTempLayoutLock() error {
+	fmt.Println("clear temp project-layout lock...")
+	// 需要刷新，提前清理缓存的文件
+	if err := os.RemoveAll(globalLayoutLockPath); err != nil {
 		return err
 	}
 
