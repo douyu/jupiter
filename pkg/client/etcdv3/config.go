@@ -21,8 +21,8 @@ import (
 	"github.com/douyu/jupiter/pkg/constant"
 	"github.com/douyu/jupiter/pkg/ecode"
 	"github.com/douyu/jupiter/pkg/flag"
-	"github.com/douyu/jupiter/pkg/util/xtime"
 	"github.com/douyu/jupiter/pkg/xlog"
+	"github.com/spf13/cast"
 	"go.uber.org/zap"
 )
 
@@ -56,7 +56,7 @@ func (config *Config) BindFlags(fs *flag.FlagSet) {
 func DefaultConfig() *Config {
 	return &Config{
 		BasicAuth:      false,
-		ConnectTimeout: xtime.Duration("5s"),
+		ConnectTimeout: cast.ToDuration("5s"),
 		Secure:         false,
 		logger:         xlog.Jupiter().With(xlog.FieldMod("client.etcd")),
 	}

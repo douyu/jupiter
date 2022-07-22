@@ -22,10 +22,10 @@ import (
 	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/metric"
 	"github.com/douyu/jupiter/pkg/util/xdebug"
-	"github.com/douyu/jupiter/pkg/util/xtime"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/douyu/jupiter/pkg/xtrace"
 	"github.com/go-resty/resty/v2"
+	"github.com/spf13/cast"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/propagation"
@@ -96,11 +96,11 @@ func DefaultConfig() Config {
 		EnableMetric:     true,
 		EnableTrace:      true,
 		RetryCount:       0,
-		RetryWaitTime:    xtime.Duration("100ms"),
-		RetryMaxWaitTime: xtime.Duration("100ms"),
+		RetryWaitTime:    cast.ToDuration("100ms"),
+		RetryMaxWaitTime: cast.ToDuration("100ms"),
 		Addr:             "",
-		SlowThreshold:    xtime.Duration("500ms"),
-		Timeout:          xtime.Duration("3000ms"),
+		SlowThreshold:    cast.ToDuration("500ms"),
+		Timeout:          cast.ToDuration("3000ms"),
 		EnableAccessLog:  false,
 		EnableSentinel:   true,
 		logger:           xlog.Jupiter().With(xlog.FieldMod("resty")),

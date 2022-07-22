@@ -22,8 +22,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/douyu/jupiter/pkg/util/xtime"
-
 	"github.com/douyu/jupiter/pkg/constant"
 	"github.com/douyu/jupiter/pkg/util/xcolor"
 )
@@ -63,7 +61,7 @@ func init() {
 		name = "unknown"
 	}
 	hostName = name
-	startTime = xtime.TS.Format(time.Now())
+	startTime = time.Now().Format("2006-01-02 15:04:05")
 	SetBuildTime(buildTime)
 	goVersion = runtime.Version()
 	InitEnv()

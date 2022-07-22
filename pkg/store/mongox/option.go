@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/douyu/jupiter/pkg/conf"
-	"github.com/douyu/jupiter/pkg/util/xtime"
+	"github.com/spf13/cast"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -40,7 +40,7 @@ func RawConfig(key string) Config {
 // DefaultConfig 默认配置
 func DefaultConfig() Config {
 	return Config{
-		SocketTimeout: xtime.Duration("5s"),
+		SocketTimeout: cast.ToDuration("5s"),
 		PoolLimit:     100,
 	}
 }

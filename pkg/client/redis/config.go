@@ -18,9 +18,9 @@ import (
 	"time"
 
 	"github.com/go-redis/redis"
+	"github.com/spf13/cast"
 
 	"github.com/douyu/jupiter/pkg/conf"
-	"github.com/douyu/jupiter/pkg/util/xtime"
 	"github.com/douyu/jupiter/pkg/xlog"
 )
 
@@ -77,14 +77,14 @@ func DefaultRedisConfig() Config {
 		PoolSize:      10,
 		MaxRetries:    3,
 		MinIdleConns:  100,
-		DialTimeout:   xtime.Duration("1s"),
-		ReadTimeout:   xtime.Duration("1s"),
-		WriteTimeout:  xtime.Duration("1s"),
-		IdleTimeout:   xtime.Duration("60s"),
+		DialTimeout:   cast.ToDuration("1s"),
+		ReadTimeout:   cast.ToDuration("1s"),
+		WriteTimeout:  cast.ToDuration("1s"),
+		IdleTimeout:   cast.ToDuration("60s"),
 		ReadOnly:      false,
 		Debug:         false,
 		EnableTrace:   false,
-		SlowThreshold: xtime.Duration("250ms"),
+		SlowThreshold: cast.ToDuration("250ms"),
 		OnDialError:   "panic",
 		logger:        xlog.Jupiter(),
 	}
