@@ -18,7 +18,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/douyu/jupiter/pkg/util/xcast"
+	xcast "github.com/spf13/cast"
 )
 
 // URL wrap url.URL.

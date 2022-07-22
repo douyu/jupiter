@@ -25,10 +25,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/douyu/jupiter/pkg/util/xcast"
 	"github.com/douyu/jupiter/pkg/util/xmap"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
+	xcast "github.com/spf13/cast"
 )
 
 // Configuration provides configuration for application.
@@ -325,16 +325,6 @@ func (c *Configuration) GetStringSlice(key string) []string {
 	return xcast.ToStringSlice(c.Get(key))
 }
 
-// GetInt64Slice returns the value associated with the key as a slice of int64s, stop when error occurs.
-func GetInt64Slice(key string) []int64 {
-	return defaultConfiguration.GetInt64Slice(key)
-}
-
-// GetInt64Slice returns the value associated with the key as a slice of int64s.
-func (c *Configuration) GetInt64Slice(key string) []int64 {
-	return xcast.ToInt64Slice(c.Get(key))
-}
-
 // GetSlice returns the value associated with the key as a slice of strings with default defaultConfiguration.
 func GetSlice(key string) []interface{} {
 	return defaultConfiguration.GetSlice(key)
@@ -363,11 +353,6 @@ func GetStringMapString(key string) map[string]string {
 // GetStringMapString returns the value associated with the key as a map of strings.
 func (c *Configuration) GetStringMapString(key string) map[string]string {
 	return xcast.ToStringMapString(c.Get(key))
-}
-
-// GetSliceStringMap returns the value associated with the slice of maps.
-func (c *Configuration) GetSliceStringMap(key string) []map[string]interface{} {
-	return xcast.ToSliceStringMap(c.Get(key))
 }
 
 // GetStringMapStringSlice returns the value associated with the key as a map to a slice of strings with default defaultConfiguration.

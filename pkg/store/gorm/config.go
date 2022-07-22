@@ -20,8 +20,8 @@ import (
 	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/ecode"
 	"github.com/douyu/jupiter/pkg/metric"
-	"github.com/douyu/jupiter/pkg/util/xtime"
 	"github.com/douyu/jupiter/pkg/xlog"
+	"github.com/spf13/cast"
 )
 
 // StdConfig 标准配置，规范配置文件头
@@ -82,10 +82,10 @@ func DefaultConfig() *Config {
 		Debug:           false,
 		MaxIdleConns:    10,
 		MaxOpenConns:    100,
-		ConnMaxLifetime: xtime.Duration("300s"),
+		ConnMaxLifetime: cast.ToDuration("300s"),
 		OnDialError:     "panic",
-		SlowThreshold:   xtime.Duration("500ms"),
-		DialTimeout:     xtime.Duration("1s"),
+		SlowThreshold:   cast.ToDuration("500ms"),
+		DialTimeout:     cast.ToDuration("1s"),
 		DisableMetric:   false,
 		DisableTrace:    false,
 		raw:             nil,

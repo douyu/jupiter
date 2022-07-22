@@ -28,7 +28,6 @@ require (
 	github.com/jinzhu/gorm v1.9.16
 	github.com/json-iterator/go v1.1.12
 	github.com/juju/ratelimit v1.0.1
-	github.com/kr/text v0.2.0 // indirect
 	github.com/labstack/echo/v4 v4.1.16
 	github.com/lib/pq v1.3.0 // indirect
 	github.com/mattn/go-colorable v0.1.12
@@ -69,10 +68,10 @@ require (
 	github.com/cosmtrek/air v1.40.1
 	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
 	github.com/golang/mock v1.6.0 // indirect
-	github.com/kr/pretty v0.2.0 // indirect
 	github.com/labstack/gommon v0.3.1 // indirect
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/smartystreets/assertions v0.0.0-20190401211740-f487f9de1cd3 // indirect
+	github.com/spf13/cast v1.5.0
 	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/tidwall/gjson v1.13.0 // indirect
 	go.etcd.io/etcd/client/pkg/v3 v3.5.1 // indirect

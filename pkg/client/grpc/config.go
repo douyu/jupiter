@@ -19,8 +19,8 @@ import (
 
 	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/ecode"
-	"github.com/douyu/jupiter/pkg/util/xtime"
 	"github.com/douyu/jupiter/pkg/xlog"
+	"github.com/spf13/cast"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/balancer/roundrobin"
 	"google.golang.org/grpc/keepalive"
@@ -60,8 +60,8 @@ func DefaultConfig() *Config {
 		logger:                 xlog.Jupiter().With(xlog.FieldMod(ecode.ModClientGrpc)),
 		BalancerName:           roundrobin.Name, // round robin by default
 		DialTimeout:            time.Second * 3,
-		ReadTimeout:            xtime.Duration("1s"),
-		SlowThreshold:          xtime.Duration("600ms"),
+		ReadTimeout:            cast.ToDuration("1s"),
+		SlowThreshold:          cast.ToDuration("600ms"),
 		OnDialError:            "panic",
 		AccessInterceptorLevel: "info",
 		Block:                  true,
