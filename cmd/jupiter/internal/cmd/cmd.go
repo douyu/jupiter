@@ -66,4 +66,19 @@ var Commands = []cli.Command{
 			return Clean(c)
 		},
 	},
+	{
+		Name:    "struct2interface",
+		Aliases: []string{"struct2interface"},
+		Usage:   "Auto generate interface from struct for golang",
+		Action: func(c *cli.Context) error {
+			return Struct2Interface(c)
+		},
+		Flags: []cli.Flag{
+			cli.StringFlag{
+				Name:  "d,dir",
+				Usage: "please specify the code path",
+				Value: ".",
+			},
+		},
+	},
 }
