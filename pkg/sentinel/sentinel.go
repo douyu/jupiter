@@ -1,27 +1,27 @@
 package sentinel
 
 import (
-	"git.dz11.com/vega/minerva/prome"
 	sentinel "github.com/alibaba/sentinel-golang/api"
 	"github.com/alibaba/sentinel-golang/core/base"
 	"github.com/douyu/jupiter/pkg/hooks"
+	"github.com/douyu/jupiter/pkg/metric"
 	"github.com/douyu/jupiter/pkg/xlog"
 )
 
 var (
 	_logger = xlog.Jupiter().With(xlog.FieldMod("sentinel"))
 
-	sentinelReqeust = prome.NewCounterVec("sentinel_request",
+	sentinelReqeust = metric.NewCounterVec("sentinel_request",
 		[]string{"resource", "language", "appName", "aid", "region", "zone", "iid", "mode"})
-	sentinelSuccess = prome.NewCounterVec("sentinel_success",
+	sentinelSuccess = metric.NewCounterVec("sentinel_success",
 		[]string{"resource", "language", "appName", "aid", "region", "zone", "iid", "mode"})
-	sentinelExceptionsThrown = prome.NewCounterVec("sentinel_exceptions_thrown",
+	sentinelExceptionsThrown = metric.NewCounterVec("sentinel_exceptions_thrown",
 		[]string{"resource", "language", "appName", "aid", "region", "zone", "iid", "mode"})
-	sentinelBlocked = prome.NewCounterVec("sentinel_blocked",
+	sentinelBlocked = metric.NewCounterVec("sentinel_blocked",
 		[]string{"resource", "language", "appName", "aid", "region", "zone", "iid", "mode"})
-	sentinelRt = prome.NewHistogramVec("sentinel_rt",
+	sentinelRt = metric.NewHistogramVec("sentinel_rt",
 		[]string{"resource", "language", "appName", "aid", "region", "zone", "iid", "mode"})
-	sentinelState = prome.NewGaugeVec("sentinel_state",
+	sentinelState = metric.NewGaugeVec("sentinel_state",
 		[]string{"resource", "language", "appName", "aid", "region", "zone", "iid", "mode"})
 
 	WithError = base.WithError

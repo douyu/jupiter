@@ -14,7 +14,10 @@
 
 package metric
 
-import "github.com/prometheus/client_golang/prometheus"
+import (
+	"github.com/douyu/jupiter/pkg/constant"
+	"github.com/prometheus/client_golang/prometheus"
+)
 
 // HistogramVecOpts ...
 type HistogramVecOpts struct {
@@ -49,4 +52,14 @@ func (opts HistogramVecOpts) Build() *histogramVec {
 // Observe ...
 func (histogram *histogramVec) Observe(v float64, labels ...string) {
 	histogram.WithLabelValues(labels...).Observe(v)
+}
+
+// NewHistogramVec ...
+func NewHistogramVec(name string, labels []string) *histogramVec {
+	return HistogramVecOpts{
+		Namespace: constant.DefaultNamespace,
+		Name:      name,
+		Help:      name,
+		Labels:    labels,
+	}.Build()
 }

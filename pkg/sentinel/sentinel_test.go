@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"time"
 
-	"git.dz11.com/vega/minerva/client/etcdv3"
 	"github.com/BurntSushi/toml"
 	"github.com/alibaba/sentinel-golang/core/base"
 	"github.com/alibaba/sentinel-golang/core/circuitbreaker"
+	"github.com/douyu/jupiter/pkg/client/etcdv3"
 	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/conf/datasource/file"
 	"github.com/onsi/ginkgo/v2"
@@ -280,8 +280,8 @@ var _ = ginkgo.Describe("sentinel unit test with config", func() {
 			stdConfig.Datasource = "etcd"
 			err := stdConfig.Build()
 			Expect(err).Should(BeNil())
-			cli = etcdv3.Get("sentinel_etcd")
-			if cli == nil {
+			cli, err = etcdv3.RawConfig(stdConfig.EtcdRawKey).Singleton()
+			if err != nil {
 				ginkgo.Fail("failed to get etcdv3 client")
 			}
 
