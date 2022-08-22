@@ -9,6 +9,7 @@ require (
 	github.com/alicebob/miniredis/v2 v2.15.1
 	github.com/apache/rocketmq-client-go/v2 v2.1.1-rc2
 	github.com/codegangsta/inject v0.0.0-20150114235600-33e0aa1cb7c0
+	github.com/cosmtrek/air v1.40.1
 	github.com/davecgh/go-spew v1.1.1
 	github.com/dimiro1/banner v1.1.0
 	github.com/fatih/color v1.13.0
@@ -30,7 +31,6 @@ require (
 	github.com/mattn/go-colorable v0.1.12
 	github.com/mitchellh/mapstructure v1.4.3
 	github.com/modern-go/reflect2 v1.0.2
-	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.19.0
 	github.com/philchia/agollo/v4 v4.1.3
 	github.com/pkg/errors v0.9.1
@@ -60,7 +60,6 @@ require (
 
 require (
 	github.com/aws/aws-sdk-go v1.40.45 // indirect
-	github.com/cosmtrek/air v1.40.1
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
