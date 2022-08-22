@@ -5,12 +5,9 @@ import (
 	"github.com/alibaba/sentinel-golang/core/base"
 	"github.com/douyu/jupiter/pkg/hooks"
 	"github.com/douyu/jupiter/pkg/metric"
-	"github.com/douyu/jupiter/pkg/xlog"
 )
 
 var (
-	_logger = xlog.Jupiter().With(xlog.FieldMod("sentinel"))
-
 	sentinelReqeust = metric.NewCounterVec("sentinel_request",
 		[]string{"resource", "language", "appName", "aid", "region", "zone", "iid", "mode"})
 	sentinelSuccess = metric.NewCounterVec("sentinel_success",
