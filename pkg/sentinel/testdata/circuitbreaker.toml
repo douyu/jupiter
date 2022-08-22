@@ -1,7 +1,7 @@
-[minerva.sentinel]
+[jupiter.sentinel]
     enable = true
     datasource = "files"
-    [[minerva.sentinel.cbRules]]
+    [[jupiter.sentinel.cbRules]]
         enable = true
         resource = "recomend"
         strategy = 2
@@ -11,7 +11,7 @@
         maxAllowedRtMs = 1000
         statSlidingWindowBucketCount = 10
         threshold = 0.4
-    [[minerva.sentinel.cbRules]]
+    [[jupiter.sentinel.cbRules]]
         enable = true
         resource = "circuitbreaker-block"
         strategy = 2
@@ -21,7 +21,7 @@
         statSlidingWindowBucketCount = 10
         maxAllowedRtMs = 1000
         threshold = 0.4
-    [[minerva.sentinel.cbRules]]
+    [[jupiter.sentinel.cbRules]]
         enable = true
         resource = "timeout"
         strategy = 2
@@ -31,7 +31,7 @@
         maxAllowedRtMs = 1000
         statSlidingWindowBucketCount = 10
         threshold = 0.4
-    [[minerva.sentinel.cbRules]]
+    [[jupiter.sentinel.cbRules]]
         enable = true
         resource = "error"
         strategy = 2

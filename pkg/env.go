@@ -59,6 +59,9 @@ func SetAppRegion(region string) {
 }
 
 func AppZone() string {
+	if appZone == "" {
+		return "unknown"
+	}
 	return appZone
 }
 

@@ -1,7 +1,7 @@
-[minerva.sentinel]
+[jupiter.sentinel]
     enable = true
     datasource = "files"
-    [[minerva.sentinel.flowRules]]
+    [[jupiter.sentinel.flowRules]]
         enable = true
         resource = "flowrule"
         threshold = 1

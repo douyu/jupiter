@@ -34,13 +34,13 @@ type Config struct {
 }
 
 func StdConfig() Config {
-	return RawConfig("minerva.sentinel")
+	return RawConfig("jupiter.sentinel")
 }
 
 func RawConfig(key string) Config {
 	config := DefaultConfig()
 
-	if conf.Get("minerva.sentinel") == nil {
+	if conf.Get("jupiter.sentinel") == nil {
 		return config
 	}
 

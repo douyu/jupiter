@@ -27,7 +27,6 @@ func StdConfig(name string) Config {
 }
 
 // RawConfig 裸配置
-// example: minerva.mongodb.demo
 func RawConfig(key string) Config {
 	var config = DefaultConfig()
 	config.Name = key

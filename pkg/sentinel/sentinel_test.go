@@ -20,6 +20,7 @@ import (
 var _ = ginkgo.Describe("sentinel unit test with config", func() {
 
 	ginkgo.BeforeEach(func() {
+		stdConfig = StdConfig()
 		conf.Reset()
 		conf.LoadFromDataSource(file.NewDataSource("testdata/circuitbreaker.toml", false), toml.Unmarshal)
 
@@ -28,33 +29,6 @@ var _ = ginkgo.Describe("sentinel unit test with config", func() {
 		sentinelExceptionsThrown.Reset()
 		sentinelBlocked.Reset()
 		sentinelRt.Reset()
-	})
-
-	ginkgo.PContext("entry before build", func() {
-		ginkgo.It("normal case", func() {
-
-			a, b := Entry("test")
-			if b != nil {
-
-			} else {
-				a.Exit()
-			}
-
-			ss, err := prometheus.DefaultGatherer.Gather()
-			Expect(err).Should(BeNil())
-
-			haveMetric := false
-			for _, s := range ss {
-				if s.GetName() == "sentinel_request" {
-					m := s.GetMetric()[0]
-					Expect(m.GetCounter().GetValue()).Should(BeEquivalentTo(1))
-					haveMetric = true
-					fmt.Println(s)
-				}
-			}
-
-			Expect(haveMetric).Should(Equal(false))
-		})
 	})
 
 	ginkgo.Context("enable sentinel and load rules from files", func() {
@@ -79,13 +53,15 @@ var _ = ginkgo.Describe("sentinel unit test with config", func() {
 
 			pass := false
 			for _, s := range ss {
-				if s.GetName() == "sentinel_request" {
+				if s.GetName() == "jupiter_sentinel_request" {
 					m := s.GetMetric()[0]
 					Expect(m.GetCounter().GetValue()).Should(BeEquivalentTo(1))
 					pass = true
 					fmt.Println(s)
 				}
 			}
+
+			fmt.Println("debug:", ss)
 			Expect(pass).Should(Equal(true))
 		})
 
@@ -112,7 +88,7 @@ var _ = ginkgo.Describe("sentinel unit test with config", func() {
 			pass := false
 
 			for _, s := range ss {
-				if s.GetName() == "sentinel_exceptions_thrown" {
+				if s.GetName() == "jupiter_sentinel_exceptions_thrown" {
 					m := s.GetMetric()[0]
 					Expect(m.Counter.GetValue()).Should(BeEquivalentTo(100))
 					pass = true
@@ -140,7 +116,7 @@ var _ = ginkgo.Describe("sentinel unit test with config", func() {
 			pass := false
 
 			for _, s := range ss {
-				if s.GetName() == "sentinel_rt" {
+				if s.GetName() == "jupiter_sentinel_rt" {
 					m := s.GetMetric()[0]
 
 					Expect(m.Histogram.GetSampleCount()).Should(BeEquivalentTo(1))
@@ -187,20 +163,20 @@ var _ = ginkgo.Describe("sentinel unit test with config", func() {
 
 			var pass1, pass2, pass3 bool
 			for _, s := range ss {
-				if s.GetName() == "sentinel_rt" {
+				if s.GetName() == "jupiter_sentinel_rt" {
 					m := s.GetMetric()[0]
 					Expect(m.Histogram.GetSampleCount()).Should(BeEquivalentTo(4))
 					pass1 = true
 				}
 
-				if s.GetName() == "sentinel_request" {
+				if s.GetName() == "jupiter_sentinel_request" {
 					m := s.GetMetric()[0]
 					fmt.Println(m.GetLabel()[1].GetValue(), "!!!!!", m.GetLabel()[2].GetValue())
 					Expect(m.Counter.GetValue()).Should(BeEquivalentTo(5))
 					pass2 = true
 				}
 
-				if s.GetName() == "sentinel_state" {
+				if s.GetName() == "jupiter_sentinel_state" {
 					m := s.GetMetric()[0]
 					fmt.Println(m)
 
@@ -241,7 +217,7 @@ var _ = ginkgo.Describe("sentinel unit test with config", func() {
 
 			haveMetric := false
 			for _, s := range ss {
-				if s.GetName() == "sentinel_request" {
+				if s.GetName() == "jupiter_sentinel_request" {
 					m := s.GetMetric()[0]
 					Expect(m.GetCounter().GetValue()).Should(BeEquivalentTo(1))
 					haveMetric = true
@@ -278,12 +254,21 @@ var _ = ginkgo.Describe("sentinel unit test with config", func() {
 			stdConfig = StdConfig()
 			stdConfig.Enable = true
 			stdConfig.Datasource = "etcd"
-			err := stdConfig.Build()
-			Expect(err).Should(BeNil())
+
+			var err error
+
 			cli, err = etcdv3.RawConfig(stdConfig.EtcdRawKey).Singleton()
 			if err != nil {
 				ginkgo.Fail("failed to get etcdv3 client")
 			}
+
+			_, err = cli.Put(context.Background(),
+				"/wsd-sentinel/go/sentinel.test/unknown/local-live/degrade",
+				`[{"enable":false,"resource":"test-watch","strategy":2,"retryTimeoutMs":5000,"minRequestAmount":2,"maxAllowedRtMs":100,"statIntervalMs":1000,"statSlidingWindowBucketCount":5,"threshold":0.5}]`)
+			Expect(err).Should(BeNil())
+
+			err = stdConfig.Build()
+			Expect(err).Should(BeNil())
 
 			time.Sleep(100 * time.Millisecond) //watch操作里每隔一秒拉取一次etcd
 
