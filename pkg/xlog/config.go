@@ -33,7 +33,7 @@ func init() {
 		defaultLogger = RawConfig(constant.ConfigPrefix + ".logger.default").Build()
 
 		log.Printf("reload default logger with configKey: %s", ConfigEntry("jupiter"))
-		jupiterLogger = RawConfig(constant.ConfigPrefix + ".logger.jupiter").Build()
+		jupiterLogger = JupiterConfig().Build()
 	})
 }
 
@@ -91,7 +91,7 @@ func StdConfig(name string) *Config {
 	return RawConfig(ConfigPrefix + "." + name)
 }
 
-// DefaultConfig ...
+// DefaultConfig for application.
 func DefaultConfig() *Config {
 	return &Config{
 		Name:          "jupiter_default.json",
@@ -101,7 +101,7 @@ func DefaultConfig() *Config {
 		MaxAge:        1,   // 1 day
 		MaxBackup:     10,  // 10 backup
 		Interval:      24 * time.Hour,
-		CallerSkip:    2,
+		CallerSkip:    1,
 		AddCaller:     true,
 		Async:         true,
 		Queue:         false,
@@ -112,6 +112,15 @@ func DefaultConfig() *Config {
 			String("iid", pkg.AppInstance()),
 		},
 	}
+}
+
+// JupiterLogger for framework.
+func JupiterConfig() *Config {
+	config := DefaultConfig()
+	config.Name = "jupiter_framework.sys"
+	config, _ = conf.UnmarshalWithExpect(ConfigEntry("jupiter"), config).(*Config)
+
+	return config
 }
 
 // Build ...
