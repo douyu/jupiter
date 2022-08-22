@@ -1,0 +1,5 @@
+[app]
+    mode = "local-live"
+    [app.registry.etcd]
+        endpoints = ["127.0.0.1:2379"]
+        timeout = "5s"

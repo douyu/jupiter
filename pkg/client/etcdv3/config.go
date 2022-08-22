@@ -21,6 +21,7 @@ import (
 	"github.com/douyu/jupiter/pkg/constant"
 	"github.com/douyu/jupiter/pkg/ecode"
 	"github.com/douyu/jupiter/pkg/flag"
+	"github.com/douyu/jupiter/pkg/singleton"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/spf13/cast"
 	"go.uber.org/zap"
@@ -85,6 +86,22 @@ func (config *Config) WithLogger(logger *xlog.Logger) *Config {
 // Build ...
 func (config *Config) Build() (*Client, error) {
 	return newClient(config)
+}
+
+func (config *Config) Singleton() (*Client, error) {
+	if client, ok := singleton.Load(constant.ModuleClientETCDV3, "etcdv3"); ok && client != nil {
+		return client.(*Client), nil
+	}
+
+	client, err := config.Build()
+	if err != nil {
+		xlog.Jupiter().Error("build etcd client failed", zap.Error(err))
+		return nil, err
+	}
+
+	singleton.Store(constant.ModuleClientETCDV3, "etcdv3", client)
+
+	return client, nil
 }
 
 func (config *Config) MustBuild() *Client {

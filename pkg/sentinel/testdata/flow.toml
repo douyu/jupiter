@@ -1,0 +1,9 @@
+[minerva.sentinel]
+    enable = true
+    datasource = "files"
+    [[minerva.sentinel.flowRules]]
+        enable = true
+        resource = "flowrule"
+        threshold = 1
+        controlBehavior = 0
+        statIntervalInMs = 1
