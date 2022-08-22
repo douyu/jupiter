@@ -34,6 +34,7 @@ var _ = Describe("normal case", func() {
 		config := DefaultConfig()
 		config.Addr = "https://httpbin.org"
 		config.EnableTrace = true
+		config.EnableSentinel = true
 		res, err := config.MustBuild().R().Get("/get")
 		Expect(err).Should(BeNil())
 		Expect(res.Status()).Should(Equal("200 OK"))
@@ -42,6 +43,7 @@ var _ = Describe("normal case", func() {
 	It("slowlog", func() {
 		config := DefaultConfig()
 		config.Addr = "https://httpbin.org"
+		config.EnableSentinel = true
 		// 测试慢日志
 		config.SlowThreshold = time.Millisecond
 		res, err := config.MustBuild().R().Get("/get")
@@ -53,6 +55,7 @@ var _ = Describe("normal case", func() {
 	It("on error", func() {
 		config := DefaultConfig()
 		config.Addr = "https://httpbin.org"
+		config.EnableSentinel = true
 
 		res, err := config.MustBuild().R().Get("/status/302")
 		Expect(err.(*url.Error).Err).Should(BeEquivalentTo(errors.New("auto redirect is disabled")))

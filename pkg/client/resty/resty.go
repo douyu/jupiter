@@ -171,12 +171,12 @@ func (config *Config) Build() (*resty.Client, error) {
 		}
 
 		if config.EnableSentinel {
-			a, b := sentinel.Entry(r.URL, api.WithTrafficType(base.Outbound), api.WithResourceType(base.ResTypeWeb))
-			if b != nil {
-				return errors.New(b.Error())
+			entry, err := sentinel.Entry(r.URL, api.WithTrafficType(base.Outbound), api.WithResourceType(base.ResTypeWeb))
+			if err != nil {
+				return err
 			}
 
-			r.SetContext(sentinel.WithContext(r.Context(), a))
+			r.SetContext(sentinel.WithContext(r.Context(), entry))
 		}
 
 		return nil
