@@ -14,6 +14,7 @@ import (
 	"github.com/douyu/jupiter/pkg"
 	"github.com/douyu/jupiter/pkg/client/etcdv3"
 	"github.com/douyu/jupiter/pkg/conf"
+	"github.com/douyu/jupiter/pkg/constant"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"go.uber.org/zap"
 )
@@ -34,13 +35,13 @@ type Config struct {
 }
 
 func StdConfig() Config {
-	return RawConfig("jupiter.sentinel")
+	return RawConfig(constant.ConfigPrefix + ".sentinel")
 }
 
 func RawConfig(key string) Config {
 	config := DefaultConfig()
 
-	if conf.Get("jupiter.sentinel") == nil {
+	if conf.Get(constant.ConfigPrefix+".sentinel") == nil {
 		return config
 	}
 
