@@ -19,8 +19,11 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/alibaba/sentinel-golang/api"
+	"github.com/alibaba/sentinel-golang/core/base"
 	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/metric"
+	"github.com/douyu/jupiter/pkg/sentinel"
 	"github.com/douyu/jupiter/pkg/util/xdebug"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/douyu/jupiter/pkg/xtrace"
@@ -142,6 +145,13 @@ func (config *Config) Build() (*resty.Client, error) {
 			metric.ClientHandleCounter.WithLabelValues(metric.TypeHTTP, "resty", r.Method, r.RawRequest.Host, "error").Inc()
 		}
 
+		if config.EnableSentinel {
+			entry := sentinel.FromContext(r.Context())
+			if entry != nil {
+				entry.Exit(base.WithError(err))
+			}
+		}
+
 	})
 
 	client.OnBeforeRequest(func(c *resty.Client, r *resty.Request) error {
@@ -159,6 +169,16 @@ func (config *Config) Build() (*resty.Client, error) {
 			)
 			r.SetContext(ctx)
 		}
+
+		if config.EnableSentinel {
+			a, b := sentinel.Entry(r.URL, api.WithTrafficType(base.Outbound), api.WithResourceType(base.ResTypeWeb))
+			if b != nil {
+				return errors.New(b.Error())
+			}
+
+			r.SetContext(sentinel.WithContext(r.Context(), a))
+		}
+
 		return nil
 	})
 
@@ -194,6 +214,13 @@ func (config *Config) Build() (*resty.Client, error) {
 					xlog.FieldAddr(r.Request.URL),
 					xlog.FieldCode(int32(r.StatusCode())),
 				)
+			}
+		}
+
+		if config.EnableSentinel {
+			entry := sentinel.FromContext(r.Request.Context())
+			if entry != nil {
+				entry.Exit()
 			}
 		}
 
