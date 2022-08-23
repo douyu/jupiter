@@ -19,7 +19,7 @@ func (s Stage) String() string {
 	case Stage_BeforeLoadConfig:
 		return "BeforeLoadConfig"
 	case Stage_AfterLoadConfig:
-		return "AfterLoadStart"
+		return "AfterLoadConfig"
 	case Stage_BeforeStop:
 		return "BeforeStop"
 	case Stage_AfterStop:
