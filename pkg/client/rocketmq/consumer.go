@@ -16,17 +16,17 @@ package rocketmq
 
 import (
 	"context"
-	"github.com/douyu/jupiter/pkg/xtrace"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/propagation"
 
 	"github.com/apache/rocketmq-client-go/v2"
 	"github.com/apache/rocketmq-client-go/v2/consumer"
 	"github.com/apache/rocketmq-client-go/v2/primitive"
-	"github.com/douyu/jupiter/pkg/defers"
+	"github.com/douyu/jupiter/pkg/hooks"
 	"github.com/douyu/jupiter/pkg/istats"
 	"github.com/douyu/jupiter/pkg/xlog"
+	"github.com/douyu/jupiter/pkg/xtrace"
 	"github.com/juju/ratelimit"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/propagation"
 	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
@@ -282,7 +282,7 @@ func (cc *PushConsumer) Start() error {
 			return err
 		}
 		// 在应用退出的时候，保证注销
-		defers.Register(func() error { cc.Close(); return nil })
+		hooks.Register(hooks.Stage_BeforeStop, cc.Close)
 	}
 
 	return nil
