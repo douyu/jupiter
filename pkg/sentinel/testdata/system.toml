@@ -1,0 +1,8 @@
+[jupiter.sentinel]
+    enable = true
+    datasource = "files"
+    [[jupiter.sentinel.systemRules]]
+        enable = true
+        metricType = 4
+        triggerCount = 1
+        strategy = -1
