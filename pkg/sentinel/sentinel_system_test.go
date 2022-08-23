@@ -25,7 +25,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = ginkgo.FDescribe("sentinel unit test with config", func() {
+var _ = ginkgo.Describe("sentinel unit test with config", func() {
 
 	ginkgo.BeforeEach(func() {
 		stdConfig = StdConfig()
