@@ -20,7 +20,6 @@ import (
 	"time"
 
 	"github.com/douyu/jupiter/pkg/metric"
-
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/fatih/color"
 )
