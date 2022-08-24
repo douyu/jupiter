@@ -17,8 +17,8 @@ package xdebug
 import (
 	"fmt"
 
-	"github.com/douyu/jupiter/pkg/util/xcolor"
 	"github.com/douyu/jupiter/pkg/util/xstring"
+	"github.com/fatih/color"
 	"github.com/tidwall/pretty"
 )
 
@@ -28,7 +28,7 @@ func PrintObject(message string, obj interface{}) {
 		return
 	}
 	fmt.Printf("%s => %s\n",
-		xcolor.Red(message),
+		color.RedString(message),
 		pretty.Color(
 			pretty.Pretty([]byte(xstring.PrettyJson(obj))),
 			pretty.TerminalStyle,
@@ -46,7 +46,7 @@ func PrintKV(key string, val string) {
 	if !IsDevelopmentMode() {
 		return
 	}
-	fmt.Printf("%-50s => %s\n", xcolor.Red(key), xcolor.Green(val))
+	fmt.Printf("%-50s => %s\n", color.RedString(key), color.GreenString(val))
 }
 
 // PrettyKVWithPrefix ...
@@ -54,7 +54,7 @@ func PrintKVWithPrefix(prefix string, key string, val string) {
 	if !IsDevelopmentMode() {
 		return
 	}
-	fmt.Printf("%-8s]> %-30s => %s\n", prefix, xcolor.Red(key), xcolor.Blue(val))
+	fmt.Printf("%-8s]> %-30s => %s\n", prefix, color.RedString(key), color.BlueString(val))
 }
 
 // PrintMap ...
@@ -63,6 +63,6 @@ func PrintMap(data map[string]interface{}) {
 		return
 	}
 	for key, val := range data {
-		fmt.Printf("%-20s : %s\n", xcolor.Red(key), fmt.Sprintf("%+v", val))
+		fmt.Printf("%-20s : %s\n", color.RedString(key), fmt.Sprintf("%+v", val))
 	}
 }

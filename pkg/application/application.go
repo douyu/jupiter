@@ -38,12 +38,12 @@ import (
 	"github.com/douyu/jupiter/pkg/registry"
 	"github.com/douyu/jupiter/pkg/server"
 	"github.com/douyu/jupiter/pkg/signals"
-	"github.com/douyu/jupiter/pkg/util/xcolor"
 	"github.com/douyu/jupiter/pkg/util/xcycle"
 	"github.com/douyu/jupiter/pkg/util/xdebug"
 	"github.com/douyu/jupiter/pkg/util/xgo"
 	"github.com/douyu/jupiter/pkg/worker"
 	"github.com/douyu/jupiter/pkg/xlog"
+	"github.com/fatih/color"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -446,6 +446,6 @@ func (app *Application) printBanner() error {
 
  Welcome to jupiter, starting application ...
 `
-	fmt.Println(xcolor.Green(banner))
+	fmt.Println(color.GreenString(banner))
 	return nil
 }
