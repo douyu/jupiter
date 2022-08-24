@@ -18,7 +18,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/douyu/jupiter/pkg/defers"
+	"github.com/douyu/jupiter/pkg/hooks"
 	"github.com/douyu/jupiter/pkg/util/xcolor"
 	"github.com/douyu/jupiter/pkg/util/xdebug"
 	"go.uber.org/zap"
@@ -91,7 +91,7 @@ func newLogger(config *Config) *zap.Logger {
 	if config.Async {
 		ws = &zapcore.BufferedWriteSyncer{
 			WS: zapcore.AddSync(ws), FlushInterval: defaultFlushInterval, Size: defaultBufferSize}
-		defers.Register(ws.Sync)
+		hooks.Register(hooks.Stage_AfterStop, func() { _ = ws.Sync() })
 	}
 
 	lv := zap.NewAtomicLevelAt(zapcore.InfoLevel)
