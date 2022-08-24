@@ -20,19 +20,16 @@ import (
 	"sync"
 	"time"
 
-	"github.com/douyu/jupiter/pkg/component"
-	"github.com/douyu/jupiter/pkg/executor"
-	job "github.com/douyu/jupiter/pkg/worker/xjob"
-
-	"github.com/BurntSushi/toml"
-	"github.com/douyu/jupiter/pkg/conf"
-
 	//go-lint
 	_ "github.com/douyu/jupiter/pkg/conf/datasource/file"
 	_ "github.com/douyu/jupiter/pkg/conf/datasource/http"
 	_ "github.com/douyu/jupiter/pkg/registry/etcdv3"
 
+	"github.com/BurntSushi/toml"
+	"github.com/douyu/jupiter/pkg/component"
+	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/ecode"
+	"github.com/douyu/jupiter/pkg/executor"
 	"github.com/douyu/jupiter/pkg/flag"
 	"github.com/douyu/jupiter/pkg/hooks"
 	"github.com/douyu/jupiter/pkg/registry"
@@ -42,6 +39,7 @@ import (
 	"github.com/douyu/jupiter/pkg/util/xdebug"
 	"github.com/douyu/jupiter/pkg/util/xgo"
 	"github.com/douyu/jupiter/pkg/worker"
+	job "github.com/douyu/jupiter/pkg/worker/xjob"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/fatih/color"
 	"golang.org/x/sync/errgroup"

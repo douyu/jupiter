@@ -4,6 +4,8 @@ import (
 	"time"
 
 	"github.com/douyu/jupiter/pkg/conf"
+	"github.com/douyu/jupiter/pkg/constant"
+	"github.com/douyu/jupiter/pkg/singleton"
 	"github.com/spf13/cast"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -44,6 +46,17 @@ func DefaultConfig() Config {
 	}
 }
 
-func (config Config) Build() *mongo.Client {
+func (config *Config) Build() *mongo.Client {
 	return newSession(config)
+}
+
+func (config *Config) Singleton() *mongo.Client {
+	if val, ok := singleton.Load(constant.ModuleStoreMongoDB, config.Name); ok {
+		return val.(*mongo.Client)
+	}
+
+	val := config.Build()
+	singleton.Store(constant.ModuleStoreMongoDB, config.Name, val)
+
+	return val
 }

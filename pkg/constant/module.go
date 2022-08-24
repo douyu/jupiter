@@ -10,4 +10,6 @@ const (
 	ModuleClientRedis
 	ModuleClientRocketMQ
 	ModuleClientETCDV3
+
+	ModuleStoreMongoDB
 )
