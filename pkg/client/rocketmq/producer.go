@@ -20,12 +20,15 @@ import (
 	"github.com/apache/rocketmq-client-go/v2"
 	"github.com/apache/rocketmq-client-go/v2/primitive"
 	"github.com/apache/rocketmq-client-go/v2/producer"
+	"github.com/douyu/jupiter/pkg/hooks"
 	"github.com/douyu/jupiter/pkg/istats"
 	"github.com/douyu/jupiter/pkg/util/xdebug"
 	"github.com/douyu/jupiter/pkg/xlog"
 )
 
 type Producer struct {
+	started bool
+
 	rocketmq.Producer
 	name string
 	ProducerConfig
@@ -63,11 +66,20 @@ func (conf *ProducerConfig) Build() *Producer {
 
 	cc.interceptors = append(cc.interceptors, producerDefaultInterceptor(cc), producerMDInterceptor(cc))
 
+	// 服务启动前先start
+	hooks.Register(hooks.Stage_BeforeRun, func() {
+		_ = cc.Start()
+	})
+
 	_producers.Store(name, cc)
 	return cc
 }
 
 func (pc *Producer) Start() error {
+	if pc.started {
+		return nil
+	}
+
 	// 兼容配置
 	client, err := rocketmq.NewProducer(
 		producer.WithNameServer(pc.Addr),
@@ -95,6 +107,7 @@ func (pc *Producer) Start() error {
 		)
 	}
 
+	pc.started = true
 	pc.Producer = client
 	// 进程退出时，producer不Close，避免消息发失败
 	// defers.Register(pc.Close)
