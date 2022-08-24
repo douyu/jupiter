@@ -19,24 +19,21 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/douyu/jupiter/pkg/xtrace"
-	"go.opentelemetry.io/otel/attribute"
-	"time"
-
 	"github.com/douyu/jupiter/pkg"
-	"github.com/douyu/jupiter/pkg/xlog"
-
 	"github.com/douyu/jupiter/pkg/ecode"
 	"github.com/douyu/jupiter/pkg/metric"
-	"github.com/douyu/jupiter/pkg/util/xcolor"
 	"github.com/douyu/jupiter/pkg/util/xstring"
-
+	"github.com/douyu/jupiter/pkg/xlog"
+	"github.com/douyu/jupiter/pkg/xtrace"
+	"github.com/fatih/color"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
+	"time"
 )
 
 var (
@@ -85,12 +82,12 @@ func debugUnaryClientInterceptor(addr string) grpc.UnaryClientInterceptor {
 			prefix = prefix + "(" + remote.Addr.String() + ")"
 		}
 
-		fmt.Printf("%-50s[%s] => %s\n", xcolor.Green(prefix), time.Now().Format("04:05.000"), xcolor.Green("Send: "+method+" | "+xstring.Json(req)))
+		fmt.Printf("%-50s[%s] => %s\n", color.Green(prefix), time.Now().Format("04:05.000"), color.Green("Send: "+method+" | "+xstring.Json(req)))
 		err := invoker(ctx, method, req, reply, cc, append(opts, grpc.Peer(&p))...)
 		if err != nil {
-			fmt.Printf("%-50s[%s] => %s\n", xcolor.Red(prefix), time.Now().Format("04:05.000"), xcolor.Red("Erro: "+err.Error()))
+			fmt.Printf("%-50s[%s] => %s\n", color.Red(prefix), time.Now().Format("04:05.000"), color.Red("Erro: "+err.Error()))
 		} else {
-			fmt.Printf("%-50s[%s] => %s\n", xcolor.Green(prefix), time.Now().Format("04:05.000"), xcolor.Green("Recv: "+xstring.Json(reply)))
+			fmt.Printf("%-50s[%s] => %s\n", color.Green(prefix), time.Now().Format("04:05.000"), color.Green("Recv: "+xstring.Json(reply)))
 		}
 
 		return err

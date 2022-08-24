@@ -23,7 +23,7 @@ import (
 	"time"
 
 	"github.com/douyu/jupiter/pkg/constant"
-	"github.com/douyu/jupiter/pkg/util/xcolor"
+	"github.com/fatih/color"
 )
 
 const jupiterVersion = "0.2.0"
@@ -160,14 +160,14 @@ func LogDir() string {
 
 // PrintVersion print formated version info
 func PrintVersion() {
-	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", xcolor.Red("name"), xcolor.Blue(appName))
-	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", xcolor.Red("appID"), xcolor.Blue(appID))
-	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", xcolor.Red("region"), xcolor.Blue(AppRegion()))
-	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", xcolor.Red("zone"), xcolor.Blue(AppZone()))
-	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", xcolor.Red("appVersion"), xcolor.Blue(buildAppVersion))
-	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", xcolor.Red("jupiterVersion"), xcolor.Blue(jupiterVersion))
-	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", xcolor.Red("buildUser"), xcolor.Blue(buildUser))
-	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", xcolor.Red("buildHost"), xcolor.Blue(buildHost))
-	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", xcolor.Red("buildTime"), xcolor.Blue(BuildTime()))
-	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", xcolor.Red("buildStatus"), xcolor.Blue(buildStatus))
+	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", color.Red("name"), color.Blue(appName))
+	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", color.Red("appID"), color.Blue(appID))
+	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", color.Red("region"), color.Blue(AppRegion()))
+	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", color.Red("zone"), color.Blue(AppZone()))
+	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", color.Red("appVersion"), color.Blue(buildAppVersion))
+	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", color.Red("jupiterVersion"), color.Blue(jupiterVersion))
+	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", color.Red("buildUser"), color.Blue(buildUser))
+	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", color.Red("buildHost"), color.Blue(buildHost))
+	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", color.Red("buildTime"), color.Blue(BuildTime()))
+	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", color.Red("buildStatus"), color.Blue(buildStatus))
 }

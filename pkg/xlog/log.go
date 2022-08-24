@@ -19,8 +19,8 @@ import (
 	"time"
 
 	"github.com/douyu/jupiter/pkg/hooks"
-	"github.com/douyu/jupiter/pkg/util/xcolor"
 	"github.com/douyu/jupiter/pkg/util/xdebug"
+	"github.com/fatih/color"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -145,16 +145,16 @@ func DefaultZapConfig() *zapcore.EncoderConfig {
 
 // DebugEncodeLevel ...
 func DebugEncodeLevel(lv zapcore.Level, enc zapcore.PrimitiveArrayEncoder) {
-	var colorize = xcolor.Red
+	var colorize = color.Red
 	switch lv {
 	case zapcore.DebugLevel:
-		colorize = xcolor.Blue
+		colorize = color.Blue
 	case zapcore.InfoLevel:
-		colorize = xcolor.Green
+		colorize = color.Green
 	case zapcore.WarnLevel:
-		colorize = xcolor.Yellow
+		colorize = color.Yellow
 	case zapcore.ErrorLevel, zap.PanicLevel, zap.DPanicLevel, zap.FatalLevel:
-		colorize = xcolor.Red
+		colorize = color.Red
 	default:
 	}
 	enc.AppendString(colorize(lv.CapitalString()))

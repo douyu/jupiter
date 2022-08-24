@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/douyu/jupiter/pkg/util/xcolor"
+	"github.com/fatih/color"
 )
 
 var (
@@ -49,7 +49,7 @@ func Do(stage Stage) {
 	mu.Lock()
 	defer mu.Unlock()
 
-	fmt.Printf("[jupiter] %+v\n", xcolor.Green(fmt.Sprintf("hook stage (%s)...", stage)))
+	fmt.Printf("[jupiter] %+v\n", color.Green(fmt.Sprintf("hook stage (%s)...", stage)))
 
 	for i := len(globalHooks[stage]) - 1; i >= 0; i-- {
 		fn := globalHooks[stage][i]
@@ -58,5 +58,5 @@ func Do(stage Stage) {
 		}
 	}
 
-	fmt.Printf("[jupiter] %+v\n", xcolor.Green(fmt.Sprintf("hook stage (%s)... done", stage)))
+	fmt.Printf("[jupiter] %+v\n", color.Green(fmt.Sprintf("hook stage (%s)... done", stage)))
 }
