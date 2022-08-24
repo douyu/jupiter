@@ -1,4 +1,4 @@
-// Copyright 2020 Douyu
+// Copyright 2022 Douyu
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,79 +16,203 @@ package sentinel
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"fmt"
 
 	sentinel "github.com/alibaba/sentinel-golang/api"
 	"github.com/alibaba/sentinel-golang/core/base"
-	sentinel_config "github.com/alibaba/sentinel-golang/core/config"
+	"github.com/alibaba/sentinel-golang/core/circuitbreaker"
+	"github.com/alibaba/sentinel-golang/core/config"
 	"github.com/alibaba/sentinel-golang/core/flow"
+	"github.com/alibaba/sentinel-golang/core/system"
+	"github.com/alibaba/sentinel-golang/ext/datasource"
 	"github.com/douyu/jupiter/pkg"
+	"github.com/douyu/jupiter/pkg/client/etcdv3"
 	"github.com/douyu/jupiter/pkg/conf"
+	"github.com/douyu/jupiter/pkg/constant"
 	"github.com/douyu/jupiter/pkg/xlog"
+	"go.uber.org/zap"
 )
 
-const ModuleName = "sentinel"
-
-// StdConfig ...
-func StdConfig(name string) *Config {
-	return RawConfig("jupiter.sentinel." + name)
+type Config struct {
+	Enable     bool   `toml:"enable"`
+	Datasource string `toml:"datasource"`
+	EtcdRawKey string `toml:"etcdRawKey"`
+	// 熔断降级
+	CbKey   string                `toml:"cbKey"`
+	CbRules []*CircuitBreakerRule `toml:"cbRules"`
+	// 流量控制
+	FlowKey   string       `toml:"flowKey"`
+	FlowRules []*flow.Rule `toml:"flowRules"`
+	// 系统保护
+	SystemKey   string         `toml:"systemKey"`
+	SystemRules []*system.Rule `toml:"systemRules"`
 }
 
-// RawConfig ...
-func RawConfig(key string) *Config {
-	var config = DefaultConfig()
-	if err := conf.UnmarshalKey(key, config); err != nil {
-		xlog.Jupiter().Panic("unmarshal key", xlog.Any("err", err))
+func StdConfig() Config {
+	return RawConfig(constant.ConfigPrefix + ".sentinel")
+}
+
+func RawConfig(key string) Config {
+	config := DefaultConfig()
+
+	if conf.Get(constant.ConfigPrefix+".sentinel") == nil {
+		return config
 	}
+
+	if err := conf.UnmarshalKey(key, &config, conf.TagName("toml")); err != nil {
+		xlog.Jupiter().Warn("unmarshal config", zap.String("key", key), zap.Error(err))
+
+		return config
+	}
+
 	return config
 }
 
-// Config ...
-type Config struct {
-	AppName       string       `json:"appName"`
-	LogPath       string       `json:"logPath"`
-	FlowRules     []*flow.Rule `json:"rules"`
-	FlowRulesFile string       `json:"flowRulesFile"`
-}
-
-// DefaultConfig returns default config for sentinel
-func DefaultConfig() *Config {
-	return &Config{
-		AppName:   pkg.Name(),
-		LogPath:   "/tmp/log",
-		FlowRules: make([]*flow.Rule, 0),
+func DefaultConfig() Config {
+	return Config{
+		Enable:     false,
+		Datasource: SENTINEL_DATASOURCE_ETCD,
+		EtcdRawKey: "app.registry.etcd",
+		// 熔断降级规则 /wsd-sentinel/{language}/{app}/{idc}/{env}/{ruleType}=${value}
+		CbKey: "/wsd-sentinel/go/%s/%s/%s/degrade",
+		// 流量控制规则 /wsd-sentinel/{language}/{app}/{idc}/{env}/{ruleType}=${value}
+		FlowKey: "/wsd-sentinel/go/%s/%s/%s/flow",
+		// 系统保护规则 /wsd-sentinel/{language}/{app}/{idc}/{env}/{ruleType}=${value}
+		SystemKey: "/wsd-sentinel/go/%s/%s/%s/system",
 	}
 }
 
-// InitSentinelCoreComponent init sentinel core component
-// Currently, only flow rules from json file is supported
-// todo: support dynamic rule config
-// todo: support more rule such as system rule
-func (config *Config) Build() error {
-	if config.FlowRulesFile != "" {
-		var rules []*flow.Rule
-		content, err := ioutil.ReadFile(config.FlowRulesFile)
+func (e Config) exitHandler(entry *SentinelEntry, ctx *EntryContext) error {
+	if ctx.Err() != nil {
+		sentinelExceptionsThrown.WithLabelValues(labels(entry.Resource().Name())...).Inc()
+	} else {
+		sentinelSuccess.WithLabelValues(labels(entry.Resource().Name())...).Inc()
+	}
+
+	sentinelRt.WithLabelValues(labels(entry.Resource().Name())...).Observe(float64(ctx.Rt()) / 1000)
+
+	return ctx.Err()
+}
+
+func (c Config) Entry(resource string, opts ...EntryOption) (*SentinelEntry, *BlockError) {
+	if !c.Enable {
+		return base.NewSentinelEntry(nil, nil, nil), nil
+	}
+
+	a, b := sentinel.Entry(resource, opts...)
+
+	sentinelReqeust.WithLabelValues(labels(resource)...).Inc()
+
+	if b != nil {
+		sentinelBlocked.WithLabelValues(labels(resource)...).Inc()
+
+		return a, b
+	}
+
+	a.WhenExit(c.exitHandler)
+
+	return a, b
+}
+
+func (c Config) Build() error {
+
+	if !c.Enable {
+		xlog.Jupiter().Info("disable sentinel feature")
+
+		return nil
+	}
+
+	if err := sentinel.InitDefault(); err != nil {
+		xlog.Jupiter().Error("sentinel.InitDefault failed", zap.Error(err))
+
+		return err
+	}
+
+	defaultConfig := config.NewDefaultConfig()
+	defaultConfig.Sentinel.App.Name = pkg.Name()
+
+	err := sentinel.InitWithConfig(defaultConfig)
+	if err != nil {
+		return err
+	}
+
+	circuitbreaker.RegisterStateChangeListeners(&stateChangeTestListener{})
+
+	c.loadRules()
+
+	return nil
+}
+
+func (c Config) loadRules() {
+
+	xlog.Jupiter().Info("load sentinel rules", zap.String("datasource", c.Datasource))
+
+	switch c.Datasource {
+	case SENTINEL_DATASOURCE_ETCD:
+		circuitbreakerHandler := datasource.NewCircuitBreakerRulesHandler(circuitBreakerRuleJsonArrayParser)
+
+		cli, err := etcdv3.RawConfig(c.EtcdRawKey).Singleton()
 		if err != nil {
-			xlog.Jupiter().Error("load sentinel flow rules", xlog.FieldErr(err), xlog.FieldKey(config.FlowRulesFile))
+			panic(err)
 		}
 
-		if err := json.Unmarshal(content, &rules); err != nil {
-			xlog.Jupiter().Error("load sentinel flow rules", xlog.FieldErr(err), xlog.FieldKey(config.FlowRulesFile))
+		ds, err := newDataSource(cli.Client,
+			fmt.Sprintf(c.CbKey, pkg.Name(), pkg.AppZone(), conf.GetString("app.mode")),
+			circuitbreakerHandler,
+			datasource.NewSystemRulesHandler(datasource.SystemRuleJsonArrayParser),
+			datasource.NewFlowRulesHandler(datasource.FlowRuleJsonArrayParser))
+		if err != nil {
+			xlog.Jupiter().Error("sentinel NewDataSource failed", xlog.FieldErr(err))
+			return
 		}
 
-		config.FlowRules = append(config.FlowRules, rules...)
-	}
+		err = ds.Initialize()
+		if err != nil {
+			xlog.Jupiter().Warn("sentinel etcd Initialize failed", xlog.FieldErr(err))
+		}
 
-	configEntity := sentinel_config.NewDefaultConfig()
-	configEntity.Sentinel.App.Name = config.AppName
-	configEntity.Sentinel.Log.Dir = config.LogPath
+	default:
 
-	if len(config.FlowRules) > 0 {
-		_, _ = flow.LoadRules(config.FlowRules)
+		var err error
+		_, err = flow.LoadRules(c.FlowRules)
+		if err != nil {
+			xlog.Jupiter().Warn("sentinel flow.LoadRules failed", xlog.FieldErr(err))
+		}
+
+		_, err = system.LoadRules(c.SystemRules)
+		if err != nil {
+			xlog.Jupiter().Warn("sentinel system.LoadRules failed", xlog.FieldErr(err))
+		}
+
+		rules := convertCbRules(c.CbRules)
+		_, err = circuitbreaker.LoadRules(rules)
+		if err != nil {
+			xlog.Jupiter().Warn("sentinel circuitbreaker.LoadRules failed", xlog.FieldErr(err))
+		}
 	}
-	return sentinel.InitWithConfig(configEntity)
 }
 
-func Entry(resource string) (*base.SentinelEntry, *base.BlockError) {
-	return sentinel.Entry(resource)
+func checkSrcComplianceJson(src []byte) (bool, error) {
+	if len(src) == 0 {
+		return false, nil
+	}
+	return true, nil
+}
+
+func circuitBreakerRuleJsonArrayParser(src []byte) (interface{}, error) {
+	if valid, err := checkSrcComplianceJson(src); !valid {
+		return nil, err
+	}
+
+	rules := make([]*CircuitBreakerRule, 0, 8)
+	if err := json.Unmarshal(src, &rules); err != nil {
+		desc := fmt.Sprintf("Fail to convert source bytes to []*CircuitBreakerRule, err: %s", err.Error())
+
+		xlog.Jupiter().Warn("json.Unmarshal", zap.ByteString("src", src), zap.Error(err))
+		return nil, datasource.NewError(datasource.ConvertSourceError, desc)
+	}
+
+	xlog.Jupiter().Info("circuitBreakerRuleJsonArrayParser finished", zap.Any("rules", rules))
+
+	return convertCbRules(rules), nil
 }

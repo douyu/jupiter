@@ -1,0 +1,48 @@
+[jupiter.sentinel]
+    enable = true
+    datasource = "files"
+    [[jupiter.sentinel.cbRules]]
+        enable = true
+        resource = "recomend"
+        strategy = 2
+        retryTimeoutMs = 3000
+        minRequestAmount = 10
+        statIntervalMs = 5000
+        maxAllowedRtMs = 1000
+        statSlidingWindowBucketCount = 10
+        threshold = 0.4
+    [[jupiter.sentinel.cbRules]]
+        enable = true
+        resource = "circuitbreaker-block"
+        strategy = 2
+        retryTimeoutMs = 3000
+        minRequestAmount = 10
+        statIntervalMs = 5000
+        statSlidingWindowBucketCount = 10
+        maxAllowedRtMs = 1000
+        threshold = 0.4
+    [[jupiter.sentinel.cbRules]]
+        enable = true
+        resource = "timeout"
+        strategy = 2
+        retryTimeoutMs = 3000
+        minRequestAmount = 10
+        statIntervalMs = 5000
+        maxAllowedRtMs = 1000
+        statSlidingWindowBucketCount = 10
+        threshold = 0.4
+    [[jupiter.sentinel.cbRules]]
+        enable = true
+        resource = "error"
+        strategy = 2
+        retryTimeoutMs = 100
+        minRequestAmount = 2
+        maxAllowedRtMs = 1000
+        statIntervalMs = 1000
+        statSlidingWindowBucketCount = 5
+        threshold = 0.5
+[app]
+    mode = "local-live"
+    [app.registry.etcd]
+        endpoints = ["127.0.0.1:2379"]
+        timeout = "5s"

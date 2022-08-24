@@ -1,4 +1,4 @@
-// Copyright 2021 rex lv
+// Copyright 2022 Douyu
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,25 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package sentinel
+package sentinel_test
 
 import (
-	"log"
+	"testing"
 
-	"github.com/douyu/jupiter/pkg/conf"
+	"github.com/alibaba/sentinel-golang/logging"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 )
 
-func init() {
-	// 加载完配置，初始化sentinel
-	conf.OnLoaded(func(c *conf.Configuration) {
-		log.Print("hook config, init sentinel rules")
-		var config = DefaultConfig()
-		if err := conf.UnmarshalKey("sentinel", &config, conf.BuildinModule("reliability")); err != nil {
-			log.Printf("read sentinel config failed %v", err)
-			return
-		}
-
-		// initialize global sentinel
-		_ = config.Build()
-	})
+func TestSentinel(t *testing.T) {
+	logging.ResetGlobalLoggerLevel(logging.DebugLevel)
+	RegisterFailHandler(Fail)
+	RunSpecs(t, "Sentinel Suite")
 }
