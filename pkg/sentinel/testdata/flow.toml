@@ -6,4 +6,4 @@
         resource = "flowrule"
         threshold = 1
         controlBehavior = 0
-        statIntervalInMs = 1
+        statIntervalInMs = 1000
