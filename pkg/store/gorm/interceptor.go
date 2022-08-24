@@ -16,9 +16,10 @@ package gorm
 
 import (
 	"fmt"
-	"github.com/douyu/jupiter/pkg/metric"
 	"strconv"
 	"time"
+
+	"github.com/douyu/jupiter/pkg/metric"
 
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/fatih/color"
@@ -33,12 +34,12 @@ type Interceptor func(*DSN, string, *Config) func(next Handler) Handler
 func debugInterceptor(dsn *DSN, op string, options *Config) func(Handler) Handler {
 	return func(next Handler) Handler {
 		return func(scope *Scope) {
-			fmt.Printf("%-50s[%s] => %s\n", color.Green(dsn.Addr+"/"+dsn.DBName), time.Now().Format("04:05.000"), color.Green("Send: "+logSQL(scope.SQL, scope.SQLVars, true)))
+			fmt.Printf("%-50s[%s] => %s\n", color.GreenString(dsn.Addr+"/"+dsn.DBName), time.Now().Format("04:05.000"), color.GreenString("Send: "+logSQL(scope.SQL, scope.SQLVars, true)))
 			next(scope)
 			if scope.HasError() {
-				fmt.Printf("%-50s[%s] => %s\n", color.Red(dsn.Addr+"/"+dsn.DBName), time.Now().Format("04:05.000"), color.Red("Erro: "+scope.DB().Error.Error()))
+				fmt.Printf("%-50s[%s] => %s\n", color.RedString(dsn.Addr+"/"+dsn.DBName), time.Now().Format("04:05.000"), color.RedString("Erro: "+scope.DB().Error.Error()))
 			} else {
-				fmt.Printf("%-50s[%s] => %s\n", color.Green(dsn.Addr+"/"+dsn.DBName), time.Now().Format("04:05.000"), color.Green("Affected: "+strconv.Itoa(int(scope.DB().RowsAffected))))
+				fmt.Printf("%-50s[%s] => %s\n", color.GreenString(dsn.Addr+"/"+dsn.DBName), time.Now().Format("04:05.000"), color.GreenString("Affected: "+strconv.Itoa(int(scope.DB().RowsAffected))))
 			}
 		}
 	}

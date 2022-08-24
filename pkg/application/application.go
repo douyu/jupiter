@@ -446,6 +446,6 @@ func (app *Application) printBanner() error {
 
  Welcome to jupiter, starting application ...
 `
-	fmt.Println(color.Green(banner))
+	fmt.Println(color.GreenString(banner))
 	return nil
 }

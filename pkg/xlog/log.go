@@ -145,16 +145,16 @@ func DefaultZapConfig() *zapcore.EncoderConfig {
 
 // DebugEncodeLevel ...
 func DebugEncodeLevel(lv zapcore.Level, enc zapcore.PrimitiveArrayEncoder) {
-	var colorize = color.Red
+	var colorize = color.RedString
 	switch lv {
 	case zapcore.DebugLevel:
-		colorize = color.Blue
+		colorize = color.BlueString
 	case zapcore.InfoLevel:
-		colorize = color.Green
+		colorize = color.GreenString
 	case zapcore.WarnLevel:
-		colorize = color.Yellow
+		colorize = color.YellowString
 	case zapcore.ErrorLevel, zap.PanicLevel, zap.DPanicLevel, zap.FatalLevel:
-		colorize = color.Red
+		colorize = color.RedString
 	default:
 	}
 	enc.AppendString(colorize(lv.CapitalString()))

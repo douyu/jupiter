@@ -19,6 +19,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/douyu/jupiter/pkg"
 	"github.com/douyu/jupiter/pkg/ecode"
 	"github.com/douyu/jupiter/pkg/metric"
@@ -33,7 +35,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
-	"time"
 )
 
 var (
@@ -82,12 +83,12 @@ func debugUnaryClientInterceptor(addr string) grpc.UnaryClientInterceptor {
 			prefix = prefix + "(" + remote.Addr.String() + ")"
 		}
 
-		fmt.Printf("%-50s[%s] => %s\n", color.Green(prefix), time.Now().Format("04:05.000"), color.Green("Send: "+method+" | "+xstring.Json(req)))
+		fmt.Printf("%-50s[%s] => %s\n", color.GreenString(prefix), time.Now().Format("04:05.000"), color.GreenString("Send: "+method+" | "+xstring.Json(req)))
 		err := invoker(ctx, method, req, reply, cc, append(opts, grpc.Peer(&p))...)
 		if err != nil {
-			fmt.Printf("%-50s[%s] => %s\n", color.Red(prefix), time.Now().Format("04:05.000"), color.Red("Erro: "+err.Error()))
+			fmt.Printf("%-50s[%s] => %s\n", color.RedString(prefix), time.Now().Format("04:05.000"), color.RedString("Erro: "+err.Error()))
 		} else {
-			fmt.Printf("%-50s[%s] => %s\n", color.Green(prefix), time.Now().Format("04:05.000"), color.Green("Recv: "+xstring.Json(reply)))
+			fmt.Printf("%-50s[%s] => %s\n", color.GreenString(prefix), time.Now().Format("04:05.000"), color.GreenString("Recv: "+xstring.Json(reply)))
 		}
 
 		return err

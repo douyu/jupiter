@@ -62,7 +62,7 @@ func PrettyJsonPrint(message string, obj interface{}) {
 		return
 	}
 	fmt.Printf("%s => %s\n",
-		color.Red(message),
+		color.RedString(message),
 		pretty.Color(
 			pretty.Pretty([]byte(xstring.PrettyJson(obj))),
 			pretty.TerminalStyle,
@@ -77,18 +77,18 @@ func PrettyJsonByte(obj interface{}) string {
 
 // PrettyKV ...
 func PrettyKV(key string, val string) {
-	fmt.Printf("%-50s => %s\n", color.Red(key), color.Green(val))
+	fmt.Printf("%-50s => %s\n", color.RedString(key), color.GreenString(val))
 }
 
 // PrettyKV ...
 func PrettyKVWithPrefix(prefix string, key string, val string) {
-	fmt.Printf(prefix+" %-30s => %s\n", color.Red(key), color.Blue(val))
+	fmt.Printf(prefix+" %-30s => %s\n", color.RedString(key), color.BlueString(val))
 }
 
 // PrettyMap ...
 func PrettyMap(data map[string]interface{}) {
 	for key, val := range data {
-		fmt.Printf("%-20s : %s\n", color.Red(key), fmt.Sprintf("%+v", val))
+		fmt.Printf("%-20s : %s\n", color.RedString(key), fmt.Sprintf("%+v", val))
 	}
 }
 

@@ -160,14 +160,14 @@ func LogDir() string {
 
 // PrintVersion print formated version info
 func PrintVersion() {
-	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", color.Red("name"), color.Blue(appName))
-	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", color.Red("appID"), color.Blue(appID))
-	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", color.Red("region"), color.Blue(AppRegion()))
-	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", color.Red("zone"), color.Blue(AppZone()))
-	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", color.Red("appVersion"), color.Blue(buildAppVersion))
-	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", color.Red("jupiterVersion"), color.Blue(jupiterVersion))
-	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", color.Red("buildUser"), color.Blue(buildUser))
-	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", color.Red("buildHost"), color.Blue(buildHost))
-	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", color.Red("buildTime"), color.Blue(BuildTime()))
-	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", color.Red("buildStatus"), color.Blue(buildStatus))
+	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", color.RedString("name"), color.BlueString(appName))
+	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", color.RedString("appID"), color.BlueString(appID))
+	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", color.RedString("region"), color.BlueString(AppRegion()))
+	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", color.RedString("zone"), color.BlueString(AppZone()))
+	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", color.RedString("appVersion"), color.BlueString(buildAppVersion))
+	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", color.RedString("jupiterVersion"), color.BlueString(jupiterVersion))
+	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", color.RedString("buildUser"), color.BlueString(buildUser))
+	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", color.RedString("buildHost"), color.BlueString(buildHost))
+	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", color.RedString("buildTime"), color.BlueString(BuildTime()))
+	fmt.Printf("%-8s]> %-30s => %s\n", "jupiter", color.RedString("buildStatus"), color.BlueString(buildStatus))
 }
