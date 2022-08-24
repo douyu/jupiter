@@ -15,7 +15,6 @@
 package etcdv3
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/douyu/jupiter/pkg/conf"
@@ -78,7 +77,7 @@ func RawConfig(key string) *Config {
 	if err := conf.UnmarshalKey(key, config); err != nil {
 		config.logger.Panic("client etcd parse config panic", xlog.FieldErrKind(ecode.ErrKindUnmarshalConfigErr), xlog.FieldErr(err), xlog.FieldKey(key), xlog.FieldValueAny(config))
 	}
-	fmt.Println("!!", config)
+
 	return config
 }
 
