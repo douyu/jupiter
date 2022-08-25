@@ -18,7 +18,7 @@ func TestStdConfig(t *testing.T) {
 	tests := []struct {
 		name   string
 		args   args
-		want   Config
+		want   *Config
 		config string
 	}{
 		// TODO: Add test cases.
@@ -27,7 +27,8 @@ func TestStdConfig(t *testing.T) {
 			args: args{
 				name: "demo",
 			},
-			want: Config{
+			want: &Config{
+				Name:            "jupiter.mysql.demo",
 				DSN:             "this is dsn",
 				Debug:           true,
 				MaxIdleConns:    100,
@@ -70,7 +71,7 @@ func TestRawConfig(t *testing.T) {
 	tests := []struct {
 		name   string
 		args   args
-		want   Config
+		want   *Config
 		config string
 		result bool
 	}{
@@ -78,7 +79,8 @@ func TestRawConfig(t *testing.T) {
 		{
 			name: "demo",
 			args: args{key: "jupiter.mysql.demo1"},
-			want: Config{
+			want: &Config{
+				Name:            "jupiter.mysql.demo1",
 				DSN:             "this is dsn",
 				Debug:           true,
 				MaxIdleConns:    100,
@@ -107,7 +109,8 @@ func TestRawConfig(t *testing.T) {
 		{
 			name: "default",
 			args: args{key: "jupiter.mysql.demo2"},
-			want: Config{
+			want: &Config{
+				Name:            "jupiter.mysql.demo2",
 				DSN:             "this is dsn",
 				Debug:           true,
 				MaxIdleConns:    10,
