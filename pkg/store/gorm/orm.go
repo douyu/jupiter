@@ -1,142 +1,109 @@
-// Copyright 2020 Douyu
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 package gorm
 
 import (
 	"context"
-	"errors"
+	"strings"
 
-	"github.com/douyu/jupiter/pkg/util/xdebug"
-
-	"github.com/jinzhu/gorm"
-	// mysql driver
-	_ "github.com/jinzhu/gorm/dialects/mysql"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
-// SQLCommon ...
 type (
-	// SQLCommon alias of gorm.SQLCommon
-	SQLCommon = gorm.SQLCommon
-	// Callback alias of gorm.Callback
-	Callback = gorm.Callback
-	// CallbackProcessor alias of gorm.CallbackProcessor
-	CallbackProcessor = gorm.CallbackProcessor
-	// Dialect alias of gorm.Dialect
-	Dialect = gorm.Dialect
-	// Scope ...
-	Scope = gorm.Scope
-	// DB ...
-	DB = gorm.DB
-	// Model ...
+	DB    = gorm.DB
 	Model = gorm.Model
-	// ModelStruct ...
-	ModelStruct = gorm.ModelStruct
-	// Field ...
-	Field = gorm.Field
-	// FieldStruct ...
-	StructField = gorm.StructField
-	// RowQueryResult ...
-	RowQueryResult = gorm.RowQueryResult
-	// RowsQueryResult ...
-	RowsQueryResult = gorm.RowsQueryResult
-	// Association ...
-	Association = gorm.Association
-	// Errors ...
-	Errors = gorm.Errors
-	// logger ...
-	Logger = gorm.Logger
 )
 
 var (
-	errSlowCommand = errors.New("mysql slow command")
-
-	// IsRecordNotFoundError ...
-	IsRecordNotFoundError = gorm.IsRecordNotFoundError
-
-	// ErrRecordNotFound returns a "record not found error". Occurs only when attempting to query the database with a struct; querying with a slice won't return this error
+	// ErrRecordNotFound record not found error.
 	ErrRecordNotFound = gorm.ErrRecordNotFound
-	// ErrInvalidSQL occurs when you attempt a query with invalid SQL
-	ErrInvalidSQL = gorm.ErrInvalidSQL
-	// ErrInvalidTransaction occurs when you are trying to `Commit` or `Rollback`
-	ErrInvalidTransaction = gorm.ErrInvalidTransaction
-	// ErrCantStartTransaction can't start transaction when you are trying to start one with `Begin`
-	ErrCantStartTransaction = gorm.ErrCantStartTransaction
-	// ErrUnaddressable unaddressable value
-	ErrUnaddressable = gorm.ErrUnaddressable
 )
 
 // WithContext ...
-func WithContext(ctx context.Context, db *DB) *DB {
-	db.InstantSet("_context", ctx)
-	return db
+func WithContext(ctx context.Context, db *gorm.DB) *gorm.DB {
+	return db.WithContext(ctx)
 }
 
-// Open ...
-func Open(dialect string, options *Config) (*DB, error) {
-	inner, err := gorm.Open(dialect, options.DSN)
+func open(options *Config) (*gorm.DB, error) {
+	inner, err := gorm.Open(mysql.Open(options.DSN), &gorm.Config{})
 	if err != nil {
 		return nil, err
 	}
 
-	inner.LogMode(options.Debug)
+	// inner.(options.Debug)
 	// 设置默认连接配置
-	inner.DB().SetMaxIdleConns(options.MaxIdleConns)
-	inner.DB().SetMaxOpenConns(options.MaxOpenConns)
+	db, err := inner.DB()
+	if err != nil {
+		return nil, err
+	}
+
+	db.SetMaxIdleConns(options.MaxIdleConns)
+	db.SetMaxOpenConns(options.MaxOpenConns)
 
 	if options.ConnMaxLifetime != 0 {
-		inner.DB().SetConnMaxLifetime(options.ConnMaxLifetime)
+		db.SetConnMaxLifetime(options.ConnMaxLifetime)
 	}
 
-	if xdebug.IsDevelopmentMode() {
-		inner.LogMode(true)
+	// 开启 debug
+	if options.Debug {
+		inner = inner.Debug()
 	}
 
-	replace := func(processor func() *gorm.CallbackProcessor, callbackName string, interceptors ...Interceptor) {
-		old := processor().Get(callbackName)
-		var handler = old
-		for _, inte := range interceptors {
-			handler = inte(options.dsnCfg, callbackName, options)(handler)
-		}
-		processor().Replace(callbackName, handler)
-	}
-
-	replace(
-		inner.Callback().Delete,
-		"gorm:delete",
-		options.interceptors...,
-	)
-	replace(
-		inner.Callback().Update,
-		"gorm:update",
-		options.interceptors...,
-	)
-	replace(
-		inner.Callback().Create,
-		"gorm:create",
-		options.interceptors...,
-	)
-	replace(
-		inner.Callback().Query,
-		"gorm:query",
-		options.interceptors...,
-	)
-	replace(
-		inner.Callback().RowQuery,
-		"gorm:row_query",
-		options.interceptors...,
-	)
+	registerInterceptor(inner, options, metricInterceptor(), traceInterceptor())
 
 	return inner, err
+}
+
+// Open ...
+// Deprecated
+func Open(options *Config) (*gorm.DB, error) {
+	return open(options)
+}
+
+// 收敛status，避免prometheus日志太多
+func getStatement(err string) string {
+	if !strings.HasPrefix(err, "Errord") {
+		return "Unknown"
+	}
+	slice := strings.Split(err, ":")
+	if len(slice) < 2 {
+		return "Unknown"
+	}
+
+	// 收敛错误
+	return slice[0]
+}
+
+type processor interface {
+	Get(name string) func(*gorm.DB)
+	Replace(name string, handler func(*gorm.DB)) error
+}
+
+func registerInterceptor(db *gorm.DB, options *Config, interceptors ...Interceptor) {
+	dsn, err := ParseDSN(options.DSN)
+	if err != nil {
+		panic(err)
+	}
+
+	var processors = []struct {
+		Name      string
+		Processor processor
+	}{
+		{"gorm:create", db.Callback().Create()},
+		{"gorm:query", db.Callback().Query()},
+		{"gorm:delete", db.Callback().Delete()},
+		{"gorm:update", db.Callback().Update()},
+		{"gorm:row", db.Callback().Row()},
+		{"gorm:raw", db.Callback().Raw()},
+	}
+
+	for _, interceptor := range interceptors {
+		for _, processor := range processors {
+			handler := processor.Processor.Get(processor.Name)
+			handler = interceptor(dsn, processor.Name, options, handler)
+
+			if err := processor.Processor.Replace(processor.Name, handler); err != nil {
+				panic(err)
+			}
+		}
+	}
 }
