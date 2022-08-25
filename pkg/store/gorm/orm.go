@@ -53,12 +53,6 @@ func open(options *Config) (*gorm.DB, error) {
 	return inner, err
 }
 
-// Open ...
-// Deprecated
-func Open(options *Config) (*gorm.DB, error) {
-	return open(options)
-}
-
 // 收敛status，避免prometheus日志太多
 func getStatement(err string) string {
 	if !strings.HasPrefix(err, "Errord") {
