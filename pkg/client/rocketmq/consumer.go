@@ -41,6 +41,7 @@ type PushConsumer struct {
 	interceptors []primitive.Interceptor
 	fInfo        FlowInfo
 	bucket       *ratelimit.Bucket
+	started      bool
 }
 
 func (conf *ConsumerConfig) Build() *PushConsumer {
@@ -72,6 +73,11 @@ func (conf *ConsumerConfig) Build() *PushConsumer {
 		bucket: bucket,
 	}
 	cc.interceptors = append(cc.interceptors, pushConsumerDefaultInterceptor(cc), pushConsumerMDInterceptor(cc))
+
+	// 服务启动前先start
+	hooks.Register(hooks.Stage_BeforeRun, func() {
+		_ = cc.Start()
+	})
 
 	_consumers.Store(name, cc)
 	return cc
@@ -226,6 +232,10 @@ func (cc *PushConsumer) RegisterBatchMessage(f func(context.Context, ...*primiti
 }
 
 func (cc *PushConsumer) Start() error {
+	if cc.started {
+		return nil
+	}
+
 	var opts = []consumer.Option{
 		consumer.WithGroupName(cc.Group),
 		consumer.WithInstance(cc.InstanceName),
@@ -284,6 +294,8 @@ func (cc *PushConsumer) Start() error {
 		// 在应用退出的时候，保证注销
 		hooks.Register(hooks.Stage_BeforeStop, cc.Close)
 	}
+
+	cc.started = true
 
 	return nil
 }
