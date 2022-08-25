@@ -19,7 +19,7 @@ func StdConfig(name string) *Config {
 
 // RawConfig 传入mapstructure格式的配置
 func RawConfig(key string) *Config {
-	var config = DefaultConfig()
+	config := DefaultConfig()
 	config.Name = key
 
 	if err := cfg.UnmarshalKey(key, &config, cfg.TagName("toml")); err != nil {
