@@ -15,7 +15,7 @@ func dial(name string, config *Config) *gorm.DB {
 		xlog.Jupiter().Panic("empty dsn", xlog.FieldName(name))
 	}
 
-	d, err := ParseDSN(config.DSN)
+	dsn, err := parseDSN(config.DSN)
 	if err != nil {
 		xlog.Jupiter().Panic("parse dsn", xlog.FieldName(name), xlog.FieldErr(err))
 	}
@@ -24,22 +24,22 @@ func dial(name string, config *Config) *gorm.DB {
 	err = xretry.Do(config.Retry, config.RetryWaitTime, func() error {
 		db, err = open(config)
 		if err != nil {
-			prome.LibHandleCounter.WithLabelValues(prome.TypeMySQL, name+".dial", d.Addr, err.Error()).Inc()
+			prome.LibHandleCounter.WithLabelValues(prome.TypeMySQL, name+".dial", dsn.Addr, err.Error()).Inc()
 			return errors.New("dial nil" + err.Error())
 		}
 
 		if db == nil {
-			prome.LibHandleCounter.WithLabelValues(prome.TypeMySQL, name+".dial", d.Addr, "nil db").Inc()
+			prome.LibHandleCounter.WithLabelValues(prome.TypeMySQL, name+".dial", dsn.Addr, "nil db").Inc()
 			return errors.New("db nil" + err.Error())
 		}
 		sql, err := db.DB()
 		if err != nil {
-			prome.LibHandleCounter.WithLabelValues(prome.TypeMySQL, name+".ping", d.Addr, err.Error()).Inc()
+			prome.LibHandleCounter.WithLabelValues(prome.TypeMySQL, name+".ping", dsn.Addr, err.Error()).Inc()
 			return errors.New("db " + err.Error())
 		}
 
 		if err := sql.Ping(); err != nil {
-			prome.LibHandleCounter.WithLabelValues(prome.TypeMySQL, name+".ping", d.Addr, err.Error()).Inc()
+			prome.LibHandleCounter.WithLabelValues(prome.TypeMySQL, name+".ping", dsn.Addr, err.Error()).Inc()
 			return errors.New("ping " + err.Error())
 		}
 
@@ -47,9 +47,9 @@ func dial(name string, config *Config) *gorm.DB {
 	})
 	if err != nil {
 		if config.OnDialError == "panic" {
-			xlog.Jupiter().Panic("dial mysql db", xlog.FieldErr(err), xlog.FieldAddr(d.Addr), xlog.FieldName(name))
+			xlog.Jupiter().Panic("dial mysql db", xlog.FieldErr(err), xlog.FieldAddr(dsn.Addr), xlog.FieldName(name))
 		} else {
-			xlog.Jupiter().Panic("dial mysql db", xlog.FieldAddr(d.Addr), xlog.FieldErr(err), xlog.FieldName(name))
+			xlog.Jupiter().Panic("dial mysql db", xlog.FieldAddr(dsn.Addr), xlog.FieldErr(err), xlog.FieldName(name))
 		}
 	}
 

@@ -65,7 +65,7 @@ func TestParseDSN(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotCfg, err := ParseDSN(tt.args.dsn)
+			gotCfg, err := parseDSN(tt.args.dsn)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseDSN() error = %v, wantErr %v", err, tt.wantErr)
 				return

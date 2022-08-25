@@ -73,7 +73,7 @@ type processor interface {
 }
 
 func registerInterceptor(db *gorm.DB, options *Config, interceptors ...Interceptor) {
-	dsn, err := ParseDSN(options.DSN)
+	dsn, err := parseDSN(options.DSN)
 	if err != nil {
 		panic(err)
 	}

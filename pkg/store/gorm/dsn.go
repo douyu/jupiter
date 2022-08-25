@@ -22,8 +22,8 @@ var (
 	errInvalidDSNNoSlash   = errors.New("invalid DSN: missing the slash separating the database name")
 )
 
-// ParseDSN parses the DSN string to a NodeConfig
-func ParseDSN(dsn string) (cfg *DSN, err error) {
+// parseDSN parses the DSN string to a NodeConfig.
+func parseDSN(dsn string) (cfg *DSN, err error) {
 	// New config with some default values
 	cfg = new(DSN)
 
