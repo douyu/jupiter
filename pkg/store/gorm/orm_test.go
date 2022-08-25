@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	dsn = "tcp(localhost:3306)/mysql?timeout=20s&readTimeout=20s&parseTime=true"
+	dsn = "root:123456@tcp(localhost:3306)/mysql?timeout=5s&readTimeout=5s&parseTime=true"
 )
 
 type LzTest struct {
