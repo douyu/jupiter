@@ -9,18 +9,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// Invoker ...
-// Deprecated: use StdConfig instead.
-func Invoker(name string) *gorm.DB {
-	return StdConfig(name).MustSingleton()
-}
-
-// StdNew ...
-// Deprecated: use StdConfig instead.
-func StdNew(name string, opts ...interface{}) *gorm.DB {
-	return StdConfig(name).MustBuild()
-}
-
 // dial returns a new DB connection or an error.
 func dial(name string, config *Config) *gorm.DB {
 	if config.DSN == "" {

@@ -56,16 +56,16 @@ func TestStdNew(t *testing.T) {
 			assert.Nil(t, cfg.LoadFromReader(bytes.NewReader([]byte(tt.config)), toml.Unmarshal))
 			defer cfg.Reset()
 			if tt.wantErr {
-				assert.Panics(t, func() { StdNew(tt.args.name, tt.args.opts...) })
+				assert.Panics(t, func() { StdConfig(tt.args.name).MustBuild() })
 			} else {
-				assert.NotPanics(t, func() { StdNew(tt.args.name, tt.args.opts...) })
+				assert.NotPanics(t, func() { StdConfig(tt.args.name).MustBuild() })
 			}
 		})
 
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Nil(t, cfg.LoadFromReader(bytes.NewReader([]byte(tt.config)), toml.Unmarshal))
 			defer cfg.Reset()
-			assert.NotPanics(t, func() { Invoker(tt.args.name) })
+			assert.NotPanics(t, func() { StdConfig(tt.args.name).MustBuild() })
 		})
 	}
 }
