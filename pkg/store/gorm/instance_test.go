@@ -20,7 +20,7 @@ func (u User) TableName() string {
 	return "users"
 }
 
-func ExampleClient_New() {
+func TestClient_New(t *testing.T) {
 	// 1. 从配置文件中创建client
 	_ = StdNew("demo") // 读取jupiter.mysql.demo配置，创建实例
 
@@ -59,7 +59,7 @@ func TestStdNew(t *testing.T) {
 			wantErr: false,
 			config: `
 			[jupiter.mysql.demo]
-				dsn="root:123456@tcp(mysql)/mysql?timeout=20s&readTimeout=20s"
+				dsn="root:123456@tcp(localhost:3306)/mysql?timeout=20s&readTimeout=20s"
 				debug=true
 				maxIdleConns=50
 				connMaxLifeTime="20m"
