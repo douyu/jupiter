@@ -229,6 +229,8 @@ func (app *Application) Run(servers ...server.Server) error {
 	app.waitSignals() //start signal listen task in goroutine
 	defer app.clean()
 
+	hooks.Do(hooks.Stage_BeforeRun)
+
 	// todo jobs not graceful
 	_ = app.startJobs()
 

@@ -20,6 +20,8 @@ func (s Stage) String() string {
 		return "BeforeLoadConfig"
 	case Stage_AfterLoadConfig:
 		return "AfterLoadConfig"
+	case Stage_BeforeRun:
+		return "BeforeRun"
 	case Stage_BeforeStop:
 		return "BeforeStop"
 	case Stage_AfterStop:
@@ -32,6 +34,7 @@ func (s Stage) String() string {
 const (
 	Stage_BeforeLoadConfig Stage = iota + 1
 	Stage_AfterLoadConfig
+	Stage_BeforeRun
 	Stage_BeforeStop
 	Stage_AfterStop
 )

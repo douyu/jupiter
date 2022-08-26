@@ -11,7 +11,6 @@ const (
 	ModuleClientRocketMQ
 	ModuleClientEtcd
 
-	ModuleRegistryEtcd
-
 	ModuleStoreMongoDB
+	ModuleStoreGorm
 )
