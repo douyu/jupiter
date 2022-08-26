@@ -1,4 +1,4 @@
-// Copyright 2020 Douyu
+// Copyright 2022 Douyu
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -36,8 +36,8 @@ var (
 	errInvalidDSNNoSlash   = errors.New("invalid DSN: missing the slash separating the database name")
 )
 
-// ParseDSN parses the DSN string to a NodeConfig
-func ParseDSN(dsn string) (cfg *DSN, err error) {
+// parseDSN parses the DSN string to a NodeConfig.
+func parseDSN(dsn string) (cfg *DSN, err error) {
 	// New config with some default values
 	cfg = new(DSN)
 

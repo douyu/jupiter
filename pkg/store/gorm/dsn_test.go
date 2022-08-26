@@ -1,4 +1,4 @@
-// Copyright 2020 Douyu
+// Copyright 2022 Douyu
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -79,7 +79,7 @@ func TestParseDSN(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotCfg, err := ParseDSN(tt.args.dsn)
+			gotCfg, err := parseDSN(tt.args.dsn)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ParseDSN() error = %v, wantErr %v", err, tt.wantErr)
 				return

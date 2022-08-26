@@ -35,6 +35,7 @@ func TestStdConfig(t *testing.T) {
 				name: "demo",
 			},
 			want: Config{
+				Name:          "demo",
 				DSN:           "",
 				SocketTimeout: time.Second * 5,
 				PoolLimit:     100,
