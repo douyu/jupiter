@@ -19,8 +19,10 @@ import (
 
 	"github.com/douyu/jupiter/pkg/client/etcdv3"
 	"github.com/douyu/jupiter/pkg/conf"
+	"github.com/douyu/jupiter/pkg/constant"
 	"github.com/douyu/jupiter/pkg/ecode"
 	"github.com/douyu/jupiter/pkg/registry"
+	"github.com/douyu/jupiter/pkg/singleton"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"go.uber.org/zap"
 )
@@ -78,5 +80,29 @@ func (config Config) MustBuild() registry.Registry {
 	if err != nil {
 		xlog.Jupiter().Panic("build registry failed", zap.Error(err))
 	}
+	return reg
+}
+
+func (config *Config) Singleton() (registry.Registry, error) {
+	if val, ok := singleton.Load(constant.ModuleClientEtcd, "etcdv3"); ok {
+		return val.(registry.Registry), nil
+	}
+
+	reg, err := config.Build()
+	if err != nil {
+		return nil, err
+	}
+
+	singleton.Store(constant.ModuleClientEtcd, "etcdv3", reg)
+
+	return reg, nil
+}
+
+func (config *Config) MustSingleton() registry.Registry {
+	reg, err := config.Singleton()
+	if err != nil {
+		xlog.Jupiter().Panic("build registry failed", zap.Error(err))
+	}
+
 	return reg
 }

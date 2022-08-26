@@ -18,7 +18,9 @@ import (
 	"time"
 
 	"github.com/douyu/jupiter/pkg/conf"
+	"github.com/douyu/jupiter/pkg/constant"
 	"github.com/douyu/jupiter/pkg/ecode"
+	"github.com/douyu/jupiter/pkg/singleton"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/spf13/cast"
 	"google.golang.org/grpc"
@@ -136,4 +138,26 @@ func (config *Config) Build() *grpc.ClientConn {
 	}
 
 	return newGRPCClient(config)
+}
+
+// Singleton returns a singleton client conn.
+func (config *Config) Singleton() (*grpc.ClientConn, error) {
+	if val, ok := singleton.Load(constant.ModuleClientGrpc, config.Name); ok && val != nil {
+		return val.(*grpc.ClientConn), nil
+	}
+
+	cc := config.Build()
+	singleton.Store(constant.ModuleClientGrpc, config.Name, cc)
+
+	return cc, nil
+}
+
+// MustSingleton panics when error found.
+func (config *Config) MustSingleton() *grpc.ClientConn {
+	cc, err := config.Singleton()
+	if err != nil {
+		config.logger.Panic("client grpc build client conn panic")
+	}
+
+	return cc
 }

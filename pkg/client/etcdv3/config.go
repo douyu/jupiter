@@ -15,7 +15,6 @@
 package etcdv3
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/douyu/jupiter/pkg/conf"
@@ -33,6 +32,7 @@ var ConfigPrefix = constant.ConfigPrefix + ".etcdv3"
 // Config ...
 type (
 	Config struct {
+		Name      string   `json:"name"`
 		Endpoints []string `json:"endpoints"`
 		CertFile  string   `json:"certFile"`
 		KeyFile   string   `json:"keyFile"`
@@ -72,10 +72,12 @@ func StdConfig(name string) *Config {
 // RawConfig ...
 func RawConfig(key string) *Config {
 	var config = DefaultConfig()
+	config.Name = key
+
 	if err := conf.UnmarshalKey(key, config); err != nil {
 		config.logger.Panic("client etcd parse config panic", xlog.FieldErrKind(ecode.ErrKindUnmarshalConfigErr), xlog.FieldErr(err), xlog.FieldKey(key), xlog.FieldValueAny(config))
 	}
-	fmt.Println("!!", config)
+
 	return config
 }
 
@@ -91,7 +93,7 @@ func (config *Config) Build() (*Client, error) {
 }
 
 func (config *Config) Singleton() (*Client, error) {
-	if client, ok := singleton.Load(constant.ModuleClientETCDV3, "etcdv3"); ok && client != nil {
+	if client, ok := singleton.Load(constant.ModuleRegistryEtcd, config.Name); ok && client != nil {
 		return client.(*Client), nil
 	}
 
@@ -101,7 +103,7 @@ func (config *Config) Singleton() (*Client, error) {
 		return nil, err
 	}
 
-	singleton.Store(constant.ModuleClientETCDV3, "etcdv3", client)
+	singleton.Store(constant.ModuleRegistryEtcd, config.Name, client)
 
 	return client, nil
 }

@@ -16,7 +16,7 @@ opts: Open Option, 用于覆盖配置文件中定义的配置
 example: DB := DB("StdConfig", orm.RawConfig("jupiter.mongodb.StdConfig"))
 */
 
-func newSession(config Config) *mongo.Client {
+func newSession(config *Config) *mongo.Client {
 
 	// check config param
 	isConfigErr(config)
@@ -35,7 +35,7 @@ func newSession(config Config) *mongo.Client {
 	return client
 }
 
-func isConfigErr(config Config) {
+func isConfigErr(config *Config) {
 	if config.SocketTimeout == time.Duration(0) {
 		_logger.Panic("invalid config", xlog.FieldExtMessage("socketTimeout"))
 	}
