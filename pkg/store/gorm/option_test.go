@@ -62,7 +62,7 @@ func TestStdConfig(t *testing.T) {
 					debug=true
 					maxIdleConns=100
 					maxOpenConns=100
-					connMaxLifetime="1s"
+					connMaxLifetime="3s"
 					level="panic"
 					slowThreshold="100ms"
 			`,
@@ -113,7 +113,7 @@ func TestRawConfig(t *testing.T) {
 					debug=true
 					maxIdleConns=100
 					maxOpenConns=100
-					connMaxLifetime="1s"
+					connMaxLifetime="3s"
 					level="panic"
 					slowThreshold="100ms"
 					retry=3
