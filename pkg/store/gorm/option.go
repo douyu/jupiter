@@ -72,8 +72,10 @@ type Config struct {
 	// 记录错误sql时,是否打印包含参数的完整sql语句
 	// select * from aid = ?;
 	// select * from aid = 288016;
-	DetailSQL     bool          `json:"detailSql" toml:"detailSql"`
-	Retry         int           `json:"retry" toml:"retry"`
+	DetailSQL bool `json:"detailSql" toml:"detailSql"`
+	// 重试次数
+	Retry int `json:"retry" toml:"retry"`
+	// 重试等待时间
 	RetryWaitTime time.Duration `json:"retryWaitTime" toml:"retryWaitTime"`
 }
 
@@ -87,7 +89,7 @@ func DefaultConfig() Config {
 		ConnMaxLifetime: cast.ToDuration("300s"),
 		OnDialError:     "panic",
 		SlowThreshold:   cast.ToDuration("500ms"),
-		DialTimeout:     cast.ToDuration("1s"),
+		DialTimeout:     cast.ToDuration("3s"),
 		AutoShadowTable: false,
 		raw:             nil,
 		Retry:           2,

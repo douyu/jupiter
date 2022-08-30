@@ -24,12 +24,12 @@ type (
 )
 
 // StdConfig 返回标准配置
-func StdConfig(name string) Config {
+func StdConfig(name string) *Config {
 	return RawConfig("jupiter.mongo." + name)
 }
 
 // RawConfig 裸配置
-func RawConfig(key string) Config {
+func RawConfig(key string) *Config {
 	var config = DefaultConfig()
 	config.Name = key
 	if err := conf.UnmarshalKey(key, &config, conf.TagName("toml")); err != nil {
@@ -39,8 +39,8 @@ func RawConfig(key string) Config {
 }
 
 // DefaultConfig 默认配置
-func DefaultConfig() Config {
-	return Config{
+func DefaultConfig() *Config {
+	return &Config{
 		SocketTimeout: cast.ToDuration("5s"),
 		PoolLimit:     100,
 	}

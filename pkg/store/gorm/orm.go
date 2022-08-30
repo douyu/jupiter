@@ -15,7 +15,6 @@
 package gorm
 
 import (
-	"context"
 	"strings"
 
 	"gorm.io/driver/mysql"
@@ -31,11 +30,6 @@ var (
 	// ErrRecordNotFound record not found error.
 	ErrRecordNotFound = gorm.ErrRecordNotFound
 )
-
-// WithContext ...
-func WithContext(ctx context.Context, db *gorm.DB) *gorm.DB {
-	return db.WithContext(ctx)
-}
 
 func open(options *Config) (*gorm.DB, error) {
 	inner, err := gorm.Open(mysql.Open(options.DSN), &gorm.Config{})

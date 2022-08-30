@@ -170,7 +170,7 @@ func TestCreate(t *testing.T) {
 		DetailSQL:       true,
 	})
 	assert.Nil(t, err)
-	assert.Nil(t, WithContext(context.Background(), got).Create(&lztest).Error)
+	assert.Nil(t, got.Create(&lztest).Error)
 
 	//stress
 	gotshadow, err := openTestingDB(t, &Config{
@@ -187,7 +187,7 @@ func TestCreate(t *testing.T) {
 	md["x-dyctx-label"] = []string{"1"}
 	ctx := imeta.WithContext(context.Background(), md)
 	assert.Nil(t, err)
-	assert.Nil(t, WithContext(ctx, gotshadow).Create(&lztestshadow).Error)
+	assert.Nil(t, gotshadow.WithContext(ctx).Create(&lztestshadow).Error)
 	assert.Equal(t, lztest.Name, lztestshadow.Name)
 
 }
@@ -210,15 +210,15 @@ func TestFirstOrInit(t *testing.T) {
 
 	var lztest []LzTest
 	var lztest1 LzTest
-	assert.Nil(t, WithContext(context.Background(), got).Where(LzTest{Name: "LzFirstOrInit1"}).Attrs(LzTest{Age: 15}).FirstOrInit(&lztest1).Error)
-	assert.Nil(t, WithContext(context.Background(), got).Create(&lztest1).Error)
-	assert.Nil(t, WithContext(context.Background(), got).Where("name = ?", "LzFirstOrInit1").Find(&lztest).Error)
+	assert.Nil(t, got.WithContext(context.Background()).Where(LzTest{Name: "LzFirstOrInit1"}).Attrs(LzTest{Age: 15}).FirstOrInit(&lztest1).Error)
+	assert.Nil(t, got.WithContext(context.Background()).Create(&lztest1).Error)
+	assert.Nil(t, got.WithContext(context.Background()).Where("name = ?", "LzFirstOrInit1").Find(&lztest).Error)
 	assert.Equal(t, uint(15), lztest[0].Age)
 
-	assert.Nil(t, WithContext(context.Background(), got).Where(LzTest{Name: "LzFirstOrInit1"}).Attrs("age", 30).FirstOrInit(&lztest1).Error)
+	assert.Nil(t, got.WithContext(context.Background()).Where(LzTest{Name: "LzFirstOrInit1"}).Attrs("age", 30).FirstOrInit(&lztest1).Error)
 	assert.Equal(t, uint(15), lztest1.Age)
 
-	assert.Nil(t, WithContext(context.Background(), got).Where(LzTest{Name: "LzFirstOrInit1"}).Assign(map[string]interface{}{"age": 16}).FirstOrInit(&lztest1).Error)
+	assert.Nil(t, got.WithContext(context.Background()).Where(LzTest{Name: "LzFirstOrInit1"}).Assign(map[string]interface{}{"age": 16}).FirstOrInit(&lztest1).Error)
 	assert.Equal(t, uint(16), lztest1.Age)
 
 	//stress
@@ -242,16 +242,16 @@ func TestFirstOrInit(t *testing.T) {
 
 	// where(struct) unsupport
 	//assert.Nil(t,WithContext(ctx,gotshadow).Where(LzTest{Name:"LzFirstOrInit1"}).Attrs(LzTest{Age:15}).FirstOrInit(&lztestshadow1).Error)
-	assert.Nil(t, WithContext(ctx, gotshadow).Where(map[string]interface{}{"name": "LzFirstOrInit1"}).Attrs(LzTest{Age: 15}).FirstOrInit(&lztestshadow1).Error)
-	assert.Nil(t, WithContext(ctx, gotshadow).Create(&lztestshadow1).Error)
-	assert.Nil(t, WithContext(ctx, gotshadow).Where("name = ?", "LzFirstOrInit1").Find(&lztestshadow).Error)
+	assert.Nil(t, gotshadow.WithContext(ctx).Where(map[string]interface{}{"name": "LzFirstOrInit1"}).Attrs(LzTest{Age: 15}).FirstOrInit(&lztestshadow1).Error)
+	assert.Nil(t, gotshadow.WithContext(ctx).Create(&lztestshadow1).Error)
+	assert.Nil(t, gotshadow.WithContext(ctx).Where("name = ?", "LzFirstOrInit1").Find(&lztestshadow).Error)
 	assert.Equal(t, uint(15), lztestshadow[0].Age)
 
 	//assert.Nil(t,WithContext(ctx,gotshadow).Where(LzTest{Name:"LzFirstOrInit1"}).Attrs("age",30).FirstOrInit(&lztestshadow1).Error)
-	assert.Nil(t, WithContext(ctx, gotshadow).Where(map[string]interface{}{"name": "LzFirstOrInit1"}).Attrs("age", 30).FirstOrInit(&lztestshadow1).Error)
+	assert.Nil(t, gotshadow.WithContext(ctx).Where(map[string]interface{}{"name": "LzFirstOrInit1"}).Attrs("age", 30).FirstOrInit(&lztestshadow1).Error)
 	assert.Equal(t, uint(15), lztestshadow1.Age)
 
-	assert.Nil(t, WithContext(ctx, gotshadow).Where(map[string]interface{}{"name": "LzFirstOrInit1"}).Assign(map[string]interface{}{"age": 16}).FirstOrInit(&lztestshadow1).Error)
+	assert.Nil(t, gotshadow.WithContext(ctx).Where(map[string]interface{}{"name": "LzFirstOrInit1"}).Assign(map[string]interface{}{"age": 16}).FirstOrInit(&lztestshadow1).Error)
 	assert.Equal(t, uint(16), lztestshadow1.Age)
 
 }
@@ -274,16 +274,16 @@ func TestFirstOrCreate(t *testing.T) {
 
 	var Lztest []LzTest
 	var lztest1 LzTest
-	assert.Nil(t, WithContext(context.Background(), got).Where(LzTest{Name: "LzFirstOrInit2"}).Attrs(LzTest{Age: 15}).FirstOrCreate(&lztest1).Error)
-	assert.Nil(t, WithContext(context.Background(), got).Where("name = ?", "LzFirstOrInit2").Find(&Lztest).Error)
+	assert.Nil(t, got.WithContext(context.Background()).Where(LzTest{Name: "LzFirstOrInit2"}).Attrs(LzTest{Age: 15}).FirstOrCreate(&lztest1).Error)
+	assert.Nil(t, got.WithContext(context.Background()).Where("name = ?", "LzFirstOrInit2").Find(&Lztest).Error)
 	assert.Equal(t, uint(15), Lztest[0].Age)
 
-	assert.Nil(t, WithContext(context.Background(), got).Where(LzTest{Name: "LzFirstOrInit2"}).Attrs("age", 30).FirstOrCreate(&lztest1).Error)
-	assert.Nil(t, WithContext(context.Background(), got).Where("name = ?", "LzFirstOrInit2").Find(&Lztest).Error)
+	assert.Nil(t, got.WithContext(context.Background()).Where(LzTest{Name: "LzFirstOrInit2"}).Attrs("age", 30).FirstOrCreate(&lztest1).Error)
+	assert.Nil(t, got.WithContext(context.Background()).Where("name = ?", "LzFirstOrInit2").Find(&Lztest).Error)
 	assert.Equal(t, uint(15), Lztest[0].Age)
 
-	assert.Nil(t, WithContext(context.Background(), got).Where(LzTest{Name: "LzFirstOrInit2"}).Assign(map[string]interface{}{"age": 16}).FirstOrCreate(&lztest1).Error)
-	assert.Nil(t, WithContext(context.Background(), got).Where("name = ?", "LzFirstOrInit2").Find(&Lztest).Error)
+	assert.Nil(t, got.WithContext(context.Background()).Where(LzTest{Name: "LzFirstOrInit2"}).Assign(map[string]interface{}{"age": 16}).FirstOrCreate(&lztest1).Error)
+	assert.Nil(t, got.WithContext(context.Background()).Where("name = ?", "LzFirstOrInit2").Find(&Lztest).Error)
 	assert.Equal(t, uint(16), Lztest[0].Age)
 
 	//stress
@@ -305,19 +305,19 @@ func TestFirstOrCreate(t *testing.T) {
 	var Lztestshadow []LzTest
 	var lztestshadow1 LzTest
 	//assert.Nil(t,WithContext(ctx,gotshadow).Where(LzTest{Name:"LzFirstOrInit2"}).Attrs(LzTest{Age:15}).FirstOrCreate(&lztestshadow1).Error)
-	assert.Nil(t, WithContext(ctx, gotshadow).Where(map[string]interface{}{"name": "LzFirstOrInit2"}).Attrs(LzTest{Age: 15}).FirstOrCreate(&lztestshadow1).Error)
-	assert.Nil(t, WithContext(ctx, gotshadow).Where("name = ?", "LzFirstOrInit2").Find(&Lztestshadow).Error)
+	assert.Nil(t, gotshadow.WithContext(ctx).Where(map[string]interface{}{"name": "LzFirstOrInit2"}).Attrs(LzTest{Age: 15}).FirstOrCreate(&lztestshadow1).Error)
+	assert.Nil(t, gotshadow.WithContext(ctx).Where("name = ?", "LzFirstOrInit2").Find(&Lztestshadow).Error)
 	assert.Equal(t, uint(15), Lztestshadow[0].Age)
 
 	// where(struct) unsuport
 	//assert.Nil(t,WithContext(ctx,gotshadow).Where(LzTest{Name:"LzFirstOrInit2"}).Attrs("age",30).FirstOrCreate(&lztestshadow1).Error)
-	assert.Nil(t, WithContext(ctx, gotshadow).Where(map[string]interface{}{"name": "LzFirstOrInit2"}).Attrs("age", 30).FirstOrCreate(&lztestshadow1).Error)
-	assert.Nil(t, WithContext(ctx, gotshadow).Where("name = ?", "LzFirstOrInit2").Find(&Lztestshadow).Error)
+	assert.Nil(t, gotshadow.WithContext(ctx).Where(map[string]interface{}{"name": "LzFirstOrInit2"}).Attrs("age", 30).FirstOrCreate(&lztestshadow1).Error)
+	assert.Nil(t, gotshadow.WithContext(ctx).Where("name = ?", "LzFirstOrInit2").Find(&Lztestshadow).Error)
 	assert.Equal(t, uint(15), Lztestshadow[0].Age)
 
 	//assert.Nil(t,WithContext(ctx,gotshadow).Where(LzTest{Name:"LzFirstOrInit2"}).Assign(map[string]interface{}{"age": 16}).FirstOrCreate(&lztestshadow1).Error)
-	assert.Nil(t, WithContext(ctx, gotshadow).Where("name = ?", "LzFirstOrInit2").Assign(map[string]interface{}{"age": 16}).FirstOrCreate(&lztestshadow1).Error)
-	assert.Nil(t, WithContext(ctx, gotshadow).Where("name = ?", "LzFirstOrInit2").Find(&Lztestshadow).Error)
+	assert.Nil(t, gotshadow.WithContext(ctx).Where("name = ?", "LzFirstOrInit2").Assign(map[string]interface{}{"age": 16}).FirstOrCreate(&lztestshadow1).Error)
+	assert.Nil(t, gotshadow.WithContext(ctx).Where("name = ?", "LzFirstOrInit2").Find(&Lztestshadow).Error)
 	assert.Equal(t, uint(16), Lztestshadow[0].Age)
 }
 
@@ -351,37 +351,37 @@ func TestQuery(t *testing.T) {
 		SlowThreshold:   time.Millisecond * 300,
 	})
 	assert.Nil(t, err)
-	assert.Nil(t, WithContext(context.Background(), got).Create(&LzTest{
+	assert.Nil(t, got.WithContext(context.Background()).Create(&LzTest{
 		Name: "lzfirst",
 		Sex:  1,
 		Age:  100,
 	}).Error)
 
-	assert.Nil(t, WithContext(context.Background(), got).Create(&LzTest{
+	assert.Nil(t, got.WithContext(context.Background()).Create(&LzTest{
 		Name: "lzfirst",
 		Sex:  1,
 		Age:  101,
 	}).Error)
 
-	assert.Nil(t, WithContext(context.Background(), got).Create(&LzTest{
+	assert.Nil(t, got.WithContext(context.Background()).Create(&LzTest{
 		Name: "lzwhere",
 		Sex:  1,
 		Age:  100,
 	}).Error)
 
-	assert.Nil(t, WithContext(context.Background(), got).Create(&Lz2_Test{
+	assert.Nil(t, got.WithContext(context.Background()).Create(&Lz2_Test{
 		Name:  "lzfirst",
 		Sex:   1,
 		Age:   25,
 		Email: "xxx",
 	}).Error)
 
-	assert.Nil(t, WithContext(context.Background(), got).Create(&LzTestRealted{
+	assert.Nil(t, got.WithContext(context.Background()).Create(&LzTestRealted{
 		Job:      "test",
 		Realname: "lizhou",
 	}).Error)
 
-	assert.Nil(t, WithContext(context.Background(), got).Create(&LzTestRealted{
+	assert.Nil(t, got.WithContext(context.Background()).Create(&LzTestRealted{
 		Job:      "test",
 		Realname: "lizhou2",
 	}).Error)
@@ -390,57 +390,57 @@ func TestQuery(t *testing.T) {
 	//assert.Nil(t,got.WithContext(ctx).First(&lztestshadow,2).Error)
 	//assert.Equal(t,uint(101),lztestshadow.Age)
 
-	assert.Nil(t, WithContext(context.Background(), got).Where("name = ?", "lzfirst").First(&lztestlen).Error)
+	assert.Nil(t, got.WithContext(context.Background()).Where("name = ?", "lzfirst").First(&lztestlen).Error)
 	assert.Equal(t, uint(100), lztestlen[0].Age)
 
-	assert.Nil(t, WithContext(context.Background(), got).Where("name = ?", "lzfirst").Last(&lztestlen).Error)
+	assert.Nil(t, got.WithContext(context.Background()).Where("name = ?", "lzfirst").Last(&lztestlen).Error)
 	assert.Equal(t, uint(101), lztestlen[0].Age)
 
-	assert.Nil(t, WithContext(context.Background(), got).Where("name = ?", "lzfirst").Find(&lztestlen).Error)
+	assert.Nil(t, got.WithContext(context.Background()).Where("name = ?", "lzfirst").Find(&lztestlen).Error)
 	assert.Equal(t, 2, len(lztestlen))
 
-	assert.Nil(t, WithContext(context.Background(), got).Where("name <> ?", "lzfirst").Find(&lztestlen).Error)
+	assert.Nil(t, got.WithContext(context.Background()).Where("name <> ?", "lzfirst").Find(&lztestlen).Error)
 	assert.Equal(t, 1, len(lztestlen))
 
-	assert.Nil(t, WithContext(context.Background(), got).Where("name in (?)", []string{"lzwhere", "lzfirst"}).Find(&lztestlen).Error)
+	assert.Nil(t, got.WithContext(context.Background()).Where("name in (?)", []string{"lzwhere", "lzfirst"}).Find(&lztestlen).Error)
 	assert.Equal(t, 3, len(lztestlen))
 
-	assert.Nil(t, WithContext(context.Background(), got).Where("name LIKE ?", "%lzwhere%").Find(&lztestlen).Error)
+	assert.Nil(t, got.WithContext(context.Background()).Where("name LIKE ?", "%lzwhere%").Find(&lztestlen).Error)
 	assert.Equal(t, 1, len(lztestlen))
 
-	assert.Nil(t, WithContext(context.Background(), got).Where("name = ? AND age > ?", "lzfirst", 100).Find(&lztestlen).Error)
+	assert.Nil(t, got.WithContext(context.Background()).Where("name = ? AND age > ?", "lzfirst", 100).Find(&lztestlen).Error)
 	assert.Equal(t, 1, len(lztestlen))
 
 	//where 连用
-	assert.Nil(t, WithContext(context.Background(), got).Where("name = ? ", "lzfirst").Where("age > ?", 100).Find(&lztestlen).Error)
+	assert.Nil(t, got.WithContext(context.Background()).Where("name = ? ", "lzfirst").Where("age > ?", 100).Find(&lztestlen).Error)
 	assert.Equal(t, 1, len(lztestlen))
 
 	//where(struct)
-	assert.Nil(t, WithContext(context.Background(), got).Where(&LzTest{Name: "lzfirst", Age: 100}).Find(&lztestlen).Error)
+	assert.Nil(t, got.WithContext(context.Background()).Where(&LzTest{Name: "lzfirst", Age: 100}).Find(&lztestlen).Error)
 	assert.Equal(t, 1, len(lztestlen))
 
 	//where(map)
-	assert.Nil(t, WithContext(context.Background(), got).Where(map[string]interface{}{"name": "lzfirst", "age": 100}).Find(&lztestlen).Error)
+	assert.Nil(t, got.WithContext(context.Background()).Where(map[string]interface{}{"name": "lzfirst", "age": 100}).Find(&lztestlen).Error)
 	assert.Equal(t, 1, len(lztestlen))
 
 	//or(struct)
-	assert.Nil(t, WithContext(context.Background(), got).Where("name = ?", "lzfirst").Or(LzTest{Name: "lzwhere"}).Find(&lztestlen).Error)
+	assert.Nil(t, got.WithContext(context.Background()).Where("name = ?", "lzfirst").Or(LzTest{Name: "lzwhere"}).Find(&lztestlen).Error)
 	assert.Equal(t, 3, len(lztestlen))
 
 	//or(map)
-	assert.Nil(t, WithContext(context.Background(), got).Where("name = ?", "lzfirst").Or(map[string]interface{}{"name": "lzwhere"}).Find(&lztestlen).Error)
+	assert.Nil(t, got.WithContext(context.Background()).Where("name = ?", "lzfirst").Or(map[string]interface{}{"name": "lzwhere"}).Find(&lztestlen).Error)
 	assert.Equal(t, 3, len(lztestlen))
 
 	//not
-	assert.Nil(t, WithContext(context.Background(), got).Not("name", "lzfirst").Find(&lztestlen).Error)
+	assert.Nil(t, got.WithContext(context.Background()).Not("name", "lzfirst").Find(&lztestlen).Error)
 	assert.Equal(t, 1, len(lztestlen))
 
 	//not(slice)
-	assert.Nil(t, WithContext(context.Background(), got).Not("name", []string{"lzfirst", "lzwhere"}).Find(&lztestlen).Error)
+	assert.Nil(t, got.WithContext(context.Background()).Not("name", []string{"lzfirst", "lzwhere"}).Find(&lztestlen).Error)
 	assert.Equal(t, 0, len(lztestlen))
 
 	//not(struct)
-	assert.Nil(t, WithContext(context.Background(), got).Not(&LzTest{Name: "lzfirst"}).Find(&lztestlen).Error)
+	assert.Nil(t, got.WithContext(context.Background()).Not(&LzTest{Name: "lzfirst"}).Find(&lztestlen).Error)
 	assert.Equal(t, 1, len(lztestlen))
 
 	//where or not(gorm bug)
@@ -448,46 +448,46 @@ func TestQuery(t *testing.T) {
 	//assert.Equal(t,2,len(lztestlen))
 
 	//inner find
-	assert.Nil(t, WithContext(context.Background(), got).Find(&lztestlen, "name <> ? AND age > ?", "lzwhere", 99).Error)
+	assert.Nil(t, got.WithContext(context.Background()).Find(&lztestlen, "name <> ? AND age > ?", "lzwhere", 99).Error)
 	assert.Equal(t, 2, len(lztestlen))
 
 	//find(struct)
-	assert.Nil(t, WithContext(context.Background(), got).Find(&lztestlen, LzTest{Age: 100}).Error)
+	assert.Nil(t, got.WithContext(context.Background()).Find(&lztestlen, LzTest{Age: 100}).Error)
 	assert.Equal(t, 2, len(lztestlen))
 
 	//find(map[])
-	assert.Nil(t, WithContext(context.Background(), got).Find(&lztestlen, map[string]interface{}{"age": 101}).Error)
+	assert.Nil(t, got.WithContext(context.Background()).Find(&lztestlen, map[string]interface{}{"age": 101}).Error)
 	assert.Equal(t, 1, len(lztestlen))
 
 	//select order
-	assert.Nil(t, WithContext(context.Background(), got).Select("sex,age").Where("name = ?", "lzfirst").Order("age desc").Find(&lztestlen).Error)
+	assert.Nil(t, got.WithContext(context.Background()).Select("sex,age").Where("name = ?", "lzfirst").Order("age desc").Find(&lztestlen).Error)
 	assert.Equal(t, uint(100), lztestlen[1].Age)
 	assert.Equal(t, "", lztestlen[1].Name)
 
-	assert.Nil(t, WithContext(context.Background(), got).Select([]string{"sex,age"}).Where("name = ?", "lzfirst").Order("age desc").Find(&lztestlen).Error)
+	assert.Nil(t, got.WithContext(context.Background()).Select([]string{"sex,age"}).Where("name = ?", "lzfirst").Order("age desc").Find(&lztestlen).Error)
 	assert.Equal(t, uint(100), lztestlen[1].Age)
 	assert.Equal(t, "", lztestlen[1].Name)
 
 	//multi-table query
-	WithContext(context.Background(), got).Table("lztest").Select("lztest.name,lz2test.name").Joins("left join lz2test on lz2test.name = lztest.name").Find(&lztestlen)
+	got.WithContext(context.Background()).Table("lztest").Select("lztest.name,lz2test.name").Joins("left join lz2test on lz2test.name = lztest.name").Find(&lztestlen)
 	assert.Equal(t, "", lztestlen[2].Name)
 
 	//related query
 	var lztest LzTest
-	assert.Nil(t, WithContext(context.Background(), got).Where("id = ?", 2).Preload("LzTestRealted").First(&lztest).Error)
-	// assert.Nil(t, WithContext(context.Background(), got).Model(&lztest).Related(&lztest.LzTestRealted, "ID").Error)
+	assert.Nil(t, got.WithContext(context.Background()).Where("id = ?", 2).Preload("LzTestRealted").First(&lztest).Error)
+	// assert.Nil(t, got.WithContext(context.Background()).Model(&lztest).Related(&lztest.LzTestRealted, "ID").Error)
 	assert.Equal(t, "lizhou2", lztest.LzTestRealted.Realname)
 
 	//limit offset count
 	var count int64
-	assert.Nil(t, WithContext(context.Background(), got).Limit(1).Offset(1).Order("age desc").Find(&lztestlen).Error)
-	assert.Nil(t, WithContext(context.Background(), got).Table("lztest").Limit(1).Count(&count).Error)
-	assert.Nil(t, WithContext(context.Background(), got).Limit(2).Offset(1).Find(&lztestlen).Error)
+	assert.Nil(t, got.WithContext(context.Background()).Limit(1).Offset(1).Order("age desc").Find(&lztestlen).Error)
+	assert.Nil(t, got.WithContext(context.Background()).Table("lztest").Limit(1).Count(&count).Error)
+	assert.Nil(t, got.WithContext(context.Background()).Limit(2).Offset(1).Find(&lztestlen).Error)
 	assert.Equal(t, "lzwhere", lztestlen[1].Name)
 	assert.Equal(t, int64(3), count)
 
 	//group&having
-	rows, err := WithContext(context.Background(), got).Table("lztest").Select("name,sum(age) as totalage").Group("name").Having("sum(age) > ?", 200).Rows()
+	rows, err := got.WithContext(context.Background()).Table("lztest").Select("name,sum(age) as totalage").Group("name").Having("sum(age) > ?", 200).Rows()
 	assert.Nil(t, err)
 	for rows.Next() {
 		fmt.Print(rows.Columns())
@@ -495,11 +495,11 @@ func TestQuery(t *testing.T) {
 
 	//pluck
 	var names []string
-	assert.Nil(t, WithContext(context.Background(), got).Model(&LzTest{}).Pluck("name", &names).Error)
+	assert.Nil(t, got.WithContext(context.Background()).Model(&LzTest{}).Pluck("name", &names).Error)
 	assert.Equal(t, "lzfirst", names[1])
 
 	//preload
-	assert.Nil(t, WithContext(context.Background(), got).Where("name = ?", "lzfirst").Preload("LzTestRealted", "realname NOT IN (?)", "lizhou2").Find(&lztestlen).Error)
+	assert.Nil(t, got.WithContext(context.Background()).Where("name = ?", "lzfirst").Preload("LzTestRealted", "realname NOT IN (?)", "lizhou2").Find(&lztestlen).Error)
 	assert.Equal(t, "lizhou", lztestlen[0].LzTestRealted.Realname)
 
 	//stress
@@ -518,37 +518,37 @@ func TestQuery(t *testing.T) {
 	ctx := imeta.WithContext(context.Background(), md)
 	assert.Nil(t, err)
 
-	assert.Nil(t, WithContext(ctx, gotshadow).Create(&LzTest{
+	assert.Nil(t, gotshadow.WithContext(ctx).Create(&LzTest{
 		Name: "lzfirst",
 		Sex:  1,
 		Age:  100,
 	}).Error)
 
-	assert.Nil(t, WithContext(ctx, gotshadow).Create(&LzTest{
+	assert.Nil(t, gotshadow.WithContext(ctx).Create(&LzTest{
 		Name: "lzfirst",
 		Sex:  1,
 		Age:  101,
 	}).Error)
 
-	assert.Nil(t, WithContext(ctx, gotshadow).Create(&LzTest{
+	assert.Nil(t, gotshadow.WithContext(ctx).Create(&LzTest{
 		Name: "lzwhere",
 		Sex:  1,
 		Age:  100,
 	}).Error)
 
-	assert.Nil(t, WithContext(ctx, gotshadow).Create(&Lz2_Test{
+	assert.Nil(t, gotshadow.WithContext(ctx).Create(&Lz2_Test{
 		Name:  "lzfirst",
 		Sex:   1,
 		Age:   25,
 		Email: "xxx",
 	}).Error)
 
-	assert.Nil(t, WithContext(ctx, gotshadow).Create(&LzTestRealted{
+	assert.Nil(t, gotshadow.WithContext(ctx).Create(&LzTestRealted{
 		Job:      "test",
 		Realname: "lizhou",
 	}).Error)
 
-	assert.Nil(t, WithContext(ctx, gotshadow).Create(&LzTestRealted{
+	assert.Nil(t, gotshadow.WithContext(ctx).Create(&LzTestRealted{
 		Job:      "test",
 		Realname: "lizhou2",
 	}).Error)
@@ -557,29 +557,29 @@ func TestQuery(t *testing.T) {
 	//assert.Nil(t,got.WithContext(ctx).First(&lztestshadow,2).Error)
 	//assert.Equal(t,uint(101),lztestshadow.Age)
 
-	assert.Nil(t, WithContext(ctx, gotshadow).Where("name = ?", "lzfirst").First(&lztestshadowlen).Error)
+	assert.Nil(t, gotshadow.WithContext(ctx).Where("name = ?", "lzfirst").First(&lztestshadowlen).Error)
 	assert.Equal(t, uint(100), lztestshadowlen[0].Age)
 
-	assert.Nil(t, WithContext(ctx, gotshadow).Where("name = ?", "lzfirst").Last(&lztestshadowlen).Error)
+	assert.Nil(t, gotshadow.WithContext(ctx).Where("name = ?", "lzfirst").Last(&lztestshadowlen).Error)
 	assert.Equal(t, uint(101), lztestshadowlen[0].Age)
 
-	assert.Nil(t, WithContext(ctx, gotshadow).Where("name = ?", "lzfirst").Find(&lztestshadowlen).Error)
+	assert.Nil(t, gotshadow.WithContext(ctx).Where("name = ?", "lzfirst").Find(&lztestshadowlen).Error)
 	assert.Equal(t, 2, len(lztestshadowlen))
 
-	assert.Nil(t, WithContext(ctx, gotshadow).Where("name <> ?", "lzfirst").Find(&lztestshadowlen).Error)
+	assert.Nil(t, gotshadow.WithContext(ctx).Where("name <> ?", "lzfirst").Find(&lztestshadowlen).Error)
 	assert.Equal(t, 1, len(lztestshadowlen))
 
-	assert.Nil(t, WithContext(ctx, gotshadow).Where("name in (?)", []string{"lzwhere", "lzfirst"}).Find(&lztestshadowlen).Error)
+	assert.Nil(t, gotshadow.WithContext(ctx).Where("name in (?)", []string{"lzwhere", "lzfirst"}).Find(&lztestshadowlen).Error)
 	assert.Equal(t, 3, len(lztestshadowlen))
 
-	assert.Nil(t, WithContext(ctx, gotshadow).Where("name LIKE ?", "%lzwhere%").Find(&lztestshadowlen).Error)
+	assert.Nil(t, gotshadow.WithContext(ctx).Where("name LIKE ?", "%lzwhere%").Find(&lztestshadowlen).Error)
 	assert.Equal(t, 1, len(lztestshadowlen))
 
-	assert.Nil(t, WithContext(ctx, gotshadow).Where("name = ? AND age > ?", "lzfirst", 100).Find(&lztestshadowlen).Error)
+	assert.Nil(t, gotshadow.WithContext(ctx).Where("name = ? AND age > ?", "lzfirst", 100).Find(&lztestshadowlen).Error)
 	assert.Equal(t, 1, len(lztestshadowlen))
 
 	//where 连用
-	assert.Nil(t, WithContext(ctx, gotshadow).Where("name = ? ", "lzfirst").Where("age > ?", 100).Find(&lztestshadowlen).Error)
+	assert.Nil(t, gotshadow.WithContext(ctx).Where("name = ? ", "lzfirst").Where("age > ?", 100).Find(&lztestshadowlen).Error)
 	assert.Equal(t, 1, len(lztestshadowlen))
 
 	//where(struct)--unsupport
@@ -587,7 +587,7 @@ func TestQuery(t *testing.T) {
 	//assert.Equal(t,2,len(lztestshadowlen))
 
 	//where(map)
-	assert.Nil(t, WithContext(ctx, gotshadow).Where(map[string]interface{}{"name": "lzfirst", "age": 100}).Find(&lztestshadowlen).Error)
+	assert.Nil(t, gotshadow.WithContext(ctx).Where(map[string]interface{}{"name": "lzfirst", "age": 100}).Find(&lztestshadowlen).Error)
 	assert.Equal(t, 1, len(lztestshadowlen))
 
 	//or(struct)-unsupport
@@ -595,15 +595,15 @@ func TestQuery(t *testing.T) {
 	//assert.Equal(t,3,len(lztestshadowlen))
 
 	//or(map) --unsupport
-	assert.Nil(t, WithContext(ctx, gotshadow).Where("name = ?", "lzfirst").Or(map[string]interface{}{"name": "lzwhere"}).Find(&lztestshadowlen).Error)
+	assert.Nil(t, gotshadow.WithContext(ctx).Where("name = ?", "lzfirst").Or(map[string]interface{}{"name": "lzwhere"}).Find(&lztestshadowlen).Error)
 	assert.Equal(t, 3, len(lztestshadowlen))
 
 	//not
-	assert.Nil(t, WithContext(ctx, gotshadow).Not("name", "lzfirst").Find(&lztestshadowlen).Error)
+	assert.Nil(t, gotshadow.WithContext(ctx).Not("name", "lzfirst").Find(&lztestshadowlen).Error)
 	assert.Equal(t, 1, len(lztestshadowlen))
 
 	//not(slice)
-	assert.Nil(t, WithContext(ctx, gotshadow).Not("name", []string{"lzfirst", "lzwhere"}).Find(&lztestshadowlen).Error)
+	assert.Nil(t, gotshadow.WithContext(ctx).Not("name", []string{"lzfirst", "lzwhere"}).Find(&lztestshadowlen).Error)
 	assert.Equal(t, 0, len(lztestshadowlen))
 
 	////not(struct)--unsupport
@@ -615,7 +615,7 @@ func TestQuery(t *testing.T) {
 	//assert.Equal(t,2,len(lztestshadowlen))
 
 	//inner find
-	assert.Nil(t, WithContext(ctx, gotshadow).Find(&lztestshadowlen, "name <> ? AND age > ?", "lzwhere", 99).Error)
+	assert.Nil(t, gotshadow.WithContext(ctx).Find(&lztestshadowlen, "name <> ? AND age > ?", "lzwhere", 99).Error)
 	assert.Equal(t, 2, len(lztestshadowlen))
 
 	//find(struct)-unsupport
@@ -623,15 +623,15 @@ func TestQuery(t *testing.T) {
 	//assert.Equal(t,1,len(lztestshadowlen))
 
 	//find(map[])
-	assert.Nil(t, WithContext(ctx, gotshadow).Find(&lztestshadowlen, map[string]interface{}{"age": 101}).Error)
+	assert.Nil(t, gotshadow.WithContext(ctx).Find(&lztestshadowlen, map[string]interface{}{"age": 101}).Error)
 	assert.Equal(t, 1, len(lztestshadowlen))
 
 	//select order
-	assert.Nil(t, WithContext(ctx, gotshadow).Select("sex,age").Where("name = ?", "lzfirst").Order("age desc").Find(&lztestshadowlen).Error)
+	assert.Nil(t, gotshadow.WithContext(ctx).Select("sex,age").Where("name = ?", "lzfirst").Order("age desc").Find(&lztestshadowlen).Error)
 	assert.Equal(t, uint(100), lztestshadowlen[1].Age)
 	assert.Equal(t, "", lztestshadowlen[1].Name)
 
-	assert.Nil(t, WithContext(ctx, gotshadow).Select([]string{"sex,age"}).Where("name = ?", "lzfirst").Order("age desc").Find(&lztestshadowlen).Error)
+	assert.Nil(t, gotshadow.WithContext(ctx).Select([]string{"sex,age"}).Where("name = ?", "lzfirst").Order("age desc").Find(&lztestshadowlen).Error)
 	assert.Equal(t, uint(100), lztestshadowlen[1].Age)
 	assert.Equal(t, "", lztestshadowlen[1].Name)
 
@@ -641,20 +641,20 @@ func TestQuery(t *testing.T) {
 
 	//related query
 	var lztestshadow LzTest
-	assert.Nil(t, WithContext(ctx, gotshadow).Where("id = ?", 2).Preload("LzTestRealted").First(&lztestshadow).Error)
-	// assert.Nil(t, WithContext(ctx, gotshadow).Model(&lztestshadow).Related(&lztestshadow.LzTestRealted, "ID").Error)
+	assert.Nil(t, gotshadow.WithContext(ctx).Where("id = ?", 2).Preload("LzTestRealted").First(&lztestshadow).Error)
+	// assert.Nil(t, gotshadow.WithContext(ctx).Model(&lztestshadow).Related(&lztestshadow.LzTestRealted, "ID").Error)
 	assert.Equal(t, "lizhou2", lztestshadow.LzTestRealted.Realname)
 
 	//limit offset count
 	var countshadow int64
-	assert.Nil(t, WithContext(ctx, gotshadow).Limit(1).Offset(1).Order("age desc").Find(&lztestshadowlen).Error)
-	assert.Nil(t, WithContext(ctx, gotshadow).Table("lztest").Limit(1).Count(&countshadow).Error)
-	assert.Nil(t, WithContext(ctx, gotshadow).Limit(2).Offset(1).Find(&lztestshadowlen).Error)
+	assert.Nil(t, gotshadow.WithContext(ctx).Limit(1).Offset(1).Order("age desc").Find(&lztestshadowlen).Error)
+	assert.Nil(t, gotshadow.WithContext(ctx).Table("lztest").Limit(1).Count(&countshadow).Error)
+	assert.Nil(t, gotshadow.WithContext(ctx).Limit(2).Offset(1).Find(&lztestshadowlen).Error)
 	assert.Equal(t, "lzwhere", lztestshadowlen[1].Name)
 	assert.Equal(t, int64(3), countshadow)
 
 	//group&having
-	rowsshadow, err := WithContext(ctx, gotshadow).Table("lztest").Select("name,sum(age) as totalage").Group("name").Having("sum(age) > ?", 200).Rows()
+	rowsshadow, err := gotshadow.WithContext(ctx).Table("lztest").Select("name,sum(age) as totalage").Group("name").Having("sum(age) > ?", 200).Rows()
 	assert.Nil(t, err)
 	for rowsshadow.Next() {
 		fmt.Print(rowsshadow.Columns())
@@ -662,11 +662,11 @@ func TestQuery(t *testing.T) {
 
 	//pluck
 	var namesshadow []string
-	assert.Nil(t, WithContext(ctx, gotshadow).Model(&LzTest{}).Pluck("name", &namesshadow).Error)
+	assert.Nil(t, gotshadow.WithContext(ctx).Model(&LzTest{}).Pluck("name", &namesshadow).Error)
 	assert.Equal(t, "lzfirst", namesshadow[1])
 
 	//preload
-	assert.Nil(t, WithContext(ctx, gotshadow).Where("name = ?", "lzfirst").Preload("LzTestRealted", "realname NOT IN (?)", "lizhou2").Find(&lztestshadowlen).Error)
+	assert.Nil(t, gotshadow.WithContext(ctx).Where("name = ?", "lzfirst").Preload("LzTestRealted", "realname NOT IN (?)", "lizhou2").Find(&lztestshadowlen).Error)
 	assert.Equal(t, "lizhou", lztestshadowlen[0].LzTestRealted.Realname)
 }
 
@@ -698,12 +698,12 @@ func TestUpdate(t *testing.T) {
 		SlowThreshold:   time.Millisecond * 300,
 	})
 	assert.Nil(t, err)
-	assert.Nil(t, WithContext(context.Background(), got).Create(&lztest).Error)
+	assert.Nil(t, got.WithContext(context.Background()).Create(&lztest).Error)
 
 	var lztest1 LzTest
-	assert.Nil(t, WithContext(context.Background(), got).Table("lztest").Where("name = ?", "lz1").Update("age", 2).Scan(&lztest1).Error)
+	assert.Nil(t, got.WithContext(context.Background()).Table("lztest").Where("name = ?", "lz1").Update("age", 2).Scan(&lztest1).Error)
 
-	assert.Nil(t, WithContext(context.Background(), got).Table("lztest").Where("name= ? ", "lz1").Scan(&lztest1).Error)
+	assert.Nil(t, got.WithContext(context.Background()).Table("lztest").Where("name= ? ", "lz1").Scan(&lztest1).Error)
 	assert.Equal(t, uint(2), lztest1.Age)
 
 	//stress
@@ -722,12 +722,12 @@ func TestUpdate(t *testing.T) {
 	ctx := imeta.WithContext(context.Background(), md)
 	assert.Nil(t, err)
 
-	assert.Nil(t, WithContext(ctx, gotshadow).Create(&lztestshadow).Error)
+	assert.Nil(t, gotshadow.WithContext(ctx).Create(&lztestshadow).Error)
 
 	var lztestshadow1 LzTest
-	assert.Nil(t, WithContext(ctx, gotshadow).Table("lztest").Where("name = ?", "lz1").Update("age", 2).Scan(&lztestshadow1).Error)
+	assert.Nil(t, gotshadow.WithContext(ctx).Table("lztest").Where("name = ?", "lz1").Update("age", 2).Scan(&lztestshadow1).Error)
 
-	assert.Nil(t, WithContext(ctx, gotshadow).Table("lztest").Where("name= ? ", "lz1").Scan(&lztestshadow1).Error)
+	assert.Nil(t, gotshadow.WithContext(ctx).Table("lztest").Where("name= ? ", "lz1").Scan(&lztestshadow1).Error)
 	assert.Equal(t, uint(2), lztestshadow1.Age)
 
 }
@@ -760,15 +760,15 @@ func TestDelete(t *testing.T) {
 		SlowThreshold:   time.Millisecond * 300,
 	})
 	assert.Nil(t, err)
-	assert.Nil(t, WithContext(context.Background(), got).Create(&lztest).Error)
+	assert.Nil(t, got.WithContext(context.Background()).Create(&lztest).Error)
 
 	var lztestlen []LzTest
-	assert.Nil(t, WithContext(context.Background(), got).Find(&lztestlen).Error)
+	assert.Nil(t, got.WithContext(context.Background()).Find(&lztestlen).Error)
 	assert.Equal(t, 1, len(lztestlen))
 
-	assert.Nil(t, WithContext(context.Background(), got).Delete(lztestlen, "name = ?", "lz1").Error)
+	assert.Nil(t, got.WithContext(context.Background()).Delete(lztestlen, "name = ?", "lz1").Error)
 
-	assert.Nil(t, WithContext(context.Background(), got).Find(&lztestlen).Error)
+	assert.Nil(t, got.WithContext(context.Background()).Find(&lztestlen).Error)
 	assert.Equal(t, 0, len(lztestlen))
 
 	//stress
@@ -787,15 +787,15 @@ func TestDelete(t *testing.T) {
 	ctx := imeta.WithContext(context.Background(), md)
 	assert.Nil(t, err)
 
-	assert.Nil(t, WithContext(ctx, gotshadow).Create(&lztestshadow).Error)
+	assert.Nil(t, gotshadow.WithContext(ctx).Create(&lztestshadow).Error)
 
 	var lztestshadowlen []LzTest
-	assert.Nil(t, WithContext(ctx, gotshadow).Find(&lztestshadowlen).Error)
+	assert.Nil(t, gotshadow.WithContext(ctx).Find(&lztestshadowlen).Error)
 	assert.Equal(t, 1, len(lztestshadowlen))
 
-	assert.Nil(t, WithContext(ctx, gotshadow).Delete(lztestshadowlen, "name = ?", "lz1").Error)
+	assert.Nil(t, gotshadow.WithContext(ctx).Delete(lztestshadowlen, "name = ?", "lz1").Error)
 
-	assert.Nil(t, WithContext(ctx, gotshadow).Find(&lztestshadowlen).Error)
+	assert.Nil(t, gotshadow.WithContext(ctx).Find(&lztestshadowlen).Error)
 	assert.Equal(t, 0, len(lztestshadowlen))
 
 }
@@ -825,24 +825,24 @@ func TestRowSql(t *testing.T) {
 	name = "lzsql01"
 	name_update = "lzsql123"
 	sql = "INSERT INTO lztest(`name`,`sex`,`age`,`role`) values ('lzsql01','1','1','lz');"
-	assert.Nil(t, WithContext(context.Background(), got).Raw(sql).Scan(&lztests).Error)
+	assert.Nil(t, got.WithContext(context.Background()).Raw(sql).Scan(&lztests).Error)
 
 	sql = fmt.Sprintf("select * from lztest where name = \"%s\"", name)
-	assert.Nil(t, WithContext(context.Background(), got).Raw(sql).Scan(&lztests).Error)
+	assert.Nil(t, got.WithContext(context.Background()).Raw(sql).Scan(&lztests).Error)
 	assert.Equal(t, name, lztests[0].Name)
 
 	sql = fmt.Sprintf("update lztest set name = \"%s\" where name = \"%s\"", name_update, name)
-	assert.Nil(t, WithContext(context.Background(), got).Raw(sql).Scan(&lztests).Error)
+	assert.Nil(t, got.WithContext(context.Background()).Raw(sql).Scan(&lztests).Error)
 	sql = fmt.Sprintf("select * from lztest where name = \"%s\"", name_update)
-	assert.Nil(t, WithContext(context.Background(), got).Raw(sql).Scan(&lztests).Error)
+	assert.Nil(t, got.WithContext(context.Background()).Raw(sql).Scan(&lztests).Error)
 	assert.Equal(t, name_update, lztests[0].Name)
 
 	sql = fmt.Sprintf("delete from lztest where name = \"%s\"", name_update)
-	assert.Nil(t, WithContext(context.Background(), got).Raw(sql).Debug().Scan(&lztests).Error)
+	assert.Nil(t, got.WithContext(context.Background()).Raw(sql).Debug().Scan(&lztests).Error)
 	sql = fmt.Sprintf("select * from lztest where name = \"%s\"", name_update)
 	// TODO：确认gorm scan的逻辑是否符合预期
 	lztests = []LzTest{}
-	assert.Nil(t, WithContext(context.Background(), got).Raw(sql).Debug().Scan(&lztests).Error)
+	assert.Nil(t, got.WithContext(context.Background()).Raw(sql).Debug().Scan(&lztests).Error)
 	assert.Equal(t, 0, len(lztests))
 	fmt.Println("=======delete:", len(lztests))
 
@@ -869,24 +869,24 @@ func TestRowSql(t *testing.T) {
 	nameshadow = "lzsql01"
 	name_update_shadow = "lzsql123"
 	sqlshadow = "INSERT INTO lztest(`name`,`sex`,`age`,`role`) values ('lzsql01','1','1','lz');"
-	assert.Nil(t, WithContext(ctx, gotshadow).Raw(sqlshadow).Scan(&lztestshadows).Error)
+	assert.Nil(t, gotshadow.WithContext(ctx).Raw(sqlshadow).Scan(&lztestshadows).Error)
 
 	sqlshadow = fmt.Sprintf("select * from lztest where name = \"%s\"", nameshadow)
-	assert.Nil(t, WithContext(ctx, gotshadow).Raw(sqlshadow).Scan(&lztestshadows).Error)
+	assert.Nil(t, gotshadow.WithContext(ctx).Raw(sqlshadow).Scan(&lztestshadows).Error)
 	assert.Equal(t, nameshadow, lztestshadows[0].Name)
 
 	sqlshadow = fmt.Sprintf("update lztest set name = \"%s\" where name = \"%s\"", name_update_shadow, nameshadow)
-	assert.Nil(t, WithContext(ctx, gotshadow).Raw(sqlshadow).Scan(&lztestshadows).Error)
+	assert.Nil(t, gotshadow.WithContext(ctx).Raw(sqlshadow).Scan(&lztestshadows).Error)
 	sqlshadow = fmt.Sprintf("select * from lztest where name = \"%s\"", name_update_shadow)
-	assert.Nil(t, WithContext(context.Background(), gotshadow).Raw(sqlshadow).Scan(&lztestshadows).Error)
+	assert.Nil(t, gotshadow.WithContext(ctx).Raw(sqlshadow).Scan(&lztestshadows).Error)
 	assert.Equal(t, name_update_shadow, lztestshadows[0].Name)
 
 	sqlshadow = fmt.Sprintf("delete from lztest where name = \"%s\"", name_update_shadow)
-	assert.Nil(t, WithContext(ctx, gotshadow).Raw(sqlshadow).Scan(&lztestshadows).Error)
+	assert.Nil(t, gotshadow.WithContext(ctx).Raw(sqlshadow).Scan(&lztestshadows).Error)
 	sqlshadow = fmt.Sprintf("select * from lztest where name = \"%s\"", name_update_shadow)
 	// TODO：确认gorm scan的逻辑是否符合预期
 	lztestshadows = []LzTest{}
-	assert.Nil(t, WithContext(ctx, gotshadow).Raw(sqlshadow).Scan(&lztestshadows).Error)
+	assert.Nil(t, gotshadow.WithContext(ctx).Raw(sqlshadow).Scan(&lztestshadows).Error)
 	assert.Equal(t, 0, len(lztestshadows))
 	fmt.Println("=======delete:", len(lztestshadows))
 
