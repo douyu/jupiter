@@ -70,9 +70,7 @@ const (
 	defaultFlushInterval = 5 * time.Second
 )
 
-// defaultLogger default logger
-// Biz Log
-// debug=true as default, will be
+// defaultLogger default logger for biz.
 var defaultLogger = Config{
 	Name:  "default",
 	Debug: true,
