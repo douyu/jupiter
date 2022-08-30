@@ -30,6 +30,7 @@ type (
 	Field  = zap.Field
 	Level  = zapcore.Level
 	Logger = zap.Logger
+	Option = zap.Option
 )
 
 var (
@@ -68,6 +69,18 @@ const (
 	// defaultFlushInterval means the default flush interval
 	defaultFlushInterval = 5 * time.Second
 )
+
+// defaultLogger default logger for biz.
+var defaultLogger = Config{
+	Name:  "default",
+	Debug: true,
+}.Build()
+
+// jupiterLogger frame logger
+var jupiterLogger = Config{
+	Name:  "jupiter",
+	Debug: true,
+}.Build()
 
 func newLogger(config *Config) *zap.Logger {
 	zapOptions := make([]zap.Option, 0)
