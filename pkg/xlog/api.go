@@ -14,17 +14,13 @@
 
 package xlog
 
-import (
-	"go.uber.org/zap"
-)
-
 // Jupiter returns framework logger
-func Jupiter() *zap.Logger {
+func Jupiter() *Logger {
 	return jupiterLogger
 }
 
 // Default returns default logger
-func Default() *zap.Logger {
+func Default() *Logger {
 	return defaultLogger
 }
 
