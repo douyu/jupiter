@@ -25,9 +25,9 @@ import (
 )
 
 const (
-	//ClusterMode using clusterClient
+	// ClusterMode using clusterClient
 	ClusterMode string = "cluster"
-	//StubMode using reidsClient
+	// StubMode using reidsClient
 	StubMode string = "stub"
 )
 
@@ -112,7 +112,12 @@ func RawRedisConfig(key string) Config {
 func (config Config) Build() *Redis {
 	count := len(config.Addrs)
 	if count < 1 {
-		config.logger.Panic("no address in redis config", xlog.Any("config", config))
+		if config.Addr == "" {
+			config.logger.Panic("no address in redis config", xlog.Any("config", config))
+		}
+
+		// 兼容单个地址
+		config.Addrs = append(config.Addrs, config.Addr)
 	}
 	if len(config.Mode) == 0 {
 		config.Mode = StubMode
