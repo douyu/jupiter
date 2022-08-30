@@ -33,7 +33,7 @@ func GetLocalIP() (string, error) {
 			}
 		}
 	}
-	return "", errors.New("unable to determine locla ip")
+	return "", errors.New("unable to determine local ip")
 }
 
 // GetLocalIP ...
