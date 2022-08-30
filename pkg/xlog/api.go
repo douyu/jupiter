@@ -14,21 +14,9 @@
 
 package xlog
 
-import "go.uber.org/zap"
-
-// defaultLogger default logger
-// Biz Log
-// debug=true as default, will be
-var defaultLogger = Config{
-	Name:  "default",
-	Debug: true,
-}.Build()
-
-// jupiterLogger frame logger
-var jupiterLogger = Config{
-	Name:  "jupiter",
-	Debug: true,
-}.Build()
+import (
+	"go.uber.org/zap"
+)
 
 // Jupiter returns framework logger
 func Jupiter() *zap.Logger {
@@ -38,4 +26,44 @@ func Jupiter() *zap.Logger {
 // Default returns default logger
 func Default() *zap.Logger {
 	return defaultLogger
+}
+
+func Debug(msg string, fields ...Field) {
+	defaultLogger.Debug(msg, fields...)
+}
+
+func Info(msg string, fields ...Field) {
+	defaultLogger.Info(msg, fields...)
+}
+
+func Warn(msg string, fields ...Field) {
+	defaultLogger.Warn(msg, fields...)
+}
+
+func Error(msg string, fields ...Field) {
+	defaultLogger.Error(msg, fields...)
+}
+
+func DPanic(msg string, fields ...Field) {
+	defaultLogger.DPanic(msg, fields...)
+}
+
+func Panic(msg string, fields ...Field) {
+	defaultLogger.Panic(msg, fields...)
+}
+
+func Fatal(msg string, fields ...Field) {
+	defaultLogger.Fatal(msg, fields...)
+}
+
+func With(fields ...Field) *Logger {
+	return defaultLogger.With(fields...)
+}
+
+func WithOptions(opts ...Option) *Logger {
+	return defaultLogger.WithOptions(opts...)
+}
+
+func Named(s string) *Logger {
+	return defaultLogger.Named(s)
 }
