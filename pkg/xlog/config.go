@@ -29,7 +29,8 @@ import (
 func init() {
 	conf.OnLoaded(func(c *conf.Configuration) {
 		prefix := constant.ConfigPrefix
-		if conf.Get(prefix+".logger") == nil {
+		// compatible with app.logger
+		if conf.Get("app.logger") != nil {
 			prefix = "app"
 		}
 
