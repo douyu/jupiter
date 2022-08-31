@@ -37,7 +37,7 @@ require (
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/smallnest/weighted v0.0.0-20200122032019-adf21c9b8bd1
 	github.com/smartystreets/goconvey v1.6.4
-	github.com/stretchr/testify v1.7.1
+	github.com/stretchr/testify v1.8.0
 	github.com/tidwall/pretty v1.2.0
 	github.com/urfave/cli v1.22.5
 	github.com/valyala/fasthttp v1.34.0
@@ -70,7 +70,6 @@ require (
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/smartystreets/assertions v0.0.0-20190401211740-f487f9de1cd3 // indirect
 	github.com/spf13/cast v1.5.0
-	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/tidwall/gjson v1.13.0 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
