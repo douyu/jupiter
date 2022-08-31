@@ -28,16 +28,20 @@ import (
 
 func init() {
 	conf.OnLoaded(func(c *conf.Configuration) {
-		log.Print("hook config, init loggers")
-		log.Printf("reload default logger with configKey: %s", ConfigEntry("default"))
-		defaultLogger = RawConfig(constant.ConfigPrefix + ".logger.default").Build()
+		prefix := constant.ConfigPrefix
+		if conf.Get(prefix+".logger") == nil {
+			prefix = "app"
+		}
 
-		log.Printf("reload default logger with configKey: %s", ConfigEntry("jupiter"))
-		jupiterLogger = JupiterConfig().Build()
+		log.Print("hook config, init loggers")
+
+		log.Printf("reload default logger with configKey: %s", prefix+".logger.default")
+		defaultLogger = RawConfig(prefix + ".logger.default").Build()
+
+		log.Printf("reload jupiter logger with configKey: %s", prefix+".logger.jupiter")
+		jupiterLogger = JupiterConfig(prefix).Build()
 	})
 }
-
-var ConfigPrefix = constant.ConfigPrefix + ".logger"
 
 // Config ...
 type Config struct {
@@ -74,10 +78,6 @@ func (config *Config) Filename() string {
 	return fmt.Sprintf("%s/%s", config.Dir, config.Name)
 }
 
-func ConfigEntry(name string) string {
-	return ConfigPrefix + "." + name
-}
-
 // RawConfig ...
 func RawConfig(key string) *Config {
 	var config = DefaultConfig()
@@ -87,8 +87,8 @@ func RawConfig(key string) *Config {
 }
 
 // StdConfig Jupiter Standard logger config
-func StdConfig(name string) *Config {
-	return RawConfig(ConfigPrefix + "." + name)
+func StdConfig(prefix, name string) *Config {
+	return RawConfig(prefix + ".logger." + name)
 }
 
 // DefaultConfig for application.
@@ -115,10 +115,10 @@ func DefaultConfig() *Config {
 }
 
 // JupiterLogger for framework.
-func JupiterConfig() *Config {
+func JupiterConfig(prefix string) *Config {
 	config := DefaultConfig()
 	config.Name = "jupiter_framework.sys"
-	config, _ = conf.UnmarshalWithExpect(ConfigEntry("jupiter"), config).(*Config)
+	config, _ = conf.UnmarshalWithExpect(prefix+".logger.jupiter", config).(*Config)
 
 	return config
 }
