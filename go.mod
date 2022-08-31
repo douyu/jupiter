@@ -16,7 +16,7 @@ require (
 	github.com/fatih/structtag v1.2.0
 	github.com/flosch/pongo2 v0.0.0-20200518135938-dfb43dbdc22a
 	github.com/fsnotify/fsnotify v1.5.1
-	github.com/gin-gonic/gin v1.7.7
+	github.com/gin-gonic/gin v1.8.1
 	github.com/go-basic/ipv4 v1.0.0
 	github.com/go-redis/redis v6.15.8+incompatible
 	github.com/go-resty/resty/v2 v2.7.0
@@ -63,7 +63,6 @@ require (
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
 	github.com/hnlq715/struct2interface v0.1.1
 	github.com/lib/pq v1.3.0 // indirect
-	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/onsi/ginkgo/v2 v2.1.6
 	github.com/shirou/gopsutil/v3 v3.21.7 // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
@@ -72,7 +71,6 @@ require (
 	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/tidwall/gjson v1.13.0 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
-	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gorm.io/driver/mysql v1.3.6
 	gorm.io/gorm v1.23.8
 )
