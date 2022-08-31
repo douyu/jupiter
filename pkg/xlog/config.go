@@ -40,7 +40,7 @@ func init() {
 		defaultLogger = RawConfig(prefix + ".logger.default").Build()
 
 		log.Printf("reload jupiter logger with configKey: %s", prefix+".logger.jupiter")
-		jupiterLogger = JupiterConfig(prefix).Build()
+		jupiterLogger = jupiterConfig(prefix).Build()
 	})
 }
 
@@ -115,8 +115,8 @@ func DefaultConfig() *Config {
 	}
 }
 
-// JupiterLogger for framework.
-func JupiterConfig(prefix string) *Config {
+// jupiterConfig for framework.
+func jupiterConfig(prefix string) *Config {
 	config := DefaultConfig()
 	config.Name = "jupiter_framework.sys"
 	config, _ = conf.UnmarshalWithExpect(prefix+".logger.jupiter", config).(*Config)
