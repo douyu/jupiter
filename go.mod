@@ -30,7 +30,7 @@ require (
 	github.com/mattn/go-colorable v0.1.12
 	github.com/mitchellh/mapstructure v1.4.3
 	github.com/modern-go/reflect2 v1.0.2
-	github.com/onsi/gomega v1.19.0
+	github.com/onsi/gomega v1.20.1
 	github.com/philchia/agollo/v4 v4.1.3
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.12.1
@@ -52,7 +52,7 @@ require (
 	go.uber.org/automaxprocs v1.5.1
 	go.uber.org/multierr v1.7.0
 	go.uber.org/zap v1.21.0
-	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
+	golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4
 	google.golang.org/genproto v0.0.0-20211208223120-3a66f561d7aa
 	google.golang.org/grpc v1.44.0
 )
@@ -64,7 +64,7 @@ require (
 	github.com/hnlq715/struct2interface v0.1.1
 	github.com/lib/pq v1.3.0 // indirect
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
-	github.com/onsi/ginkgo/v2 v2.1.3
+	github.com/onsi/ginkgo/v2 v2.1.6
 	github.com/shirou/gopsutil/v3 v3.21.7 // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/smartystreets/assertions v0.0.0-20190401211740-f487f9de1cd3 // indirect
