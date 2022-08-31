@@ -9,14 +9,14 @@ on:
       - "master"
 
 jobs:
-
   build:
     name: Build
-    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        go: ['1.16.x', '1.17.x', '1.18.x', '1.19.x']
+        go: ["1.16.x", "1.17.x", "1.18.x", "1.19.x"]
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     services:
       mysql:
         image: mysql:5.7
@@ -68,9 +68,9 @@ jobs:
       - uses: actions/checkout@v3.0.2
       - uses: actions/setup-java@v3
         with:
-          distribution: 'temurin' # See 'Supported distributions' for available options
-          java-version: '8'
-
+          distribution: "temurin" # See 'Supported distributions' for available options
+          java-version: "8"
+        if: matrix.os == "ubuntu-latest"
       - name: setup rocketmq
         run: |
           export PROJECT_PATH=`pwd`
@@ -82,6 +82,7 @@ jobs:
           echo "brokerIP1=127.0.0.1" > broker.properties
           nohup sh bin/mqnamesrv &
           nohup sh bin/mqbroker -n localhost:9876 -c broker.properties &
+        if: matrix.os == "ubuntu-latest"
 
       - name: Test
         run: |
@@ -89,11 +90,13 @@ jobs:
           # test rocketmq
           sh $HOME/rocketmq-all-4.6.0-bin-release/bin/mqadmin updateTopic -n localhost:9876 -b localhost:10911 -t test
           go test -coverprofile=coverage.txt -covermode=atomic ./...
+        if: matrix.os == "ubuntu-latest"
 
       - name: Codecov
         uses: codecov/codecov-action@v3
         with:
           token: ${{secrets.CODECOV_TOKEN}}
+        if: matrix.os == "ubuntu-latest"
 
       - name: Build
         run: go build -v .
