@@ -32,7 +32,7 @@ var (
 )
 
 func open(options *Config) (*gorm.DB, error) {
-	inner, err := gorm.Open(mysql.Open(options.DSN), &gorm.Config{})
+	inner, err := gorm.Open(mysql.Open(options.DSN), &options.gormConfig)
 	if err != nil {
 		return nil, err
 	}
