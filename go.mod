@@ -33,7 +33,7 @@ require (
 	github.com/onsi/gomega v1.20.1
 	github.com/philchia/agollo/v4 v4.1.3
 	github.com/pkg/errors v0.9.1
-	github.com/prometheus/client_golang v1.12.1
+	github.com/prometheus/client_golang v1.13.0
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/smallnest/weighted v0.0.0-20200122032019-adf21c9b8bd1
 	github.com/smartystreets/goconvey v1.6.4
