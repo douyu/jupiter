@@ -24,12 +24,14 @@ require (
 	github.com/golang/protobuf v1.5.2
 	github.com/gorilla/websocket v1.4.2
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
+	github.com/hnlq715/struct2interface v0.1.1
 	github.com/json-iterator/go v1.1.12
 	github.com/juju/ratelimit v1.0.1
 	github.com/labstack/echo/v4 v4.6.3
 	github.com/mattn/go-colorable v0.1.12
 	github.com/mitchellh/mapstructure v1.4.3
 	github.com/modern-go/reflect2 v1.0.2
+	github.com/onsi/ginkgo/v2 v2.1.6
 	github.com/onsi/gomega v1.20.1
 	github.com/philchia/agollo/v4 v4.1.3
 	github.com/pkg/errors v0.9.1
@@ -37,6 +39,7 @@ require (
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/smallnest/weighted v0.0.0-20200122032019-adf21c9b8bd1
 	github.com/smartystreets/goconvey v1.6.4
+	github.com/spf13/cast v1.5.0
 	github.com/stretchr/testify v1.8.0
 	github.com/tidwall/pretty v1.2.0
 	github.com/urfave/cli v1.22.5
@@ -55,6 +58,8 @@ require (
 	golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4
 	google.golang.org/genproto v0.0.0-20211208223120-3a66f561d7aa
 	google.golang.org/grpc v1.44.0
+	gorm.io/driver/mysql v1.3.6
+	gorm.io/gorm v1.23.8
 )
 
 require (
@@ -62,15 +67,10 @@ require (
 	github.com/gomodule/redigo v2.0.0+incompatible // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
-	github.com/hnlq715/struct2interface v0.1.1
 	github.com/lib/pq v1.3.0 // indirect
-	github.com/onsi/ginkgo/v2 v2.1.6
 	github.com/shirou/gopsutil/v3 v3.21.7 // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/smartystreets/assertions v0.0.0-20190401211740-f487f9de1cd3 // indirect
-	github.com/spf13/cast v1.5.0
 	github.com/tidwall/gjson v1.13.0 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
-	gorm.io/driver/mysql v1.3.6
-	gorm.io/gorm v1.23.8
 )

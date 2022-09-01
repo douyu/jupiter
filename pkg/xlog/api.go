@@ -19,9 +19,17 @@ func Jupiter() *Logger {
 	return jupiterLogger
 }
 
+func SetJupiter(logger *Logger) {
+	jupiterLogger = logger
+}
+
 // Default returns default logger
 func Default() *Logger {
 	return defaultLogger
+}
+
+func SetDefault(logger *Logger) {
+	defaultLogger = logger
 }
 
 // Debug logs a message at DebugLevel. The message includes any fields passed

@@ -44,7 +44,7 @@ func RawConfig(key string) *Config {
 		xdebug.PrettyJsonPrint(key, config)
 	}
 
-	return &config
+	return config
 }
 
 // Config options
@@ -77,11 +77,13 @@ type Config struct {
 	Retry int `json:"retry" toml:"retry"`
 	// 重试等待时间
 	RetryWaitTime time.Duration `json:"retryWaitTime" toml:"retryWaitTime"`
+
+	gormConfig gorm.Config `json:"-" toml:"-"`
 }
 
 // DefaultConfig 返回默认配置
-func DefaultConfig() Config {
-	return Config{
+func DefaultConfig() *Config {
+	return &Config{
 		DSN:             "",
 		Debug:           false,
 		MaxIdleConns:    10,
@@ -95,6 +97,12 @@ func DefaultConfig() Config {
 		Retry:           2,
 		RetryWaitTime:   cast.ToDuration("200ms"),
 	}
+}
+
+func (config *Config) WithGormConfig(gormConfig gorm.Config) *Config {
+	config.gormConfig = gormConfig
+
+	return config
 }
 
 func (config *Config) MustBuild() *gorm.DB {
