@@ -70,17 +70,22 @@ const (
 	defaultFlushInterval = 5 * time.Second
 )
 
-// defaultLogger default logger for biz.
-var defaultLogger = Config{
-	Name:  "default",
-	Debug: true,
-}.Build()
+// defaultLogger is default logger for biz
+// stdLogger is logger for std
+// jupiterLogger is logger for jupiter framework
+var defaultLogger, stdLogger, jupiterLogger *Logger
 
-// jupiterLogger frame logger
-var jupiterLogger = Config{
-	Name:  "jupiter",
-	Debug: true,
-}.Build()
+func init() {
+	SetDefault(Config{
+		Name:  "default",
+		Debug: true,
+	}.Build())
+
+	SetJupiter(Config{
+		Name:  "jupiter",
+		Debug: true,
+	}.Build())
+}
 
 func newLogger(config *Config) *zap.Logger {
 	zapOptions := make([]zap.Option, 0)

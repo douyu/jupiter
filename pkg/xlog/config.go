@@ -37,10 +37,10 @@ func init() {
 		log.Print("hook config, init loggers")
 
 		log.Printf("reload default logger with configKey: %s", prefix+".logger.default")
-		defaultLogger = RawConfig(prefix + ".logger.default").Build()
+		SetDefault(RawConfig(prefix + ".logger.default").Build())
 
 		log.Printf("reload jupiter logger with configKey: %s", prefix+".logger.jupiter")
-		jupiterLogger = jupiterConfig(prefix).Build()
+		SetJupiter(jupiterConfig(prefix).Build())
 	})
 }
 
@@ -84,6 +84,7 @@ func RawConfig(key string) *Config {
 	var config = DefaultConfig()
 	config, _ = conf.UnmarshalWithExpect(key, config).(*Config)
 	config.configKey = key
+	fmt.Printf("%+v", config)
 	return config
 }
 
@@ -102,7 +103,7 @@ func DefaultConfig() *Config {
 		MaxAge:        1,   // 1 day
 		MaxBackup:     10,  // 10 backup
 		Interval:      24 * time.Hour,
-		CallerSkip:    1,
+		CallerSkip:    0,
 		AddCaller:     true,
 		Async:         true,
 		Queue:         false,
