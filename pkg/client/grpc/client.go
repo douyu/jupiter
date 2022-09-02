@@ -16,10 +16,10 @@ package grpc
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/douyu/jupiter/pkg/ecode"
-
 	"github.com/douyu/jupiter/pkg/xlog"
 	"google.golang.org/grpc"
 )
@@ -46,7 +46,8 @@ func newGRPCClient(config *Config) *grpc.ClientConn {
 		dialOptions = append(dialOptions, grpc.WithKeepaliveParams(*config.KeepAlive))
 	}
 
-	dialOptions = append(dialOptions, grpc.WithBalancerName(config.BalancerName))
+	svcCfg := fmt.Sprintf(`{"loadBalancingPolicy":"%s"}`, config.BalancerName)
+	dialOptions = append(dialOptions, grpc.WithDefaultServiceConfig(svcCfg))
 
 	cc, err := grpc.DialContext(ctx, config.Address, dialOptions...)
 
