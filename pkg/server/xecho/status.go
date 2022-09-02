@@ -20,11 +20,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/golang/protobuf/jsonpb"
-	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/ptypes/any"
 	rstatus "google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc/status"
+	jsonpb "google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
+	any "google.golang.org/protobuf/types/known/anypb"
 )
 
 // EmptyMessage ...
@@ -50,14 +50,14 @@ type GRPCProxyMessage struct {
 func (m *GRPCProxyMessage) Reset() { *m = GRPCProxyMessage{} }
 
 // String ...
-func (m *GRPCProxyMessage) String() string { return proto.CompactTextString(m) }
+func (m *GRPCProxyMessage) String() string { return jsonpb.Format(m.Data) }
 
 // ProtoMessage ...
 func (*GRPCProxyMessage) ProtoMessage() {}
 
 // MarshalJSONPB ...
-func (m *GRPCProxyMessage) MarshalJSONPB(jsb *jsonpb.Marshaler) ([]byte, error) {
-	ss, err := jsonpbMarshaler.MarshalToString(m.Data)
+func (m *GRPCProxyMessage) MarshalJSONPB() ([]byte, error) {
+	ss, err := jsonpb.Marshal(m.Data)
 	if err != nil {
 		return []byte{}, err
 	}
@@ -76,9 +76,6 @@ func (m *GRPCProxyMessage) MarshalJSONPB(jsb *jsonpb.Marshaler) ([]byte, error) 
 }
 
 var (
-	jsonpbMarshaler = jsonpb.Marshaler{
-		EmitDefaults: true,
-	}
 	statusMSDefault *rstatus.Status
 )
 

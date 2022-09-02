@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/douyu/jupiter/pkg/util/xtest/proto/testproto"
 	"github.com/douyu/jupiter/pkg/util/xtest/server/yell"
+	"github.com/douyu/jupiter/proto/testproto"
 	"github.com/stretchr/testify/assert"
 )
 
