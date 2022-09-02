@@ -158,12 +158,12 @@ func TestRawConfig(t *testing.T) {
 func TestDefaultConfig(t *testing.T) {
 	tests := []struct {
 		name string
-		want Config
+		want *Config
 	}{
 		// TODO: Add test cases.
 		{
 			name: "demo",
-			want: Config{
+			want: &Config{
 				DSN:             "",
 				Debug:           false,
 				MaxIdleConns:    10,
