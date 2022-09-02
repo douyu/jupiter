@@ -45,8 +45,8 @@ require (
 	github.com/urfave/cli v1.22.5
 	github.com/valyala/fasthttp v1.34.0
 	github.com/xlab/treeprint v1.1.0
-	go.etcd.io/etcd/api/v3 v3.5.1
-	go.etcd.io/etcd/client/v3 v3.5.1
+	go.etcd.io/etcd/api/v3 v3.5.4
+	go.etcd.io/etcd/client/v3 v3.5.4
 	go.mongodb.org/mongo-driver v1.5.1
 	go.opentelemetry.io/otel v1.7.0
 	go.opentelemetry.io/otel/exporters/jaeger v1.7.0
