@@ -202,5 +202,5 @@ var Greeter_ServiceDesc = grpc.ServiceDesc{
 			ClientStreams: true,
 		},
 	},
-	Metadata: "proto/testproto/hello.proto",
+	Metadata: "testproto/hello.proto",
 }

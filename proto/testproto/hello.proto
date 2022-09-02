@@ -17,15 +17,33 @@ syntax = "proto3";
 option java_multiple_files = true;
 option java_package = "io.grpc.examples.helloworld";
 option java_outer_classname = "HelloWorldProto";
+option go_package = "github.com/douyu/jupiter;testproto";
 
 package testproto;
+
+import "google/api/annotations.proto";
 
 // The greeting service definition.
 service Greeter {
   // Sends a greeting
-  rpc SayHello (HelloRequest) returns (HelloReply) {}
-  rpc WhoServer (WhoServerReq) returns (WhoServerReply) {}
-  rpc StreamHello (stream HelloRequest) returns (stream HelloReply){}
+  rpc SayHello (HelloRequest) returns (HelloReply) {
+    option (google.api.http) = {
+      post: "/v1/helloworld.Greeter/SayHello"
+      body: "*"
+    };
+  }
+  rpc WhoServer (WhoServerReq) returns (WhoServerReply) {
+    option (google.api.http) = {
+      post: "/v1/helloworld.Greeter/WhoServer"
+      body: "*"
+    };
+  }
+  rpc StreamHello (stream HelloRequest) returns (stream HelloReply){
+    option (google.api.http) = {
+      post: "/v1/helloworld.Greeter/StreamHello"
+      body: "*"
+    };
+  }
 }
 
 // The request message containing the user's name.

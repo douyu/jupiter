@@ -23,6 +23,7 @@ require (
 	github.com/gogf/gf v1.16.9
 	github.com/gorilla/websocket v1.4.2
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.11.3
 	github.com/hnlq715/struct2interface v0.1.1
 	github.com/json-iterator/go v1.1.12
 	github.com/juju/ratelimit v1.0.1
@@ -55,16 +56,15 @@ require (
 	go.uber.org/multierr v1.7.0
 	go.uber.org/zap v1.21.0
 	golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4
-	google.golang.org/genproto v0.0.0-20211208223120-3a66f561d7aa
+	google.golang.org/genproto v0.0.0-20220822174746-9e6da59bd2fc
 	google.golang.org/grpc v1.49.0
+	google.golang.org/protobuf v1.28.1
 	gorm.io/driver/mysql v1.3.6
 	gorm.io/gorm v1.23.8
 )
 
 require (
 	github.com/aws/aws-sdk-go v1.40.45 // indirect
-	github.com/gogo/protobuf v1.3.2
-	github.com/golang/protobuf v1.5.2
 	github.com/gomodule/redigo v2.0.0+incompatible // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
@@ -73,5 +73,4 @@ require (
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/tidwall/gjson v1.13.0 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
-	google.golang.org/protobuf v1.28.1
 )
