@@ -20,7 +20,8 @@ import (
 	"strconv"
 	"strings"
 
-	"google.golang.org/protobuf/types/known/anypb"
+	"github.com/gogo/protobuf/jsonpb"
+	"github.com/golang/protobuf/ptypes/any"
 	rstatus "google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -50,14 +51,14 @@ type GRPCProxyMessage struct {
 func (m *GRPCProxyMessage) Reset() { *m = GRPCProxyMessage{} }
 
 // String ...
-func (m *GRPCProxyMessage) String() string { return proto.CompactTextString(m) }
+func (m *GRPCProxyMessage) String() string { return protojson.Format(m.Data) }
 
 // ProtoMessage ...
 func (*GRPCProxyMessage) ProtoMessage() {}
 
 // MarshalJSONPB ...
 func (m *GRPCProxyMessage) MarshalJSONPB(jsb *jsonpb.Marshaler) ([]byte, error) {
-	ss, err := jsonpbMarshaler.MarshalToString(m.Data)
+	ss, err := protojson.Marshal(m.Data)
 	if err != nil {
 		return []byte{}, err
 	}

@@ -25,6 +25,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -60,7 +61,14 @@ func ProtoJSON(c echo.Context, code int, i interface{}) error {
 	// json output
 	c.Response().Header().Set(HeaderContentType, MIMEApplicationJSONCharsetUTF8)
 	c.Response().WriteHeader(code)
-	return jsonpbMarshaler.Marshal(c.Response().Writer, m)
+
+	body, err := protojson.Marshal(m)
+	if err != nil {
+		return err
+	}
+
+	_, err = c.Response().Write(body)
+	return err
 }
 
 // GRPCProxyWrapper ...

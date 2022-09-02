@@ -3,10 +3,11 @@ package yell
 import (
 	"context"
 	"errors"
-	"github.com/douyu/jupiter/pkg/util/xtest/proto/testproto"
+	"time"
+
+	"github.com/douyu/jupiter/proto/testproto"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"time"
 )
 
 // FooServer ...

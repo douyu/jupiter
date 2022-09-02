@@ -146,5 +146,5 @@ func marshalAnyProtoMessage(pb proto.Message) (*anypb.Any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &anypb.Any{TypeUrl: proto.MessageName(pb), Value: value}, nil
+	return &anypb.Any{TypeUrl: string(proto.MessageName(pb)), Value: value}, nil
 }
