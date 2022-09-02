@@ -107,7 +107,6 @@ jobs:
         with:
           distribution: "temurin" # See 'Supported distributions' for available options
           java-version: "8"
-        if: matrix.os == 'ubuntu-latest'
       - name: setup rocketmq
         run: |
           export PROJECT_PATH=`pwd`
@@ -119,7 +118,6 @@ jobs:
           echo "brokerIP1=127.0.0.1" > broker.properties
           nohup sh bin/mqnamesrv &
           nohup sh bin/mqbroker -n localhost:9876 -c broker.properties &
-        if: matrix.os == 'ubuntu-latest'
 
       - name: Test
         run: |
@@ -127,10 +125,8 @@ jobs:
           # test rocketmq
           sh $HOME/rocketmq-all-4.6.0-bin-release/bin/mqadmin updateTopic -n localhost:9876 -b localhost:10911 -t test
           go test -coverprofile=coverage.txt -covermode=atomic ./...
-        if: matrix.os == 'ubuntu-latest'
 
       - name: Codecov
         uses: codecov/codecov-action@v3
         with:
           token: ${{secrets.CODECOV_TOKEN}}
-        if: matrix.os == 'ubuntu-latest'
