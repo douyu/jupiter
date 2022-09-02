@@ -6,7 +6,7 @@ package testproto
 import (
 	context "context"
 	fmt "fmt"
-	proto "google.golang.org/protobuf/proto"
+	proto "github.com/golang/protobuf/proto"
 	grpc "google.golang.org/grpc"
 	math "math"
 )
