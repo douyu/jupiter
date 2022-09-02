@@ -21,9 +21,9 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/ptypes/any"
 	spb "google.golang.org/genproto/googleapis/rpc/status"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/anypb"
 )
 
 // Status ...
@@ -134,17 +134,17 @@ func (s *spbStatus) WithDetails(details ...interface{}) (*spbStatus, error) {
 	return &spbStatus{Status: p}, nil
 }
 
-func marshalAny(obj interface{}) (*any.Any, error) {
+func marshalAny(obj interface{}) (*anypb.Any, error) {
 	typ := reflect.TypeOf(obj)
 	val := fmt.Sprintf("%+v", obj)
 
-	return &any.Any{TypeUrl: typ.Name(), Value: []byte(val)}, nil
+	return &anypb.Any{TypeUrl: typ.Name(), Value: []byte(val)}, nil
 }
 
-func marshalAnyProtoMessage(pb proto.Message) (*any.Any, error) {
+func marshalAnyProtoMessage(pb proto.Message) (*anypb.Any, error) {
 	value, err := proto.Marshal(pb)
 	if err != nil {
 		return nil, err
 	}
-	return &any.Any{TypeUrl: proto.MessageName(pb), Value: value}, nil
+	return &anypb.Any{TypeUrl: proto.MessageName(pb), Value: value}, nil
 }

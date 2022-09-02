@@ -24,8 +24,8 @@ import (
 
 	"github.com/douyu/jupiter/pkg/governor"
 	"github.com/douyu/jupiter/pkg/xlog"
-	"github.com/golang/protobuf/ptypes/any"
 	spb "google.golang.org/genproto/googleapis/rpc/status"
+	"google.golang.org/protobuf/types/known/anypb"
 )
 
 // EcodeNum 低于10000均为系统错误码，业务错误码请使用10000以上
@@ -67,7 +67,7 @@ func add(code int, message string) *spbStatus {
 		&spb.Status{
 			Code:    int32(code),
 			Message: message,
-			Details: make([]*any.Any, 0),
+			Details: make([]*anypb.Any, 0),
 		},
 	}
 	_codes.Store(code, status)
@@ -86,7 +86,7 @@ func ExtractCodes(e error) *spbStatus {
 		&spb.Status{
 			Code:    int32(gst.Code()),
 			Message: gst.Message(),
-			Details: make([]*any.Any, 0),
+			Details: make([]*anypb.Any, 0),
 		},
 	}
 }

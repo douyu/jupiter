@@ -22,10 +22,10 @@ import (
 	"strings"
 
 	"github.com/codegangsta/inject"
-	"github.com/golang/protobuf/proto"
 	"github.com/labstack/echo/v4"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/proto"
 )
 
 // ProtoError ...
