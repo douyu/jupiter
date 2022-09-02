@@ -21,7 +21,7 @@ require (
 	github.com/go-redis/redis v6.15.8+incompatible
 	github.com/go-resty/resty/v2 v2.7.0
 	github.com/gogf/gf v1.16.9
-	github.com/gorilla/websocket v1.4.2
+	github.com/gorilla/websocket v1.5.0
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/hnlq715/struct2interface v0.1.1
 	github.com/json-iterator/go v1.1.12
@@ -63,8 +63,6 @@ require (
 
 require (
 	github.com/aws/aws-sdk-go v1.40.45 // indirect
-	github.com/gogo/protobuf v1.3.2
-	github.com/golang/protobuf v1.5.2
 	github.com/gomodule/redigo v2.0.0+incompatible // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
