@@ -9,7 +9,7 @@ require (
 	github.com/alicebob/miniredis/v2 v2.23.0
 	github.com/apache/rocketmq-client-go/v2 v2.1.1-rc2
 	github.com/codegangsta/inject v0.0.0-20150114235600-33e0aa1cb7c0
-	github.com/cosmtrek/air v1.40.1
+	github.com/cosmtrek/air v1.40.4
 	github.com/davecgh/go-spew v1.1.1
 	github.com/dimiro1/banner v1.1.0
 	github.com/fatih/color v1.13.0
@@ -63,8 +63,6 @@ require (
 
 require (
 	github.com/aws/aws-sdk-go v1.40.45 // indirect
-	github.com/gogo/protobuf v1.3.2
-	github.com/golang/protobuf v1.5.2
 	github.com/gomodule/redigo v2.0.0+incompatible // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
