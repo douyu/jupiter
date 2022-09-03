@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	cirello.io/pglock v1.8.0
-	github.com/BurntSushi/toml v0.3.1
+	github.com/BurntSushi/toml v1.2.0
 	github.com/alibaba/sentinel-golang v1.0.4
 	github.com/alicebob/miniredis/v2 v2.23.0
 	github.com/apache/rocketmq-client-go/v2 v2.1.1-rc2
@@ -63,8 +63,6 @@ require (
 
 require (
 	github.com/aws/aws-sdk-go v1.40.45 // indirect
-	github.com/gogo/protobuf v1.3.2
-	github.com/golang/protobuf v1.5.2
 	github.com/gomodule/redigo v2.0.0+incompatible // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
