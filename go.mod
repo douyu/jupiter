@@ -3,7 +3,7 @@ module github.com/douyu/jupiter
 go 1.16
 
 require (
-	cirello.io/pglock v1.8.0
+	cirello.io/pglock v1.9.0
 	github.com/BurntSushi/toml v1.2.0
 	github.com/alibaba/sentinel-golang v1.0.4
 	github.com/alicebob/miniredis/v2 v2.23.0
@@ -66,7 +66,6 @@ require (
 	github.com/gomodule/redigo v2.0.0+incompatible // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
-	github.com/lib/pq v1.3.0 // indirect
 	github.com/shirou/gopsutil/v3 v3.21.7 // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/tidwall/gjson v1.13.0 // indirect
