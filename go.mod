@@ -23,7 +23,7 @@ require (
 	github.com/gogf/gf v1.16.9
 	github.com/gorilla/websocket v1.5.0
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
-	github.com/hnlq715/struct2interface v0.1.1
+	github.com/hnlq715/struct2interface v0.1.2
 	github.com/json-iterator/go v1.1.12
 	github.com/juju/ratelimit v1.0.2
 	github.com/labstack/echo/v4 v4.1.16
