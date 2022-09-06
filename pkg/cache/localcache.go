@@ -50,7 +50,7 @@ func (l *localStorage) SetCacheData(key string, data []byte) (err error) {
 	// metric上报
 	if !l.req.DisableMetric {
 		defer func() {
-			prome.LocalCacheHandleHistogram.WithLabelValues(prome.TypeMySQL, l.req.Name, "EntryCount").Observe(float64(l.cache.EntryCount()))
+			prome.LocalCacheHandleHistogram.WithLabelValues(prome.TypeLocalCache, l.req.Name, "EntryCount").Observe(float64(l.cache.EntryCount()))
 		}()
 	}
 
@@ -69,9 +69,9 @@ func (l *localStorage) GetCacheData(key string) (data []byte, err error) {
 	// metric上报
 	if !l.req.DisableMetric {
 		defer func() {
-			prome.LocalCacheHandleHistogram.WithLabelValues(prome.TypeMySQL, l.req.Name, "MissCount").Observe(float64(l.cache.MissCount()))
-			prome.LocalCacheHandleHistogram.WithLabelValues(prome.TypeMySQL, l.req.Name, "HitRate").Observe(l.cache.HitRate())
-			prome.LocalCacheHandleHistogram.WithLabelValues(prome.TypeMySQL, l.req.Name, "AverageAccessTime").Observe(float64(l.cache.AverageAccessTime()))
+			prome.LocalCacheHandleHistogram.WithLabelValues(prome.TypeLocalCache, l.req.Name, "MissCount").Observe(float64(l.cache.MissCount()))
+			prome.LocalCacheHandleHistogram.WithLabelValues(prome.TypeLocalCache, l.req.Name, "HitRate").Observe(l.cache.HitRate())
+			prome.LocalCacheHandleHistogram.WithLabelValues(prome.TypeLocalCache, l.req.Name, "AverageAccessTime").Observe(float64(l.cache.AverageAccessTime()))
 		}()
 	}
 
