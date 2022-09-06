@@ -47,6 +47,8 @@ var (
 
 	// TypeMySQL ...
 	TypeMySQL = "mysql"
+	// TypeLocalCache ...
+	TypeLocalCache = "localCache"
 
 	// CodeJob
 	CodeJobSuccess = "ok"
@@ -142,6 +144,12 @@ var (
 		Name:      "build_info",
 		Labels:    []string{"name", "id", "env", "region", "zone", "version", "go_version"},
 		// Labels:    []string{"name", "aid", "mode", "region", "zone", "app_version", "jupiter_version", "start_time", "build_time", "go_version"},
+	}.Build()
+
+	LocalCacheHandleHistogram = HistogramVecOpts{
+		Namespace: constant.DefaultNamespace,
+		Name:      "local_cache_handle",
+		Labels:    []string{"name", "type"},
 	}.Build()
 
 	// LogLevelCounter ...
