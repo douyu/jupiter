@@ -18,7 +18,7 @@ require (
 	github.com/fsnotify/fsnotify v1.5.4
 	github.com/gin-gonic/gin v1.8.1
 	github.com/go-basic/ipv4 v1.0.0
-	github.com/go-redis/redis v6.15.8+incompatible
+	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/go-resty/resty/v2 v2.7.0
 	github.com/gogf/gf v1.16.9
 	github.com/gorilla/websocket v1.5.0
