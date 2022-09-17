@@ -18,6 +18,12 @@ import "github.com/urfave/cli"
 
 var Commands = []cli.Command{
 	{
+		Name:    "init",
+		Aliases: []string{"i"},
+		Usage:   "init jupiter dependencies",
+		Action:  Init,
+	},
+	{
 		Name:    "new",
 		Aliases: []string{"n"},
 		Usage:   "generate code framework",
