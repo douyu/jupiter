@@ -10,29 +10,19 @@ import (
 
 func Init(c *cli.Context) error {
 
-	err := goinstall("github.com/google/wire/cmd/wire@v0.5.0")
-	if err != nil {
-		return err
+	deps := []string{
+		"github.com/google/wire/cmd/wire@v0.5.0",
+		"github.com/vektra/mockery/v2@v2.14.0",
+		"github.com/bufbuild/buf/cmd/buf@v1.6.0",
+		"github.com/onsi/ginkgo/v2/ginkgo@v2.1.3",
+		"github.com/fullstorydev/grpcurl/cmd/grpcurl@v1.8.7",
 	}
 
-	err = goinstall("github.com/vektra/mockery/v2@v2.14.0")
-	if err != nil {
-		return err
-	}
-
-	err = goinstall("github.com/bufbuild/buf/cmd/buf@v1.6.0")
-	if err != nil {
-		return err
-	}
-
-	err = goinstall("github.com/onsi/ginkgo/v2/ginkgo@v2.1.3")
-	if err != nil {
-		return err
-	}
-
-	err = goinstall("github.com/fullstorydev/grpcurl/cmd/grpcurl@v1.8.7")
-	if err != nil {
-		return err
+	for _, dep := range deps {
+		err := goinstall(dep)
+		if err != nil {
+			return err
+		}
 	}
 
 	color.Green("jupiter init success.")
