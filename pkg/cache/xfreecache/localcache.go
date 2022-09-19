@@ -1,12 +1,11 @@
-package cache
+package xfreecache
 
 import (
 	"fmt"
 	"time"
 
-	prome "github.com/douyu/jupiter/pkg/metric"
-
 	"github.com/coocood/freecache"
+	prome "github.com/douyu/jupiter/pkg/metric"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"go.uber.org/zap"
 )
@@ -50,7 +49,7 @@ func (l *localStorage) SetCacheData(key string, data []byte) (err error) {
 	// metric上报
 	if !l.req.DisableMetric {
 		defer func() {
-			prome.LocalCacheHandleHistogram.WithLabelValues(prome.TypeLocalCache, l.req.Name, "EntryCount").Observe(float64(l.cache.EntryCount()))
+			prome.CacheHandleGauge.WithLabelValues(prome.TypeLocalCache, l.req.Name, "EntryCount").Set(float64(l.cache.EntryCount()))
 		}()
 	}
 
@@ -69,9 +68,9 @@ func (l *localStorage) GetCacheData(key string) (data []byte, err error) {
 	// metric上报
 	if !l.req.DisableMetric {
 		defer func() {
-			prome.LocalCacheHandleHistogram.WithLabelValues(prome.TypeLocalCache, l.req.Name, "MissCount").Observe(float64(l.cache.MissCount()))
-			prome.LocalCacheHandleHistogram.WithLabelValues(prome.TypeLocalCache, l.req.Name, "HitRate").Observe(l.cache.HitRate())
-			prome.LocalCacheHandleHistogram.WithLabelValues(prome.TypeLocalCache, l.req.Name, "AverageAccessTime").Observe(float64(l.cache.AverageAccessTime()))
+			prome.CacheHandleGauge.WithLabelValues(prome.TypeLocalCache, l.req.Name, "MissCount").Set(float64(l.cache.MissCount()))
+			prome.CacheHandleGauge.WithLabelValues(prome.TypeLocalCache, l.req.Name, "HitRate").Set(l.cache.HitRate())
+			prome.CacheHandleGauge.WithLabelValues(prome.TypeLocalCache, l.req.Name, "AverageAccessTime").Set(float64(l.cache.AverageAccessTime() * 1000))
 		}()
 	}
 

@@ -1,4 +1,4 @@
-package cache
+package xfreecache
 
 type Size int
 

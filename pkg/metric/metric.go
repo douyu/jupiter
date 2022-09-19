@@ -146,14 +146,10 @@ var (
 		// Labels:    []string{"name", "aid", "mode", "region", "zone", "app_version", "jupiter_version", "start_time", "build_time", "go_version"},
 	}.Build()
 
-	LocalCacheHandleHistogram = HistogramVecOpts{
-		Namespace: constant.DefaultNamespace,
-		Name:      "local_cache_handle",
-		Labels:    []string{"name", "type"},
-	}.Build()
-
 	// LogLevelCounter ...
 	LogLevelCounter = NewCounterVec("log_level_total", []string{"name", "lv"})
+
+	CacheHandleGauge = NewGaugeVec("cache_handle_gauge", []string{"type", "name", "method"})
 )
 
 func init() {
