@@ -5,19 +5,19 @@ import (
 	"go.uber.org/zap"
 )
 
-type Storage interface {
+type storage interface {
 	// SetCacheData 设置缓存数据 key：缓存key data：缓存数据
 	SetCacheData(key string, data []byte) (err error)
 	// GetCacheData 存储缓存数据 key：缓存key data：缓存数据
 	GetCacheData(key string) (data []byte, err error)
 }
 
-type Cache struct {
-	Storage
+type cache struct {
+	storage
 }
 
 // GetAndSetCacheData 获取缓存后数据
-func (c *Cache) GetAndSetCacheData(key string, fn func() ([]byte, error)) (v []byte, err error) {
+func (c *cache) GetAndSetCacheData(key string, fn func() ([]byte, error)) (v []byte, err error) {
 	v, err = c.GetCacheData(key)
 	if err == nil && v != nil {
 		return

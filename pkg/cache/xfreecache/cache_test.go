@@ -1,10 +1,10 @@
 package xfreecache
 
 import (
-	"encoding/json"
 	"fmt"
+
+	"encoding/json"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -15,11 +15,7 @@ type Student struct {
 }
 
 func TestLocalCache(t *testing.T) {
-	oneCache := NewLocalCache(LocalCacheReq{
-		Size:   10 * MB,
-		Expire: 2 * time.Minute,
-		Name:   "oneCache",
-	})
+	oneCache := DefaultConfig().Build()
 	missCount := 0
 
 	tests := []struct {
