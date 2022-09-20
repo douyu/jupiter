@@ -68,9 +68,9 @@ func (l *localStorage) GetCacheData(key string) (data []byte, err error) {
 	// metric上报
 	if !l.req.DisableMetric {
 		defer func() {
-			prome.CacheHandleGauge.WithLabelValues(prome.TypeLocalCache, l.req.Name, "MissCount").Set(float64(l.cache.MissCount()))
 			prome.CacheHandleGauge.WithLabelValues(prome.TypeLocalCache, l.req.Name, "HitRate").Set(l.cache.HitRate())
-			prome.CacheHandleGauge.WithLabelValues(prome.TypeLocalCache, l.req.Name, "AverageAccessTime").Set(float64(l.cache.AverageAccessTime() * 1000))
+			prome.CacheHandleGauge.WithLabelValues(prome.TypeLocalCache, l.req.Name, "HitCount").Set(float64(l.cache.HitCount()))
+			prome.CacheHandleGauge.WithLabelValues(prome.TypeLocalCache, l.req.Name, "MissCount").Set(float64(l.cache.MissCount()))
 		}()
 	}
 
