@@ -12,7 +12,7 @@ import (
 type Config struct {
 	Size          Size          // 缓存容量,最小512*1024 【必填】
 	Expire        time.Duration // 失效时间 【必填】
-	DisableMetric bool          // metric上报 【选填，默认开启】
+	DisableMetric bool          // metric上报 false 开启  ture 关闭【选填，默认开启】
 	Name          string        // 本地缓存名称，用于日志标识&metric上报【选填】
 }
 
@@ -21,7 +21,7 @@ func DefaultConfig() Config {
 	return Config{
 		Size:          256 * MB,
 		Expire:        2 * time.Minute,
-		DisableMetric: true,
+		DisableMetric: false,
 		Name:          fmt.Sprintf("cache-%d", time.Now().UnixNano()),
 	}
 }
