@@ -62,7 +62,6 @@ require (
 )
 
 require (
-	github.com/aws/aws-sdk-go v1.40.45 // indirect
 	github.com/coocood/freecache v1.2.2
 	github.com/gomodule/redigo v2.0.0+incompatible // indirect
 	github.com/google/uuid v1.3.0 // indirect
