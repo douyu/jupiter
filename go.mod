@@ -62,6 +62,7 @@ require (
 )
 
 require (
+	github.com/coocood/freecache v1.2.2
 	github.com/gomodule/redigo v2.0.0+incompatible // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect

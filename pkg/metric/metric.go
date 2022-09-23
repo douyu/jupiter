@@ -47,6 +47,8 @@ var (
 
 	// TypeMySQL ...
 	TypeMySQL = "mysql"
+	// TypeLocalCache ...
+	TypeLocalCache = "localCache"
 
 	// CodeJob
 	CodeJobSuccess = "ok"
