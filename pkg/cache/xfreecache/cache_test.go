@@ -76,3 +76,21 @@ func TestLocalCache(t *testing.T) {
 	}
 	assert.Equalf(t, missCount, 3, "GetAndSetCacheData miss count error")
 }
+
+// BenchmarkLocalCache 1553 ns/op
+func BenchmarkLocalCache(b *testing.B) {
+	stu := Student{
+		Age:  1,
+		Name: "stu1",
+	}
+	oneCache := DefaultConfig().Build()
+	for i := 0; i < b.N; i++ {
+		key := fmt.Sprintf("%d-%s", stu.Age, stu.Name)
+		result, _ := oneCache.GetAndSetCacheData(key, func() ([]byte, error) {
+			ret, _ := json.Marshal(stu)
+			return ret, nil
+		})
+		ret := Student{}
+		_ = json.Unmarshal(result, &ret)
+	}
+}

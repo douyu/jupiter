@@ -20,7 +20,11 @@ func (l *localStorage) SetCacheData(key string, data []byte) (err error) {
 	err = l.cache.Set([]byte(key), data, int(l.req.Expire.Seconds()))
 	// metric report
 	if !l.req.DisableMetric {
-		prome.CacheHandleGauge.WithLabelValues(prome.TypeLocalCache, l.req.Name, "EntryCount").Set(float64(l.cache.EntryCount()))
+		if err != nil {
+			prome.CacheHandleCounter.WithLabelValues(prome.TypeLocalCache, l.req.Name, "SetFail", err.Error()).Inc()
+		} else {
+			prome.CacheHandleCounter.WithLabelValues(prome.TypeLocalCache, l.req.Name, "SetSuccess", "").Inc()
+		}
 	}
 	if err != nil {
 		xlog.Jupiter().Error("cache SetCacheData", zap.String("data", string(data)), zap.Error(err))
@@ -36,9 +40,11 @@ func (l *localStorage) GetCacheData(key string) (data []byte, err error) {
 	data, err = l.cache.Get([]byte(key))
 	// metric report
 	if !l.req.DisableMetric {
-		prome.CacheHandleGauge.WithLabelValues(prome.TypeLocalCache, l.req.Name, "HitRate").Set(l.cache.HitRate())
-		prome.CacheHandleGauge.WithLabelValues(prome.TypeLocalCache, l.req.Name, "HitCount").Set(float64(l.cache.HitCount()))
-		prome.CacheHandleGauge.WithLabelValues(prome.TypeLocalCache, l.req.Name, "MissCount").Set(float64(l.cache.MissCount()))
+		if err != nil {
+			prome.CacheHandleCounter.WithLabelValues(prome.TypeLocalCache, l.req.Name, "MissCount", err.Error()).Inc()
+		} else {
+			prome.CacheHandleCounter.WithLabelValues(prome.TypeLocalCache, l.req.Name, "HitCount", "").Inc()
+		}
 	}
 	if err == freecache.ErrNotFound || data == nil {
 		err = nil

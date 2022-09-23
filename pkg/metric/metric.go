@@ -148,8 +148,6 @@ var (
 
 	// LogLevelCounter ...
 	LogLevelCounter = NewCounterVec("log_level_total", []string{"name", "lv"})
-
-	CacheHandleGauge = NewGaugeVec("cache_handle_gauge", []string{"type", "name", "method"})
 )
 
 func init() {
