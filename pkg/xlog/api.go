@@ -14,7 +14,16 @@
 
 package xlog
 
-import "go.uber.org/zap"
+import (
+	"context"
+
+	"go.uber.org/zap"
+)
+
+// L returns the standard logger.
+func L(ctx context.Context) *Logger {
+	return FromContext(ctx)
+}
 
 // Jupiter returns framework logger
 func Jupiter() *Logger {
@@ -33,6 +42,8 @@ func Default() *Logger {
 func SetDefault(logger *Logger) {
 	defaultLogger = logger
 	stdLogger = defaultLogger.WithOptions(zap.AddCallerSkip(1))
+	zap.ReplaceGlobals(defaultLogger)
+	zap.RedirectStdLog(defaultLogger)
 }
 
 // Debug logs a message at DebugLevel. The message includes any fields passed
