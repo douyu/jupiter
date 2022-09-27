@@ -84,7 +84,6 @@ func RawConfig(key string) *Config {
 	var config = DefaultConfig()
 	config, _ = conf.UnmarshalWithExpect(key, config).(*Config)
 	config.configKey = key
-	fmt.Printf("%+v", config)
 	return config
 }
 
