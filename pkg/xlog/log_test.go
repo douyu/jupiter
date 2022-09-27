@@ -38,7 +38,7 @@ func Test_log(t *testing.T) {
 	found := false
 	for _, v := range data {
 
-		if v.GetName() == "jupiter_log_level_total" {
+		if v.GetName() == "log_level_total" {
 			assert.NotEmpty(t, v.GetMetric())
 			found = true
 
@@ -74,7 +74,7 @@ func Test_trace(t *testing.T) {
 	found := false
 	for _, v := range data {
 
-		if v.GetName() == "jupiter_log_level_total" {
+		if v.GetName() == "log_level_total" {
 			assert.NotEmpty(t, v.GetMetric())
 			found = true
 

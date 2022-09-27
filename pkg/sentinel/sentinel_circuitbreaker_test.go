@@ -67,7 +67,7 @@ var _ = ginkgo.Describe("sentinel unit test with config", func() {
 
 			pass := false
 			for _, s := range ss {
-				if s.GetName() == "jupiter_sentinel_request" {
+				if s.GetName() == "sentinel_request" {
 					m := s.GetMetric()[0]
 					Expect(m.GetCounter().GetValue()).Should(BeEquivalentTo(1))
 					pass = true
@@ -102,7 +102,7 @@ var _ = ginkgo.Describe("sentinel unit test with config", func() {
 			pass := false
 
 			for _, s := range ss {
-				if s.GetName() == "jupiter_sentinel_exceptions_thrown" {
+				if s.GetName() == "sentinel_exceptions_thrown" {
 					m := s.GetMetric()[0]
 					Expect(m.Counter.GetValue()).Should(BeEquivalentTo(100))
 					pass = true
@@ -130,7 +130,7 @@ var _ = ginkgo.Describe("sentinel unit test with config", func() {
 			pass := false
 
 			for _, s := range ss {
-				if s.GetName() == "jupiter_sentinel_rt" {
+				if s.GetName() == "sentinel_rt" {
 					m := s.GetMetric()[0]
 
 					Expect(m.Histogram.GetSampleCount()).Should(BeEquivalentTo(1))
@@ -177,20 +177,20 @@ var _ = ginkgo.Describe("sentinel unit test with config", func() {
 
 			var pass1, pass2, pass3 bool
 			for _, s := range ss {
-				if s.GetName() == "jupiter_sentinel_rt" {
+				if s.GetName() == "sentinel_rt" {
 					m := s.GetMetric()[0]
 					Expect(m.Histogram.GetSampleCount()).Should(BeEquivalentTo(4))
 					pass1 = true
 				}
 
-				if s.GetName() == "jupiter_sentinel_request" {
+				if s.GetName() == "sentinel_request" {
 					m := s.GetMetric()[0]
 					fmt.Println(m.GetLabel()[1].GetValue(), "!!!!!", m.GetLabel()[2].GetValue())
 					Expect(m.Counter.GetValue()).Should(BeEquivalentTo(5))
 					pass2 = true
 				}
 
-				if s.GetName() == "jupiter_sentinel_state" {
+				if s.GetName() == "sentinel_state" {
 					m := s.GetMetric()[0]
 					fmt.Println(m)
 
@@ -231,7 +231,7 @@ var _ = ginkgo.Describe("sentinel unit test with config", func() {
 
 			haveMetric := false
 			for _, s := range ss {
-				if s.GetName() == "jupiter_sentinel_request" {
+				if s.GetName() == "sentinel_request" {
 					m := s.GetMetric()[0]
 					Expect(m.GetCounter().GetValue()).Should(BeEquivalentTo(1))
 					haveMetric = true
