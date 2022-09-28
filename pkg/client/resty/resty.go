@@ -39,6 +39,9 @@ import (
 
 var errSlowCommand = errors.New("http resty slow command")
 
+// Client ...
+type Client = resty.Client
+
 // Config ...
 type (
 	// Config options
@@ -75,12 +78,12 @@ type (
 )
 
 // StdConfig 返回标准配置
-func StdConfig(name string) Config {
+func StdConfig(name string) *Config {
 	return RawConfig("jupiter.resty." + name)
 }
 
 // RawConfig 返回配置
-func RawConfig(key string) Config {
+func RawConfig(key string) *Config {
 	var config = DefaultConfig()
 	if err := conf.UnmarshalKey(key, &config, conf.TagName("toml")); err != nil {
 		xlog.Jupiter().Panic("unmarshal config", xlog.FieldName(key), xlog.FieldExtMessage(config))
@@ -93,8 +96,8 @@ func RawConfig(key string) Config {
 }
 
 // DefaultConfig 返回默认配置
-func DefaultConfig() Config {
-	return Config{
+func DefaultConfig() *Config {
+	return &Config{
 		Debug:            false,
 		EnableMetric:     true,
 		EnableTrace:      true,
