@@ -49,8 +49,8 @@ func newClient(config *Config) (*Client, error) {
 		DialKeepAliveTimeout: 3 * time.Second,
 		DialOptions: []grpc.DialOption{
 			grpc.WithBlock(),
-			grpc.WithUnaryInterceptor(grpcprom.UnaryClientInterceptor),
-			grpc.WithStreamInterceptor(grpcprom.StreamClientInterceptor),
+			grpc.WithChainUnaryInterceptor(grpcprom.UnaryClientInterceptor, traceUnaryClientInterceptor()),
+			grpc.WithChainStreamInterceptor(grpcprom.StreamClientInterceptor, traceStreamClientInterceptor()),
 		},
 		AutoSyncInterval: config.AutoSyncInterval,
 	}

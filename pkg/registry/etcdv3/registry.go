@@ -53,6 +53,7 @@ func newETCDRegistry(config *Config) (*etcdv3Registry, error) {
 	config.logger = config.logger.With(xlog.FieldMod(ecode.ModRegistryETCD), xlog.FieldAddrAny(config.Config.Endpoints))
 	etcdv3Client, err := config.Config.Build()
 	if err != nil {
+		config.logger.Error("create etcdv3 client", xlog.FieldErrKind(ecode.ErrKindRequestErr), xlog.FieldErr(err))
 		return nil, err
 	}
 	reg := &etcdv3Registry{

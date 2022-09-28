@@ -16,11 +16,12 @@ package xecho
 
 import (
 	"fmt"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/propagation"
 	"net/http"
 	"runtime"
 	"time"
+
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/propagation"
 
 	"github.com/douyu/jupiter/pkg/metric"
 	"github.com/douyu/jupiter/pkg/xtrace"
@@ -99,11 +100,12 @@ func metricServerInterceptor() echo.MiddlewareFunc {
 }
 
 func traceServerInterceptor() echo.MiddlewareFunc {
+	tracer := xtrace.NewTracer(trace.SpanKindServer)
+	attrs := []attribute.KeyValue{
+		semconv.RPCSystemKey.String("http"),
+	}
+
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		tracer := xtrace.NewTracer(trace.SpanKindServer)
-		attrs := []attribute.KeyValue{
-			semconv.RPCSystemKey.String("http"),
-		}
 		return func(c echo.Context) (err error) {
 			ctx, span := tracer.Start(c.Request().Context(), c.Request().URL.Path, propagation.HeaderCarrier(c.Request().Header), trace.WithAttributes(attrs...))
 			span.SetAttributes(

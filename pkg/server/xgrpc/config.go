@@ -144,8 +144,8 @@ func (config *Config) MustBuild() *Server {
 // Build ...
 func (config *Config) Build() (*Server, error) {
 	if !config.DisableTrace {
-		config.unaryInterceptors = append(config.unaryInterceptors, traceUnaryServerInterceptor)
-		config.streamInterceptors = append(config.streamInterceptors, traceStreamServerInterceptor)
+		config.unaryInterceptors = append(config.unaryInterceptors, newTraceUnaryServerInterceptor())
+		config.streamInterceptors = append(config.streamInterceptors, newTraceStreamServerInterceptor())
 	}
 
 	if !config.DisableMetric {

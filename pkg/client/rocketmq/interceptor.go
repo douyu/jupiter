@@ -16,12 +16,13 @@ package rocketmq
 
 import (
 	"context"
+	"strings"
+	"time"
+
 	"github.com/douyu/jupiter/pkg/xtrace"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/propagation"
-	"strings"
-	"time"
 
 	"github.com/apache/rocketmq-client-go/v2/consumer"
 	"github.com/apache/rocketmq-client-go/v2/primitive"
@@ -147,6 +148,11 @@ func produceResultStr(result primitive.SendStatus) string {
 }
 
 func producerDefaultInterceptor(producer *Producer) primitive.Interceptor {
+	tracer := xtrace.NewTracer(trace.SpanKindProducer)
+	attrs := []attribute.KeyValue{
+		semconv.MessagingSystemKey.String("rocketmq"),
+	}
+
 	return func(ctx context.Context, req, reply interface{}, next primitive.Invoker) error {
 		beg := time.Now()
 		realReq := req.(*primitive.Message)
@@ -157,10 +163,7 @@ func producerDefaultInterceptor(producer *Producer) primitive.Interceptor {
 		)
 
 		if producer.EnableTrace {
-			tracer := xtrace.NewTracer(trace.SpanKindProducer)
-			attrs := []attribute.KeyValue{
-				semconv.MessagingSystemKey.String("rocketmq"),
-			}
+
 			md := metadata.New(nil)
 			ctx, span = tracer.Start(ctx, realReq.Topic, propagation.HeaderCarrier(md), trace.WithAttributes(attrs...))
 

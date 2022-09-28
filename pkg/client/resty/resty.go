@@ -154,12 +154,14 @@ func (config *Config) Build() (*resty.Client, error) {
 
 	})
 
+	tracer := xtrace.NewTracer(trace.SpanKindClient)
+	attrs := []attribute.KeyValue{
+		semconv.RPCSystemKey.String("http"),
+	}
+
 	client.OnBeforeRequest(func(c *resty.Client, r *resty.Request) error {
 		if config.EnableTrace {
-			tracer := xtrace.NewTracer(trace.SpanKindClient)
-			attrs := []attribute.KeyValue{
-				semconv.RPCSystemKey.String("http"),
-			}
+
 			ctx, span := tracer.Start(r.Context(), r.Method, propagation.HeaderCarrier(r.Header), trace.WithAttributes(attrs...))
 			span.SetAttributes(
 				semconv.RPCSystemKey.String("http"),
