@@ -165,13 +165,8 @@ func (config *Config) Build() (*resty.Client, error) {
 	client.OnBeforeRequest(func(c *resty.Client, r *resty.Request) error {
 		if config.EnableTrace {
 
-			ctx, span := tracer.Start(r.Context(), r.Method, propagation.HeaderCarrier(r.Header), trace.WithAttributes(attrs...))
-			span.SetAttributes(
-				semconv.RPCSystemKey.String("http"),
-				semconv.PeerServiceKey.String("http_client_request"),
-				semconv.HTTPMethodKey.String(r.Method),
-				semconv.HTTPURLKey.String(r.URL),
-			)
+			ctx, _ := tracer.Start(r.Context(), r.URL, propagation.HeaderCarrier(r.Header), trace.WithAttributes(attrs...))
+
 			r.SetContext(ctx)
 		}
 
@@ -203,6 +198,7 @@ func (config *Config) Build() (*resty.Client, error) {
 
 		if config.EnableTrace {
 			span := trace.SpanFromContext(r.Request.Context())
+			span.SetAttributes(semconv.HTTPClientAttributesFromHTTPRequest(r.Request.RawRequest)...)
 			span.SetAttributes(
 				semconv.HTTPStatusCodeKey.Int64(int64(r.StatusCode())),
 			)
