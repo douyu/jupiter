@@ -22,21 +22,19 @@ import (
 	"strings"
 	"time"
 
-	"go.opentelemetry.io/otel/attribute"
-	"google.golang.org/grpc/status"
-
 	"github.com/douyu/jupiter/pkg/ecode"
+	"github.com/douyu/jupiter/pkg/metric"
 	"github.com/douyu/jupiter/pkg/xlog"
+	"github.com/douyu/jupiter/pkg/xtrace"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
+	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
-
-	"github.com/douyu/jupiter/pkg/metric"
-	"github.com/douyu/jupiter/pkg/xtrace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
-	"go.opentelemetry.io/otel/trace"
-	"google.golang.org/grpc"
+	"google.golang.org/grpc/status"
 )
 
 func prometheusUnaryServerInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
@@ -108,6 +106,9 @@ func (css contextedServerStream) Context() context.Context {
 
 func newTraceStreamServerInterceptor() grpc.StreamServerInterceptor {
 	tracer := xtrace.NewTracer(trace.SpanKindServer)
+	attrs := []attribute.KeyValue{
+		semconv.RPCSystemKey.String("grpc"),
+	}
 
 	return func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 		var remote string
@@ -119,15 +120,13 @@ func newTraceStreamServerInterceptor() grpc.StreamServerInterceptor {
 		}
 
 		operation, mAttrs := xtrace.ParseFullMethod(info.FullMethod)
-		attrs := []attribute.KeyValue{
-			semconv.RPCSystemKey.String("grpc"),
-		}
+
 		attrs = append(attrs, mAttrs...)
 		if p, ok := peer.FromContext(ss.Context()); ok {
 			remote = p.Addr.String()
 		}
 		attrs = append(attrs, xtrace.PeerAttr(remote)...)
-		//ctx, span := tracer.Start(ss.Context(), operation, propagation.HeaderCarrier(md), trace.WithAttributes(attrs...))
+
 		ctx, span := tracer.Start(ss.Context(), operation, xtrace.MetadataReaderWriter(md), trace.WithAttributes(attrs...))
 		defer span.End()
 		return handler(srv, contextedServerStream{
