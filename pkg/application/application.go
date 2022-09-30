@@ -109,12 +109,7 @@ func (app *Application) initialize() {
 
 		_ = app.parseFlags()
 		_ = app.printBanner()
-		_ = app.logProcs()
 	})
-}
-func (app *Application) logProcs() error {
-	fmt.Println("1111 test maxprocs")
-	return nil
 }
 
 // // start up application
