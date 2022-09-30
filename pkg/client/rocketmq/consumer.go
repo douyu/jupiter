@@ -46,9 +46,6 @@ type PushConsumer struct {
 
 func (conf *ConsumerConfig) Build() *PushConsumer {
 	name := conf.Name
-	if _, ok := _consumers.Load(name); ok {
-		xlog.Jupiter().Panic("duplicated load", xlog.String("name", name))
-	}
 
 	xlog.Jupiter().Debug("rocketmq's config: ", xlog.String("name", name), xlog.Any("conf", conf))
 
@@ -82,7 +79,6 @@ func (conf *ConsumerConfig) Build() *PushConsumer {
 		}
 	})
 
-	_consumers.Store(name, cc)
 	return cc
 }
 
@@ -91,7 +87,6 @@ func (cc *PushConsumer) Close() {
 	if err != nil {
 		xlog.Jupiter().Warn("consumer close fail", zap.Error(err))
 	}
-	_consumers.Delete(cc.name)
 }
 
 func (cc *PushConsumer) WithInterceptor(fs ...primitive.Interceptor) *PushConsumer {
