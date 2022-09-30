@@ -2,15 +2,12 @@ package hooks
 
 import (
 	"fmt"
-	"sync"
 
 	"github.com/fatih/color"
 )
 
 var (
-	globalHooks     = make([][]func(), StageMax)
-	beforeStopHooks = make([]func(), 0)
-	mu              = sync.RWMutex{}
+	globalHooks = make([][]func(), StageMax)
 )
 
 type Stage int
@@ -43,9 +40,6 @@ const (
 
 // Register 注册一个defer函数
 func Register(stage Stage, fns ...func()) {
-	mu.Lock()
-	defer mu.Unlock()
-
 	globalHooks[stage] = append(globalHooks[stage], fns...)
 }
 
