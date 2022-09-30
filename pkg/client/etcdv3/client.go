@@ -41,8 +41,8 @@ type Client struct {
 func newClient(config *Config) (*Client, error) {
 	dialOptions := []grpc.DialOption{
 		grpc.WithBlock(),
-		grpc.WithChainUnaryInterceptor(grpcprom.UnaryClientInterceptor, traceUnaryClientInterceptor()),
-		grpc.WithChainStreamInterceptor(grpcprom.StreamClientInterceptor, traceStreamClientInterceptor()),
+		grpc.WithChainUnaryInterceptor(grpcprom.UnaryClientInterceptor),
+		grpc.WithChainStreamInterceptor(grpcprom.StreamClientInterceptor),
 	}
 
 	if config.EnableTrace {
