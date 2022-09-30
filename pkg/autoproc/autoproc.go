@@ -24,15 +24,13 @@ import (
 )
 
 func init() {
-	// 初始化注册中心
-	if _, err := maxprocs.Set(); err != nil {
-		xlog.Jupiter().Panic("auto max procs", xlog.FieldMod(ecode.ModProc), xlog.FieldErrKind(ecode.ErrKindAny), xlog.FieldErr(err))
-	}
+	// 初始化GOMAXPROCS
 	conf.OnLoaded(func(c *conf.Configuration) {
-		appContainer := conf.GetString("app.container")
 		maxProcs := conf.GetInt("app.maxProc")
-		if appContainer == "ecs" && maxProcs > 0 && maxProcs < runtime.NumCPU() {
+		if maxProcs > 0 && maxProcs < runtime.NumCPU() {
 			runtime.GOMAXPROCS(maxProcs)
+		} else if _, err := maxprocs.Set(); err != nil {
+			xlog.Jupiter().Panic("auto max procs", xlog.FieldMod(ecode.ModProc), xlog.FieldErrKind(ecode.ErrKindAny), xlog.FieldErr(err))
 		}
 		xlog.Jupiter().Info("auto max procs", xlog.FieldMod(ecode.ModProc), xlog.Int64("procs", int64(runtime.GOMAXPROCS(-1))))
 	})
