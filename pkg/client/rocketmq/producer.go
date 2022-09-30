@@ -43,10 +43,6 @@ func StdNewProducer(name string) *Producer {
 func (conf *ProducerConfig) Build() *Producer {
 	name := conf.Name
 
-	if _, ok := _producers.Load(name); ok {
-		xlog.Jupiter().Panic("duplicated load", xlog.String("name", name))
-	}
-
 	if xdebug.IsDevelopmentMode() {
 		xdebug.PrettyJsonPrint("rocketmq's config: "+name, conf)
 	}
@@ -72,7 +68,6 @@ func (conf *ProducerConfig) Build() *Producer {
 		_ = cc.Start()
 	})
 
-	_producers.Store(name, cc)
 	return cc
 }
 
@@ -126,7 +121,6 @@ func (pc *Producer) Close() error {
 		xlog.Jupiter().Warn("consumer close fail", xlog.Any("error", err.Error()))
 		return err
 	}
-	_producers.Delete(pc.name)
 	return nil
 }
 

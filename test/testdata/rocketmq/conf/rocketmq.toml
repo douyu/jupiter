@@ -1,26 +1,26 @@
 [jupiter.rocketmq.example]
-   [jupiter.rocketmq.example.consumer]
-       enable = true
-       addr = ["127.0.0.1:9876"]
-       group = "testGroup"
-       dialTimeout = "3s"
-       rwTimeout = "3s"
-       topic = "test"
-       subExpression = "TagA || TagB || TagC "
-       rate = 100
-       enableTrace = true
-   [jupiter.rocketmq.example.producer]
-       group = "testGroup"
-       addr = ["127.0.0.1:9876"]
-       dialTimeout = "3s"
-       rwTimeout = "3s"
-       topic = "test"
-       enableTrace = true
+    [jupiter.rocketmq.example.consumer]
+        enable = true
+        addr = ["127.0.0.1:9876"]
+        group = "testGroup"
+        dialTimeout = "3s"
+        rwTimeout = "3s"
+        topic = "DefaultCluster"
+        subExpression = "TagA || TagB || TagC "
+        rate = 100
+        enableTrace = true
+    [jupiter.rocketmq.example.producer]
+        group = "testGroup"
+        addr = ["127.0.0.1:9876"]
+        dialTimeout = "3s"
+        rwTimeout = "3s"
+        topic = "DefaultCluster"
+        enableTrace = true
 
-    # - NAME_SERVER_ADDRESS=127.0.0.1:9876
-    # - BROKER_ADDRESS=127.0.0.1:10911
+# - NAME_SERVER_ADDRESS=127.0.0.1:9876
+# - BROKER_ADDRESS=127.0.0.1:10911
 [jupiter.trace.jaeger]
-EnableRPCMetrics= true
-[jupiter.trace.jaeger.Reporter]
-LocalAgentHostPort = "127.0.0.1:6831"
-LogSpans = true
+    EnableRPCMetrics = true
+    [jupiter.trace.jaeger.Reporter]
+        LocalAgentHostPort = "127.0.0.1:6831"
+        LogSpans = true
