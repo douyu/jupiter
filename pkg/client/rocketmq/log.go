@@ -84,7 +84,7 @@ func (l *mqLogger) Fatal(msg string, fields map[string]interface{}) {
 		return
 	}
 
-	fs := []zap.Field{}
+	fs := make([]zap.Field, 0, len(fields))
 
 	for key, value := range fields {
 		fs = append(fs, zap.Any(key, value))
