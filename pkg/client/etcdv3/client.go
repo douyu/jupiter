@@ -23,14 +23,11 @@ import (
 	"strings"
 	"time"
 
-	"go.etcd.io/etcd/client/v3/concurrency"
-
 	"github.com/douyu/jupiter/pkg/xlog"
 	grpcprom "github.com/grpc-ecosystem/go-grpc-prometheus"
-	clientv3 "go.etcd.io/etcd/client/v3"
-
-	//"go.etcd.io/etcd/mvcc/mvccpb"
 	mvccpb "go.etcd.io/etcd/api/v3/mvccpb"
+	clientv3 "go.etcd.io/etcd/client/v3"
+	"go.etcd.io/etcd/client/v3/concurrency"
 	"google.golang.org/grpc"
 )
 
@@ -42,17 +39,26 @@ type Client struct {
 
 // New ...
 func newClient(config *Config) (*Client, error) {
+	dialOptions := []grpc.DialOption{
+		grpc.WithBlock(),
+		grpc.WithChainUnaryInterceptor(grpcprom.UnaryClientInterceptor),
+		grpc.WithChainStreamInterceptor(grpcprom.StreamClientInterceptor),
+	}
+
+	if config.EnableTrace {
+		dialOptions = append(dialOptions,
+			grpc.WithChainUnaryInterceptor(traceUnaryClientInterceptor()),
+			grpc.WithChainStreamInterceptor(traceStreamClientInterceptor()),
+		)
+	}
+
 	conf := clientv3.Config{
 		Endpoints:            config.Endpoints,
 		DialTimeout:          config.ConnectTimeout,
 		DialKeepAliveTime:    10 * time.Second,
 		DialKeepAliveTimeout: 3 * time.Second,
-		DialOptions: []grpc.DialOption{
-			grpc.WithBlock(),
-			grpc.WithUnaryInterceptor(grpcprom.UnaryClientInterceptor),
-			grpc.WithStreamInterceptor(grpcprom.StreamClientInterceptor),
-		},
-		AutoSyncInterval: config.AutoSyncInterval,
+		DialOptions:          dialOptions,
+		AutoSyncInterval:     config.AutoSyncInterval,
 	}
 
 	config.logger = config.logger.With(xlog.FieldAddrAny(config.Endpoints))

@@ -16,15 +16,17 @@ package xecho
 
 import (
 	"fmt"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/propagation"
 	"net/http"
 	"runtime"
 	"time"
 
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/propagation"
+
+	"github.com/douyu/jupiter/pkg"
 	"github.com/douyu/jupiter/pkg/metric"
 	"github.com/douyu/jupiter/pkg/xtrace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/douyu/jupiter/pkg/xlog"
@@ -99,20 +101,15 @@ func metricServerInterceptor() echo.MiddlewareFunc {
 }
 
 func traceServerInterceptor() echo.MiddlewareFunc {
+	tracer := xtrace.NewTracer(trace.SpanKindServer)
+	attrs := []attribute.KeyValue{
+		semconv.RPCSystemKey.String("http"),
+	}
+
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		tracer := xtrace.NewTracer(trace.SpanKindServer)
-		attrs := []attribute.KeyValue{
-			semconv.RPCSystemKey.String("http"),
-		}
 		return func(c echo.Context) (err error) {
 			ctx, span := tracer.Start(c.Request().Context(), c.Request().URL.Path, propagation.HeaderCarrier(c.Request().Header), trace.WithAttributes(attrs...))
-			span.SetAttributes(
-				semconv.HTTPURLKey.String(c.Request().URL.String()),
-				semconv.HTTPTargetKey.String(c.Request().URL.Path),
-				semconv.HTTPMethodKey.String(c.Request().Method),
-				semconv.HTTPUserAgentKey.String(c.Request().UserAgent()),
-				semconv.HTTPClientIPKey.String(c.RealIP()),
-			)
+			span.SetAttributes(semconv.HTTPServerAttributesFromHTTPRequest(pkg.Name(), c.Request().URL.Path, c.Request())...)
 			c.SetRequest(c.Request().WithContext(ctx))
 			defer span.End()
 			return next(c)

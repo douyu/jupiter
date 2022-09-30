@@ -23,6 +23,7 @@ See the [中文文档](http://jupiter.douyu.com/) for the Chinese documentation.
 go install github.com/douyu/jupiter/cmd/jupiter@latest
 jupiter new example-go
 cd example-go
+docker-compose up
 jupiter run -c cmd/exampleserver/.jupiter.toml
 ```
 

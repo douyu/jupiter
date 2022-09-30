@@ -42,6 +42,7 @@ func StdNewProducer(name string) *Producer {
 
 func (conf *ProducerConfig) Build() *Producer {
 	name := conf.Name
+
 	if _, ok := _producers.Load(name); ok {
 		xlog.Jupiter().Panic("duplicated load", xlog.String("name", name))
 	}

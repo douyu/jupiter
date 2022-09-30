@@ -27,7 +27,7 @@ import (
 	"github.com/juju/ratelimit"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/propagation"
-	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
@@ -76,7 +76,10 @@ func (conf *ConsumerConfig) Build() *PushConsumer {
 
 	// 服务启动前先start
 	hooks.Register(hooks.Stage_BeforeRun, func() {
-		_ = cc.Start()
+		err := cc.Start()
+		if err != nil {
+			xlog.Jupiter().Panic("rocketmq consumer start fail", zap.Error(err))
+		}
 	})
 
 	_consumers.Store(name, cc)
@@ -101,6 +104,9 @@ func (cc *PushConsumer) Subscribe(topic string, f func(context.Context, *primiti
 	if _, ok := cc.subscribers[topic]; ok {
 		xlog.Jupiter().Panic("duplicated subscribe", zap.String("topic", topic))
 	}
+
+	tracer := xtrace.NewTracer(trace.SpanKindConsumer)
+
 	fn := func(ctx context.Context, msgs ...*primitive.MessageExt) (consumer.ConsumeResult, error) {
 		for _, msg := range msgs {
 			var (
@@ -108,16 +114,16 @@ func (cc *PushConsumer) Subscribe(topic string, f func(context.Context, *primiti
 			)
 			if cc.EnableTrace {
 				carrier := propagation.MapCarrier{}
-				tracer := xtrace.NewTracer(trace.SpanKindConsumer)
 				attrs := []attribute.KeyValue{
 					semconv.MessagingSystemKey.String("rocketmq"),
 					semconv.MessagingDestinationKindKey.String(msg.Topic),
 				}
+
 				for key, value := range msg.GetProperties() {
 					carrier[key] = value
 				}
 
-				ctx, span = tracer.Start(ctx, "rocketmq", carrier, trace.WithAttributes(attrs...))
+				ctx, span = tracer.Start(ctx, msg.Topic, carrier, trace.WithAttributes(attrs...))
 				defer span.End()
 			}
 
@@ -137,6 +143,7 @@ func (cc *PushConsumer) Subscribe(topic string, f func(context.Context, *primiti
 
 		return consumer.ConsumeSuccess, nil
 	}
+
 	cc.subscribers[topic] = fn
 	return cc
 }
@@ -145,6 +152,15 @@ func (cc *PushConsumer) RegisterSingleMessage(f func(context.Context, *primitive
 	if _, ok := cc.subscribers[cc.Topic]; ok {
 		xlog.Jupiter().Panic("duplicated register single message", zap.String("topic", cc.Topic))
 	}
+
+	tracer := xtrace.NewTracer(trace.SpanKindConsumer)
+	attrs := []attribute.KeyValue{
+		semconv.MessagingSystemKey.String("rocketmq"),
+		semconv.MessagingRocketmqClientGroupKey.String(cc.Group),
+		semconv.MessagingRocketmqClientIDKey.String(cc.InstanceName),
+		semconv.MessagingRocketmqConsumptionModelKey.String(cc.MessageModel),
+	}
+
 	fn := func(ctx context.Context, msgs ...*primitive.MessageExt) (consumer.ConsumeResult, error) {
 		for _, msg := range msgs {
 			var (
@@ -153,16 +169,18 @@ func (cc *PushConsumer) RegisterSingleMessage(f func(context.Context, *primitive
 
 			if cc.EnableTrace {
 				carrier := propagation.MapCarrier{}
-				tracer := xtrace.NewTracer(trace.SpanKindConsumer)
-				attrs := []attribute.KeyValue{
-					semconv.MessagingSystemKey.String("rocketmq"),
-					semconv.MessagingDestinationKindKey.String(msg.Topic),
-				}
+
 				for key, value := range msg.GetProperties() {
 					carrier[key] = value
 				}
 
-				ctx, span = tracer.Start(ctx, "rocketmq", carrier, trace.WithAttributes(attrs...))
+				ctx, span = tracer.Start(ctx, msg.Topic, carrier, trace.WithAttributes(attrs...))
+
+				span.SetAttributes(
+					semconv.MessagingRocketmqNamespaceKey.String(msg.Topic),
+					semconv.MessagingRocketmqMessageTagKey.String(msg.GetTags()),
+				)
+
 				defer span.End()
 			}
 
@@ -176,6 +194,7 @@ func (cc *PushConsumer) RegisterSingleMessage(f func(context.Context, *primitive
 			err := f(ctx, msg)
 			if err != nil {
 				xlog.Jupiter().Error("consumer message", zap.Error(err), zap.String("field", cc.name), zap.Any("ext", msg))
+				span.RecordError(err)
 				return consumer.ConsumeRetryLater, err
 			}
 		}
@@ -190,6 +209,9 @@ func (cc *PushConsumer) RegisterBatchMessage(f func(context.Context, ...*primiti
 	if _, ok := cc.subscribers[cc.Topic]; ok {
 		xlog.Jupiter().Panic("duplicated register batch message", zap.String("topic", cc.Topic))
 	}
+
+	tracer := xtrace.NewTracer(trace.SpanKindConsumer)
+
 	fn := func(ctx context.Context, msgs ...*primitive.MessageExt) (consumer.ConsumeResult, error) {
 
 		if cc.EnableTrace {
@@ -199,7 +221,6 @@ func (cc *PushConsumer) RegisterBatchMessage(f func(context.Context, ...*primiti
 				)
 
 				carrier := propagation.MapCarrier{}
-				tracer := xtrace.NewTracer(trace.SpanKindConsumer)
 				attrs := []attribute.KeyValue{
 					semconv.MessagingSystemKey.String("rocketmq"),
 					semconv.MessagingDestinationKindKey.String(msg.Topic),
@@ -292,7 +313,9 @@ func (cc *PushConsumer) Start() error {
 			return err
 		}
 		// 在应用退出的时候，保证注销
-		hooks.Register(hooks.Stage_BeforeStop, cc.Close)
+		hooks.Register(hooks.Stage_BeforeStop, func() {
+			cc.Close()
+		})
 	}
 
 	cc.started = true
