@@ -16,6 +16,7 @@ package rocketmq
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/apache/rocketmq-client-go/v2"
 	"github.com/apache/rocketmq-client-go/v2/consumer"
@@ -76,7 +77,9 @@ func (conf *ConsumerConfig) Build() *PushConsumer {
 
 	// 服务启动前先start
 	hooks.Register(hooks.Stage_BeforeRun, func() {
-		_ = cc.Start()
+		fmt.Println("start mq")
+		err := cc.Start()
+		fmt.Println("finish mq", err)
 	})
 
 	_consumers.Store(name, cc)
@@ -206,6 +209,9 @@ func (cc *PushConsumer) RegisterBatchMessage(f func(context.Context, ...*primiti
 	if _, ok := cc.subscribers[cc.Topic]; ok {
 		xlog.Jupiter().Panic("duplicated register batch message", zap.String("topic", cc.Topic))
 	}
+
+	tracer := xtrace.NewTracer(trace.SpanKindConsumer)
+
 	fn := func(ctx context.Context, msgs ...*primitive.MessageExt) (consumer.ConsumeResult, error) {
 
 		if cc.EnableTrace {
@@ -215,7 +221,6 @@ func (cc *PushConsumer) RegisterBatchMessage(f func(context.Context, ...*primiti
 				)
 
 				carrier := propagation.MapCarrier{}
-				tracer := xtrace.NewTracer(trace.SpanKindConsumer)
 				attrs := []attribute.KeyValue{
 					semconv.MessagingSystemKey.String("rocketmq"),
 					semconv.MessagingDestinationKindKey.String(msg.Topic),
@@ -252,6 +257,7 @@ func (cc *PushConsumer) Start() error {
 		return nil
 	}
 
+	fmt.Printf("cc:%+v\n", *cc)
 	var opts = []consumer.Option{
 		consumer.WithGroupName(cc.Group),
 		consumer.WithInstance(cc.InstanceName),
@@ -308,9 +314,13 @@ func (cc *PushConsumer) Start() error {
 			return err
 		}
 		// 在应用退出的时候，保证注销
-		hooks.Register(hooks.Stage_BeforeStop, cc.Close)
+		fmt.Println("started!!!!!!11111!!")
+		hooks.Register(hooks.Stage_BeforeStop, func() {
+			cc.Close()
+		})
 	}
 
+	fmt.Println("started!!!!!!!!")
 	cc.started = true
 
 	return nil

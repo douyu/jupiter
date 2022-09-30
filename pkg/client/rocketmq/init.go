@@ -22,6 +22,7 @@ import (
 	"sync"
 
 	"github.com/apache/rocketmq-client-go/v2/primitive"
+	"github.com/apache/rocketmq-client-go/v2/rlog"
 	"github.com/douyu/jupiter/pkg/application"
 	"github.com/douyu/jupiter/pkg/governor"
 	"github.com/douyu/jupiter/pkg/xlog"
@@ -33,6 +34,9 @@ var _producers = &sync.Map{}
 var _consumers = &sync.Map{}
 
 func init() {
+	rlog.SetLogLevel("debug")
+	rlog.SetLogger(&mqLogger{xlog.Jupiter()})
+
 	primitive.PanicHandler = func(i interface{}) {
 		stack := make([]byte, 1024)
 		length := runtime.Stack(stack, true)

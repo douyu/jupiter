@@ -15,7 +15,7 @@ import (
 func traceUnaryClientInterceptor() grpc.UnaryClientInterceptor {
 	tracer := xtrace.NewTracer(trace.SpanKindClient)
 	attrs := []attribute.KeyValue{
-		semconv.RPCSystemKey.String("grpc"),
+		semconv.RPCSystemGRPC,
 	}
 
 	return func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) (err error) {
@@ -52,7 +52,7 @@ func traceUnaryClientInterceptor() grpc.UnaryClientInterceptor {
 func traceStreamClientInterceptor() grpc.StreamClientInterceptor {
 	tracer := xtrace.NewTracer(trace.SpanKindClient)
 	attrs := []attribute.KeyValue{
-		semconv.RPCSystemKey.String("grpc"),
+		semconv.RPCSystemGRPC,
 	}
 
 	return func(ctx context.Context, desc *grpc.StreamDesc, cc *grpc.ClientConn, method string, streamer grpc.Streamer, opts ...grpc.CallOption) (grpc.ClientStream, error) {

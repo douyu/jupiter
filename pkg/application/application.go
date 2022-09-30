@@ -227,10 +227,10 @@ func (app *Application) Run(servers ...server.Server) error {
 	app.servers = append(app.servers, servers...)
 	app.smu.Unlock()
 
+	hooks.Do(hooks.Stage_BeforeRun)
+
 	app.waitSignals() //start signal listen task in goroutine
 	defer app.clean()
-
-	hooks.Do(hooks.Stage_BeforeRun)
 
 	// todo jobs not graceful
 	_ = app.startJobs()

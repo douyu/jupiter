@@ -93,6 +93,7 @@ func DefaultConfig() *Config {
 		Consumer: &ConsumerConfig{
 			Reconsume:       3,
 			WaitMaxDuration: 60 * time.Second,
+			MessageModel:    "Clustering",
 		},
 	}
 }
@@ -104,6 +105,7 @@ func DefaultConsumerConfig() *ConsumerConfig {
 		RwTimeout:       time.Second * 10,
 		Reconsume:       3,
 		WaitMaxDuration: 60 * time.Second,
+		MessageModel:    "Clustering",
 	}
 }
 

@@ -68,7 +68,7 @@ func newTraceUnaryServerInterceptor() grpc.UnaryServerInterceptor {
 		}
 		operation, mAttrs := xtrace.ParseFullMethod(info.FullMethod)
 		attrs := []attribute.KeyValue{
-			semconv.RPCSystemKey.String("grpc"),
+			semconv.RPCSystemGRPC,
 		}
 		attrs = append(attrs, mAttrs...)
 		if p, ok := peer.FromContext(ctx); ok {
@@ -107,7 +107,7 @@ func (css contextedServerStream) Context() context.Context {
 func newTraceStreamServerInterceptor() grpc.StreamServerInterceptor {
 	tracer := xtrace.NewTracer(trace.SpanKindServer)
 	attrs := []attribute.KeyValue{
-		semconv.RPCSystemKey.String("grpc"),
+		semconv.RPCSystemGRPC,
 	}
 
 	return func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
