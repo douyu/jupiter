@@ -47,7 +47,8 @@ func (l *mqLogger) Info(msg string, fields map[string]interface{}) {
 		fs = append(fs, zap.Any(key, value))
 	}
 
-	l.logger.Info(msg, fs...)
+	// Here we reguard the info level as debug level
+	l.logger.Debug(msg, fs...)
 }
 
 func (l *mqLogger) Warning(msg string, fields map[string]interface{}) {
