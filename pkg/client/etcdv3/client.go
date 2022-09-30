@@ -42,17 +42,27 @@ type Client struct {
 
 // New ...
 func newClient(config *Config) (*Client, error) {
+
+	dialOptions := []grpc.DialOption{
+		grpc.WithBlock(),
+		grpc.WithChainUnaryInterceptor(grpcprom.UnaryClientInterceptor, traceUnaryClientInterceptor()),
+		grpc.WithChainStreamInterceptor(grpcprom.StreamClientInterceptor, traceStreamClientInterceptor()),
+	}
+
+	if config.EnableTrace {
+		dialOptions = append(dialOptions,
+			grpc.WithChainUnaryInterceptor(traceUnaryClientInterceptor()),
+			grpc.WithChainStreamInterceptor(traceStreamClientInterceptor()),
+		)
+	}
+
 	conf := clientv3.Config{
 		Endpoints:            config.Endpoints,
 		DialTimeout:          config.ConnectTimeout,
 		DialKeepAliveTime:    10 * time.Second,
 		DialKeepAliveTimeout: 3 * time.Second,
-		DialOptions: []grpc.DialOption{
-			grpc.WithBlock(),
-			grpc.WithChainUnaryInterceptor(grpcprom.UnaryClientInterceptor, traceUnaryClientInterceptor()),
-			grpc.WithChainStreamInterceptor(grpcprom.StreamClientInterceptor, traceStreamClientInterceptor()),
-		},
-		AutoSyncInterval: config.AutoSyncInterval,
+		DialOptions:          dialOptions,
+		AutoSyncInterval:     config.AutoSyncInterval,
 	}
 
 	config.logger = config.logger.With(xlog.FieldAddrAny(config.Endpoints))

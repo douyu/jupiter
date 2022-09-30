@@ -46,7 +46,9 @@ type (
 		// 自动同步member list的间隔
 		AutoSyncInterval time.Duration `json:"autoAsyncInterval"`
 		TTL              int           // 单位：s
-		logger           *xlog.Logger
+		EnableTrace      bool          `json:"enableTrace" toml:"enableTrace"`
+
+		logger *xlog.Logger
 	}
 )
 
@@ -60,6 +62,7 @@ func DefaultConfig() *Config {
 		BasicAuth:      false,
 		ConnectTimeout: cast.ToDuration("5s"),
 		Secure:         false,
+		EnableTrace:    true,
 		logger:         xlog.Jupiter().With(xlog.FieldMod("client.etcd")),
 	}
 }
