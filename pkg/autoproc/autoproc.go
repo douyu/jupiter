@@ -29,7 +29,9 @@ func init() {
 		xlog.Jupiter().Panic("auto max procs", xlog.FieldMod(ecode.ModProc), xlog.FieldErrKind(ecode.ErrKindAny), xlog.FieldErr(err))
 	}
 	conf.OnLoaded(func(c *conf.Configuration) {
-		if maxProcs := conf.GetInt("maxProc"); maxProcs != 0 {
+		appContainer := conf.GetString("app.container")
+		maxProcs := conf.GetInt("app.maxProc")
+		if appContainer == "ecs" && maxProcs > 0 && maxProcs < runtime.NumCPU() {
 			runtime.GOMAXPROCS(maxProcs)
 		}
 		xlog.Jupiter().Info("auto max procs", xlog.FieldMod(ecode.ModProc), xlog.Int64("procs", int64(runtime.GOMAXPROCS(-1))))
