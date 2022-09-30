@@ -1,0 +1,79 @@
+version: '3.3'
+services:
+  cache:
+    image: redis:6.2-alpine
+    restart: always
+    ports:
+      - 6379:6379
+    command: redis-server
+    # volumes:
+    #   - ./data/cache:/data
+  db:
+    image: mysql:5.7
+    # volumes:
+    #   - ./data/db:/var/run/mysqld/
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: jupiter
+    ports:
+      - 3306:3306
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+  etcd:
+    image: "quay.io/coreos/etcd:v3.3"
+    environment:
+      ETCD_ADVERTISE_CLIENT_URLS: "http://0.0.0.0:2379"
+      ETCD_LISTEN_CLIENT_URLS: "http://0.0.0.0:2379"
+      ETCDCTL_API: "3"
+      ALLOW_NONE_AUTHENTICATION: "yes"
+    ports:
+      - 2379:2379
+      - 2380:2380
+      - 4001:4001
+
+  namesrv:
+    image: apacherocketmq/rocketmq:4.5.0
+    ports:
+      - 9876:9876
+    # volumes:
+    #   - ./data/namesrv/logs:/home/rocketmq/logs
+    command: sh mqnamesrv
+  broker:
+    image: apacherocketmq/rocketmq:4.5.0
+    ports:
+      - 10909:10909
+      - 10911:10911
+      - 10912:10912
+    volumes:
+      # - ./data/broker/logs:/home/rocketmq/logs
+      # - ./data/broker/store:/home/rocketmq/store
+      - ./data/broker/conf/broker.conf:/home/rocketmq/rocketmq-4.5.0/conf/broker.conf
+    command: sh mqbroker -n namesrv:9876 -c ../conf/broker.conf
+    depends_on:
+      - namesrv
+  mqconsole:
+    image: styletang/rocketmq-console-ng
+    ports:
+      - 19876:8080
+    environment:
+      JAVA_OPTS: -Drocketmq.namesrv.addr=namesrv:9876 -Dcom.rocketmq.sendMessageWithVIPChannel=falses
+    depends_on:
+      - namesrv
+  jaeger:
+    image: jaegertracing/all-in-one:1.32
+    ports:
+      - 16686:16686
+      - 14268:14268
+      - 14269:14269
+      - 14250:14250
+      - 9411:9411
+      - 5778:5778
+      - 5775:5775/udp
+      - 6831:6831/udp
+      - 6832:6832/udp
+    environment:
+      COLLECTOR_ZIPKIN_HOST_PORT: :9411

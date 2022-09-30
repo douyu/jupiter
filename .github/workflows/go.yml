@@ -88,6 +88,9 @@ jobs:
       - name: Check out code into the Go module directory
         uses: actions/checkout@v3.0.2
 
+      - name: setup rocketmq
+        run: docker-compose -f test/docker-compose.yaml up -d
+
       - uses: actions/cache@v3
         with:
           path: |
@@ -102,29 +105,9 @@ jobs:
           go env
           go get -v -t -d ./...
 
-      - uses: actions/checkout@v3.0.2
-      - uses: actions/setup-java@v3
-        with:
-          distribution: "temurin" # See 'Supported distributions' for available options
-          java-version: "8"
-      - name: setup rocketmq
-        run: |
-          export PROJECT_PATH=`pwd`
-          cd $HOME
-          wget https://archive.apache.org/dist/rocketmq/4.6.0/rocketmq-all-4.6.0-bin-release.zip
-          unzip rocketmq-all-4.6.0-bin-release.zip
-          cd rocketmq-all-4.6.0-bin-release
-          perl -i -pe's/-Xms8g -Xmx8g -Xmn4g/-Xms2g -Xmx2g -Xmn1g/g' bin/runbroker.sh
-          echo "brokerIP1=127.0.0.1" > broker.properties
-          nohup sh bin/mqnamesrv &
-          nohup sh bin/mqbroker -n localhost:9876 -c broker.properties &
-
       - name: Test
         run: |
-          go test `go list ./... | grep -v github.com/douyu/jupiter/pkg/client/rocketmq` -race
-          # test rocketmq
-          sh $HOME/rocketmq-all-4.6.0-bin-release/bin/mqadmin updateTopic -n localhost:9876 -b localhost:10911 -t test
-          go test -coverprofile=coverage.txt -covermode=atomic ./...
+          go test -race -coverprofile=coverage.txt -covermode=atomic ./...
 
       - name: Codecov
         uses: codecov/codecov-action@v3
