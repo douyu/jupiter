@@ -58,6 +58,7 @@ func TestHooksDo(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			Do(Stage_AfterLoadConfig)
 			Do(7)
+			Do(Stage_BeforeRun)
 			Do(Stage_BeforeStop)
 			Do(Stage_AfterStop)
 			assert.Equal(t, str, "4,3,2,1,")
