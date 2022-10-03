@@ -40,7 +40,7 @@ require (
 	github.com/smartystreets/goconvey v1.7.2
 	github.com/spf13/cast v1.5.0
 	github.com/stretchr/testify v1.8.0
-	github.com/tidwall/pretty v1.2.0
+	github.com/tidwall/pretty v1.2.1
 	github.com/urfave/cli v1.22.10
 	github.com/valyala/fasthttp v1.40.0
 	github.com/xlab/treeprint v1.1.0
