@@ -26,7 +26,7 @@ jobs:
         id: go
 
       - name: Check out code into the Go module directory
-        uses: actions/checkout@v3.0.2
+        uses: actions/checkout@v3.1.0
 
       - uses: actions/cache@v3
         with:
@@ -42,7 +42,7 @@ jobs:
           go env
           go get -v -t -d ./...
 
-      - uses: actions/checkout@v3.0.2
+      - uses: actions/checkout@v3.1.0
 
       - name: Build
         run: go build -v .
@@ -63,7 +63,7 @@ jobs:
         id: go
 
       - name: Check out code into the Go module directory
-        uses: actions/checkout@v3.0.2
+        uses: actions/checkout@v3.1.0
 
       - name: docker-compose
         run: docker-compose -f test/docker-compose.yaml up -d
