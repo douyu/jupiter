@@ -58,7 +58,7 @@ require (
 	google.golang.org/genproto v0.0.0-20211208223120-3a66f561d7aa
 	google.golang.org/grpc v1.49.0
 	gorm.io/driver/mysql v1.4.0
-	gorm.io/gorm v1.23.10
+	gorm.io/gorm v1.24.0
 )
 
 require (
