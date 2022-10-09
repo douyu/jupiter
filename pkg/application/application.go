@@ -257,7 +257,7 @@ func (app *Application) clean() {
 }
 
 // Stop application immediately after necessary cleanup
-func (app *Application) Stop() (err error) {
+func (app *Application) Stop(ctx context.Context) (err error) {
 	app.stopOnce.Do(func() {
 		app.stopped <- struct{}{}
 		app.runHooks(hooks.Stage_BeforeStop)
@@ -265,6 +265,11 @@ func (app *Application) Stop() (err error) {
 		for _, s := range app.servers {
 			func(s server.Server) {
 				app.smu.RLock()
+				// unregister before stop
+				e := registry.DefaultRegisterer.UnregisterService(ctx, s.Info())
+				if e != nil {
+					app.logger.Error("init listen signal", xlog.FieldMod(ecode.ModApp), xlog.FieldEvent("GracefulStop"), xlog.FieldErr(err))
+				}
 				app.cycle.Run(s.Stop)
 				app.smu.RUnlock()
 			}(s)
@@ -296,6 +301,11 @@ func (app *Application) GracefulStop(ctx context.Context) (err error) {
 				app.cycle.Run(func() error {
 					app.smu.RLock()
 					defer app.smu.RUnlock()
+					// unregister before graceful stop
+					e := registry.DefaultRegisterer.UnregisterService(ctx, s.Info())
+					if e != nil {
+						app.logger.Error("init listen signal", xlog.FieldMod(ecode.ModApp), xlog.FieldEvent("GracefulStop"), xlog.FieldErr(err))
+					}
 					return s.GracefulStop(ctx)
 				})
 			}(s)
@@ -321,10 +331,12 @@ func (app *Application) waitSignals() {
 	app.logger.Info("init listen signal", xlog.FieldMod(ecode.ModApp), xlog.FieldEvent("init"))
 	signals.Shutdown(func(grace bool) { //when get shutdown signal
 		//todo: support timeout
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
 		if grace {
-			_ = app.GracefulStop(context.TODO())
+			_ = app.GracefulStop(ctx)
 		} else {
-			_ = app.Stop()
+			_ = app.Stop(ctx)
 		}
 	})
 }
@@ -355,6 +367,7 @@ func (app *Application) startServers() error {
 		s := s
 		eg.Go(func() (err error) {
 			defer func() {
+				// unregister when goroutine exit, in case the signal not be captured
 				ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 				defer cancel()
 				_ = registry.DefaultRegisterer.UnregisterService(ctx, s.Info())
