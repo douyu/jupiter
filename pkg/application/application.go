@@ -265,6 +265,13 @@ func (app *Application) Stop() (err error) {
 		for _, s := range app.servers {
 			func(s server.Server) {
 				app.smu.RLock()
+				// unregister before stop
+				e := registry.DefaultRegisterer.UnregisterService(context.Background(), s.Info())
+				if e != nil {
+					app.logger.Error("exit server", xlog.FieldMod(ecode.ModApp), xlog.FieldEvent("stop"), xlog.FieldName(s.Info().Name), xlog.FieldAddr(s.Info().Label()), xlog.FieldErr(err))
+				}
+				app.logger.Info("exit server", xlog.FieldMod(ecode.ModApp), xlog.FieldEvent("stop"), xlog.FieldName(s.Info().Name), xlog.FieldAddr(s.Info().Label()))
+
 				app.cycle.Run(s.Stop)
 				app.smu.RUnlock()
 			}(s)
@@ -296,6 +303,13 @@ func (app *Application) GracefulStop(ctx context.Context) (err error) {
 				app.cycle.Run(func() error {
 					app.smu.RLock()
 					defer app.smu.RUnlock()
+					// unregister before graceful stop
+					e := registry.DefaultRegisterer.UnregisterService(ctx, s.Info())
+					if e != nil {
+						app.logger.Error("exit server", xlog.FieldMod(ecode.ModApp), xlog.FieldEvent("graceful stop"), xlog.FieldName(s.Info().Name), xlog.FieldAddr(s.Info().Label()), xlog.FieldErr(err))
+					}
+					app.logger.Info("exit server", xlog.FieldMod(ecode.ModApp), xlog.FieldEvent("graceful stop"), xlog.FieldName(s.Info().Name), xlog.FieldAddr(s.Info().Label()))
+
 					return s.GracefulStop(ctx)
 				})
 			}(s)
@@ -320,9 +334,10 @@ func (app *Application) GracefulStop(ctx context.Context) (err error) {
 func (app *Application) waitSignals() {
 	app.logger.Info("init listen signal", xlog.FieldMod(ecode.ModApp), xlog.FieldEvent("init"))
 	signals.Shutdown(func(grace bool) { //when get shutdown signal
-		//todo: support timeout
 		if grace {
-			_ = app.GracefulStop(context.TODO())
+			ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+			defer cancel()
+			_ = app.GracefulStop(ctx)
 		} else {
 			_ = app.Stop()
 		}
@@ -354,13 +369,6 @@ func (app *Application) startServers() error {
 	for _, s := range app.servers {
 		s := s
 		eg.Go(func() (err error) {
-			defer func() {
-				ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-				defer cancel()
-				_ = registry.DefaultRegisterer.UnregisterService(ctx, s.Info())
-				app.logger.Info("exit server", xlog.FieldMod(ecode.ModApp), xlog.FieldEvent("exit"), xlog.FieldName(s.Info().Name), xlog.FieldErr(err), xlog.FieldAddr(s.Info().Label()))
-			}()
-
 			time.AfterFunc(time.Second, func() {
 				_ = registry.DefaultRegisterer.RegisterService(ctx, s.Info())
 				app.logger.Info("start server", xlog.FieldMod(ecode.ModApp), xlog.FieldEvent("init"), xlog.FieldName(s.Info().Name), xlog.FieldAddr(s.Info().Label()), xlog.Any("scheme", s.Info().Scheme))
