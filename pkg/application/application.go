@@ -257,7 +257,7 @@ func (app *Application) clean() {
 }
 
 // Stop application immediately after necessary cleanup
-func (app *Application) Stop(ctx context.Context) (err error) {
+func (app *Application) Stop() (err error) {
 	app.stopOnce.Do(func() {
 		app.stopped <- struct{}{}
 		app.runHooks(hooks.Stage_BeforeStop)
@@ -266,7 +266,7 @@ func (app *Application) Stop(ctx context.Context) (err error) {
 			func(s server.Server) {
 				app.smu.RLock()
 				// unregister before stop
-				e := registry.DefaultRegisterer.UnregisterService(ctx, s.Info())
+				e := registry.DefaultRegisterer.UnregisterService(context.Background(), s.Info())
 				if e != nil {
 					app.logger.Error("init listen signal", xlog.FieldMod(ecode.ModApp), xlog.FieldEvent("GracefulStop"), xlog.FieldErr(err))
 				}
@@ -330,13 +330,12 @@ func (app *Application) GracefulStop(ctx context.Context) (err error) {
 func (app *Application) waitSignals() {
 	app.logger.Info("init listen signal", xlog.FieldMod(ecode.ModApp), xlog.FieldEvent("init"))
 	signals.Shutdown(func(grace bool) { //when get shutdown signal
-		//todo: support timeout
-		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-		defer cancel()
 		if grace {
+			ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+			defer cancel()
 			_ = app.GracefulStop(ctx)
 		} else {
-			_ = app.Stop(ctx)
+			_ = app.Stop()
 		}
 	})
 }
