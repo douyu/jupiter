@@ -268,8 +268,10 @@ func (app *Application) Stop() (err error) {
 				// unregister before stop
 				e := registry.DefaultRegisterer.UnregisterService(context.Background(), s.Info())
 				if e != nil {
-					app.logger.Error("init listen signal", xlog.FieldMod(ecode.ModApp), xlog.FieldEvent("GracefulStop"), xlog.FieldErr(err))
+					app.logger.Error("exit server", xlog.FieldMod(ecode.ModApp), xlog.FieldEvent("stop"), xlog.FieldName(s.Info().Name), xlog.FieldAddr(s.Info().Label()), xlog.FieldErr(err))
 				}
+				app.logger.Info("exit server", xlog.FieldMod(ecode.ModApp), xlog.FieldEvent("stop"), xlog.FieldName(s.Info().Name), xlog.FieldAddr(s.Info().Label()))
+
 				app.cycle.Run(s.Stop)
 				app.smu.RUnlock()
 			}(s)
@@ -304,8 +306,10 @@ func (app *Application) GracefulStop(ctx context.Context) (err error) {
 					// unregister before graceful stop
 					e := registry.DefaultRegisterer.UnregisterService(ctx, s.Info())
 					if e != nil {
-						app.logger.Error("init listen signal", xlog.FieldMod(ecode.ModApp), xlog.FieldEvent("GracefulStop"), xlog.FieldErr(err))
+						app.logger.Error("exit server", xlog.FieldMod(ecode.ModApp), xlog.FieldEvent("graceful stop"), xlog.FieldName(s.Info().Name), xlog.FieldAddr(s.Info().Label()), xlog.FieldErr(err))
 					}
+					app.logger.Info("exit server", xlog.FieldMod(ecode.ModApp), xlog.FieldEvent("graceful stop"), xlog.FieldName(s.Info().Name), xlog.FieldAddr(s.Info().Label()))
+
 					return s.GracefulStop(ctx)
 				})
 			}(s)
@@ -365,14 +369,6 @@ func (app *Application) startServers() error {
 	for _, s := range app.servers {
 		s := s
 		eg.Go(func() (err error) {
-			defer func() {
-				// unregister when goroutine exit, in case the signal not be captured
-				ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-				defer cancel()
-				_ = registry.DefaultRegisterer.UnregisterService(ctx, s.Info())
-				app.logger.Info("exit server", xlog.FieldMod(ecode.ModApp), xlog.FieldEvent("exit"), xlog.FieldName(s.Info().Name), xlog.FieldErr(err), xlog.FieldAddr(s.Info().Label()))
-			}()
-
 			time.AfterFunc(time.Second, func() {
 				_ = registry.DefaultRegisterer.RegisterService(ctx, s.Info())
 				app.logger.Info("start server", xlog.FieldMod(ecode.ModApp), xlog.FieldEvent("init"), xlog.FieldName(s.Info().Name), xlog.FieldAddr(s.Info().Label()), xlog.Any("scheme", s.Info().Scheme))
