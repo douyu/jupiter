@@ -30,7 +30,7 @@ require (
 	github.com/mattn/go-colorable v0.1.13
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/modern-go/reflect2 v1.0.2
-	github.com/onsi/ginkgo/v2 v2.2.0
+	github.com/onsi/ginkgo/v2 v2.3.0
 	github.com/onsi/gomega v1.21.1
 	github.com/philchia/agollo/v4 v4.1.4
 	github.com/pkg/errors v0.9.1
