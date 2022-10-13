@@ -95,7 +95,7 @@ func debugUnaryClientInterceptor(addr string) grpc.UnaryClientInterceptor {
 	}
 }
 
-func traceUnaryClientInterceptor() grpc.UnaryClientInterceptor {
+func TraceUnaryClientInterceptor() grpc.UnaryClientInterceptor {
 	tracer := xtrace.NewTracer(trace.SpanKindClient)
 	attrs := []attribute.KeyValue{
 		semconv.RPCSystemGRPC,

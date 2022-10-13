@@ -28,7 +28,7 @@ import (
 
 // StdConfig 标准配置，规范配置文件头
 func StdConfig(name string) *Config {
-	return RawConfig(constant.ConfigPrefix + ".mysql." + name)
+	return RawConfig(constant.ConfigKey("mysql." + name))
 }
 
 // RawConfig 传入mapstructure格式的配置

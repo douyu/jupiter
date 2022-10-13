@@ -65,6 +65,7 @@ func (config *Config) Build() trace.TracerProvider {
 		tracesdk.WithBatcher(exp),
 		// Record information about this application in an Resource.
 		tracesdk.WithResource(resource.NewSchemaless(
+			semconv.TelemetrySDKLanguageGo,
 			semconv.ServiceNameKey.String(config.Name),
 		)),
 	)

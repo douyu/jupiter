@@ -18,6 +18,7 @@ import (
 	"log"
 
 	"github.com/douyu/jupiter/pkg/conf"
+	"github.com/douyu/jupiter/pkg/constant"
 	"github.com/douyu/jupiter/pkg/xtrace/jaeger"
 )
 
@@ -25,8 +26,10 @@ func init() {
 	// 加载完配置，初始化trace
 	conf.OnLoaded(func(c *conf.Configuration) {
 		log.Print("hook config, init trace config")
-		if conf.Get("jupiter.trace.jaeger") != nil {
-			var config = jaeger.RawConfig("jupiter.trace.jaeger")
+
+		key := constant.ConfigKey("trace.jaeger")
+		if conf.Get(key) != nil {
+			var config = jaeger.RawConfig(key)
 			SetGlobalTracer(config.Build())
 		}
 	})
