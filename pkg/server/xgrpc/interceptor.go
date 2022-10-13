@@ -55,7 +55,7 @@ func prometheusStreamServerInterceptor(srv interface{}, ss grpc.ServerStream, in
 	return err
 }
 
-func newTraceUnaryServerInterceptor() grpc.UnaryServerInterceptor {
+func NewTraceUnaryServerInterceptor() grpc.UnaryServerInterceptor {
 	tracer := xtrace.NewTracer(trace.SpanKindServer)
 
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (reply interface{}, err error) {
@@ -104,7 +104,7 @@ func (css contextedServerStream) Context() context.Context {
 	return css.ctx
 }
 
-func newTraceStreamServerInterceptor() grpc.StreamServerInterceptor {
+func NewTraceStreamServerInterceptor() grpc.StreamServerInterceptor {
 	tracer := xtrace.NewTracer(trace.SpanKindServer)
 	attrs := []attribute.KeyValue{
 		semconv.RPCSystemGRPC,
