@@ -17,10 +17,9 @@ package xtrace
 import (
 	"context"
 
+	"github.com/douyu/jupiter/pkg/xlog"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
-
-	"github.com/douyu/jupiter/pkg/xlog"
 	"go.opentelemetry.io/otel/trace"
 )
 

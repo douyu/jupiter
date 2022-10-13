@@ -121,7 +121,7 @@ func (config *Config) Build() *grpc.ClientConn {
 
 	if !config.DisableTraceInterceptor {
 		config.dialOptions = append(config.dialOptions,
-			grpc.WithChainUnaryInterceptor(traceUnaryClientInterceptor()),
+			grpc.WithChainUnaryInterceptor(TraceUnaryClientInterceptor()),
 		)
 	}
 
