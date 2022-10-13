@@ -49,13 +49,13 @@ type Config struct {
 }
 
 func StdConfig() Config {
-	return RawConfig(constant.ConfigPrefix + ".sentinel")
+	return RawConfig(constant.ConfigKey("sentinel"))
 }
 
 func RawConfig(key string) Config {
 	config := DefaultConfig()
 
-	if conf.Get(constant.ConfigPrefix+".sentinel") == nil {
+	if conf.Get(constant.ConfigKey("sentinel")) == nil {
 		return config
 	}
 

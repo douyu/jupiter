@@ -27,8 +27,6 @@ import (
 	"go.uber.org/zap"
 )
 
-var ConfigPrefix = constant.ConfigPrefix + ".etcdv3"
-
 // Config ...
 type (
 	Config struct {
@@ -69,7 +67,7 @@ func DefaultConfig() *Config {
 
 // StdConfig ...
 func StdConfig(name string) *Config {
-	return RawConfig(ConfigPrefix + "." + name)
+	return RawConfig(constant.ConfigKey("etcdv3." + name))
 }
 
 // RawConfig ...

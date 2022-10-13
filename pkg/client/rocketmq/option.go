@@ -121,8 +121,8 @@ func DefaultProducerConfig() *ProducerConfig {
 // StdPushConsumerConfig ...
 func StdPushConsumerConfig(name string) *ConsumerConfig {
 
-	cc := RawConsumerConfig(constant.ConfigPrefix + ".rocketmq." + name + ".consumer")
-	rc := RawConfig(constant.ConfigPrefix + ".rocketmq." + name)
+	cc := RawConsumerConfig(constant.ConfigKey("rocketmq." + name + ".consumer"))
+	rc := RawConfig(constant.ConfigKey("rocketmq." + name))
 
 	// 兼容rocket_client_mq变更，addr需要携带shceme
 	if len(cc.Addr) == 0 {
@@ -149,8 +149,8 @@ func StdPushConsumerConfig(name string) *ConsumerConfig {
 
 // StdProducerConfig ...
 func StdProducerConfig(name string) *ProducerConfig {
-	pc := RawProducerConfig(constant.ConfigPrefix + ".rocketmq." + name + ".producer")
-	rc := RawConfig(constant.ConfigPrefix + ".rocketmq." + name)
+	pc := RawProducerConfig(constant.ConfigKey("rocketmq." + name + ".producer"))
+	rc := RawConfig(constant.ConfigKey("rocketmq." + name))
 	// 兼容rocket_client_mq变更，addr需要携带shceme
 	if len(pc.Addr) == 0 {
 		pc.Addr = rc.Addresses
