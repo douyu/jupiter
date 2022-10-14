@@ -62,12 +62,8 @@ require (
 )
 
 require (
+	git.dz11.com/vega/minerva v1.10.4
 	github.com/coocood/freecache v1.2.2
-	github.com/gomodule/redigo v2.0.0+incompatible // indirect
-	github.com/google/uuid v1.3.0 // indirect
-	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
-	github.com/shirou/gopsutil/v3 v3.21.7 // indirect
-	github.com/sirupsen/logrus v1.8.1 // indirect
-	go.uber.org/atomic v1.9.0 // indirect
+	github.com/go-redis/redis/v8 v8.11.5
 	google.golang.org/protobuf v1.28.1
 )
