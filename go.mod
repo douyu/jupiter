@@ -15,7 +15,7 @@ require (
 	github.com/fatih/color v1.13.0
 	github.com/fatih/structtag v1.2.0
 	github.com/flosch/pongo2 v0.0.0-20200518135938-dfb43dbdc22a
-	github.com/fsnotify/fsnotify v1.5.4
+	github.com/fsnotify/fsnotify v1.6.0
 	github.com/gin-gonic/gin v1.8.1
 	github.com/go-basic/ipv4 v1.0.0
 	github.com/go-redis/redis v6.15.8+incompatible
@@ -47,10 +47,10 @@ require (
 	go.etcd.io/etcd/api/v3 v3.5.5
 	go.etcd.io/etcd/client/v3 v3.5.5
 	go.mongodb.org/mongo-driver v1.10.3
-	go.opentelemetry.io/otel v1.10.0
+	go.opentelemetry.io/otel v1.11.0
 	go.opentelemetry.io/otel/exporters/jaeger v1.9.0
 	go.opentelemetry.io/otel/sdk v1.9.0
-	go.opentelemetry.io/otel/trace v1.10.0
+	go.opentelemetry.io/otel/trace v1.11.0
 	go.uber.org/automaxprocs v1.5.1
 	go.uber.org/multierr v1.7.0
 	go.uber.org/zap v1.23.0
