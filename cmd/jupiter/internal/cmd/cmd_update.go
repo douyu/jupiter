@@ -27,8 +27,8 @@ import (
 func Update(c *cli.Context) error {
 	update := "go install github.com/douyu/jupiter/cmd/jupiter@latest\n"
 
-	if runtime.Version() < "go1.16" {
-		fmt.Println("当前安装的golang版本小于1.16，请升级！")
+	if runtime.Version() < "go1.18" {
+		fmt.Println("当前安装的golang版本小于1.18，请升级！")
 		return nil
 	}
 
