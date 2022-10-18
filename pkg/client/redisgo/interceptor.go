@@ -1,4 +1,4 @@
-package redigo
+package redisgo
 
 import (
 	"context"
@@ -36,6 +36,22 @@ type interceptor struct {
 	afterProcess          func(ctx context.Context, cmd redis.Cmder) error
 	beforeProcessPipeline func(ctx context.Context, cmds []redis.Cmder) (context.Context, error)
 	afterProcessPipeline  func(ctx context.Context, cmds []redis.Cmder) error
+}
+
+func (i *interceptor) BeforeProcess(ctx context.Context, cmd redis.Cmder) (context.Context, error) {
+	return i.beforeProcess(ctx, cmd)
+}
+
+func (i *interceptor) AfterProcess(ctx context.Context, cmd redis.Cmder) error {
+	return i.afterProcess(ctx, cmd)
+}
+
+func (i *interceptor) BeforeProcessPipeline(ctx context.Context, cmds []redis.Cmder) (context.Context, error) {
+	return i.beforeProcessPipeline(ctx, cmds)
+}
+
+func (i *interceptor) AfterProcessPipeline(ctx context.Context, cmds []redis.Cmder) error {
+	return i.afterProcessPipeline(ctx, cmds)
 }
 
 func newInterceptor(compName string, config *Config, logger *xlog.Logger) *interceptor {

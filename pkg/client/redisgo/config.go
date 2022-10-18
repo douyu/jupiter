@@ -1,12 +1,10 @@
-package redigo
+package redisgo
 
 import (
-	"context"
 	"strings"
 	"time"
 
 	"github.com/douyu/jupiter/pkg/xlog"
-	"github.com/go-redis/redis"
 
 	"go.uber.org/zap"
 
@@ -51,6 +49,8 @@ type Config struct {
 	// Should be less than server's timeout.
 	// Default is 5 minutes. -1 disables idle timeout check.
 	IdleTimeout time.Duration `json:"idleTimeout" toml:"idleTimeout"`
+	// Enables read-only commands on slave nodes.
+	ReadOnly bool
 
 	/****** for jupiter ******/
 	// nice option
@@ -62,15 +62,18 @@ type Config struct {
 	// EnableTrace .. default true
 	EnableTraceInterceptor bool `json:"enableTrace" toml:"enableTrace"`
 	// EnableAccessLog .. default false
-	EnableAccessLogInterceptor bool        `json:"enableAccessLog" toml:"enableAccessLog"`
-	logger                     *zap.Logger //
+	EnableAccessLogInterceptor bool `json:"enableAccessLog" toml:"enableAccessLog"`
+	// OnDialError panic|error
+	OnDialError string `json:"level"`
+	logger      *zap.Logger
+	name        string
 }
 
 // AddrString 获取地址字符串, 用于 log, metric, trace 中的 label
-func (c *Config) AddrString() string {
-	addr := c.Addr
-	if len(c.Addrs) > 0 {
-		addr = strings.Join(c.Addrs, ",")
+func (config *Config) AddrString() string {
+	addr := config.Addr
+	if len(config.Addrs) > 0 {
+		addr = strings.Join(config.Addrs, ",")
 	}
 	return addr
 }
@@ -90,17 +93,14 @@ func DefaultStubConfig() *Config {
 		EnableTraceInterceptor:  true,
 		SlowLogThreshold:        xtime.Duration("250ms"),
 		logger:                  xlog.Jupiter().With(xlog.FieldMod("redigo")),
+		OnDialError:             "panic",
 	}
 }
 
 // StdStubConfig ...
-func StdStubConfig(name string) (string, *Config) {
-	return name, RawStubConfig("jupiter.redisgo." + name + ".stub")
-}
-
-// RawStubConfig ...
-func RawStubConfig(key string) *Config {
+func StdStubConfig(name string) *Config {
 	var config = DefaultStubConfig()
+	key := "jupiter.redisgo." + name + ".stub"
 	if !strings.HasSuffix(key, ".stub") {
 		key = key + ".stub"
 	}
@@ -108,38 +108,40 @@ func RawStubConfig(key string) *Config {
 	if err := cfg.UnmarshalKey(key, &config, cfg.TagName("toml")); err != nil {
 		config.logger.Panic("unmarshal config", xlog.FieldErr(err), xlog.FieldName(key), xlog.FieldExtMessage(config))
 	}
-
+	if config.Addr == "" { // 兼容master的写法
+		config.Addr = cfg.GetString(key + ".master")
+	}
+	config.name = name
 	if xdebug.IsDevelopmentMode() {
 		xdebug.PrettyJsonPrint(key, config)
 	}
 
 	return config
+
 }
-func (config *Config) Build() {
-	stubClient := redis.NewClient(&redis.Options{
-		Addr:         config.Addr,
-		Password:     config.Password,
-		DB:           config.DB,
-		MaxRetries:   config.MaxRetries,
-		DialTimeout:  config.DialTimeout,
-		ReadTimeout:  config.ReadTimeout,
-		WriteTimeout: config.WriteTimeout,
-		PoolSize:     config.PoolSize,
-		MinIdleConns: config.MinIdleConns,
-		IdleTimeout:  config.IdleTimeout,
-	})
 
-	for _, incpt := range config.interceptors {
-		stubClient.AddHook(incpt)
-	}
+// StdClusterConfig ...
+func StdClusterConfig(name string) *Config {
+	var config = DefaultStubConfig()
+	key := "jupiter.redisgo." + name
 
-	if err := stubClient.Ping(context.Background()).Err(); err != nil {
-		switch c.config.OnFail {
-		case "panic":
-			c.logger.Panic("start stub redis", elog.FieldErr(err))
-		default:
-			c.logger.Error("start stub redis", elog.FieldErr(err))
+	if err := cfg.UnmarshalKey(key+".cluster", &config, cfg.TagName("toml")); err != nil {
+		if err2 := cfg.UnmarshalKey(key+".stub", &config, cfg.TagName("toml")); err2 != nil {
+			config.logger.Panic("unmarshal cluster config", xlog.FieldErr(err), xlog.FieldName(key), xlog.FieldExtMessage(config))
+		}
+		if len(config.Addrs) == 0 { // 兼容slaves的写法
+			config.Addrs = cfg.GetStringSlice(key + ".slaves")
+		}
+		if config.Addr != "" {
+			config.Addrs = append(config.Addrs, config.Addr)
 		}
 	}
-	return stubClient
+
+	config.name = name
+	if xdebug.IsDevelopmentMode() {
+		xdebug.PrettyJsonPrint(key, config)
+	}
+
+	return config
+
 }
