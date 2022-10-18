@@ -148,6 +148,13 @@ var (
 
 	// LogLevelCounter ...
 	LogLevelCounter = NewCounterVec("log_level_total", []string{"name", "lv"})
+
+	// ClientStatsGauge ...
+	ClientStatsGauge = GaugeVecOpts{
+		Namespace: constant.DefaultNamespace,
+		Name:      "client_stats_gauge",
+		Labels:    []string{"type", "name", "index"},
+	}.Build()
 )
 
 func init() {
