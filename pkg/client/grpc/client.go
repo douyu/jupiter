@@ -20,18 +20,15 @@ import (
 	"time"
 
 	"github.com/douyu/jupiter/pkg/client/grpc/resolver"
-	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/ecode"
 	"github.com/douyu/jupiter/pkg/xlog"
-	"go.uber.org/zap/zapgrpc"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/grpclog"
 )
 
 func init() {
-	conf.OnLoaded(func(c *conf.Configuration) {
-		grpclog.SetLoggerV2(zapgrpc.NewLogger(xlog.Jupiter().With(xlog.FieldMod("grpc"))))
-	})
+	// conf.OnLoaded(func(c *conf.Configuration) {
+	// xgrpclog.SetLogger(xlog.Jupiter().With(xlog.FieldMod("grpc")))
+	// })
 }
 
 func newGRPCClient(config *Config) *grpc.ClientConn {
