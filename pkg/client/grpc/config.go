@@ -75,7 +75,7 @@ func DefaultConfig() *Config {
 
 // StdConfig ...
 func StdConfig(name string) *Config {
-	return RawConfig("jupiter.client." + name)
+	return RawConfig("jupiter.grpc." + name)
 }
 
 // RawConfig ...

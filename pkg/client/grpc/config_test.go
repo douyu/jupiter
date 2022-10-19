@@ -26,7 +26,7 @@ import (
 
 func TestConfig(t *testing.T) {
 	var configStr = `
-[jupiter.client.test]
+[jupiter.grpc.test]
 	balancerName="swr"
 	address="127.0.0.1:9091"
 	dialTimeout="10s"
