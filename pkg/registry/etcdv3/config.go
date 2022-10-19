@@ -51,7 +51,7 @@ func DefaultConfig() *Config {
 	return &Config{
 		Config:      etcdv3.DefaultConfig(),
 		ReadTimeout: time.Second * 3,
-		Prefix:      "jupiter",
+		Prefix:      "wsd-reg",
 		logger:      xlog.Jupiter(),
 		ServiceTTL:  0,
 	}

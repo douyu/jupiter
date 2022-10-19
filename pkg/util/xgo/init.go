@@ -25,7 +25,7 @@ import (
 )
 
 var (
-	_logger = xlog.Jupiter().With(zap.String("mod", "xgo"))
+	_logger = xlog.Jupiter().With(zap.String("mod", "xgo")).WithOptions(zap.AddStacktrace(zap.ErrorLevel))
 )
 
 func try(fn func() error, cleaner func()) (ret error) {
@@ -35,6 +35,7 @@ func try(fn func() error, cleaner func()) (ret error) {
 	defer func() {
 		if err := recover(); err != nil {
 			_, file, line, _ := runtime.Caller(2)
+
 			_logger.Error("recover", zap.Any("err", err), zap.String("line", fmt.Sprintf("%s:%d", file, line)))
 			if _, ok := err.(error); ok {
 				ret = err.(error)

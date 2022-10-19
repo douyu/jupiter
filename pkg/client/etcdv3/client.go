@@ -23,6 +23,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/douyu/jupiter/pkg/ecode"
 	"github.com/douyu/jupiter/pkg/xlog"
 	grpcprom "github.com/grpc-ecosystem/go-grpc-prometheus"
 	mvccpb "go.etcd.io/etcd/api/v3/mvccpb"
@@ -112,7 +113,7 @@ func newClient(config *Config) (*Client, error) {
 	client, err := clientv3.New(conf)
 
 	if err != nil {
-		// config.logger.Panic("client etcd start panic", xlog.FieldMod(ecode.ModClientETCD), xlog.FieldErrKind(ecode.ErrKindAny), xlog.FieldErr(err), xlog.FieldValueAny(config))
+		config.logger.Panic("client etcd start panic", xlog.FieldMod(ecode.ModClientETCD), xlog.FieldErrKind(ecode.ErrKindAny), xlog.FieldErr(err), xlog.FieldValueAny(config))
 		return nil, fmt.Errorf("client etcd start failed: %v", err)
 	}
 
