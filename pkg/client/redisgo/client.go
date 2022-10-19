@@ -13,6 +13,7 @@ import (
 func (config *Config) BuildStub() *redis.Client {
 	stubClient := redis.NewClient(&redis.Options{
 		Addr:         config.Addr,
+		Username:     config.Username,
 		Password:     config.Password,
 		DB:           config.DB,
 		MaxRetries:   config.MaxRetries,
@@ -30,18 +31,18 @@ func (config *Config) BuildStub() *redis.Client {
 	if config.Debug {
 		stubClient.AddHook(debugInterceptor(config.name, config, config.logger))
 	}
-	if config.EnableAccessLogInterceptor {
-		stubClient.AddHook(accessInterceptor(config.name, config, config.logger))
-	}
 	if config.EnableTraceInterceptor {
 		stubClient.AddHook(traceInterceptor(config.name, config, config.logger))
+	}
+	if config.EnableAccessLogInterceptor {
+		stubClient.AddHook(accessInterceptor(config.name, config, config.logger))
 	}
 
 	if err := stubClient.Ping(context.Background()).Err(); err != nil {
 		if config.OnDialError == "panic" {
-			config.logger.Panic("redis stub start", xlog.FieldErr(err))
+			config.logger.Panic("redis stub start err", xlog.FieldErr(err))
 		}
-		config.logger.Error("redis stub start", xlog.FieldErr(err))
+		config.logger.Error("redis stub start err", xlog.FieldErr(err))
 	}
 
 	instances.Store(config.name, &storeRedis{
@@ -70,18 +71,18 @@ func (config *Config) BuildCluster() *redis.ClusterClient {
 	if config.Debug {
 		clusterClient.AddHook(debugInterceptor(config.name, config, config.logger))
 	}
-	if config.EnableAccessLogInterceptor {
-		clusterClient.AddHook(accessInterceptor(config.name, config, config.logger))
-	}
 	if config.EnableTraceInterceptor {
 		clusterClient.AddHook(traceInterceptor(config.name, config, config.logger))
+	}
+	if config.EnableAccessLogInterceptor {
+		clusterClient.AddHook(accessInterceptor(config.name, config, config.logger))
 	}
 
 	if err := clusterClient.Ping(context.Background()).Err(); err != nil {
 		if config.OnDialError == "panic" {
-			config.logger.Panic("redis cluster client start", xlog.FieldErr(err))
+			config.logger.Panic("redis cluster client start err", xlog.FieldErr(err))
 		}
-		config.logger.Error("redis cluster client start", xlog.FieldErr(err))
+		config.logger.Error("redis cluster client start err", xlog.FieldErr(err))
 	}
 	instances.Store(config.name, &storeRedis{
 		ClientCluster: clusterClient,

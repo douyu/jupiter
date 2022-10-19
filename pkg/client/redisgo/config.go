@@ -18,11 +18,12 @@ import (
 // passed to NewStubClient.
 type Config struct {
 	// Master host:port addresses of Master node
-	Addr string `json:"master" toml:"master"`
+	Addr string `json:"addr" toml:"addr"`
 	// Slaves A list of host:port addresses of Slave nodes.
-	Addrs []string `json:"slaves" toml:"slaves"`
+	Addrs []string `json:"addrs" toml:"addrs"`
 
 	/****** for github.com/go-redis/redis/v8 ******/
+	Username string `json:"username" toml:"username"`
 	Password string `json:"password" toml:"password"`
 	// DB default 0,not recommend
 	DB int `json:"db" toml:"db"`
@@ -78,8 +79,8 @@ func (config *Config) AddrString() string {
 	return addr
 }
 
-// DefaultStubConfig default config ...
-func DefaultStubConfig() *Config {
+// DefaultConfig default config ...
+func DefaultConfig() *Config {
 	return &Config{
 		DB:                      0,
 		PoolSize:                200,
@@ -99,17 +100,31 @@ func DefaultStubConfig() *Config {
 
 // StdStubConfig ...
 func StdStubConfig(name string) *Config {
-	var config = DefaultStubConfig()
+	var config = DefaultConfig()
 	key := "jupiter.redisgo." + name + ".stub"
 	if !strings.HasSuffix(key, ".stub") {
 		key = key + ".stub"
 	}
 
 	if err := cfg.UnmarshalKey(key, &config, cfg.TagName("toml")); err != nil {
-		config.logger.Panic("unmarshal config", xlog.FieldErr(err), xlog.FieldName(key), xlog.FieldExtMessage(config))
+		config.logger.Panic("unmarshal config:"+key, xlog.FieldErr(err), xlog.FieldName(key), xlog.FieldExtMessage(config))
 	}
 	if config.Addr == "" { // 兼容master的写法
-		config.Addr = cfg.GetString(key + ".master")
+		config.Addr = cfg.GetString(key + ".master.addr")
+	}
+	addr, user, pass := getUsernameAndPassword(config.Addr)
+	if user != "" && config.Username == "" { // 配置里的username优先
+		config.Username = user
+	}
+	if pass != "" && config.Password == "" { // 配置里的password优先
+		config.Password = pass
+	}
+	if addr != "" {
+		config.Addr = addr
+	}
+	if config.Addr == "" {
+		config.logger.Panic("please set redisgo stub addr:"+name, xlog.FieldName(key), xlog.FieldExtMessage(config))
+
 	}
 	config.name = name
 	if xdebug.IsDevelopmentMode() {
@@ -122,20 +137,41 @@ func StdStubConfig(name string) *Config {
 
 // StdClusterConfig ...
 func StdClusterConfig(name string) *Config {
-	var config = DefaultStubConfig()
+	var config = DefaultConfig()
 	key := "jupiter.redisgo." + name
 
 	if err := cfg.UnmarshalKey(key+".cluster", &config, cfg.TagName("toml")); err != nil {
+		config.logger.Info("unmarshal cluster config:"+key+".cluster", xlog.FieldErr(err), xlog.FieldName(key), xlog.FieldExtMessage(config))
+
 		if err2 := cfg.UnmarshalKey(key+".stub", &config, cfg.TagName("toml")); err2 != nil {
-			config.logger.Panic("unmarshal cluster config", xlog.FieldErr(err), xlog.FieldName(key), xlog.FieldExtMessage(config))
+			config.logger.Panic("unmarshal cluster config:"+key+".stub", xlog.FieldErr(err2), xlog.FieldName(key), xlog.FieldExtMessage(config))
 		}
 		if len(config.Addrs) == 0 { // 兼容slaves的写法
-			config.Addrs = cfg.GetStringSlice(key + ".slaves")
+			if oldAddr := cfg.GetStringSlice(key + ".stub.slaves.addr"); len(oldAddr) > 0 {
+				config.Addrs = oldAddr
+			}
 		}
-		if config.Addr != "" {
-			config.Addrs = append(config.Addrs, config.Addr)
+		if addr := cfg.GetString(key + ".stub.master.addr"); addr != "" {
+			config.Addrs = append(config.Addrs, addr)
 		}
+
 	}
+	if len(config.Addrs) <= 0 {
+		config.logger.Panic("please set cluster redisgo addrs:"+config.name, xlog.FieldName(key), xlog.FieldExtMessage(config))
+	}
+	// 解析第一个地址
+	addrs := []string{}
+	for _, item := range config.Addrs {
+		addr, user, pass := getUsernameAndPassword(item)
+		if user != "" && config.Username == "" { // 配置里的username优先
+			config.Username = user
+		}
+		if pass != "" && config.Password == "" { // 配置里的password优先
+			config.Password = pass
+		}
+		addrs = append(addrs, addr)
+	}
+	config.Addrs = addrs
 
 	config.name = name
 	if xdebug.IsDevelopmentMode() {
@@ -144,4 +180,23 @@ func StdClusterConfig(name string) *Config {
 
 	return config
 
+}
+
+func getUsernameAndPassword(addr string) (realAddr string, username, password string) {
+	addr = strings.TrimPrefix(addr, "redis://")
+	addr = strings.TrimPrefix(addr, "rediss://")
+	arr := strings.Split(addr, "@")
+	if len(arr) < 2 {
+		return addr, "", ""
+	}
+	realAddr = arr[1]
+
+	// username:password
+	auth := arr[0]
+	subArr := strings.Split(auth, ":")
+	if len(subArr) >= 2 {
+		username = subArr[0]
+		password = strings.Join(subArr[1:], ":")
+	}
+	return realAddr, username, password
 }

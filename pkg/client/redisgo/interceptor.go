@@ -4,9 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"strings"
 	"time"
+
+	"github.com/douyu/jupiter/pkg/util/xstring"
+
+	"github.com/fatih/color"
 
 	"go.opentelemetry.io/otel"
 
@@ -20,8 +23,6 @@ import (
 	"go.opentelemetry.io/otel/trace"
 
 	prome "github.com/douyu/jupiter/pkg/metric"
-
-	"github.com/douyu/jupiter/pkg/util/xdebug"
 
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/go-redis/redis/v8"
@@ -114,6 +115,7 @@ func fixedInterceptor(compName string, config *Config, logger *xlog.Logger) *int
 		if config.SlowLogThreshold > time.Duration(0) && cost > config.SlowLogThreshold {
 			logger.Error("slow",
 				xlog.FieldErr(errors.New("redis slow command")),
+				xlog.FieldType("pipeline"),
 				xlog.FieldName(getCmdsName(cmds)),
 				xlog.FieldAddr(config.Addr),
 				xlog.FieldCost(cost))
@@ -127,63 +129,30 @@ func debugInterceptor(compName string, config *Config, logger *xlog.Logger) *int
 
 	return newInterceptor(compName, config, logger).
 		setAfterProcess(func(ctx context.Context, cmd redis.Cmder) error {
-			if !xdebug.IsDevelopmentMode() {
-				return cmd.Err()
-			}
 			cost := time.Since(ctx.Value(ctxBegKey).(time.Time))
 			err := cmd.Err()
 			if err != nil {
-				log.Println("redigo print err",
-					xlog.FieldName(cmd.Name()),
-					xlog.FieldAddr(addr),
-					xlog.FieldCost(cost),
-					xlog.Any("cmd", cmd.Args()),
-					xlog.FieldErr(err),
-				)
-
+				fmt.Println(xstring.CallerName(6))
+				fmt.Printf(color.RedString("[redisgo] %s (%s) => %s %+v, ERR=(%s)\n\n", addr, cost, cmd.Name(), cmd.Args(), err.Error()))
 			} else {
-				log.Println("redigo print",
-					xlog.FieldName(cmd.Name()),
-					xlog.FieldAddr(addr),
-					xlog.FieldCost(cost),
-					xlog.Any("cmd", cmd.Args()),
-					xlog.FieldErr(err),
-				)
+				fmt.Println(xstring.CallerName(6))
+				fmt.Printf(color.YellowString("[redisgo] %s (%s) => %s %+v: %s\n\n", addr, cost, cmd.Name(), cmd.Args(), response(cmd)))
 			}
-			return err
+			return nil
 		}).
 		setAfterProcessPipeline(func(ctx context.Context, cmds []redis.Cmder) error {
-			if !xdebug.IsDevelopmentMode() {
-				for _, cmd := range cmds {
-					if cmd.Err() != nil {
-						return cmd.Err()
-					}
-				}
-				return nil
-			}
 			cost := time.Since(ctx.Value(ctxBegKey).(time.Time))
-
+			fmt.Println(xstring.CallerName(8))
+			fmt.Printf("[redisgo pipeline] %s (%s) :\n", addr, cost)
 			for _, cmd := range cmds {
 				err := cmd.Err()
 				if err != nil {
-					log.Println("redigo print err",
-						xlog.FieldName(cmd.Name()),
-						xlog.FieldAddr(addr),
-						xlog.FieldCost(cost),
-						xlog.Any("cmd", cmd.Args()),
-						xlog.FieldErr(err),
-					)
-					return err
+					fmt.Printf(color.RedString("* %s %+v, ERR=<%s>\n", cmd.Name(), cmd.Args(), err.Error()))
 				} else {
-					log.Println("redigo print",
-						xlog.FieldName(cmd.Name()),
-						xlog.FieldAddr(addr),
-						xlog.FieldCost(cost),
-						xlog.Any("cmd", cmd.Args()),
-						xlog.FieldErr(err),
-					)
+					fmt.Printf(color.YellowString("* %s %+v: %s\n", cmd.Name(), cmd.Args(), response(cmd)))
 				}
 			}
+			fmt.Print("  \n")
 			return nil
 		})
 }
@@ -194,69 +163,100 @@ func metricInterceptor(compName string, config *Config, logger *xlog.Logger) *in
 		setAfterProcess(func(ctx context.Context, cmd redis.Cmder) error {
 			cost := time.Since(ctx.Value(ctxBegKey).(time.Time))
 			err := cmd.Err()
-			prome.LibHandleHistogram.WithLabelValues(prome.TypeRedis, compName, cmd.Name(), addr).Observe(cost.Seconds())
+			name := strings.ToUpper(cmd.Name())
+			prome.LibHandleHistogram.WithLabelValues(prome.TypeRedis, name, addr).Observe(cost.Seconds())
 			if err != nil {
 				if errors.Is(err, redis.Nil) {
-					prome.LibHandleCounter.Inc(prome.TypeRedis, compName, cmd.Name(), addr, "Empty")
-					return err
+					prome.LibHandleCounter.Inc(prome.TypeRedis, name, addr, "Empty")
 				}
-				prome.LibHandleCounter.Inc(prome.TypeRedis, compName, cmd.Name(), addr, "Error")
-				return err
+				prome.LibHandleCounter.Inc(prome.TypeRedis, name, addr, "Error")
 			}
-			prome.LibHandleCounter.Inc(prome.TypeRedis, compName, cmd.Name(), addr, "OK")
+			prome.LibHandleCounter.Inc(prome.TypeRedis, name, addr, "OK")
 			return nil
 		}).setAfterProcessPipeline(func(ctx context.Context, cmds []redis.Cmder) error {
 		cost := time.Since(ctx.Value(ctxBegKey).(time.Time))
-		name := getCmdsName(cmds)
-		prome.LibHandleHistogram.WithLabelValues(prome.TypeRedis, compName, name, addr).Observe(cost.Seconds())
+		names := strings.ToUpper(getCmdsName(cmds))
+		prome.LibHandleHistogram.WithLabelValues(prome.TypeRedis, names, addr).Observe(cost.Seconds())
 		for _, cmd := range cmds {
+			name := strings.ToUpper(cmd.Name())
 			if cmd.Err() != nil {
 				if errors.Is(cmd.Err(), redis.Nil) {
-					prome.LibHandleCounter.Inc(prome.TypeRedis, compName, name, addr, "Empty")
-					return cmd.Err()
+					prome.LibHandleCounter.Inc(prome.TypeRedis, name, addr, "Empty")
 				}
-				prome.LibHandleCounter.Inc(prome.TypeRedis, compName, name, addr, "Error")
-				return cmd.Err()
+				prome.LibHandleCounter.Inc(prome.TypeRedis, name, addr, "Error")
 			}
+			prome.LibHandleCounter.Inc(prome.TypeRedis, name, addr, "OK")
 		}
-		prome.LibHandleCounter.Inc(prome.TypeRedis, compName, name, addr, "OK")
 		return nil
 	})
 }
 func accessInterceptor(compName string, config *Config, logger *xlog.Logger) *interceptor {
-	return newInterceptor(compName, config, logger).setAfterProcess(
-		func(ctx context.Context, cmd redis.Cmder) error {
+	return newInterceptor(compName, config, logger).
+		setAfterProcess(func(ctx context.Context, cmd redis.Cmder) error {
 			var fields = make([]xlog.Field, 0, 15)
 			var err = cmd.Err()
 			cost := time.Since(ctx.Value(ctxBegKey).(time.Time))
-			fields = append(fields, xlog.FieldMod(compName),
+			fields = append(fields, xlog.FieldKey(compName),
 				xlog.FieldMethod(cmd.Name()),
 				xlog.Any("req", cmd.Args()),
-				xlog.Any("res", response(cmd)),
 				xlog.FieldCost(cost))
 
 			// 开启了链路，那么就记录链路id
 			if config.EnableTraceInterceptor && otel.GetTracerProvider() != nil {
-				fields = append(fields, xlog.String("trace_id", xlog.GetTraceID(ctx)))
+				if traceId := xlog.GetTraceID(ctx); len(traceId) > 0 {
+					fields = append(fields, xlog.String("trace_id", traceId))
+				}
 			}
-
 			// error
 			if err != nil {
 				fields = append(fields, xlog.FieldErr(err))
 				if errors.Is(err, redis.Nil) {
 					logger.Warn("access", fields...)
-					return err
+					return nil
 				}
 				logger.Error("access", fields...)
-				return err
+				return nil
 			}
-
-			fields = append(fields, xlog.FieldEvent("normal"))
+			fields = append(fields, xlog.Any("res", response(cmd)))
 			logger.Info("access", fields...)
 
-			return err
+			return nil
 		},
-	)
+		).setAfterProcessPipeline(func(ctx context.Context, cmds []redis.Cmder) error {
+		cost := time.Since(ctx.Value(ctxBegKey).(time.Time))
+
+		for _, cmd := range cmds {
+			var fields = make([]xlog.Field, 0, 15)
+			var err = cmd.Err()
+			fields = append(fields, xlog.FieldKey(compName),
+				xlog.FieldType("pipeline"),
+				xlog.FieldMethod(cmd.Name()),
+				xlog.Any("req", cmd.Args()),
+				xlog.FieldCost(cost))
+
+			// 开启了链路，那么就记录链路id
+			if config.EnableTraceInterceptor && otel.GetTracerProvider() != nil {
+				if traceId := xlog.GetTraceID(ctx); len(traceId) > 0 {
+					fields = append(fields, xlog.String("trace_id", traceId))
+				}
+			}
+			// error
+			if err != nil {
+				fields = append(fields, xlog.FieldErr(err))
+				if errors.Is(err, redis.Nil) {
+					logger.Warn("access", fields...)
+					continue
+				}
+				logger.Error("access", fields...)
+				continue
+			}
+			fields = append(fields, xlog.Any("res", response(cmd)))
+			logger.Info("access", fields...)
+
+			continue
+		}
+		return nil
+	})
 }
 func traceInterceptor(compName string, config *Config, logger *xlog.Logger) *interceptor {
 	tracer := xtrace.NewTracer(trace.SpanKindClient)
@@ -273,6 +273,9 @@ func traceInterceptor(compName string, config *Config, logger *xlog.Logger) *int
 				semconv.DBOperationKey.String(cmd.Name()),
 				semconv.DBStatementKey.String(cast.ToString(cmd.Args())),
 			)
+			if span.SpanContext().IsValid() {
+				ctx = xlog.SetTraceID(ctx, span.SpanContext().TraceID().String())
+			}
 			return ctx, nil
 		}).
 		setAfterProcess(func(ctx context.Context, cmd redis.Cmder) error {
@@ -280,6 +283,8 @@ func traceInterceptor(compName string, config *Config, logger *xlog.Logger) *int
 			if err := cmd.Err(); err != nil && err != redis.Nil {
 				span.RecordError(err)
 				span.SetStatus(codes.Error, err.Error())
+			} else {
+				span.SetStatus(codes.Ok, "ok")
 			}
 
 			span.End()
@@ -290,6 +295,9 @@ func traceInterceptor(compName string, config *Config, logger *xlog.Logger) *int
 			span.SetAttributes(
 				semconv.DBOperationKey.String(getCmdsName(cmds)),
 			)
+			if span.SpanContext().IsValid() {
+				ctx = xlog.SetTraceID(ctx, span.SpanContext().TraceID().String())
+			}
 			return ctx, nil
 		}).
 		setAfterProcessPipeline(func(ctx context.Context, cmds []redis.Cmder) error {
@@ -302,7 +310,7 @@ func traceInterceptor(compName string, config *Config, logger *xlog.Logger) *int
 					return nil
 				}
 			}
-
+			span.SetStatus(codes.Ok, "ok")
 			span.End()
 			return nil
 		})
@@ -336,7 +344,6 @@ func getCmdsName(cmds []redis.Cmder) string {
 		if !cmdNameMap[cmd.Name()] {
 			cmdName = append(cmdName, cmd.Name())
 			cmdNameMap[cmd.Name()] = true
-
 		}
 	}
 	return strings.Join(cmdName, "_")
