@@ -51,7 +51,7 @@ func DefaultConfig() *Config {
 	return &Config{
 		Config:      etcdv3.DefaultConfig(),
 		ReadTimeout: time.Second * 3,
-		Prefix:      "jupiter",
+		Prefix:      "wsd-reg",
 		logger:      xlog.Jupiter(),
 		ServiceTTL:  0,
 	}
@@ -84,7 +84,7 @@ func (config Config) MustBuild() registry.Registry {
 }
 
 func (config *Config) Singleton() (registry.Registry, error) {
-	if val, ok := singleton.Load(constant.ModuleClientEtcd, "etcdv3"); ok {
+	if val, ok := singleton.Load(constant.ModuleClientEtcd, config.ConfigKey); ok {
 		return val.(registry.Registry), nil
 	}
 
@@ -93,7 +93,7 @@ func (config *Config) Singleton() (registry.Registry, error) {
 		return nil, err
 	}
 
-	singleton.Store(constant.ModuleClientEtcd, "etcdv3", reg)
+	singleton.Store(constant.ModuleClientEtcd, config.ConfigKey, reg)
 
 	return reg, nil
 }

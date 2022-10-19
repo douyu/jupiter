@@ -30,17 +30,19 @@ import (
 
 // Config ...
 type Config struct {
-	Name         string // config's name
-	BalancerName string
-	Address      string
-	Block        bool
-	DialTimeout  time.Duration
-	ReadTimeout  time.Duration
-	Direct       bool
-	OnDialError  string // panic | error
-	KeepAlive    *keepalive.ClientParameters
-	logger       *xlog.Logger
-	dialOptions  []grpc.DialOption
+	Name           string // config's name
+	BalancerName   string
+	Address        string
+	Block          bool
+	DialTimeout    time.Duration
+	ReadTimeout    time.Duration
+	Direct         bool
+	OnDialError    string // panic | error
+	KeepAlive      *keepalive.ClientParameters
+	RegistryConfig string
+
+	logger      *xlog.Logger
+	dialOptions []grpc.DialOption
 
 	SlowThreshold time.Duration
 
@@ -67,12 +69,13 @@ func DefaultConfig() *Config {
 		OnDialError:            "panic",
 		AccessInterceptorLevel: "info",
 		Block:                  true,
+		RegistryConfig:         "jupiter.registry.default",
 	}
 }
 
 // StdConfig ...
 func StdConfig(name string) *Config {
-	return RawConfig("jupiter.client." + name)
+	return RawConfig("jupiter.grpc." + name)
 }
 
 // RawConfig ...

@@ -18,28 +18,31 @@ import (
 	"context"
 
 	"github.com/douyu/jupiter/pkg/constant"
-	"github.com/douyu/jupiter/pkg/registry"
+	"github.com/douyu/jupiter/pkg/registry/etcdv3"
 	"github.com/douyu/jupiter/pkg/util/xgo"
 	"google.golang.org/grpc/attributes"
 	"google.golang.org/grpc/resolver"
 )
 
-// Register ...
-func Register(name string, reg registry.Registry) {
-	resolver.Register(&baseBuilder{
-		name: name,
-		reg:  reg,
-	})
+// NewEtcdBuilder returns a new etcdv3 resolver builder.
+func NewEtcdBuilder(name string, registryConfig string) resolver.Builder {
+	return &baseBuilder{
+		name:           name,
+		registryConfig: registryConfig,
+	}
 }
 
 type baseBuilder struct {
 	name string
-	reg  registry.Registry
+
+	registryConfig string
 }
 
 // Build ...
 func (b *baseBuilder) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOptions) (resolver.Resolver, error) {
-	endpoints, err := b.reg.WatchServices(context.Background(), target.Endpoint, "grpc")
+	reg := etcdv3.RawConfig(b.registryConfig).MustSingleton()
+
+	endpoints, err := reg.WatchServices(context.Background(), target.Endpoint, "grpc")
 	if err != nil {
 		return nil, err
 	}

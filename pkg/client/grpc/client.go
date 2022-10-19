@@ -19,10 +19,20 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/douyu/jupiter/pkg/client/grpc/resolver"
+	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/ecode"
 	"github.com/douyu/jupiter/pkg/xlog"
+	"go.uber.org/zap/zapgrpc"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/grpclog"
 )
+
+func init() {
+	conf.OnLoaded(func(c *conf.Configuration) {
+		grpclog.SetLoggerV2(zapgrpc.NewLogger(xlog.Jupiter().With(xlog.FieldMod("grpc"))))
+	})
+}
 
 func newGRPCClient(config *Config) *grpc.ClientConn {
 	var ctx = context.Background()
@@ -45,6 +55,10 @@ func newGRPCClient(config *Config) *grpc.ClientConn {
 	if config.KeepAlive != nil {
 		dialOptions = append(dialOptions, grpc.WithKeepaliveParams(*config.KeepAlive))
 	}
+
+	dialOptions = append(dialOptions, grpc.WithResolvers(
+		resolver.NewEtcdBuilder("etcd", config.RegistryConfig)),
+	)
 
 	svcCfg := fmt.Sprintf(`{"loadBalancingPolicy":"%s"}`, config.BalancerName)
 	dialOptions = append(dialOptions, grpc.WithDefaultServiceConfig(svcCfg))
