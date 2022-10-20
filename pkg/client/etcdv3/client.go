@@ -60,6 +60,7 @@ func newClient(config *Config) (*Client, error) {
 		DialKeepAliveTimeout: 3 * time.Second,
 		DialOptions:          dialOptions,
 		AutoSyncInterval:     config.AutoSyncInterval,
+		Logger:               xlog.Jupiter().With(xlog.FieldMod("etcdv3")),
 	}
 
 	config.logger = config.logger.With(xlog.FieldAddrAny(config.Endpoints))
