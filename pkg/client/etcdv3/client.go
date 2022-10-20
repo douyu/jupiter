@@ -23,7 +23,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/douyu/jupiter/pkg/ecode"
+	"github.com/douyu/jupiter/pkg/core/ecode"
 	"github.com/douyu/jupiter/pkg/xlog"
 	grpcprom "github.com/grpc-ecosystem/go-grpc-prometheus"
 	mvccpb "go.etcd.io/etcd/api/v3/mvccpb"

@@ -15,7 +15,7 @@
 package jupiter
 
 import (
-	"github.com/douyu/jupiter/pkg/application"
+	"github.com/douyu/jupiter/pkg/core/application"
 )
 
 type Option = application.Option

@@ -2,7 +2,7 @@ package xfreecache
 
 import (
 	"github.com/coocood/freecache"
-	prome "github.com/douyu/jupiter/pkg/metric"
+	prome "github.com/douyu/jupiter/pkg/core/metric"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"go.uber.org/zap"
 )

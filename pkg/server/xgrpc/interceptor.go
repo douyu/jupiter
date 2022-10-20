@@ -22,10 +22,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/douyu/jupiter/pkg/ecode"
-	"github.com/douyu/jupiter/pkg/metric"
+	"github.com/douyu/jupiter/pkg/core/ecode"
+	"github.com/douyu/jupiter/pkg/core/metric"
+	"github.com/douyu/jupiter/pkg/core/xtrace"
 	"github.com/douyu/jupiter/pkg/xlog"
-	"github.com/douyu/jupiter/pkg/xtrace"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"

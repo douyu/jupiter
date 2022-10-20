@@ -17,7 +17,7 @@ package gorm
 import (
 	"errors"
 
-	prome "github.com/douyu/jupiter/pkg/metric"
+	prome "github.com/douyu/jupiter/pkg/core/metric"
 	"github.com/douyu/jupiter/pkg/util/xretry"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"gorm.io/gorm"

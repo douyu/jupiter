@@ -21,7 +21,7 @@ import (
 
 	"github.com/douyu/jupiter/pkg"
 	"github.com/douyu/jupiter/pkg/conf"
-	"github.com/douyu/jupiter/pkg/constant"
+	"github.com/douyu/jupiter/pkg/core/constant"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )

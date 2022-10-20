@@ -20,7 +20,7 @@ import (
 	"time"
 
 	"github.com/douyu/jupiter/pkg/client/grpc/resolver"
-	"github.com/douyu/jupiter/pkg/ecode"
+	"github.com/douyu/jupiter/pkg/core/ecode"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"google.golang.org/grpc"
 )

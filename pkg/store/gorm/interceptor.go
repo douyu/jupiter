@@ -18,9 +18,9 @@ import (
 	"errors"
 	"time"
 
-	prome "github.com/douyu/jupiter/pkg/metric"
+	prome "github.com/douyu/jupiter/pkg/core/metric"
+	"github.com/douyu/jupiter/pkg/core/xtrace"
 	"github.com/douyu/jupiter/pkg/xlog"
-	"github.com/douyu/jupiter/pkg/xtrace"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/propagation"
 	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"

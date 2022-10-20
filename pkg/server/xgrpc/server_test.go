@@ -20,7 +20,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/douyu/jupiter/pkg/constant"
+	"github.com/douyu/jupiter/pkg/core/constant"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/smartystreets/goconvey/convey"
 	"github.com/stretchr/testify/assert"
