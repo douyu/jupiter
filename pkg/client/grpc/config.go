@@ -69,7 +69,12 @@ func DefaultConfig() *Config {
 		OnDialError:            "panic",
 		AccessInterceptorLevel: "info",
 		Block:                  true,
-		RegistryConfig:         constant.ConfigKey("registry.default"),
+		KeepAlive: &keepalive.ClientParameters{
+			Time:                5 * time.Minute,
+			Timeout:             20 * time.Second,
+			PermitWithoutStream: true,
+		},
+		RegistryConfig: constant.ConfigKey("registry.default"),
 	}
 }
 

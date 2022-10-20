@@ -54,7 +54,7 @@ func DefaultConfig() *Config {
 		ReadTimeout: time.Second * 3,
 		Prefix:      "wsd-reg",
 		logger:      xlog.Jupiter(),
-		ServiceTTL:  cast.ToDuration("20s"),
+		ServiceTTL:  cast.ToDuration("60s"),
 	}
 }
 
