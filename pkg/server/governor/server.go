@@ -67,7 +67,7 @@ func (s *Server) Info() *server.ServiceInfo {
 	}
 
 	info := server.ApplyOptions(
-		server.WithScheme("http"),
+		server.WithScheme("govern"),
 		server.WithAddress(serviceAddr),
 		server.WithKind(constant.ServiceGovernor),
 	)
