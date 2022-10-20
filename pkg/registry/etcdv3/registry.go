@@ -19,13 +19,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
-	"net/url"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/douyu/jupiter/pkg"
 	"github.com/douyu/jupiter/pkg/client/etcdv3"
+	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/constant"
 	"github.com/douyu/jupiter/pkg/ecode"
 	"github.com/douyu/jupiter/pkg/registry"
@@ -45,6 +45,12 @@ type etcdv3Registry struct {
 	rmu      *sync.RWMutex
 	sessions map[string]*concurrency.Session
 }
+
+const (
+	servicePrefix = "%s:%s:%s:%s/"
+	// schema:appname:version:mode/host:port
+	registerService = "%s:%s:%s:%s/%s"
+)
 
 func newETCDRegistry(config *Config) (*etcdv3Registry, error) {
 	if config.logger == nil {
@@ -84,7 +90,7 @@ func (reg *etcdv3Registry) UnregisterService(ctx context.Context, info *server.S
 
 // ListServices list service registered in registry with name `name`
 func (reg *etcdv3Registry) ListServices(ctx context.Context, name string, scheme string) (services []*server.ServiceInfo, err error) {
-	target := fmt.Sprintf("/%s/%s/providers/%s://", reg.Prefix, name, scheme)
+	target := fmt.Sprintf(servicePrefix, scheme, name, "v1", conf.GetString("app.mode"))
 	getResp, getErr := reg.client.Get(ctx, target, clientv3.WithPrefix())
 	if getErr != nil {
 		reg.logger.Error(ecode.MsgWatchRequestErr, xlog.FieldErrKind(ecode.ErrKindRequestErr), xlog.FieldErr(getErr), xlog.FieldAddr(target))
@@ -105,7 +111,7 @@ func (reg *etcdv3Registry) ListServices(ctx context.Context, name string, scheme
 
 // WatchServices watch service change event, then return address list
 func (reg *etcdv3Registry) WatchServices(ctx context.Context, name string, scheme string) (chan registry.Endpoints, error) {
-	prefix := fmt.Sprintf("/%s/%s/", reg.Prefix, name)
+	prefix := fmt.Sprintf(servicePrefix, scheme, name, "v1", conf.GetString("jupiter.mode"))
 	watch, err := reg.client.WatchPrefix(context.Background(), prefix)
 	if err != nil {
 		return nil, err
@@ -296,43 +302,23 @@ func (reg *etcdv3Registry) delSession(k string) error {
 }
 
 func (reg *etcdv3Registry) registerKey(info *server.ServiceInfo) string {
-	return registry.GetServiceKey(reg.Prefix, info)
+	return getServiceKey(info)
 }
 
 func (reg *etcdv3Registry) registerValue(info *server.ServiceInfo) string {
-	return registry.GetServiceValue(info)
+	update := Update{
+		Op:   Add,
+		Addr: info.Address,
+	}
+
+	val, _ := json.Marshal(update)
+
+	return string(val)
 }
 
 func deleteAddrList(al *registry.Endpoints, prefix, scheme string, kvs ...*mvccpb.KeyValue) {
 	for _, kv := range kvs {
 		var addr = strings.TrimPrefix(string(kv.Key), prefix)
-		if strings.HasPrefix(addr, "providers/"+scheme) {
-			// 解析服务注册键
-			addr = strings.TrimPrefix(addr, "providers/")
-			if addr == "" {
-				continue
-			}
-			uri, err := url.Parse(addr)
-			if err != nil {
-				xlog.Jupiter().Error("parse uri", xlog.FieldErrKind(ecode.ErrKindUriErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)))
-				continue
-			}
-			delete(al.Nodes, uri.String())
-		}
-
-		if strings.HasPrefix(addr, "configurators/"+scheme) {
-			// 解析服务配置键
-			addr = strings.TrimPrefix(addr, "configurators/")
-			if addr == "" {
-				continue
-			}
-			uri, err := url.Parse(addr)
-			if err != nil {
-				xlog.Jupiter().Error("parse uri", xlog.FieldErrKind(ecode.ErrKindUriErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)))
-				continue
-			}
-			delete(al.RouteConfigs, uri.String())
-		}
 
 		if isIPPort(addr) {
 			// 直接删除addr 因为Delete操作的value值为空
@@ -345,117 +331,32 @@ func deleteAddrList(al *registry.Endpoints, prefix, scheme string, kvs ...*mvccp
 func updateAddrList(al *registry.Endpoints, prefix, scheme string, kvs ...*mvccpb.KeyValue) {
 	for _, kv := range kvs {
 		var addr = strings.TrimPrefix(string(kv.Key), prefix)
-		switch {
-		// 解析服务注册键
-		case strings.HasPrefix(addr, "providers/"+scheme):
-			addr = strings.TrimPrefix(addr, "providers/")
-			uri, err := url.Parse(addr)
-			if err != nil {
-				xlog.Jupiter().Error("parse uri", xlog.FieldErrKind(ecode.ErrKindUriErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)))
-				continue
-			}
-			var serviceInfo server.ServiceInfo
-			if err := json.Unmarshal(kv.Value, &serviceInfo); err != nil {
-				xlog.Jupiter().Error("parse uri", xlog.FieldErrKind(ecode.ErrKindUriErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)))
-				continue
-			}
-			if serviceInfo.Enable {
-				al.Nodes[uri.String()] = serviceInfo
-			} else {
-				delete(al.Nodes, uri.String())
-			}
-
-		case strings.HasPrefix(addr, "configurators/"+scheme):
-			addr = strings.TrimPrefix(addr, "configurators/")
-
-			uri, err := url.Parse(addr)
-			if err != nil {
-				xlog.Jupiter().Error("parse uri", xlog.FieldErrKind(ecode.ErrKindUriErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)))
+		if isIPPort(addr) {
+			var meta Update
+			if err := json.Unmarshal(kv.Value, &meta); err != nil {
+				xlog.Jupiter().Error("unmarshal meta", xlog.FieldErr(err),
+					xlog.FieldExtMessage("value", string(kv.Value), "key", string(kv.Key)))
 				continue
 			}
 
-			if strings.HasPrefix(uri.Path, "/routes/") { // 路由配置
-				var routeConfig registry.RouteConfig
-				if err := json.Unmarshal(kv.Value, &routeConfig); err != nil {
-					xlog.Jupiter().Error("parse uri", xlog.FieldErrKind(ecode.ErrKindUriErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)))
-					continue
+			switch meta.Op {
+			case Add:
+				al.Nodes[addr] = server.ServiceInfo{
+					Address: addr,
 				}
-				routeConfig.ID = strings.TrimPrefix(uri.Path, "/routes/")
-				routeConfig.Scheme = uri.Scheme
-				routeConfig.Host = uri.Host
-				al.RouteConfigs[uri.String()] = routeConfig
-			}
-
-			if strings.HasPrefix(uri.Path, "/providers/") {
-				var providerConfig registry.ProviderConfig
-				if err := json.Unmarshal(kv.Value, &providerConfig); err != nil {
-					xlog.Jupiter().Error("parse uri", xlog.FieldErrKind(ecode.ErrKindUriErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)))
-					continue
-				}
-				providerConfig.ID = strings.TrimPrefix(uri.Path, "/providers/")
-				providerConfig.Scheme = uri.Scheme
-				providerConfig.Host = uri.Host
-				al.ProviderConfigs[uri.String()] = providerConfig
-			}
-
-			if strings.HasPrefix(uri.Path, "/consumers/") {
-				var consumerConfig registry.ConsumerConfig
-				if err := json.Unmarshal(kv.Value, &consumerConfig); err != nil {
-					xlog.Jupiter().Error("parse uri", xlog.FieldErrKind(ecode.ErrKindUriErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)))
-					continue
-				}
-				consumerConfig.ID = strings.TrimPrefix(uri.Path, "/consumers/")
-				consumerConfig.Scheme = uri.Scheme
-				consumerConfig.Host = uri.Host
-				al.ConsumerConfigs[uri.String()] = consumerConfig
+			case Delete:
+				delete(al.Nodes, addr)
 			}
 		}
 	}
+}
+
+// getServiceKey ..
+func getServiceKey(s *server.ServiceInfo) string {
+	return fmt.Sprintf(registerService, s.Scheme, s.Name, "v1", conf.GetString("jupiter.mode"), s.Address)
 }
 
 func isIPPort(addr string) bool {
 	_, _, err := net.SplitHostPort(addr)
 	return err == nil
 }
-
-/*
-key: /jupiter/main/configurator/grpc:///routes/1
-val:
-{
-	"upstream": { // 客户端配置
-		"nodes": { // 按照node负载均衡
-			"127.0.0.1:1980": 1,
-			"127.0.0.1:1981": 4
-		},
-		"group": { // 按照group负载均衡
-			"red": 2,
-			"green": 1
-		}
-	},
-	"uri": "/hello",
-	"deployment": "open_api"
-}
-
-key: /jupiter/main/configurator/grpc://127.0.0.1/routes/2
-val:
-{
-	"upstream": { // 客户端配置
-		"nodes": { // 按照node负载均衡
-			"127.0.0.1:1980": 1,
-			"127.0.0.1:1981": 1
-		},
-		"group": { // 按照group负载均衡
-			"red": 1,
-			"green": 2
-		}
-	},
-	"uri": "/hello",
-	"deployment": "core_api" // 部署组
-}
-
-key: /jupiter/main/configurator/grpc:///consumers/client-demo
-val:
-{
-
-}
-*/
