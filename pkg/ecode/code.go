@@ -15,11 +15,8 @@
 package ecode
 
 import (
-	"encoding/json"
-	"net/http"
 	"sync"
 
-	"github.com/douyu/jupiter/pkg/governor"
 	"github.com/douyu/jupiter/pkg/xlog"
 	spb "google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc/codes"
@@ -37,20 +34,6 @@ var (
 	// OK ...
 	OK = add(int(codes.OK), "OK")
 )
-
-func init() {
-	// status code list
-	governor.HandleFunc("/status/code/list", func(w http.ResponseWriter, r *http.Request) {
-		var rets = make(map[int]*spbStatus)
-		_codes.Range(func(key, val interface{}) bool {
-			code := key.(int)
-			status := val.(*spbStatus)
-			rets[code] = status
-			return true
-		})
-		_ = json.NewEncoder(w).Encode(rets)
-	})
-}
 
 // Add ...
 func Add(code int, message string) *spbStatus {
