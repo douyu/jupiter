@@ -112,7 +112,7 @@ func main() {
 
 ``` golang
 import (
-    "github.com/douyu/jupiter/pkg/registry/etcdv3"
+    "github.com/douyu/jupiter/pkg/core/registry/etcdv3"
 )
 func main() {
     app := &MyApplication{}

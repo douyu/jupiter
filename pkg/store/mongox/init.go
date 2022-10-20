@@ -3,7 +3,7 @@ package mongox
 import (
 	"net/http"
 
-	"github.com/douyu/jupiter/pkg/application"
+	"github.com/douyu/jupiter/pkg/core/application"
 	"github.com/douyu/jupiter/pkg/xlog"
 	jsoniter "github.com/json-iterator/go"
 	"go.mongodb.org/mongo-driver/mongo"

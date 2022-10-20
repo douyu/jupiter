@@ -25,13 +25,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/douyu/jupiter/pkg/xtrace"
+	"github.com/douyu/jupiter/pkg/core/xtrace"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/propagation"
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/douyu/jupiter/pkg/metric"
+	"github.com/douyu/jupiter/pkg/core/metric"
 	"github.com/douyu/jupiter/pkg/xlog"
 	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
 	"go.opentelemetry.io/otel/trace"

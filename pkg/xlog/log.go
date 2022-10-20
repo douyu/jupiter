@@ -18,7 +18,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/douyu/jupiter/pkg/hooks"
+	"github.com/douyu/jupiter/pkg/core/hooks"
 	"github.com/douyu/jupiter/pkg/util/xdebug"
 	"github.com/fatih/color"
 	"go.uber.org/zap"

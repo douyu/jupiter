@@ -24,8 +24,8 @@ import (
 	"go.opentelemetry.io/otel/propagation"
 
 	"github.com/douyu/jupiter/pkg"
-	"github.com/douyu/jupiter/pkg/metric"
-	"github.com/douyu/jupiter/pkg/xtrace"
+	"github.com/douyu/jupiter/pkg/core/metric"
+	"github.com/douyu/jupiter/pkg/core/xtrace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
 	"go.opentelemetry.io/otel/trace"
 

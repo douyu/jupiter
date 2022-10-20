@@ -18,8 +18,8 @@ import (
 	"log"
 
 	"github.com/BurntSushi/toml"
+	"github.com/douyu/jupiter/pkg/core/hooks"
 	"github.com/douyu/jupiter/pkg/flag"
-	"github.com/douyu/jupiter/pkg/hooks"
 )
 
 const DefaultEnvPrefix = "APP_"

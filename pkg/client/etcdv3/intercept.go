@@ -3,7 +3,7 @@ package etcdv3
 import (
 	"context"
 
-	"github.com/douyu/jupiter/pkg/xtrace"
+	"github.com/douyu/jupiter/pkg/core/xtrace"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"

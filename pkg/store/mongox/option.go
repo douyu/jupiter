@@ -4,8 +4,8 @@ import (
 	"time"
 
 	"github.com/douyu/jupiter/pkg/conf"
-	"github.com/douyu/jupiter/pkg/constant"
-	"github.com/douyu/jupiter/pkg/singleton"
+	"github.com/douyu/jupiter/pkg/core/constant"
+	"github.com/douyu/jupiter/pkg/core/singleton"
 	"github.com/spf13/cast"
 	"go.mongodb.org/mongo-driver/mongo"
 )
