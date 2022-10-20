@@ -36,7 +36,6 @@ import (
 
 const (
 	// 存放于git上的模板module
-	gitOriginModulePath = "github.com/douyu/jupiter-layout"
 	gitOriginModuleName = "douyu/jupiter-layout"
 
 	oneDayUnix = 24 * 60 * 60
@@ -71,7 +70,7 @@ func generate(c *cli.Context, remote string) error {
 
 	files := make([]file, 0)
 
-	gitFileInfos := getFileInfosByGit(remote)
+	gitFileInfos := getFileInfosByGit(c, remote)
 	for _, f := range gitFileInfos {
 		files = append(files, *f)
 	}
@@ -161,6 +160,7 @@ func create(c config) error {
 		if !ok {
 			d, _ := filepath.Rel(c.GoDir, dir)
 			if !strings.Contains(f, "vendor") {
+				fmt.Println(d)
 				// 不打印vendor下目录
 				b = t.AddBranch(d)
 				nodes[dir] = b
@@ -214,13 +214,13 @@ func write(c config, file, tmpl string) error {
 }
 
 // getFileInfosByGit 从git拉取最新的模板代码 并抽象成map[相对路径]文件流
-func getFileInfosByGit(path string) (fileInfos map[string]*file) {
+func getFileInfosByGit(c *cli.Context, gitPath string) (fileInfos map[string]*file) {
 	// 查看临时文件之中是否已经存在该文件夹
 	// os.Stat 获取文件信息
-	_, err := os.Stat(getGlobalLayoutPath(path))
+	_, err := os.Stat(getGlobalLayoutPath(gitPath))
 	if os.IsNotExist(err) {
 		// 不存在，拉取对应的仓库
-		cloneGitRepo(path)
+		cloneGitRepo(gitPath)
 	} else if err != nil {
 		// 这里的错误，是说明出现了未知的错误，应该抛出
 		panic(err)
@@ -228,15 +228,15 @@ func getFileInfosByGit(path string) (fileInfos map[string]*file) {
 
 	// 判断是否需要刷新模板信息
 	// 存在文件才检查更新
-	if err == nil && checkUpgrade(path) {
-		pullGitRepo(path)
+	if err == nil && checkUpgrade(c, gitPath) {
+		pullGitRepo(gitPath)
 	}
 
 	fileInfos = make(map[string]*file)
 	// 获取模板的文件流
 	// io/fs为1.16新增标准库 低版本不支持
 	// os.FileInfo实现了和io/fs.FileInfo相同的接口 确保go低版本可以成功编译通过
-	err = filepath.Walk(getGlobalLayoutPath(path), func(path string, info os.FileInfo, err error) error {
+	err = filepath.Walk(getGlobalLayoutPath(gitPath), func(path string, info os.FileInfo, err error) error {
 		// 过滤git目录中文件
 		if !info.IsDir() && !strings.Contains(strings.ReplaceAll(path, "\\", "/"), ".git/") {
 			bs, err := ioutil.ReadFile(path)
@@ -244,7 +244,7 @@ func getFileInfosByGit(path string) (fileInfos map[string]*file) {
 				fmt.Printf("[jupiter] Read file failed: fullPath=[%v] err=[%v]", path, err)
 			}
 
-			fullPath := strings.ReplaceAll(path, getGlobalLayoutPath(path), "")
+			fullPath := strings.ReplaceAll(path, getGlobalLayoutPath(gitPath), "")
 			fileInfos[fullPath] = &file{fullPath, bs}
 		}
 		return nil
@@ -289,7 +289,11 @@ func pullGitRepo(path string) {
 }
 
 // checkUpgrade 通过 https://api.github.com/repos/xxx/commits/branch 获取最后一次提交sha,判断本地提交是否一致，不一致则需要更新
-func checkUpgrade(path string) bool {
+func checkUpgrade(c *cli.Context, path string) bool {
+	if c.Bool("upgrade") {
+		return true
+	}
+
 	color.Green("check upgrade (%s) ...", path)
 
 	checkGitCorrectness(path)

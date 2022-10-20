@@ -19,7 +19,7 @@ import (
 	"os"
 	"sort"
 
-	"github.com/douyu/jupiter/cmd/jupiter/internal/cmd"
+	"github.com/douyu/jupiter/pkg/core/cmd"
 	"github.com/urfave/cli"
 )
 
