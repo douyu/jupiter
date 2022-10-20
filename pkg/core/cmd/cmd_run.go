@@ -15,39 +15,36 @@
 package cmd
 
 import (
-	"fmt"
+	"log"
 	"os"
-	"os/exec"
-	"runtime"
+	"os/signal"
+	"syscall"
 
+	"github.com/cosmtrek/air/runner"
 	"github.com/urfave/cli"
 )
 
-// Update 更新到最新版本
-func Update(c *cli.Context) error {
+// Run 运行程序
+func Run(c *cli.Context) error {
+	debugMode := c.Bool("debug")
+	cfgPath := c.String("c")
 
-	remote := c.String("remote")
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
-	update := fmt.Sprintf("go install %s@latest\n", remote)
-
-	if runtime.Version() < "go1.18" {
-		fmt.Println("当前安装的golang版本小于1.18，请升级！")
-		return nil
+	var err error
+	r, err := runner.NewEngine(cfgPath, debugMode)
+	if err != nil {
+		log.Fatal(err)
+		return err
 	}
 
-	cmds := []string{update}
+	go func() {
+		<-sigs
+		r.Stop()
+	}()
 
-	for _, cmd := range cmds {
-		fmt.Println(cmd)
-		cmd := exec.Command("bash", "-c", cmd)
-		cmd.Stderr = os.Stderr
-		cmd.Stdout = os.Stdout
-
-		err := cmd.Run()
-		if err != nil {
-			return err
-		}
-	}
+	r.Run()
 
 	return nil
 }

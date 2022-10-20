@@ -15,39 +15,43 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 	"os/exec"
-	"runtime"
 
+	"github.com/fatih/color"
 	"github.com/urfave/cli"
 )
 
-// Update 更新到最新版本
-func Update(c *cli.Context) error {
+func Init(c *cli.Context) error {
 
-	remote := c.String("remote")
-
-	update := fmt.Sprintf("go install %s@latest\n", remote)
-
-	if runtime.Version() < "go1.18" {
-		fmt.Println("当前安装的golang版本小于1.18，请升级！")
-		return nil
+	deps := []string{
+		"github.com/google/wire/cmd/wire@v0.5.0",
+		"github.com/vektra/mockery/v2@v2.14.0",
+		"github.com/bufbuild/buf/cmd/buf@v1.6.0",
+		"github.com/onsi/ginkgo/v2/ginkgo@v2.1.3",
+		"github.com/fullstorydev/grpcurl/cmd/grpcurl@v1.8.7",
 	}
 
-	cmds := []string{update}
-
-	for _, cmd := range cmds {
-		fmt.Println(cmd)
-		cmd := exec.Command("bash", "-c", cmd)
-		cmd.Stderr = os.Stderr
-		cmd.Stdout = os.Stdout
-
-		err := cmd.Run()
+	for _, dep := range deps {
+		err := goinstall(dep)
 		if err != nil {
 			return err
 		}
 	}
 
+	color.Green("jupiter init success.")
+	return nil
+}
+
+func goinstall(path string) error {
+	cmd := exec.Command("go", "install", path)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err := cmd.Run()
+	if err != nil {
+		color.Red("install %s failed, please install it manually", path)
+		return err
+	}
+	color.Green("install %s success.", path)
 	return nil
 }

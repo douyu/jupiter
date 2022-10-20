@@ -15,39 +15,29 @@
 package cmd
 
 import (
-	"fmt"
-	"os"
-	"os/exec"
-	"runtime"
-
-	"github.com/urfave/cli"
+	"github.com/dimiro1/banner"
+	"github.com/mattn/go-colorable"
 )
 
-// Update 更新到最新版本
-func Update(c *cli.Context) error {
+func init() {
 
-	remote := c.String("remote")
+	tpl := `                                     
+	(_)_   _ _ __ (_) |_ ___ _ __
+	| | | | | '_ \| | __/ _ \ '__|
+	| | |_| | |_) | | ||  __/ |
+   _/ |\__,_| .__/|_|\__\___|_|
+  |__/      |_|	  
+							   
+GoVersion: {{ .GoVersion }}
+GOOS: {{ .GOOS }}
+GOARCH: {{ .GOARCH }}
+NumCPU: {{ .NumCPU }}
+GOPATH: {{ .GOPATH }}
+GOROOT: {{ .GOROOT }}
+Compiler: {{ .Compiler }}
+ENV: {{ .Env "GOPATH" }}
+Now: {{ .Now "Monday, 2 Jan 2006" }}
 
-	update := fmt.Sprintf("go install %s@latest\n", remote)
-
-	if runtime.Version() < "go1.18" {
-		fmt.Println("当前安装的golang版本小于1.18，请升级！")
-		return nil
-	}
-
-	cmds := []string{update}
-
-	for _, cmd := range cmds {
-		fmt.Println(cmd)
-		cmd := exec.Command("bash", "-c", cmd)
-		cmd.Stderr = os.Stderr
-		cmd.Stdout = os.Stdout
-
-		err := cmd.Run()
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
+`
+	banner.InitString(colorable.NewColorableStdout(), true, true, tpl)
 }
