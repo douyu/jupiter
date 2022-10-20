@@ -18,6 +18,7 @@ import (
 	"fmt"
 
 	"github.com/douyu/jupiter/pkg/conf"
+	"github.com/douyu/jupiter/pkg/core/constant"
 	"github.com/douyu/jupiter/pkg/core/ecode"
 	"github.com/douyu/jupiter/pkg/flag"
 	"github.com/douyu/jupiter/pkg/xlog"
@@ -57,7 +58,7 @@ func DefaultConfig() *Config {
 
 // StdConfig Jupiter Standard HTTP Server config
 func StdConfig(name string) *Config {
-	return RawConfig("jupiter.server." + name)
+	return RawConfig(constant.ConfigKey("server." + name))
 }
 
 // RawConfig ...

@@ -13,7 +13,7 @@ import (
 DB: 返回name定义的mysql DB handler
 name: 唯一名称
 opts: Open Option, 用于覆盖配置文件中定义的配置
-example: DB := DB("StdConfig", orm.RawConfig("jupiter.mongodb.StdConfig"))
+example: DB := DB("StdConfig", orm.RawConfig(constant.ConfigKey("mongodb.StdConfig"))
 */
 
 func newSession(config *Config) *mongo.Client {

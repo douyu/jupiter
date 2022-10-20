@@ -21,6 +21,7 @@ import (
 
 	"github.com/douyu/jupiter/pkg/client/etcdv3"
 	"github.com/douyu/jupiter/pkg/conf"
+	"github.com/douyu/jupiter/pkg/core/constant"
 	"github.com/douyu/jupiter/pkg/core/ecode"
 	"github.com/douyu/jupiter/pkg/core/metric"
 	"github.com/douyu/jupiter/pkg/xlog"
@@ -31,7 +32,7 @@ import (
 
 // StdConfig ...
 func StdConfig(name string) Config {
-	return RawConfig("jupiter.cron." + name)
+	return RawConfig(constant.ConfigKey("cron." + name))
 }
 
 // RawConfig ...

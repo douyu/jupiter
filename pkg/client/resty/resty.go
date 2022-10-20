@@ -22,6 +22,7 @@ import (
 	"github.com/alibaba/sentinel-golang/api"
 	"github.com/alibaba/sentinel-golang/core/base"
 	"github.com/douyu/jupiter/pkg/conf"
+	"github.com/douyu/jupiter/pkg/core/constant"
 	"github.com/douyu/jupiter/pkg/core/metric"
 	"github.com/douyu/jupiter/pkg/core/sentinel"
 	"github.com/douyu/jupiter/pkg/core/xtrace"
@@ -79,7 +80,7 @@ type (
 
 // StdConfig 返回标准配置
 func StdConfig(name string) *Config {
-	return RawConfig("jupiter.resty." + name)
+	return RawConfig(constant.ConfigKey("resty." + name))
 }
 
 // RawConfig 返回配置

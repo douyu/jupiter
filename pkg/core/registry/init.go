@@ -18,6 +18,7 @@ import (
 	"log"
 
 	"github.com/douyu/jupiter/pkg/conf"
+	"github.com/douyu/jupiter/pkg/core/constant"
 	"github.com/douyu/jupiter/pkg/xlog"
 )
 
@@ -38,7 +39,7 @@ func init() {
 	conf.OnLoaded(func(c *conf.Configuration) {
 		xlog.Jupiter().Sugar().Info("hook config, init registry")
 		var config Config
-		if err := c.UnmarshalKey("jupiter.registry", &config); err != nil {
+		if err := c.UnmarshalKey(constant.ConfigKey("registry"), &config); err != nil {
 			xlog.Jupiter().Sugar().Infof("hook config, read registry config failed: %v", err)
 			return
 		}
@@ -50,7 +51,7 @@ func init() {
 			}
 
 			if item.ConfigKey == "" {
-				item.ConfigKey = "jupiter.registry.default"
+				item.ConfigKey = constant.ConfigKey("registry.default")
 			}
 
 			build, ok := registryBuilder[itemKind]

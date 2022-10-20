@@ -69,13 +69,13 @@ func DefaultConfig() *Config {
 		OnDialError:            "panic",
 		AccessInterceptorLevel: "info",
 		Block:                  true,
-		RegistryConfig:         "jupiter.registry.default",
+		RegistryConfig:         constant.ConfigKey("registry.default"),
 	}
 }
 
 // StdConfig ...
 func StdConfig(name string) *Config {
-	return RawConfig("jupiter.grpc." + name)
+	return RawConfig(constant.ConfigKey("grpc." + name))
 }
 
 // RawConfig ...

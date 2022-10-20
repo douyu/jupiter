@@ -75,7 +75,7 @@ func DefaultConfig() *Config {
 
 // StdConfig Jupiter Standard HTTP Server config
 func StdConfig(name string) *Config {
-	return RawConfig("jupiter.server." + name)
+	return RawConfig(constant.ConfigKey("server." + name))
 }
 
 // RawConfig ...

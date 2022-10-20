@@ -21,6 +21,7 @@ import (
 	"github.com/spf13/cast"
 
 	"github.com/douyu/jupiter/pkg/conf"
+	"github.com/douyu/jupiter/pkg/core/constant"
 	"github.com/douyu/jupiter/pkg/xlog"
 )
 
@@ -92,7 +93,7 @@ func DefaultRedisConfig() Config {
 
 // StdRedisConfig ...
 func StdRedisConfig(name string) Config {
-	return RawRedisConfig("jupiter.redis." + name)
+	return RawRedisConfig(constant.ConfigKey("redis." + name))
 }
 
 // RawRedisConfig ...
@@ -200,7 +201,7 @@ func (config Config) buildCluster() *redis.ClusterClient {
 
 // StdRedisStubConfig ...
 func StdRedisStubConfig(name string) Config {
-	return RawRedisStubConfig("jupiter.redis." + name + ".stub")
+	return RawRedisStubConfig(constant.ConfigKey("redis." + name + ".stub"))
 }
 
 // RawRedisStubConfig ...
@@ -219,7 +220,7 @@ func RawRedisStubConfig(key string) Config {
 
 // StdRedisClusterConfig ...
 func StdRedisClusterConfig(name string) Config {
-	return RawRedisClusterConfig("jupiter.redis." + name + ".cluster")
+	return RawRedisClusterConfig(constant.ConfigKey("redis." + name + ".cluster"))
 }
 
 // RawRedisClusterConfig ...
