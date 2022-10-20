@@ -24,6 +24,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/douyu/jupiter/pkg/core/constant"
 	"github.com/douyu/jupiter/pkg/xlog"
 
 	"github.com/douyu/jupiter/pkg/flag"
@@ -51,8 +52,8 @@ var packages = []string{
 }
 
 var configMap = map[string]string{
-	"client/etcdv3": constant.ConfigKey("etcdv3",
-	//"client/grpc":   constant.ConfigKey("grpc",
+	"client/etcdv3": constant.ConfigKey("etcdv3"),
+	//"client/grpc":   constant.ConfigKey("grpc"),
 }
 
 var fieldMap = map[string]string{
