@@ -66,7 +66,7 @@ type Config struct {
 // which will parse config by conf package,
 // panic if no config key found in conf
 func StdConfig(name string) *Config {
-	return RawConfig("jupiter.server." + name)
+	return RawConfig(constant.ConfigKey("server." + name))
 }
 
 // RawConfig ...

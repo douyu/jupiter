@@ -22,6 +22,7 @@ import (
 
 	"github.com/BurntSushi/toml"
 	cfg "github.com/douyu/jupiter/pkg/conf"
+	"github.com/douyu/jupiter/pkg/core/constant"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -42,7 +43,7 @@ func TestStdConfig(t *testing.T) {
 				name: "demo",
 			},
 			want: &Config{
-				Name:            "jupiter.mysql.demo",
+				Name:            constant.ConfigKey("mysql.demo"),
 				DSN:             "this is dsn",
 				Debug:           true,
 				MaxIdleConns:    100,
@@ -92,9 +93,9 @@ func TestRawConfig(t *testing.T) {
 		// TODO: Add test cases.
 		{
 			name: "demo",
-			args: args{key: "jupiter.mysql.demo1"},
+			args: args{key: constant.ConfigKey("mysql.demo1")},
 			want: &Config{
-				Name:            "jupiter.mysql.demo1",
+				Name:            constant.ConfigKey("mysql.demo1"),
 				DSN:             "this is dsn",
 				Debug:           true,
 				MaxIdleConns:    100,
@@ -122,9 +123,9 @@ func TestRawConfig(t *testing.T) {
 		},
 		{
 			name: "default",
-			args: args{key: "jupiter.mysql.demo2"},
+			args: args{key: constant.ConfigKey("mysql.demo2")},
 			want: &Config{
-				Name:            "jupiter.mysql.demo2",
+				Name:            constant.ConfigKey("mysql.demo2"),
 				DSN:             "this is dsn",
 				Debug:           true,
 				MaxIdleConns:    10,

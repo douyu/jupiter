@@ -30,7 +30,7 @@ import (
 
 // StdConfig ...
 func StdConfig(name string) *Config {
-	return RawConfig("jupiter.registry." + name)
+	return RawConfig(constant.ConfigKey("registry." + name))
 }
 
 // RawConfig ...

@@ -51,8 +51,8 @@ var packages = []string{
 }
 
 var configMap = map[string]string{
-	"client/etcdv3": "jupiter.etcdv3",
-	//"client/grpc":   "jupiter.grpc",
+	"client/etcdv3": constant.ConfigKey("etcdv3",
+	//"client/grpc":   constant.ConfigKey("grpc",
 }
 
 var fieldMap = map[string]string{

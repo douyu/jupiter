@@ -25,7 +25,7 @@ type (
 
 // StdConfig 返回标准配置
 func StdConfig(name string) *Config {
-	return RawConfig("jupiter.mongo." + name)
+	return RawConfig(constant.ConfigKey("mongo." + name))
 }
 
 // RawConfig 裸配置
