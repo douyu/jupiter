@@ -219,8 +219,8 @@ func (reg *etcdv3Registry) registerMetric(ctx context.Context, info *server.Serv
 	opOptions := make([]clientv3.OpOption, 0)
 	// opOptions = append(opOptions, clientv3.WithSerializable())
 	if ttl := reg.Config.ServiceTTL.Seconds(); ttl > 0 {
-		//todo ctx without timeout for same as service life?
-		sess, err := reg.getSession(key, concurrency.WithTTL(int(ttl)))
+		// 这里基于应用名为key做缓存，每个服务实例应该只需要创建一个lease，降低etcd的压力
+		sess, err := reg.getSession(info.Name, concurrency.WithTTL(int(ttl)))
 		if err != nil {
 			return err
 		}
@@ -250,8 +250,8 @@ func (reg *etcdv3Registry) registerBiz(ctx context.Context, info *server.Service
 	opOptions := make([]clientv3.OpOption, 0)
 	// opOptions = append(opOptions, clientv3.WithSerializable())
 	if ttl := reg.Config.ServiceTTL.Seconds(); ttl > 0 {
-		//todo ctx without timeout for same as service life?
-		sess, err := reg.getSession(key, concurrency.WithTTL(int(ttl)))
+		// 这里基于应用名为key做缓存，每个服务实例应该只需要创建一个lease，降低etcd的压力
+		sess, err := reg.getSession(info.Name, concurrency.WithTTL(int(ttl)))
 		if err != nil {
 			return err
 		}
@@ -268,19 +268,21 @@ func (reg *etcdv3Registry) registerBiz(ctx context.Context, info *server.Service
 }
 
 func (reg *etcdv3Registry) getSession(k string, opts ...concurrency.SessionOption) (*concurrency.Session, error) {
-	reg.rmu.RLock()
+	// 需要对整个方法加锁，防止并发创建session
+	reg.rmu.Lock()
+	defer reg.rmu.Unlock()
 	sess, ok := reg.sessions[k]
-	reg.rmu.RUnlock()
 	if ok {
 		return sess, nil
 	}
+
 	sess, err := concurrency.NewSession(reg.client.Client, opts...)
 	if err != nil {
+		xlog.Jupiter().Error("create session failed", xlog.FieldKeyAny(k))
 		return sess, err
 	}
-	reg.rmu.Lock()
 	reg.sessions[k] = sess
-	reg.rmu.Unlock()
+	xlog.Jupiter().Info("create session", xlog.FieldKeyAny(k), xlog.FieldValueAny(sess))
 	return sess, nil
 }
 
