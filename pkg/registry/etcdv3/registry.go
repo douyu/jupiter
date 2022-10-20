@@ -111,7 +111,7 @@ func (reg *etcdv3Registry) ListServices(ctx context.Context, name string, scheme
 
 // WatchServices watch service change event, then return address list
 func (reg *etcdv3Registry) WatchServices(ctx context.Context, name string, scheme string) (chan registry.Endpoints, error) {
-	prefix := fmt.Sprintf(servicePrefix, scheme, name, "v1", conf.GetString("jupiter.mode"))
+	prefix := fmt.Sprintf(servicePrefix, scheme, name, "v1", pkg.AppMode())
 	watch, err := reg.client.WatchPrefix(context.Background(), prefix)
 	if err != nil {
 		return nil, err
@@ -304,7 +304,7 @@ func (reg *etcdv3Registry) delSession(k string) error {
 }
 
 func (reg *etcdv3Registry) registerKey(info *server.ServiceInfo) string {
-	return getServiceKey(info)
+	return fmt.Sprintf(registerService, info.Scheme, info.Name, "v1", pkg.AppMode(), info.Address)
 }
 
 func (reg *etcdv3Registry) registerValue(info *server.ServiceInfo) string {
@@ -353,10 +353,6 @@ func updateAddrList(al *registry.Endpoints, prefix, scheme string, kvs ...*mvccp
 	}
 }
 
-// getServiceKey ..
-func getServiceKey(s *server.ServiceInfo) string {
-	return fmt.Sprintf(registerService, s.Scheme, s.Name, "v1", conf.GetString("jupiter.mode"), s.Address)
-}
 
 func isIPPort(addr string) bool {
 	_, _, err := net.SplitHostPort(addr)
