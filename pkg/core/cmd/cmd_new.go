@@ -36,29 +36,28 @@ import (
 
 const (
 	// 存放于git上的模板module
-	gitOriginModulePath = "github.com/douyu/jupiter-layout"
 	gitOriginModuleName = "douyu/jupiter-layout"
-	// 设置clone别名 避免冲突
-	localLayoutName = "local_temp_jupiter_layout"
-	// 本地文件锁，修改时间用于检查更新
-	localLayoutNameLock = "local_temp_jupiter_layout.lock"
-	oneDayUnix          = 24 * 60 * 60
+
+	oneDayUnix = 24 * 60 * 60
 )
 
-var (
-	// 项目模板存在的位置
-	globalLayoutPath = filepath.Join(os.TempDir(), localLayoutName)
-	// 项目时间检查的文件所在位置
-	globalLayoutLockPath = filepath.Join(os.TempDir(), localLayoutNameLock)
-)
+func getGlobalLayoutPath(path string) string {
+	path = strings.ReplaceAll(path, "/", "_")
+	path = strings.ReplaceAll(path, "-", "_")
+	return filepath.Join(os.TempDir(), path)
+}
+
+func getGlobalLayoutLockPath(path string) string {
+	return getGlobalLayoutPath(path) + ".lock"
+}
 
 // New 生成项目
 func New(c *cli.Context) error {
-	return generate(c, c.String("type"))
+	return generate(c, c.String("remote"))
 }
 
 // generate 生成项目
-func generate(c *cli.Context, cmd string) error {
+func generate(c *cli.Context, remote string) error {
 	if len(c.Args().First()) == 0 {
 		return errors.New("no project name like test-go found")
 	}
@@ -71,20 +70,20 @@ func generate(c *cli.Context, cmd string) error {
 
 	files := make([]file, 0)
 
-	gitFileInfos := getFileInfosByGit(cmd)
+	gitFileInfos := getFileInfosByGit(c, remote)
 	for _, f := range gitFileInfos {
 		files = append(files, *f)
 	}
 
 	cfg := config{
-		Name:  generateName(dir),
-		Type:  cmd,
-		Dir:   dir,
-		GoDir: goDir,
-		Files: files,
+		Name:   generateName(dir),
+		Remote: remote,
+		Dir:    dir,
+		GoDir:  goDir,
+		Files:  files,
 		Comments: []string{
 			// "run to compile......",
-			fmt.Sprintf("Generate %s project success", cmd),
+			fmt.Sprintf("Generate %s project success", remote),
 			"\ncd " + goDir,
 			"\njupiter run -c cmd/exampleserver/.jupiter.toml",
 			"\nEnjoy coding~~",
@@ -113,8 +112,8 @@ func generateName(pname string) string {
 type config struct {
 	// foo
 	Alias string
-	// api, srv, web, task, admin
-	Type string
+	// remote template
+	Remote string
 	// test-go
 	Dir string
 	// $GOPATH/src/test-go
@@ -161,6 +160,7 @@ func create(c config) error {
 		if !ok {
 			d, _ := filepath.Rel(c.GoDir, dir)
 			if !strings.Contains(f, "vendor") {
+				fmt.Println(d)
 				// 不打印vendor下目录
 				b = t.AddBranch(d)
 				nodes[dir] = b
@@ -183,7 +183,7 @@ func create(c config) error {
 		// 替换为真实的c.Dir
 		tpl := strings.ReplaceAll(
 			string(file.Tmpl),
-			gitOriginModulePath, // +"/"+c.Type,
+			c.Remote, // +"/"+c.Type,
 			c.Dir)
 
 		if err := write(c, f, tpl); err != nil {
@@ -214,14 +214,13 @@ func write(c config, file, tmpl string) error {
 }
 
 // getFileInfosByGit 从git拉取最新的模板代码 并抽象成map[相对路径]文件流
-// name: 生成的项目类型
-func getFileInfosByGit(name string) (fileInfos map[string]*file) {
+func getFileInfosByGit(c *cli.Context, gitPath string) (fileInfos map[string]*file) {
 	// 查看临时文件之中是否已经存在该文件夹
 	// os.Stat 获取文件信息
-	_, err := os.Stat(globalLayoutPath)
+	_, err := os.Stat(getGlobalLayoutPath(gitPath))
 	if os.IsNotExist(err) {
 		// 不存在，拉取对应的仓库
-		cloneGitRepo()
+		cloneGitRepo(gitPath)
 	} else if err != nil {
 		// 这里的错误，是说明出现了未知的错误，应该抛出
 		panic(err)
@@ -229,15 +228,15 @@ func getFileInfosByGit(name string) (fileInfos map[string]*file) {
 
 	// 判断是否需要刷新模板信息
 	// 存在文件才检查更新
-	if err == nil && checkUpgrade() {
-		pullGitRepo()
+	if err == nil && checkUpgrade(c, gitPath) {
+		pullGitRepo(gitPath)
 	}
 
 	fileInfos = make(map[string]*file)
 	// 获取模板的文件流
 	// io/fs为1.16新增标准库 低版本不支持
 	// os.FileInfo实现了和io/fs.FileInfo相同的接口 确保go低版本可以成功编译通过
-	err = filepath.Walk(globalLayoutPath, func(path string, info os.FileInfo, err error) error {
+	err = filepath.Walk(getGlobalLayoutPath(gitPath), func(path string, info os.FileInfo, err error) error {
 		// 过滤git目录中文件
 		if !info.IsDir() && !strings.Contains(strings.ReplaceAll(path, "\\", "/"), ".git/") {
 			bs, err := ioutil.ReadFile(path)
@@ -245,7 +244,7 @@ func getFileInfosByGit(name string) (fileInfos map[string]*file) {
 				fmt.Printf("[jupiter] Read file failed: fullPath=[%v] err=[%v]", path, err)
 			}
 
-			fullPath := strings.ReplaceAll(path, globalLayoutPath, "")
+			fullPath := strings.ReplaceAll(path, getGlobalLayoutPath(gitPath), "")
 			fileInfos[fullPath] = &file{fullPath, bs}
 		}
 		return nil
@@ -258,16 +257,16 @@ func getFileInfosByGit(name string) (fileInfos map[string]*file) {
 }
 
 // 拉取 jupiter-layout 仓库
-func cloneGitRepo() {
+func cloneGitRepo(path string) {
 	// 存放于git的模板地址
-	gitPath := "https://" + gitOriginModulePath + ".git"
+	gitPath := "https://" + path + ".git"
 
 	fmt.Println("git", "clone", gitPath)
 
 	// clone最新仓库的master分支
 	// 不存在则拉取模板
 	var stdErr bytes.Buffer
-	cmd := exec.Command("git", "clone", gitPath, globalLayoutPath, "-b", "main", "--depth=1")
+	cmd := exec.Command("git", "clone", gitPath, getGlobalLayoutPath(path), "-b", "main", "--depth=1")
 	cmd.Stderr = &stdErr
 	if err := cmd.Run(); err != nil {
 		panic(stdErr.String())
@@ -275,14 +274,14 @@ func cloneGitRepo() {
 }
 
 // 更新 jupiter-layout 仓库
-func pullGitRepo() {
-	fmt.Println("git", "pull", gitOriginModulePath)
+func pullGitRepo(path string) {
+	fmt.Println("git", "pull", path)
 
 	// pull 最新仓库的master分支
 	// 不存在则拉取模板
 	var stdErr bytes.Buffer
 	cmd := exec.Command("git", "pull")
-	cmd.Dir = globalLayoutPath
+	cmd.Dir = getGlobalLayoutPath(path)
 	cmd.Stderr = &stdErr
 	if err := cmd.Run(); err != nil {
 		panic(stdErr.String())
@@ -290,13 +289,17 @@ func pullGitRepo() {
 }
 
 // checkUpgrade 通过 https://api.github.com/repos/xxx/commits/branch 获取最后一次提交sha,判断本地提交是否一致，不一致则需要更新
-func checkUpgrade() bool {
-	color.Green("check upgrade ...")
+func checkUpgrade(c *cli.Context, path string) bool {
+	if c.Bool("upgrade") {
+		return true
+	}
 
-	checkGitCorrectness()
+	color.Green("check upgrade (%s) ...", path)
+
+	checkGitCorrectness(path)
 
 	// 检查今天是否已经检查过更新
-	if !checkDays() {
+	if !checkDays(path) {
 		return false
 	}
 
@@ -307,7 +310,7 @@ func checkUpgrade() bool {
 	}
 
 	// 和本地对比，如果一致，那么不需要更新
-	if getLocalLastSha() == remoteLastSha {
+	if getLocalLastSha(path) == remoteLastSha {
 		return false
 	}
 
@@ -316,9 +319,9 @@ func checkUpgrade() bool {
 }
 
 // 检查模板的正确性
-func checkGitCorrectness() {
+func checkGitCorrectness(path string) {
 	cmd := exec.Command("git", "status")
-	cmd.Dir = globalLayoutPath
+	cmd.Dir = getGlobalLayoutPath(path)
 
 	var out bytes.Buffer
 	var stdErr bytes.Buffer
@@ -335,19 +338,19 @@ func checkGitCorrectness() {
 
 	color.Red("jupiter-layout is broken pull it again")
 
-	err = cleanTempLayout()
+	err = cleanTempLayout(path)
 	if err != nil {
 		panic(err)
 	}
 
-	err = cleanTempLayoutLock()
+	err = cleanTempLayoutLock(path)
 	if err != nil {
 		panic(err)
 	}
 
-	cloneGitRepo()
+	cloneGitRepo(path)
 
-	createTempLock()
+	createTempLock(path)
 }
 
 // checkDays
@@ -355,8 +358,8 @@ func checkGitCorrectness() {
 // 	不存在文件肯定是需要创建文件，并确定需要更新
 //  存在文件但是时间不是同一天，那么也需要进行更新
 //  需要更新的同时，更新文件的修改时间
-func checkDays() bool {
-	fileInfo, err := os.Stat(globalLayoutLockPath)
+func checkDays(path string) bool {
+	fileInfo, err := os.Stat(getGlobalLayoutLockPath(path))
 	if err == nil && fileInfo.ModTime().Unix()/oneDayUnix == time.Now().Unix()/oneDayUnix {
 		return false
 	} else if os.IsNotExist(err) {
@@ -365,13 +368,13 @@ func checkDays() bool {
 		panic(err)
 	}
 
-	createTempLock()
+	createTempLock(path)
 
 	return true
 }
 
-func createTempLock() {
-	f, err := os.Create(globalLayoutLockPath)
+func createTempLock(path string) {
+	f, err := os.Create(getGlobalLayoutLockPath(path))
 	if err != nil {
 		panic(err)
 	}
@@ -402,9 +405,9 @@ func getRemoteLastCommitSha() (string, error) {
 }
 
 // getLocalLastSha 获取本地最后一次的提交sha
-func getLocalLastSha() string {
+func getLocalLastSha(path string) string {
 	cmd := exec.Command("git", "rev-parse", "main")
-	cmd.Dir = globalLayoutPath
+	cmd.Dir = getGlobalLayoutPath(path)
 
 	var out bytes.Buffer
 	cmd.Stdout = &out

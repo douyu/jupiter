@@ -25,7 +25,10 @@ import (
 
 // Update 更新到最新版本
 func Update(c *cli.Context) error {
-	update := "go install github.com/douyu/jupiter/cmd/jupiter@latest\n"
+
+	remote := c.String("remote")
+
+	update := fmt.Sprintf("go install %s@latest\n", remote)
 
 	if runtime.Version() < "go1.18" {
 		fmt.Println("当前安装的golang版本小于1.18，请升级！")

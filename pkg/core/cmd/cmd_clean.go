@@ -24,12 +24,14 @@ import (
 
 // Clean 清除所有的缓存
 func Clean(c *cli.Context) error {
+	path := c.String("remote")
+
 	// 1. 清除已经存在的临时模板文件
-	if err := cleanTempLayout(); err != nil {
+	if err := cleanTempLayout(path); err != nil {
 		return err
 	}
 
-	if err := cleanTempLayoutLock(); err != nil {
+	if err := cleanTempLayoutLock(path); err != nil {
 		return err
 	}
 
@@ -40,11 +42,11 @@ func Clean(c *cli.Context) error {
 }
 
 // 清除已经存在的临时模板文件
-func cleanTempLayout() error {
+func cleanTempLayout(path string) error {
 	fmt.Println("clear temp project layout ...")
 
 	// 需要刷新，提前清理缓存的文件
-	if err := os.RemoveAll(globalLayoutPath); err != nil {
+	if err := os.RemoveAll(getGlobalLayoutPath(path)); err != nil {
 		return err
 	}
 
@@ -52,10 +54,10 @@ func cleanTempLayout() error {
 }
 
 // 清除已经存在的临时模板文件文件锁
-func cleanTempLayoutLock() error {
+func cleanTempLayoutLock(path string) error {
 	fmt.Println("clear temp project-layout lock...")
 	// 需要刷新，提前清理缓存的文件
-	if err := os.RemoveAll(globalLayoutLockPath); err != nil {
+	if err := os.RemoveAll(getGlobalLayoutLockPath(path)); err != nil {
 		return err
 	}
 
