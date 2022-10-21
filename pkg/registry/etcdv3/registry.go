@@ -25,31 +25,36 @@ import (
 
 	"github.com/douyu/jupiter/pkg"
 	"github.com/douyu/jupiter/pkg/client/etcdv3"
-	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/core/constant"
 	"github.com/douyu/jupiter/pkg/core/ecode"
-	"github.com/douyu/jupiter/pkg/core/registry"
+	"github.com/douyu/jupiter/pkg/registry"
 	"github.com/douyu/jupiter/pkg/server"
 	"github.com/douyu/jupiter/pkg/util/xgo"
+	"github.com/douyu/jupiter/pkg/util/xretry"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"go.etcd.io/etcd/api/v3/mvccpb"
 	clientv3 "go.etcd.io/etcd/client/v3"
-	"go.etcd.io/etcd/client/v3/concurrency"
 )
 
 type etcdv3Registry struct {
+	ctx    context.Context
 	client *etcdv3.Client
 	kvs    sync.Map
 	*Config
-	cancel   context.CancelFunc
-	rmu      *sync.RWMutex
-	sessions map[string]*concurrency.Session
+	cancel  context.CancelFunc
+	rmu     *sync.RWMutex
+	leaseID clientv3.LeaseID
 }
 
 const (
+	// defaultRetryTimes default retry times
+	defaultRetryTimes = 3
+	// defaultKeepAliveTimeout is the default timeout for keepalive requests.
+	defaultKeepaliveTimeout = 5 * time.Second
+	// servicePrefix is the prefix of service key
 	servicePrefix = "%s:%s:%s:%s/"
-	// schema:appname:version:mode/host:port
-	registerService = "%s:%s:%s:%s/%s"
+	// registerService is servicePrefix+host:port
+	registerService = servicePrefix + "%s"
 )
 
 func newETCDRegistry(config *Config) (*etcdv3Registry, error) {
@@ -62,13 +67,20 @@ func newETCDRegistry(config *Config) (*etcdv3Registry, error) {
 		config.logger.Error("create etcdv3 client", xlog.FieldErrKind(ecode.ErrKindRequestErr), xlog.FieldErr(err))
 		return nil, err
 	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+
 	reg := &etcdv3Registry{
-		client:   etcdv3Client,
-		Config:   config,
-		kvs:      sync.Map{},
-		rmu:      &sync.RWMutex{},
-		sessions: make(map[string]*concurrency.Session),
+		ctx:    ctx,
+		cancel: cancel,
+		client: etcdv3Client,
+		Config: config,
+		kvs:    sync.Map{},
+		rmu:    &sync.RWMutex{},
 	}
+
+	go reg.doKeepalive(ctx)
+
 	return reg, nil
 }
 
@@ -90,7 +102,7 @@ func (reg *etcdv3Registry) UnregisterService(ctx context.Context, info *server.S
 
 // ListServices list service registered in registry with name `name`
 func (reg *etcdv3Registry) ListServices(ctx context.Context, name string, scheme string) (services []*server.ServiceInfo, err error) {
-	target := fmt.Sprintf(servicePrefix, scheme, name, "v1", conf.GetString("app.mode"))
+	target := fmt.Sprintf(servicePrefix, scheme, name, "v1", pkg.AppMode())
 	getResp, getErr := reg.client.Get(ctx, target, clientv3.WithPrefix())
 	if getErr != nil {
 		reg.logger.Error(ecode.MsgWatchRequestErr, xlog.FieldErrKind(ecode.ErrKindRequestErr), xlog.FieldErr(getErr), xlog.FieldAddr(target))
@@ -164,10 +176,6 @@ func (reg *etcdv3Registry) unregister(ctx context.Context, key string) error {
 		defer cancel()
 	}
 
-	if err := reg.delSession(key); err != nil {
-		return err
-	}
-
 	_, err := reg.client.Delete(ctx, key)
 	if err == nil {
 		reg.kvs.Delete(key)
@@ -207,100 +215,138 @@ func (reg *etcdv3Registry) registerMetric(ctx context.Context, info *server.Serv
 
 	metric := "/prometheus/job/%s/%s/%s"
 
-	if _, ok := ctx.Deadline(); !ok {
-		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(ctx, reg.ReadTimeout)
-		defer cancel()
-	}
-
 	val := info.Address
 	key := fmt.Sprintf(metric, info.Name, pkg.HostName(), val)
 
-	opOptions := make([]clientv3.OpOption, 0)
-	// opOptions = append(opOptions, clientv3.WithSerializable())
-	if ttl := reg.Config.ServiceTTL.Seconds(); ttl > 0 {
-		// 这里基于应用名为key做缓存，每个服务实例应该只需要创建一个lease，降低etcd的压力
-		sess, err := reg.getSession(info.Name, concurrency.WithTTL(int(ttl)))
-		if err != nil {
-			return err
-		}
-		opOptions = append(opOptions, clientv3.WithLease(sess.Lease()))
-	}
-	_, err := reg.client.Put(ctx, key, val, opOptions...)
-	if err != nil {
-		reg.logger.Error("register service", xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err), xlog.FieldKeyAny(key), xlog.FieldValueAny(info))
-		return err
-	}
-
-	reg.logger.Info("register service", xlog.FieldKeyAny(key), xlog.FieldValueAny(val))
-	reg.kvs.Store(key, val)
-	return nil
+	return reg.registerKV(ctx, key, val)
 
 }
 func (reg *etcdv3Registry) registerBiz(ctx context.Context, info *server.ServiceInfo) error {
-	if _, ok := ctx.Deadline(); !ok {
-		var readCancel context.CancelFunc
-		ctx, readCancel = context.WithTimeout(ctx, reg.ReadTimeout)
-		defer readCancel()
-	}
-
 	key := reg.registerKey(info)
 	val := reg.registerValue(info)
+
+	return reg.registerKV(ctx, key, val)
+}
+
+func (reg *etcdv3Registry) registerKV(ctx context.Context, key, val string) error {
 
 	opOptions := make([]clientv3.OpOption, 0)
 	// opOptions = append(opOptions, clientv3.WithSerializable())
 	if ttl := reg.Config.ServiceTTL.Seconds(); ttl > 0 {
 		// 这里基于应用名为key做缓存，每个服务实例应该只需要创建一个lease，降低etcd的压力
-		sess, err := reg.getSession(info.Name, concurrency.WithTTL(int(ttl)))
+		lease, err := reg.getLeaseID(ctx, int64(reg.ServiceTTL.Seconds()))
 		if err != nil {
+			reg.logger.Error("getSession", xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err),
+				xlog.FieldKeyAny(key), xlog.FieldValueAny(val))
 			return err
 		}
-		opOptions = append(opOptions, clientv3.WithLease(sess.Lease()))
+		opOptions = append(opOptions, clientv3.WithLease(lease))
 	}
 	_, err := reg.client.Put(ctx, key, val, opOptions...)
 	if err != nil {
-		reg.logger.Error("register service", xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err), xlog.FieldKeyAny(key), xlog.FieldValueAny(info))
+		reg.logger.Error("register service", xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err), xlog.FieldKeyAny(key))
 		return err
 	}
+
 	reg.logger.Info("register service", xlog.FieldKeyAny(key), xlog.FieldValueAny(val))
 	reg.kvs.Store(key, val)
 	return nil
 }
 
-func (reg *etcdv3Registry) getSession(k string, opts ...concurrency.SessionOption) (*concurrency.Session, error) {
-	// 需要对整个方法加锁，防止并发创建session
+func (reg *etcdv3Registry) getLeaseID(ctx context.Context, ttl int64) (clientv3.LeaseID, error) {
 	reg.rmu.Lock()
 	defer reg.rmu.Unlock()
-	sess, ok := reg.sessions[k]
-	if ok {
-		return sess, nil
+
+	if reg.leaseID != 0 {
+		return reg.leaseID, nil
 	}
 
-	sess, err := concurrency.NewSession(reg.client.Client, opts...)
+	grant, err := reg.client.Grant(ctx, ttl)
 	if err != nil {
-		xlog.Jupiter().Error("create session failed", xlog.FieldKeyAny(k))
-		return sess, err
+		reg.logger.Error("reg.client.Grant failed", xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err))
+		return 0, err
 	}
-	reg.sessions[k] = sess
-	xlog.Jupiter().Info("create session", xlog.FieldKeyAny(k), xlog.FieldValueAny(sess))
-	return sess, nil
+
+	reg.leaseID = grant.ID
+
+	return grant.ID, nil
 }
 
-func (reg *etcdv3Registry) delSession(k string) error {
-	if ttl := reg.Config.ServiceTTL.Seconds(); ttl > 0 {
-		reg.rmu.RLock()
-		sess, ok := reg.sessions[k]
-		reg.rmu.RUnlock()
-		if ok {
-			reg.rmu.Lock()
-			delete(reg.sessions, k)
-			reg.rmu.Unlock()
-			if err := sess.Close(); err != nil {
-				return err
+// doKeepAlive periodically sends keep alive requests to etcd server.
+// when the keep alive request fails or timeout, it will try to re-establish the lease.
+func (reg *etcdv3Registry) doKeepalive(ctx context.Context) {
+
+	reg.logger.Debug("start keepalive...")
+
+	kac, err := reg.client.KeepAlive(ctx, reg.leaseID)
+	if err != nil {
+		reg.leaseID = 0
+		reg.logger.Error("reg.client.KeepAlive failed", xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err))
+	}
+
+	for {
+		// we should register again, because the leaseID is 0
+		if reg.leaseID == 0 {
+			cancelCtx, cancel := context.WithCancel(ctx)
+			reg.cancel = cancel
+
+			done := make(chan struct{})
+
+			go func() {
+				// do register again, and retry 3 times
+				err := reg.registerAllKvs(cancelCtx)
+				if err != nil {
+					return
+				}
+
+				// try do keepalive again
+				// when error or timeout happens, just exit the goroutine
+				kac, err = reg.client.KeepAlive(cancelCtx, reg.leaseID)
+				if err != nil {
+					reg.logger.Error("reg.client.KeepAlive failed", xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err))
+					return
+				}
+
+				done <- struct{}{}
+			}()
+
+			// wait keepalive success
+			select {
+			case <-time.After(defaultKeepaliveTimeout):
+				// when timeout or error happens
+				// we should cancel the context and retry again
+				cancel()
+
+				// mark leaseID as 0 to retry register
+				reg.leaseID = 0
+
+				continue
+			case <-done:
+				// when done happens, we just receive the kac channel
+				// or wait the registry context done
 			}
 		}
+
+		select {
+		case data, ok := <-kac:
+			if !ok {
+				// when error happens
+				// mark leaseID as 0 to retry register
+				reg.leaseID = 0
+
+				reg.logger.Debug("need to retry registration", xlog.String("leaseid", fmt.Sprintf("%x", reg.leaseID)))
+
+				continue
+			}
+
+			// just record detailed keepalive info
+			reg.logger.Debug("do keepalive", xlog.Any("data", data), xlog.String("leaseid", fmt.Sprintf("%x", reg.leaseID)))
+		case <-reg.ctx.Done():
+			reg.logger.Debug("exit keepalive")
+
+			return
+		}
 	}
-	return nil
 }
 
 func (reg *etcdv3Registry) registerKey(info *server.ServiceInfo) string {
@@ -316,6 +362,28 @@ func (reg *etcdv3Registry) registerValue(info *server.ServiceInfo) string {
 	val, _ := json.Marshal(update)
 
 	return string(val)
+}
+
+func (reg *etcdv3Registry) registerAllKvs(ctx context.Context) error {
+	// do register again, and retry 3 times
+	return xretry.Do(defaultRetryTimes, time.Second, func() error {
+		var err error
+
+		// all kvs stored in reg.kvs, and we can range this map to register again
+		reg.kvs.Range(func(key, value any) bool {
+			err = reg.registerKV(ctx, key.(string), value.(string))
+			if err != nil {
+				reg.logger.Error("registerKV failed",
+					xlog.FieldErrKind(ecode.ErrKindRegisterErr),
+					xlog.FieldKeyAny(key),
+					xlog.FieldValueAny(value),
+					xlog.FieldErr(err))
+			}
+			return err == nil
+		})
+
+		return err
+	})
 }
 
 func deleteAddrList(al *registry.Endpoints, prefix, scheme string, kvs ...*mvccpb.KeyValue) {

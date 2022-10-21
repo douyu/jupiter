@@ -21,8 +21,8 @@ import (
 	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/core/constant"
 	"github.com/douyu/jupiter/pkg/core/ecode"
-	"github.com/douyu/jupiter/pkg/core/registry"
 	"github.com/douyu/jupiter/pkg/core/singleton"
+	"github.com/douyu/jupiter/pkg/registry"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/spf13/cast"
 	"go.uber.org/zap"
@@ -54,7 +54,7 @@ func DefaultConfig() *Config {
 		ReadTimeout: time.Second * 3,
 		Prefix:      "wsd-reg",
 		logger:      xlog.Jupiter(),
-		ServiceTTL:  cast.ToDuration("20s"),
+		ServiceTTL:  cast.ToDuration("60s"),
 	}
 }
 
