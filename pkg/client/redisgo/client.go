@@ -11,19 +11,19 @@ import (
 	"github.com/go-redis/redis/v8"
 )
 
-type instance struct {
+type Client struct {
 	master *redis.Client
 	slave  []*redis.Client
 	config *Config
 }
 
-func (ins *instance) CmdOnMaster() *redis.Client {
+func (ins *Client) CmdOnMaster() *redis.Client {
 	if ins.master == nil {
 		ins.config.logger.Panic("redisgo:no master for "+ins.config.name, xlog.FieldExtMessage(ins.config))
 	}
 	return ins.master
 }
-func (ins *instance) CmdOnSlave() *redis.Client {
+func (ins *Client) CmdOnSlave() *redis.Client {
 	if len(ins.slave) == 0 {
 		ins.config.logger.Panic("redisgo:no slave for "+ins.config.name, xlog.FieldExtMessage(ins.config))
 	}
@@ -31,9 +31,9 @@ func (ins *instance) CmdOnSlave() *redis.Client {
 }
 
 // Singleton 单例模式
-func (config *Config) Singleton() *instance {
+func (config *Config) Singleton() *Client {
 	if val, ok := singleton.Load(constant.ModuleClientRedis, config.name); ok && val != nil {
-		return val.(*instance)
+		return val.(*Client)
 	}
 
 	cc := config.Build()
@@ -42,8 +42,8 @@ func (config *Config) Singleton() *instance {
 }
 
 // Build ..
-func (config *Config) Build() *instance {
-	ins := new(instance)
+func (config *Config) Build() *Client {
+	ins := new(Client)
 	if config.Master.Addr != "" {
 		addr, user, pass := getUsernameAndPassword(config.Master.Addr)
 		ins.master = config.build(addr, user, pass)
