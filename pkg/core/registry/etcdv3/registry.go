@@ -74,7 +74,8 @@ func newETCDRegistry(config *Config) (*etcdv3Registry, error) {
 		kvs:    sync.Map{},
 		rmu:    &sync.RWMutex{},
 	}
-	go reg.heartbeat(ctx)
+
+	go reg.doKeepalive(ctx)
 
 	return reg, nil
 }
@@ -267,9 +268,11 @@ func (reg *etcdv3Registry) getLeaseID(ctx context.Context, ttl int64) (clientv3.
 	return grant.ID, nil
 }
 
-func (reg *etcdv3Registry) heartbeat(ctx context.Context) {
+// doKeepAlive periodically sends keep alive requests to etcd server.
+// when the keep alive request fails or timeout, it will try to re-establish the lease.
+func (reg *etcdv3Registry) doKeepalive(ctx context.Context) {
 
-	reg.logger.Debug("start heartbeat...")
+	reg.logger.Debug("start keepalive...")
 
 	kac, err := reg.client.KeepAlive(ctx, reg.leaseID)
 	if err != nil {
@@ -278,59 +281,90 @@ func (reg *etcdv3Registry) heartbeat(ctx context.Context) {
 	}
 
 	for {
+		// we should register again, because the leaseID is 0
 		if reg.leaseID == 0 {
 			cancelCtx, cancel := context.WithCancel(ctx)
 			reg.cancel = cancel
 
 			done := make(chan struct{})
+			errChan := make(chan error)
 
 			go func() {
+				// do register again, and retry 3 times
 				err := xretry.Do(3, time.Second, func() error {
 					var err error
+
+					// all kvs stored in reg.kvs, and we can range this map to register again
 					reg.kvs.Range(func(key, value any) bool {
 						err = reg.registerKV(cancelCtx, key.(string), value.(string))
-
+						if err != nil {
+							reg.logger.Error("registerKV failed",
+								xlog.FieldErrKind(ecode.ErrKindRegisterErr),
+								xlog.FieldKeyAny(key),
+								xlog.FieldValueAny(value),
+								xlog.FieldErr(err))
+						}
 						return err == nil
 					})
 
 					return err
 				})
 				if err != nil {
-					reg.logger.Error("registerKV failed", xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err))
+					errChan <- err
 					return
 				}
 
+				// try do keepalive again
+				// when error or timeout happens, just exit the goroutine
 				kac, err = reg.client.KeepAlive(cancelCtx, reg.leaseID)
 				if err != nil {
 					reg.logger.Error("reg.lease.KeepAlive failed", xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err))
+					errChan <- err
 					return
 				}
 
 				done <- struct{}{}
 			}()
 
+			// wait keepalive success
 			select {
+			case <-errChan:
+				// when error happens
+				// we just retry again
+				continue
 			case <-time.After(3 * time.Second):
+				// when timeout happens
+				// we should cancel the context and retry again
 				cancel()
 
-				continue
-			case <-done:
-			}
-		}
-
-		reg.logger.Debug("do heartbeat", xlog.String("leaseid", fmt.Sprintf("%x", reg.leaseID)))
-
-		select {
-		case _, ok := <-kac:
-			if !ok {
-				// need to retry registration
-				reg.logger.Debug("need to retry registration", xlog.String("leaseid", fmt.Sprintf("%x", reg.leaseID)))
+				// mark leaseID as 0 to retry register
 				reg.leaseID = 0
 
 				continue
+			case <-done:
+				// when done happens, we just receive the kac channel
+				// or wait the registry context done
 			}
+		}
+
+		select {
+		case data, ok := <-kac:
+			if !ok {
+				// when error happens
+				// mark leaseID as 0 to retry register
+				reg.leaseID = 0
+
+				reg.logger.Debug("need to retry registration", xlog.String("leaseid", fmt.Sprintf("%x", reg.leaseID)))
+
+				continue
+			}
+
+			// just record detailed keepalive info
+			reg.logger.Debug("do keepalive", xlog.Any("data", data), xlog.String("leaseid", fmt.Sprintf("%x", reg.leaseID)))
 		case <-reg.ctx.Done():
-			reg.logger.Debug("exit heartbeat")
+			reg.logger.Debug("exit keepalive")
+
+			return
 		}
 	}
 }
