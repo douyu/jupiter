@@ -15,13 +15,13 @@
 package conf
 
 import (
-	"log"
-	"strings"
 	"encoding/json"
 	"github.com/BurntSushi/toml"
 	"github.com/douyu/jupiter/pkg/flag"
 	"github.com/douyu/jupiter/pkg/hooks"
 	"gopkg.in/yaml.v3"
+	"log"
+	"strings"
 )
 
 const DefaultEnvPrefix = "APP_"
@@ -48,18 +48,18 @@ func init() {
 		switch suffix[len(suffix)-1] {
 		case "json":
 			if err := LoadFromDataSource(datasource, json.Unmarshal); err != nil {
-				log.Fatalf("load config from datasource[%s] failed: %v", configAddr, err)
+				log.Fatalf("load json config from datasource[%s] failed: %v", configAddr, err)
 			}
 		case "toml":
 			if err := LoadFromDataSource(datasource, toml.Unmarshal); err != nil {
-				log.Fatalf("load config from datasource[%s] failed: %v", configAddr, err)
+				log.Fatalf("load toml config from datasource[%s] failed: %v", configAddr, err)
 			}
 		case "yaml":
 			if err := LoadFromDataSource(datasource, yaml.Unmarshal); err != nil {
-				log.Fatalf("load config from datasource[%s] failed: %v", configAddr, err)
+				log.Fatalf("load yaml config from datasource[%s] failed: %v", configAddr, err)
 			}
 		default:
-
+			log.Fatalf("log format error, datasource address %s", configAddr)
 		}
 		if err := LoadFromDataSource(datasource, toml.Unmarshal); err != nil {
 			log.Fatalf("load config from datasource[%s] failed: %v", configAddr, err)
