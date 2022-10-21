@@ -47,9 +47,14 @@ type etcdv3Registry struct {
 }
 
 const (
+	// defaultRetryTimes default retry times
+	defaultRetryTimes = 3
+	// defaultKeepAliveTimeout is the default timeout for keepalive requests.
+	defaultKeepaliveTimeout = 5 * time.Second
+	// servicePrefix is the prefix of service key
 	servicePrefix = "%s:%s:%s:%s/"
-	// schema:appname:version:mode/host:port
-	registerService = "%s:%s:%s:%s/%s"
+	// registerService is servicePrefix+host:port
+	registerService = servicePrefix + "%s"
 )
 
 func newETCDRegistry(config *Config) (*etcdv3Registry, error) {
@@ -286,11 +291,10 @@ func (reg *etcdv3Registry) doKeepalive(ctx context.Context) {
 			reg.cancel = cancel
 
 			done := make(chan struct{})
-			errChan := make(chan error)
 
 			go func() {
 				// do register again, and retry 3 times
-				err := xretry.Do(3, time.Second, func() error {
+				err := xretry.Do(defaultRetryTimes, time.Second, func() error {
 					var err error
 
 					// all kvs stored in reg.kvs, and we can range this map to register again
@@ -309,7 +313,6 @@ func (reg *etcdv3Registry) doKeepalive(ctx context.Context) {
 					return err
 				})
 				if err != nil {
-					errChan <- err
 					return
 				}
 
@@ -318,7 +321,6 @@ func (reg *etcdv3Registry) doKeepalive(ctx context.Context) {
 				kac, err = reg.client.KeepAlive(cancelCtx, reg.leaseID)
 				if err != nil {
 					reg.logger.Error("reg.client.KeepAlive failed", xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err))
-					errChan <- err
 					return
 				}
 
@@ -327,13 +329,8 @@ func (reg *etcdv3Registry) doKeepalive(ctx context.Context) {
 
 			// wait keepalive success
 			select {
-			case <-errChan:
-				// when error happens
-				// we just retry again
-
-				continue
-			case <-time.After(3 * time.Second):
-				// when timeout happens
+			case <-time.After(defaultKeepaliveTimeout):
+				// when timeout or error happens
 				// we should cancel the context and retry again
 				cancel()
 
