@@ -44,6 +44,8 @@ type etcdv3Registry struct {
 	cancel  context.CancelFunc
 	rmu     *sync.RWMutex
 	leaseID clientv3.LeaseID
+
+	once sync.Once
 }
 
 const (
@@ -78,8 +80,6 @@ func newETCDRegistry(config *Config) (*etcdv3Registry, error) {
 		kvs:    sync.Map{},
 		rmu:    &sync.RWMutex{},
 	}
-
-	go reg.doKeepalive(ctx)
 
 	return reg, nil
 }
@@ -240,6 +240,12 @@ func (reg *etcdv3Registry) registerKV(ctx context.Context, key, val string) erro
 				xlog.FieldKeyAny(key), xlog.FieldValueAny(val))
 			return err
 		}
+
+		reg.once.Do(func() {
+			// we use reg.ctx to manully cancel lease keepalive loop
+			go reg.doKeepalive(reg.ctx)
+		})
+
 		opOptions = append(opOptions, clientv3.WithLease(lease))
 	}
 	_, err := reg.client.Put(ctx, key, val, opOptions...)
@@ -288,9 +294,8 @@ func (reg *etcdv3Registry) doKeepalive(ctx context.Context) {
 		// we should register again, because the leaseID is 0
 		if reg.leaseID == 0 {
 			cancelCtx, cancel := context.WithCancel(ctx)
-			reg.cancel = cancel
 
-			done := make(chan struct{})
+			done := make(chan struct{}, 1)
 
 			go func() {
 				// do register again, and retry 3 times
@@ -307,6 +312,8 @@ func (reg *etcdv3Registry) doKeepalive(ctx context.Context) {
 					return
 				}
 
+				reg.logger.Debug("reg.client.KeepAlive finished", xlog.String("leaseid", fmt.Sprintf("%x", reg.leaseID)))
+
 				done <- struct{}{}
 			}()
 
@@ -316,7 +323,6 @@ func (reg *etcdv3Registry) doKeepalive(ctx context.Context) {
 				// when timeout or error happens
 				// we should cancel the context and retry again
 				cancel()
-
 				// mark leaseID as 0 to retry register
 				reg.leaseID = 0
 
@@ -379,6 +385,7 @@ func (reg *etcdv3Registry) registerAllKvs(ctx context.Context) error {
 					xlog.FieldValueAny(value),
 					xlog.FieldErr(err))
 			}
+
 			return err == nil
 		})
 
