@@ -9,10 +9,14 @@ import (
 
 var singleton sync.Map
 
+func genkey(module constant.Module, key string) string {
+	return cast.ToString(int(module)) + key
+}
+
 func Load(module constant.Module, key string) (interface{}, bool) {
-	return singleton.Load(cast.ToString(module) + key)
+	return singleton.Load(genkey(module, key))
 }
 
 func Store(module constant.Module, key string, val interface{}) {
-	singleton.Store(cast.ToString(module)+key, val)
+	singleton.Store(genkey(module, key), val)
 }
