@@ -52,7 +52,7 @@ const (
 	// defaultRetryTimes default retry times
 	defaultRetryTimes = 3
 	// defaultKeepAliveTimeout is the default timeout for keepalive requests.
-	defaultKeepaliveTimeout = 5 * time.Second
+	defaultRegisterTimeout = 5 * time.Second
 	// servicePrefix is the prefix of service key
 	servicePrefix = "%s:%s:%s:%s/"
 	// registerService is servicePrefix+host:port
@@ -110,12 +110,15 @@ func (reg *etcdv3Registry) ListServices(ctx context.Context, name string, scheme
 	}
 
 	for _, kv := range getResp.Kvs {
-		var service server.ServiceInfo
+		var service Update
 		if err := json.Unmarshal(kv.Value, &service); err != nil {
 			reg.logger.Warn("invalid service", xlog.FieldErr(err))
 			continue
 		}
-		services = append(services, &service)
+
+		services = append(services, &server.ServiceInfo{
+			Address: service.Addr,
+		})
 	}
 
 	return
@@ -234,7 +237,7 @@ func (reg *etcdv3Registry) registerKV(ctx context.Context, key, val string) erro
 	// opOptions = append(opOptions, clientv3.WithSerializable())
 	if ttl := reg.Config.ServiceTTL.Seconds(); ttl > 0 {
 		// 这里基于应用名为key做缓存，每个服务实例应该只需要创建一个lease，降低etcd的压力
-		lease, err := reg.getLeaseID(ctx, int64(reg.ServiceTTL.Seconds()))
+		lease, err := reg.getLeaseID(ctx)
 		if err != nil {
 			reg.logger.Error("getSession", xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err),
 				xlog.FieldKeyAny(key), xlog.FieldValueAny(val))
@@ -259,7 +262,7 @@ func (reg *etcdv3Registry) registerKV(ctx context.Context, key, val string) erro
 	return nil
 }
 
-func (reg *etcdv3Registry) getLeaseID(ctx context.Context, ttl int64) (clientv3.LeaseID, error) {
+func (reg *etcdv3Registry) getLeaseID(ctx context.Context) (clientv3.LeaseID, error) {
 	reg.rmu.Lock()
 	defer reg.rmu.Unlock()
 
@@ -267,7 +270,7 @@ func (reg *etcdv3Registry) getLeaseID(ctx context.Context, ttl int64) (clientv3.
 		return reg.leaseID, nil
 	}
 
-	grant, err := reg.client.Grant(ctx, ttl)
+	grant, err := reg.client.Grant(ctx, int64(reg.ServiceTTL.Seconds()))
 	if err != nil {
 		reg.logger.Error("reg.client.Grant failed", xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err))
 		return 0, err
@@ -301,26 +304,17 @@ func (reg *etcdv3Registry) doKeepalive(ctx context.Context) {
 				// do register again, and retry 3 times
 				err := reg.registerAllKvs(cancelCtx)
 				if err != nil {
+					cancel()
 					return
 				}
-
-				// try do keepalive again
-				// when error or timeout happens, just exit the goroutine
-				kac, err = reg.client.KeepAlive(cancelCtx, reg.leaseID)
-				if err != nil {
-					reg.logger.Error("reg.client.KeepAlive failed", xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err))
-					return
-				}
-
-				reg.logger.Debug("reg.client.KeepAlive finished", xlog.String("leaseid", fmt.Sprintf("%x", reg.leaseID)))
 
 				done <- struct{}{}
 			}()
 
 			// wait keepalive success
 			select {
-			case <-time.After(defaultKeepaliveTimeout):
-				// when timeout or error happens
+			case <-time.After(defaultRegisterTimeout):
+				// when timeout happens
 				// we should cancel the context and retry again
 				cancel()
 				// mark leaseID as 0 to retry register
@@ -331,6 +325,17 @@ func (reg *etcdv3Registry) doKeepalive(ctx context.Context) {
 				// when done happens, we just receive the kac channel
 				// or wait the registry context done
 			}
+
+			// try do keepalive again
+			// when error or timeout happens, just continue
+			kac, err = reg.client.KeepAlive(ctx, reg.leaseID)
+			if err != nil {
+				reg.logger.Error("reg.client.KeepAlive failed", xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err))
+
+				continue
+			}
+
+			reg.logger.Debug("reg.client.KeepAlive finished", xlog.String("leaseid", fmt.Sprintf("%x", reg.leaseID)))
 		}
 
 		select {

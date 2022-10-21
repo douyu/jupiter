@@ -17,37 +17,21 @@ package etcdv3
 import (
 	"context"
 	"fmt"
-	"log"
 	"testing"
 	"time"
 
+	"github.com/samber/lo"
 	"github.com/douyu/jupiter/pkg/client/etcdv3"
 	"github.com/douyu/jupiter/pkg/core/constant"
 	"github.com/douyu/jupiter/pkg/registry"
 	"github.com/douyu/jupiter/pkg/server"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/stretchr/testify/assert"
-	"go.etcd.io/etcd/client/v3/mock/mockserver"
 )
-
-func startMockServer() {
-	ms, err := mockserver.StartMockServers(1)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if err := ms.StartAt(0); err != nil {
-		log.Fatal(err)
-	}
-}
-
-func TestMain(m *testing.M) {
-	go startMockServer()
-}
 
 func Test_etcdv3Registry(t *testing.T) {
 	etcdConfig := etcdv3.DefaultConfig()
-	etcdConfig.Endpoints = []string{"localhost:0"}
+	etcdConfig.Endpoints = []string{"localhost:2379"}
 	registry, err := newETCDRegistry(&Config{
 		Config:      etcdConfig,
 		ReadTimeout: time.Second * 10,
@@ -112,7 +96,7 @@ func Test_etcdv3Registry(t *testing.T) {
 
 func Test_etcdv3registry_UpdateAddressList(t *testing.T) {
 	etcdConfig := etcdv3.DefaultConfig()
-	etcdConfig.Endpoints = []string{"localhost:0"}
+	etcdConfig.Endpoints = []string{"localhost:2379"}
 	reg, err := newETCDRegistry(&Config{
 		Config:      etcdConfig,
 		ReadTimeout: time.Second * 10,
@@ -148,6 +132,67 @@ func Test_etcdv3registry_UpdateAddressList(t *testing.T) {
 	}()
 	time.Sleep(time.Second * 3)
 	cancel()
+	_ = reg.Close()
+	time.Sleep(time.Second * 1)
+}
+
+func TestKeepalive(t *testing.T) {
+	etcdConfig := etcdv3.DefaultConfig()
+	etcdConfig.Endpoints = []string{"localhost:2379"}
+	reg, err := newETCDRegistry(&Config{
+		Config:      etcdConfig,
+		ReadTimeout: time.Second * 10,
+		Prefix:      "jupiter",
+		logger:      xlog.Jupiter(),
+		ServiceTTL:  time.Second,
+	})
+	assert.Nil(t, err)
+	assert.Nil(t, reg.RegisterService(context.Background(), &server.ServiceInfo{
+		Name:       "service_2",
+		AppID:      "",
+		Scheme:     "grpc",
+		Address:    "10.10.10.1:9091",
+		Weight:     0,
+		Enable:     true,
+		Healthy:    true,
+		Metadata:   map[string]string{},
+		Region:     "default",
+		Zone:       "default",
+		Kind:       constant.ServiceProvider,
+		Deployment: "default",
+		Group:      "",
+	}))
+	assert.Nil(t, reg.RegisterService(context.Background(), &server.ServiceInfo{
+		Name:       "service_2",
+		AppID:      "",
+		Scheme:     "grpc",
+		Address:    "10.10.10.1:9092",
+		Weight:     0,
+		Enable:     true,
+		Healthy:    true,
+		Metadata:   map[string]string{},
+		Region:     "default",
+		Zone:       "default",
+		Kind:       constant.ServiceProvider,
+		Deployment: "default",
+		Group:      "",
+	}))
+
+	lease := reg.leaseID
+	reg.client.Revoke(reg.ctx, lo.Must(reg.getLeaseID(reg.ctx)))
+
+	time.Sleep(1 * time.Second)
+	assert.NotZero(t,lo.Must(reg.getLeaseID(reg.ctx)))
+	assert.True(t, lease != lo.Must(reg.getLeaseID(reg.ctx)))
+
+	ttl, err := reg.client.TimeToLive(reg.ctx, lease)
+	assert.Nil(t, err)
+	assert.Equal(t, int64(-1), ttl.TTL)
+
+	ttl, err = reg.client.TimeToLive(reg.ctx, lo.Must(reg.getLeaseID(reg.ctx)))
+	assert.Nil(t, err)
+	assert.Equal(t, int64(1), ttl.TTL)
+
 	_ = reg.Close()
 	time.Sleep(time.Second * 1)
 }
