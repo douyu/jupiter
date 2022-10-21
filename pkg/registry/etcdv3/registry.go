@@ -294,24 +294,7 @@ func (reg *etcdv3Registry) doKeepalive(ctx context.Context) {
 
 			go func() {
 				// do register again, and retry 3 times
-				err := xretry.Do(defaultRetryTimes, time.Second, func() error {
-					var err error
-
-					// all kvs stored in reg.kvs, and we can range this map to register again
-					reg.kvs.Range(func(key, value any) bool {
-						err = reg.registerKV(cancelCtx, key.(string), value.(string))
-						if err != nil {
-							reg.logger.Error("registerKV failed",
-								xlog.FieldErrKind(ecode.ErrKindRegisterErr),
-								xlog.FieldKeyAny(key),
-								xlog.FieldValueAny(value),
-								xlog.FieldErr(err))
-						}
-						return err == nil
-					})
-
-					return err
-				})
+				err := reg.registerAllKvs(cancelCtx)
 				if err != nil {
 					return
 				}
@@ -379,6 +362,28 @@ func (reg *etcdv3Registry) registerValue(info *server.ServiceInfo) string {
 	val, _ := json.Marshal(update)
 
 	return string(val)
+}
+
+func (reg *etcdv3Registry) registerAllKvs(ctx context.Context) error {
+	// do register again, and retry 3 times
+	return xretry.Do(defaultRetryTimes, time.Second, func() error {
+		var err error
+
+		// all kvs stored in reg.kvs, and we can range this map to register again
+		reg.kvs.Range(func(key, value any) bool {
+			err = reg.registerKV(ctx, key.(string), value.(string))
+			if err != nil {
+				reg.logger.Error("registerKV failed",
+					xlog.FieldErrKind(ecode.ErrKindRegisterErr),
+					xlog.FieldKeyAny(key),
+					xlog.FieldValueAny(value),
+					xlog.FieldErr(err))
+			}
+			return err == nil
+		})
+
+		return err
+	})
 }
 
 func deleteAddrList(al *registry.Endpoints, prefix, scheme string, kvs ...*mvccpb.KeyValue) {
