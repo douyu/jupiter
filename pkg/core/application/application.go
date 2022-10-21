@@ -210,7 +210,6 @@ func (app *Application) Executor(e executor.Executor) {
 }
 
 // SetRegistry set customize registry
-// Deprecated, please use registry.DefaultRegisterer instead.
 func (app *Application) SetRegistry(reg registry.Registry) {
 	registry.DefaultRegisterer = reg
 }
