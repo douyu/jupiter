@@ -25,7 +25,6 @@ import (
 
 	"github.com/douyu/jupiter/pkg"
 	"github.com/douyu/jupiter/pkg/client/etcdv3"
-	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/core/constant"
 	"github.com/douyu/jupiter/pkg/core/ecode"
 	"github.com/douyu/jupiter/pkg/registry"
@@ -98,7 +97,7 @@ func (reg *etcdv3Registry) UnregisterService(ctx context.Context, info *server.S
 
 // ListServices list service registered in registry with name `name`
 func (reg *etcdv3Registry) ListServices(ctx context.Context, name string, scheme string) (services []*server.ServiceInfo, err error) {
-	target := fmt.Sprintf(servicePrefix, scheme, name, "v1", conf.GetString("app.mode"))
+	target := fmt.Sprintf(servicePrefix, scheme, name, "v1", pkg.AppMode())
 	getResp, getErr := reg.client.Get(ctx, target, clientv3.WithPrefix())
 	if getErr != nil {
 		reg.logger.Error(ecode.MsgWatchRequestErr, xlog.FieldErrKind(ecode.ErrKindRequestErr), xlog.FieldErr(getErr), xlog.FieldAddr(target))
@@ -277,7 +276,7 @@ func (reg *etcdv3Registry) doKeepalive(ctx context.Context) {
 	kac, err := reg.client.KeepAlive(ctx, reg.leaseID)
 	if err != nil {
 		reg.leaseID = 0
-		reg.logger.Error("reg.lease.KeepAlive failed", xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err))
+		reg.logger.Error("reg.client.KeepAlive failed", xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err))
 	}
 
 	for {
@@ -318,7 +317,7 @@ func (reg *etcdv3Registry) doKeepalive(ctx context.Context) {
 				// when error or timeout happens, just exit the goroutine
 				kac, err = reg.client.KeepAlive(cancelCtx, reg.leaseID)
 				if err != nil {
-					reg.logger.Error("reg.lease.KeepAlive failed", xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err))
+					reg.logger.Error("reg.client.KeepAlive failed", xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err))
 					errChan <- err
 					return
 				}
@@ -331,6 +330,7 @@ func (reg *etcdv3Registry) doKeepalive(ctx context.Context) {
 			case <-errChan:
 				// when error happens
 				// we just retry again
+
 				continue
 			case <-time.After(3 * time.Second):
 				// when timeout happens
