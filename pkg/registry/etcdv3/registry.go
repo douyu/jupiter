@@ -237,7 +237,7 @@ func (reg *etcdv3Registry) registerKV(ctx context.Context, key, val string) erro
 	// opOptions = append(opOptions, clientv3.WithSerializable())
 	if ttl := reg.Config.ServiceTTL.Seconds(); ttl > 0 {
 		// 这里基于应用名为key做缓存，每个服务实例应该只需要创建一个lease，降低etcd的压力
-		lease, err := reg.getLeaseID(ctx, int64(reg.ServiceTTL.Seconds()))
+		lease, err := reg.getLeaseID(ctx)
 		if err != nil {
 			reg.logger.Error("getSession", xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err),
 				xlog.FieldKeyAny(key), xlog.FieldValueAny(val))
@@ -262,7 +262,7 @@ func (reg *etcdv3Registry) registerKV(ctx context.Context, key, val string) erro
 	return nil
 }
 
-func (reg *etcdv3Registry) getLeaseID(ctx context.Context, ttl int64) (clientv3.LeaseID, error) {
+func (reg *etcdv3Registry) getLeaseID(ctx context.Context) (clientv3.LeaseID, error) {
 	reg.rmu.Lock()
 	defer reg.rmu.Unlock()
 
@@ -270,7 +270,7 @@ func (reg *etcdv3Registry) getLeaseID(ctx context.Context, ttl int64) (clientv3.
 		return reg.leaseID, nil
 	}
 
-	grant, err := reg.client.Grant(ctx, ttl)
+	grant, err := reg.client.Grant(ctx, int64(reg.ServiceTTL.Seconds()))
 	if err != nil {
 		reg.logger.Error("reg.client.Grant failed", xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err))
 		return 0, err

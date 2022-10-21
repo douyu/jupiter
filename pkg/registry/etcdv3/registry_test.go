@@ -20,6 +20,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/samber/lo"
 	"github.com/douyu/jupiter/pkg/client/etcdv3"
 	"github.com/douyu/jupiter/pkg/core/constant"
 	"github.com/douyu/jupiter/pkg/registry"
@@ -178,17 +179,17 @@ func TestKeepalive(t *testing.T) {
 	}))
 
 	lease := reg.leaseID
-	reg.client.Revoke(reg.ctx, reg.leaseID)
+	reg.client.Revoke(reg.ctx, lo.Must(reg.getLeaseID(reg.ctx)))
 
 	time.Sleep(1 * time.Second)
-	assert.NotZero(t, reg.leaseID)
-	assert.True(t, lease != reg.leaseID)
+	assert.NotZero(t,lo.Must(reg.getLeaseID(reg.ctx)))
+	assert.True(t, lease != lo.Must(reg.getLeaseID(reg.ctx)))
 
 	ttl, err := reg.client.TimeToLive(reg.ctx, lease)
 	assert.Nil(t, err)
 	assert.Equal(t, int64(-1), ttl.TTL)
 
-	ttl, err = reg.client.TimeToLive(reg.ctx, reg.leaseID)
+	ttl, err = reg.client.TimeToLive(reg.ctx, lo.Must(reg.getLeaseID(reg.ctx)))
 	assert.Nil(t, err)
 	assert.Equal(t, int64(1), ttl.TTL)
 
