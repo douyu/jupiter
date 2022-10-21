@@ -13,7 +13,7 @@ var addr2 = "10.1.104.18:6740"
 func Test_Stub(t *testing.T) {
 	config := DefaultConfig()
 	t.Run("should panic when addr nil", func(t *testing.T) {
-		var client *instance
+		var client *Client
 		defer func() {
 			if r := recover(); r != nil {
 				assert.Equal(t, r.(string), "redisgo:no master or slaves for default")
