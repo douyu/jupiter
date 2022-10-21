@@ -34,7 +34,7 @@ jobs:
           go get -v -t -d ./...
 
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v3.2.0
+        uses: golangci/golangci-lint-action@v3.3.0
         with:
           args: "--out-${NO_FUTURE}format colored-line-number"
           # Optional: working directory, useful for monorepos
