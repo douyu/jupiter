@@ -16,10 +16,12 @@ package resolver
 
 import (
 	"context"
+	"strings"
 
 	"github.com/douyu/jupiter/pkg/core/constant"
 	"github.com/douyu/jupiter/pkg/registry/etcdv3"
 	"github.com/douyu/jupiter/pkg/util/xgo"
+	"github.com/douyu/jupiter/pkg/xlog"
 	"google.golang.org/grpc/attributes"
 	"google.golang.org/grpc/resolver"
 )
@@ -42,8 +44,13 @@ type baseBuilder struct {
 func (b *baseBuilder) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOptions) (resolver.Resolver, error) {
 	reg := etcdv3.RawConfig(b.registryConfig).MustSingleton()
 
-	endpoints, err := reg.WatchServices(context.Background(), target.Endpoint, "grpc")
+	if !strings.HasSuffix(target.Endpoint, "/") {
+		target.Endpoint += "/"
+	}
+
+	endpoints, err := reg.WatchServices(context.Background(), target.Endpoint)
 	if err != nil {
+		xlog.Jupiter().Error("watch services failed", xlog.FieldErr(err))
 		return nil, err
 	}
 
@@ -52,6 +59,8 @@ func (b *baseBuilder) Build(target resolver.Target, cc resolver.ClientConn, opts
 		for {
 			select {
 			case endpoint := <-endpoints:
+				xlog.Jupiter().Debug("watch services finished", xlog.FieldValueAny(endpoint))
+
 				var state = resolver.State{
 					Addresses: make([]resolver.Address, 0),
 					Attributes: attributes.

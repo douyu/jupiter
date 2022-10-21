@@ -38,7 +38,7 @@ func newGRPCClient(config *Config) *grpc.ClientConn {
 	var dialOptions = config.dialOptions
 	logger := config.logger.With(
 		xlog.FieldMod("client.grpc"),
-		xlog.FieldAddr(config.Address),
+		xlog.FieldAddr(config.Addr),
 	)
 	// 默认配置使用block
 	if config.Block {
@@ -62,7 +62,7 @@ func newGRPCClient(config *Config) *grpc.ClientConn {
 	svcCfg := fmt.Sprintf(`{"loadBalancingPolicy":"%s"}`, config.BalancerName)
 	dialOptions = append(dialOptions, grpc.WithDefaultServiceConfig(svcCfg))
 
-	cc, err := grpc.DialContext(ctx, config.Address, dialOptions...)
+	cc, err := grpc.DialContext(ctx, config.Addr, dialOptions...)
 
 	if err != nil {
 		if config.Level == "panic" {

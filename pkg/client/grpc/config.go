@@ -32,7 +32,7 @@ import (
 type Config struct {
 	Name           string // config's name
 	BalancerName   string
-	Address        string
+	Addr           string
 	Block          bool
 	DialTimeout    time.Duration
 	ReadTimeout    time.Duration
@@ -111,7 +111,7 @@ func (config *Config) WithDialOption(opts ...grpc.DialOption) *Config {
 func (config *Config) Build() *grpc.ClientConn {
 	if config.Debug {
 		config.dialOptions = append(config.dialOptions,
-			grpc.WithChainUnaryInterceptor(debugUnaryClientInterceptor(config.Address)),
+			grpc.WithChainUnaryInterceptor(debugUnaryClientInterceptor(config.Addr)),
 		)
 	}
 

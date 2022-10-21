@@ -20,12 +20,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/samber/lo"
 	"github.com/douyu/jupiter/pkg/client/etcdv3"
 	"github.com/douyu/jupiter/pkg/core/constant"
 	"github.com/douyu/jupiter/pkg/registry"
 	"github.com/douyu/jupiter/pkg/server"
 	"github.com/douyu/jupiter/pkg/xlog"
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -56,7 +56,7 @@ func Test_etcdv3Registry(t *testing.T) {
 		Group:      "",
 	}))
 
-	services, err := registry.ListServices(context.Background(), "service_1", "grpc")
+	services, err := registry.ListServices(context.Background(), "grpc:service_1")
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(services))
 	assert.Equal(t, "10.10.10.1:9091", services[0].Address)
@@ -80,7 +80,7 @@ func Test_etcdv3Registry(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	go func() {
-		endpoints, err := registry.WatchServices(ctx, "service_1", "grpc")
+		endpoints, err := registry.WatchServices(ctx, "grpc:service_1")
 		assert.Nil(t, err)
 		for msg := range endpoints {
 			t.Logf("watch service: %+v\n", msg)
@@ -123,7 +123,7 @@ func Test_etcdv3registry_UpdateAddressList(t *testing.T) {
 	assert.Nil(t, err)
 	ctx, cancel := context.WithCancel(context.Background())
 	go func() {
-		services, err := reg.WatchServices(ctx, "service_1", "grpc")
+		services, err := reg.WatchServices(ctx, "grpc:service_1")
 		assert.Nil(t, err)
 		fmt.Printf("len(services) = %+v\n", len(services))
 		for service := range services {
@@ -182,7 +182,7 @@ func TestKeepalive(t *testing.T) {
 	reg.client.Revoke(reg.ctx, lo.Must(reg.getLeaseID(reg.ctx)))
 
 	time.Sleep(1 * time.Second)
-	assert.NotZero(t,lo.Must(reg.getLeaseID(reg.ctx)))
+	assert.NotZero(t, lo.Must(reg.getLeaseID(reg.ctx)))
 	assert.True(t, lease != lo.Must(reg.getLeaseID(reg.ctx)))
 
 	ttl, err := reg.client.TimeToLive(reg.ctx, lease)

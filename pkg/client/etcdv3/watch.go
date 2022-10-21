@@ -49,8 +49,11 @@ func (w *Watch) IncipientKeyValues() []*mvccpb.KeyValue {
 func (client *Client) WatchPrefix(ctx context.Context, prefix string) (*Watch, error) {
 	resp, err := client.Get(ctx, prefix, clientv3.WithPrefix())
 	if err != nil {
+		client.config.logger.Error("client.Get failed", xlog.FieldErr(err))
 		return nil, err
 	}
+
+	client.config.logger.Debug("client.Get finished", xlog.FieldKey(prefix), xlog.FieldValueAny(resp))
 
 	var w = &Watch{
 		revision:     resp.Header.Revision,

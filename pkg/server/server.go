@@ -16,7 +16,9 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/douyu/jupiter/pkg"
 	"github.com/douyu/jupiter/pkg/core/constant"
@@ -42,12 +44,43 @@ type ServiceInfo struct {
 	Region   string               `json:"region"`
 	Zone     string               `json:"zone"`
 	Kind     constant.ServiceKind `json:"kind"`
+	Version  string               `json:"version"`
+	Mode     string               `json:"mode"`
 	// Deployment 部署组: 不同组的流量隔离
 	// 比如某些服务给内部调用和第三方调用，可以配置不同的deployment,进行流量隔离
 	Deployment string `json:"deployment"`
 	// Group 流量组: 流量在Group之间进行负载均衡
 	Group    string              `json:"group"`
 	Services map[string]*Service `json:"services" toml:"services"`
+}
+
+func (s *ServiceInfo) RegistryName() string {
+	return fmt.Sprintf("%s:%s:%s:%s/%s", s.Scheme, s.Name, "v1", pkg.AppMode(), s.Address)
+}
+
+func (s *ServiceInfo) ServicePrefix() string {
+	return fmt.Sprintf("%s:%s:%s:%s/", s.Scheme, s.Name, "v1", pkg.AppMode())
+}
+
+func (s *ServiceInfo) Unmarshal(data string) error {
+	slices := strings.Split(data, ":")
+	if len(slices) != 4 {
+		return errors.New("invalid service info1")
+	}
+
+	s.Scheme = slices[0]
+	s.Name = slices[1]
+	s.Version = slices[2]
+
+	slices = strings.Split(slices[3], "/")
+	if len(slices) != 2 {
+		return errors.New("invalid service info2")
+	}
+
+	s.Mode = slices[0]
+	s.Address = slices[1]
+
+	return nil
 }
 
 // Service ...

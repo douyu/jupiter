@@ -59,12 +59,14 @@ const (
 	registerService = servicePrefix + "%s"
 )
 
+var _ registry.Registry = new(etcdv3Registry)
+
 func newETCDRegistry(config *Config) (*etcdv3Registry, error) {
 	if config.logger == nil {
 		config.logger = xlog.Jupiter()
 	}
 	config.logger = config.logger.With(xlog.FieldMod(ecode.ModRegistryETCD), xlog.FieldAddrAny(config.Config.Endpoints))
-	etcdv3Client, err := config.Config.Build()
+	etcdv3Client, err := config.Config.Singleton()
 	if err != nil {
 		config.logger.Error("create etcdv3 client", xlog.FieldErrKind(ecode.ErrKindRequestErr), xlog.FieldErr(err))
 		return nil, err
@@ -101,11 +103,10 @@ func (reg *etcdv3Registry) UnregisterService(ctx context.Context, info *server.S
 }
 
 // ListServices list service registered in registry with name `name`
-func (reg *etcdv3Registry) ListServices(ctx context.Context, name string, scheme string) (services []*server.ServiceInfo, err error) {
-	target := fmt.Sprintf(servicePrefix, scheme, name, "v1", pkg.AppMode())
-	getResp, getErr := reg.client.Get(ctx, target, clientv3.WithPrefix())
+func (reg *etcdv3Registry) ListServices(ctx context.Context, prefix string) (services []*server.ServiceInfo, err error) {
+	getResp, getErr := reg.client.Get(ctx, prefix, clientv3.WithPrefix())
 	if getErr != nil {
-		reg.logger.Error(ecode.MsgWatchRequestErr, xlog.FieldErrKind(ecode.ErrKindRequestErr), xlog.FieldErr(getErr), xlog.FieldAddr(target))
+		reg.logger.Error(ecode.MsgWatchRequestErr, xlog.FieldErrKind(ecode.ErrKindRequestErr), xlog.FieldErr(getErr), xlog.FieldAddr(prefix))
 		return nil, getErr
 	}
 
@@ -125,10 +126,10 @@ func (reg *etcdv3Registry) ListServices(ctx context.Context, name string, scheme
 }
 
 // WatchServices watch service change event, then return address list
-func (reg *etcdv3Registry) WatchServices(ctx context.Context, name string, scheme string) (chan registry.Endpoints, error) {
-	prefix := fmt.Sprintf(servicePrefix, scheme, name, "v1", pkg.AppMode())
+func (reg *etcdv3Registry) WatchServices(ctx context.Context, prefix string) (chan registry.Endpoints, error) {
 	watch, err := reg.client.WatchPrefix(context.Background(), prefix)
 	if err != nil {
+		reg.logger.Error("reg.client.WatchPrefix failed", xlog.FieldErrKind(ecode.MsgWatchRequestErr), xlog.FieldErr(err), xlog.FieldAddr(prefix))
 		return nil, err
 	}
 
@@ -139,6 +140,8 @@ func (reg *etcdv3Registry) WatchServices(ctx context.Context, name string, schem
 		ConsumerConfigs: make(map[string]registry.ConsumerConfig),
 		ProviderConfigs: make(map[string]registry.ProviderConfig),
 	}
+
+	scheme := getScheme(prefix)
 
 	for _, kv := range watch.IncipientKeyValues() {
 		updateAddrList(al, prefix, scheme, kv)
@@ -436,4 +439,8 @@ func updateAddrList(al *registry.Endpoints, prefix, scheme string, kvs ...*mvccp
 func isIPPort(addr string) bool {
 	_, _, err := net.SplitHostPort(addr)
 	return err == nil
+}
+
+func getScheme(prefix string) string {
+	return strings.Split(prefix, ":")[0]
 }
