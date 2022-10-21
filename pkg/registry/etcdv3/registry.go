@@ -216,10 +216,10 @@ func (reg *etcdv3Registry) registerMetric(ctx context.Context, info *server.Serv
 		return nil
 	}
 
-	metric := "/prometheus/job/%s/%s/%s"
+	metric := "/prometheus/job/%s/%s"
 
 	val := info.Address
-	key := fmt.Sprintf(metric, info.Name, pkg.HostName(), val)
+	key := fmt.Sprintf(metric, info.Name, pkg.HostName())
 
 	return reg.registerKV(ctx, key, val)
 

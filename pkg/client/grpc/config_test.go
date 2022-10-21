@@ -39,6 +39,6 @@ func TestConfig(t *testing.T) {
 		assert.Equal(t, time.Second*10, config.DialTimeout)
 		assert.Equal(t, "127.0.0.1:9091", config.Address)
 		assert.Equal(t, false, config.Direct)
-		assert.Equal(t, "panic", config.OnDialError)
+		assert.Equal(t, "panic", config.Level)
 	})
 }

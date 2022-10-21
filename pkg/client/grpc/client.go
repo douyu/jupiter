@@ -25,6 +25,8 @@ import (
 	"google.golang.org/grpc"
 )
 
+type ClientConn = grpc.ClientConn
+
 func init() {
 	// conf.OnLoaded(func(c *conf.Configuration) {
 	// xgrpclog.SetLogger(xlog.Jupiter().With(xlog.FieldMod("grpc")))
@@ -63,7 +65,7 @@ func newGRPCClient(config *Config) *grpc.ClientConn {
 	cc, err := grpc.DialContext(ctx, config.Address, dialOptions...)
 
 	if err != nil {
-		if config.OnDialError == "panic" {
+		if config.Level == "panic" {
 			logger.Panic("dial grpc server", xlog.FieldErrKind(ecode.ErrKindRequestErr), xlog.FieldErr(err))
 		} else {
 			logger.Error("dial grpc server", xlog.FieldErrKind(ecode.ErrKindRequestErr), xlog.FieldErr(err))

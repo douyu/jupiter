@@ -34,7 +34,7 @@ func TestConfigBlockTrue(t *testing.T) {
 			assert.True(t, flag)
 		}()
 		cfg := DefaultConfig()
-		cfg.OnDialError = "panic"
+		cfg.Level = "panic"
 		newGRPCClient(cfg)
 	})
 }
@@ -42,7 +42,7 @@ func TestConfigBlockTrue(t *testing.T) {
 func TestConfigBlockFalse(t *testing.T) {
 	t.Run("test no address and no block", func(t *testing.T) {
 		cfg := DefaultConfig()
-		cfg.OnDialError = "panic"
+		cfg.Level = "panic"
 		cfg.Block = false
 		conn := newGRPCClient(cfg)
 		assert.Equal(t, conn.GetState().String(), "IDLE")
