@@ -1,6 +1,7 @@
 package redisgo
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -14,16 +15,18 @@ import (
 	"git.dz11.com/vega/minerva/util/xtime"
 )
 
-// StubConfig are used to configure a stub client and should be
-// passed to NewStubClient.
+// Config ...
 type Config struct {
 	// Master host:port addresses of Master node
-	Addr string `json:"master" toml:"master"`
+	Master struct {
+		Addr string `json:"addr" toml:"addr"`
+	} `json:"master" toml:"master"`
 	// Slaves A list of host:port addresses of Slave nodes.
-	Addrs []string `json:"slaves" toml:"slaves"`
+	Slaves struct {
+		Addr []string `json:"addr" toml:"addr"`
+	} `json:"slaves" toml:"slaves"`
 
 	/****** for github.com/go-redis/redis/v8 ******/
-	Password string `json:"password" toml:"password"`
 	// DB default 0,not recommend
 	DB int `json:"db" toml:"db"`
 	// PoolSize applies per Stub node and not for the whole Stub.
@@ -53,6 +56,7 @@ type Config struct {
 	ReadOnly bool
 
 	/****** for jupiter ******/
+	ReadOnMaster bool `json:"readOnMaster" toml:"readOnMaster"`
 	// nice option
 	Debug bool `json:"debug" toml:"debug"`
 	// a require will be recorded if cost bigger than this
@@ -69,18 +73,10 @@ type Config struct {
 	name        string
 }
 
-// AddrString 获取地址字符串, 用于 log, metric, trace 中的 label
-func (config *Config) AddrString() string {
-	addr := config.Addr
-	if len(config.Addrs) > 0 {
-		addr = strings.Join(config.Addrs, ",")
-	}
-	return addr
-}
-
-// DefaultStubConfig default config ...
-func DefaultStubConfig() *Config {
+// DefaultConfig default config ...
+func DefaultConfig() *Config {
 	return &Config{
+		name:                    "default",
 		DB:                      0,
 		PoolSize:                200,
 		MinIdleConns:            20,
@@ -88,6 +84,7 @@ func DefaultStubConfig() *Config {
 		ReadTimeout:             xtime.Duration("1s"),
 		WriteTimeout:            xtime.Duration("1s"),
 		IdleTimeout:             xtime.Duration("60s"),
+		ReadOnMaster:            true,
 		Debug:                   false,
 		EnableMetricInterceptor: true,
 		EnableTraceInterceptor:  true,
@@ -97,19 +94,21 @@ func DefaultStubConfig() *Config {
 	}
 }
 
-// StdStubConfig ...
-func StdStubConfig(name string) *Config {
-	var config = DefaultStubConfig()
+// StdConfig ...
+func StdConfig(name string) *Config {
+	var config = DefaultConfig()
 	key := "jupiter.redisgo." + name + ".stub"
-	if !strings.HasSuffix(key, ".stub") {
-		key = key + ".stub"
-	}
 
 	if err := cfg.UnmarshalKey(key, &config, cfg.TagName("toml")); err != nil {
-		config.logger.Panic("unmarshal config", xlog.FieldErr(err), xlog.FieldName(key), xlog.FieldExtMessage(config))
+		fmt.Println(err)
+		config.logger.Panic("unmarshal config:"+key, xlog.FieldErr(err), xlog.FieldName(key), xlog.FieldExtMessage(config))
 	}
-	if config.Addr == "" { // 兼容master的写法
-		config.Addr = cfg.GetString(key + ".master")
+
+	if config.Master.Addr != "" && config.ReadOnMaster {
+		config.Slaves.Addr = append(config.Slaves.Addr, config.Master.Addr)
+	}
+	if config.Master.Addr == "" && len(config.Slaves.Addr) == 0 {
+		config.logger.Panic("no master or slaves addr set:"+name, xlog.FieldName(key), xlog.FieldExtMessage(config))
 	}
 	config.name = name
 	if xdebug.IsDevelopmentMode() {
@@ -120,28 +119,21 @@ func StdStubConfig(name string) *Config {
 
 }
 
-// StdClusterConfig ...
-func StdClusterConfig(name string) *Config {
-	var config = DefaultStubConfig()
-	key := "jupiter.redisgo." + name
-
-	if err := cfg.UnmarshalKey(key+".cluster", &config, cfg.TagName("toml")); err != nil {
-		if err2 := cfg.UnmarshalKey(key+".stub", &config, cfg.TagName("toml")); err2 != nil {
-			config.logger.Panic("unmarshal cluster config", xlog.FieldErr(err), xlog.FieldName(key), xlog.FieldExtMessage(config))
-		}
-		if len(config.Addrs) == 0 { // 兼容slaves的写法
-			config.Addrs = cfg.GetStringSlice(key + ".slaves")
-		}
-		if config.Addr != "" {
-			config.Addrs = append(config.Addrs, config.Addr)
-		}
+func getUsernameAndPassword(addr string) (realAddr string, username, password string) {
+	addr = strings.TrimPrefix(addr, "redis://")
+	addr = strings.TrimPrefix(addr, "rediss://")
+	arr := strings.Split(addr, "@")
+	if len(arr) < 2 {
+		return addr, "", ""
 	}
+	realAddr = arr[1]
 
-	config.name = name
-	if xdebug.IsDevelopmentMode() {
-		xdebug.PrettyJsonPrint(key, config)
+	// username:password
+	auth := arr[0]
+	subArr := strings.Split(auth, ":")
+	if len(subArr) >= 2 {
+		username = subArr[0]
+		password = strings.Join(subArr[1:], ":")
 	}
-
-	return config
-
+	return realAddr, username, password
 }

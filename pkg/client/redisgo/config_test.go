@@ -2,38 +2,77 @@ package redisgo
 
 import (
 	"bytes"
-	"fmt"
 	"testing"
-
-	"github.com/douyu/jupiter/pkg/util/xstring"
+	"time"
 
 	"github.com/BurntSushi/toml"
 	"github.com/douyu/jupiter/pkg/conf"
+
 	"github.com/stretchr/testify/assert"
 )
+
+func TestStdConfig(t *testing.T) {
+	var configStr = `
+[jupiter.redisgo]
+    [jupiter.redisgo.test.stub]
+            dialTimeout="2s"
+            readTimeout="5s"
+            idleTimeout="60s"
+			username=""
+			password="123"
+
+    [jupiter.redisgo.test.cluster]
+            dialTimeout="2s"
+            readTimeout="5s"
+            idleTimeout="60s"
+	`
+	assert.Nil(t, conf.LoadFromReader(bytes.NewBufferString(configStr), toml.Unmarshal))
+	t.Run("std config on addr nil", func(t *testing.T) {
+		var config *Config
+		defer func() {
+			if r := recover(); r != nil {
+				assert.Equal(t, r.(string), "no master or slaves addr set:test")
+				assert.Nil(t, config)
+			}
+		}()
+		config = StdConfig("test")
+		assert.Nil(t, config) //不会执行到这里
+	})
+
+}
 
 func TestConfig(t *testing.T) {
 	var configStr = `
 [jupiter.redisgo]
-    [minerva.redisgo.pkmatch]
-        [minerva.redisgo.pkmatch.stub]
-            maxIdle=10
-            maxActive=50
+    [jupiter.redisgo.test]
+        [jupiter.redisgo.test.stub]
             dialTimeout="2s"
-            readTimeout="2s"
+            readTimeout="5s"
             idleTimeout="60s"
-            [minerva.redisgo.pkmatch.stub.master]
-                addr="redis://127.0.0.1:6379"
-            [minerva.redisgo.pkmatch.stub.slaves]
+            [jupiter.redisgo.test.stub.master]
+                addr="redis://:user111:password222@127.0.0.1:6379"
+            [jupiter.redisgo.test.stub.slaves]
                 addr=[
-                    "redis://127.0.0.1:6379",
+                    "redis://:user111:password222@127.0.0.2:6379",
                 ]
 	`
 	assert.Nil(t, conf.LoadFromReader(bytes.NewBufferString(configStr), toml.Unmarshal))
-
 	t.Run("std config", func(t *testing.T) {
-		config := StdStubConfig("test")
-		fmt.Println(xstring.Json(config))
+
+		config := StdConfig("test")
+		assert.Equal(t, config.DialTimeout, time.Second*2)
+		assert.Equal(t, config.ReadTimeout, time.Second*5)
+		assert.Equal(t, config.IdleTimeout, time.Minute)
+		assert.Equal(t, config.MinIdleConns, 20)
+		assert.Equal(t, config.MaxRetries, 0)
+		assert.Equal(t, config.EnableMetricInterceptor, true)
+		assert.Equal(t, config.EnableTraceInterceptor, true)
+		assert.Equal(t, config.EnableAccessLogInterceptor, false)
+		assert.Equal(t, config.Debug, false)
+
+		assert.Equal(t, config.Master.Addr, "redis://:user111:password222@127.0.0.1:6379")
+		assert.Equal(t, len(config.Slaves.Addr), 2)
 
 	})
+
 }
