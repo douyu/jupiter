@@ -40,9 +40,9 @@ func (config *Config) BuildStub() *redis.Client {
 
 	if err := stubClient.Ping(context.Background()).Err(); err != nil {
 		if config.OnDialError == "panic" {
-			config.logger.Panic("redis stub start err", xlog.FieldErr(err))
+			config.logger.Panic("redis stub client start err: " + err.Error())
 		}
-		config.logger.Error("redis stub start err", xlog.FieldErr(err))
+		config.logger.Error("redis stub client start err", xlog.FieldErr(err))
 	}
 
 	instances.Store(config.name, &storeRedis{
@@ -80,7 +80,7 @@ func (config *Config) BuildCluster() *redis.ClusterClient {
 
 	if err := clusterClient.Ping(context.Background()).Err(); err != nil {
 		if config.OnDialError == "panic" {
-			config.logger.Panic("redis cluster client start err", xlog.FieldErr(err))
+			config.logger.Panic("redis cluster client start err: " + err.Error())
 		}
 		config.logger.Error("redis cluster client start err", xlog.FieldErr(err))
 	}
@@ -96,7 +96,7 @@ func (config *Config) StubSingleton() *redis.Client {
 	}
 
 	cc := config.BuildStub()
-	singleton.Store(constant.ModuleClientGrpc, config.name, cc)
+	singleton.Store(constant.ModuleClientRedisStub, config.name, cc)
 	return cc
 }
 
@@ -106,6 +106,6 @@ func (config *Config) ClusterSingleton() *redis.ClusterClient {
 	}
 
 	cc := config.BuildCluster()
-	singleton.Store(constant.ModuleClientGrpc, config.name, cc)
+	singleton.Store(constant.ModuleClientRedisCluster, config.name, cc)
 	return cc
 }
