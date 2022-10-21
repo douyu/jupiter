@@ -18,7 +18,7 @@ import (
 	"context"
 
 	"github.com/douyu/jupiter/pkg/core/constant"
-	"github.com/douyu/jupiter/pkg/core/registry/etcdv3"
+	"github.com/douyu/jupiter/pkg/registry/etcdv3"
 	"github.com/douyu/jupiter/pkg/util/xgo"
 	"google.golang.org/grpc/attributes"
 	"google.golang.org/grpc/resolver"
