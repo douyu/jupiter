@@ -130,12 +130,12 @@ func debugInterceptor(compName string, addr string, config *Config, logger *xlog
 		setAfterProcess(func(ctx context.Context, cmd redis.Cmder) error {
 			cost := time.Since(ctx.Value(ctxBegKey).(time.Time))
 			err := cmd.Err()
+			fmt.Println(xstring.CallerName(6))
+			fmt.Printf("[redisgo ] %s (%s) :\n", addr, cost)
 			if err != nil {
-				fmt.Println(xstring.CallerName(6))
-				fmt.Printf(color.RedString("[redisgo] %s (%s) => %s %+v, ERR=(%s)\n\n", addr, cost, cmd.Name(), cmd.Args(), err.Error()))
+				fmt.Printf(color.RedString("# %s %+v, ERR=(%s)\n\n", cmd.Name(), cmd.Args(), err.Error()))
 			} else {
-				fmt.Println(xstring.CallerName(6))
-				fmt.Printf(color.YellowString("[redisgo] %s (%s) => %s %+v: %s\n\n", addr, cost, cmd.Name(), cmd.Args(), response(cmd)))
+				fmt.Printf(color.YellowString("# %s %+v: %s\n\n", cmd.Name(), cmd.Args(), response(cmd)))
 			}
 			return nil
 		}).
@@ -272,9 +272,6 @@ func traceInterceptor(compName string, addr string, config *Config, logger *xlog
 				semconv.DBOperationKey.String(cmd.Name()),
 				semconv.DBStatementKey.String(cast.ToString(cmd.Args())),
 			)
-			if span.SpanContext().IsValid() {
-				ctx = xlog.SetTraceID(ctx, span.SpanContext().TraceID().String())
-			}
 			return ctx, nil
 		}).
 		setAfterProcess(func(ctx context.Context, cmd redis.Cmder) error {
@@ -294,9 +291,6 @@ func traceInterceptor(compName string, addr string, config *Config, logger *xlog
 			span.SetAttributes(
 				semconv.DBOperationKey.String(getCmdsName(cmds)),
 			)
-			if span.SpanContext().IsValid() {
-				ctx = xlog.SetTraceID(ctx, span.SpanContext().TraceID().String())
-			}
 			return ctx, nil
 		}).
 		setAfterProcessPipeline(func(ctx context.Context, cmds []redis.Cmder) error {
