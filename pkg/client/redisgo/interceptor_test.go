@@ -18,40 +18,43 @@ import (
 
 func Test_Interceptor(t *testing.T) {
 	config := DefaultConfig()
-	config.Addr = addr
+	config.Master.Addr = addr
+	config.Slaves.Addr = []string{addr2}
 	config.name = "test"
 	t.Run("slow log", func(t *testing.T) {
 		config.SlowLogThreshold = time.Nanosecond * 10
-		client := config.BuildStub()
-		client.Set(context.Background(), "redigo", "hello", time.Second)
-		client.Pipelined(context.Background(), func(pipeliner redis.Pipeliner) error {
+		client := config.Build()
+		client.CmdOnMaster().Set(context.Background(), "redigo", "hello", time.Second)
+		client.CmdOnSlave().Set(context.Background(), "redigo", "hello", time.Second)
+
+		client.CmdOnMaster().Pipelined(context.Background(), func(pipeliner redis.Pipeliner) error {
 			pipeliner.Del(context.Background(), "redigo")
 			pipeliner.Get(context.Background(), "redigo")
 
 			return nil
 		})
 		time.Sleep(time.Millisecond)
-		client.Close()
+		client.CmdOnMaster().Close()
 	})
 
 	t.Run("debug", func(t *testing.T) {
 		config.Debug = true
-		client := config.BuildStub()
-		client.Set(context.Background(), "redigo", "hello", time.Second)
-		client.Del(context.Background(), "redigo")
-		client.Get(context.Background(), "redigo")
+		client := config.Build()
+
+		client.CmdOnMaster().Set(context.Background(), "redigo", "hello", time.Second)
+		client.CmdOnMaster().Del(context.Background(), "redigo")
+		client.CmdOnSlave().Get(context.Background(), "redigo")
 
 		time.Sleep(time.Millisecond)
 
-		client.Pipelined(context.Background(), func(pipeliner redis.Pipeliner) error {
+		client.CmdOnMaster().Pipelined(context.Background(), func(pipeliner redis.Pipeliner) error {
 			pipeliner.Set(context.Background(), "redigo", "hello", time.Second)
 			pipeliner.Del(context.Background(), "redigo")
 			pipeliner.Get(context.Background(), "redigo")
 			return nil
 		})
-		client.Get(context.Background(), "redigo")
+		client.CmdOnMaster().Get(context.Background(), "redigo")
 
-		client.Close()
 	})
 
 	t.Run("access", func(t *testing.T) {
@@ -65,23 +68,22 @@ func Test_Interceptor(t *testing.T) {
 		fmt.Println(span.SpanContext().TraceID())
 
 		config.EnableAccessLogInterceptor = true
-		client := config.BuildStub()
+		client := config.Build()
 
-		client.Set(ctx, "redigo", "hello", time.Second)
-		client.Del(ctx, "redigo")
-		client.Get(ctx, "redigo")
+		client.CmdOnMaster().Set(ctx, "redigo", "hello", time.Second)
+		client.CmdOnMaster().Del(ctx, "redigo")
+		client.CmdOnMaster().Get(ctx, "redigo")
 
 		time.Sleep(time.Millisecond)
 
-		client.Pipelined(ctx, func(pipeliner redis.Pipeliner) error {
+		client.CmdOnMaster().Pipelined(ctx, func(pipeliner redis.Pipeliner) error {
 			pipeliner.Set(ctx, "redigo", "hello", time.Second)
 			pipeliner.Del(ctx, "redigo")
 			pipeliner.Get(ctx, "redigo")
 			return nil
 		})
-		client.Get(ctx, "redigo")
+		client.CmdOnMaster().Get(ctx, "redigo")
 
-		client.Close()
 	})
 	t.Run("trace", func(t *testing.T) {
 		conf.Set("jupiter.trace.jaeger", map[string]interface{}{
@@ -92,22 +94,21 @@ func Test_Interceptor(t *testing.T) {
 		xtrace.SetGlobalTracer(con.Build())
 
 		config.EnableTraceInterceptor = true
-		client := config.BuildStub()
+		client := config.Build()
 		ctx := context.Background()
-		client.Set(ctx, "redigo", "hello", time.Second)
-		client.Del(ctx, "redigo")
-		client.Get(ctx, "redigo")
+		client.CmdOnMaster().Set(ctx, "redigo", "hello", time.Second)
+		client.CmdOnMaster().Del(ctx, "redigo")
+		client.CmdOnMaster().Get(ctx, "redigo")
 
 		time.Sleep(time.Millisecond)
 
-		client.Pipelined(ctx, func(pipeliner redis.Pipeliner) error {
+		client.CmdOnMaster().Pipelined(ctx, func(pipeliner redis.Pipeliner) error {
 			pipeliner.Set(ctx, "redigo", "hello", time.Second)
 			pipeliner.Del(ctx, "redigo")
 			pipeliner.Get(ctx, "redigo")
 			return nil
 		})
-		client.Get(ctx, "redigo")
+		client.CmdOnMaster().Get(ctx, "redigo")
 
-		client.Close()
 	})
 }

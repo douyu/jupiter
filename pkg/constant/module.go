@@ -7,8 +7,7 @@ const (
 
 	ModuleClientGrpc
 	ModuleClientResty
-	ModuleClientRedisStub
-	ModuleClientRedisCluster
+	ModuleClientRedis
 	ModuleClientRocketMQ
 	ModuleClientEtcd
 

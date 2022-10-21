@@ -1,6 +1,7 @@
 package redisgo
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -14,17 +15,18 @@ import (
 	"git.dz11.com/vega/minerva/util/xtime"
 )
 
-// StubConfig are used to configure a stub client and should be
-// passed to NewStubClient.
+// Config ...
 type Config struct {
 	// Master host:port addresses of Master node
-	Addr string `json:"addr" toml:"addr"`
+	Master struct {
+		Addr string `json:"addr" toml:"addr"`
+	} `json:"master" toml:"master"`
 	// Slaves A list of host:port addresses of Slave nodes.
-	Addrs []string `json:"addrs" toml:"addrs"`
+	Slaves struct {
+		Addr []string `json:"addr" toml:"addr"`
+	} `json:"slaves" toml:"slaves"`
 
 	/****** for github.com/go-redis/redis/v8 ******/
-	Username string `json:"username" toml:"username"`
-	Password string `json:"password" toml:"password"`
 	// DB default 0,not recommend
 	DB int `json:"db" toml:"db"`
 	// PoolSize applies per Stub node and not for the whole Stub.
@@ -54,6 +56,7 @@ type Config struct {
 	ReadOnly bool
 
 	/****** for jupiter ******/
+	ReadOnMaster bool `json:"readOnMaster" toml:"readOnMaster"`
 	// nice option
 	Debug bool `json:"debug" toml:"debug"`
 	// a require will be recorded if cost bigger than this
@@ -70,18 +73,10 @@ type Config struct {
 	name        string
 }
 
-// AddrString 获取地址字符串, 用于 log, metric, trace 中的 label
-func (config *Config) AddrString() string {
-	addr := config.Addr
-	if len(config.Addrs) > 0 {
-		addr = strings.Join(config.Addrs, ",")
-	}
-	return addr
-}
-
 // DefaultConfig default config ...
 func DefaultConfig() *Config {
 	return &Config{
+		name:                    "default",
 		DB:                      0,
 		PoolSize:                200,
 		MinIdleConns:            20,
@@ -89,6 +84,7 @@ func DefaultConfig() *Config {
 		ReadTimeout:             xtime.Duration("1s"),
 		WriteTimeout:            xtime.Duration("1s"),
 		IdleTimeout:             xtime.Duration("60s"),
+		ReadOnMaster:            true,
 		Debug:                   false,
 		EnableMetricInterceptor: true,
 		EnableTraceInterceptor:  true,
@@ -98,81 +94,22 @@ func DefaultConfig() *Config {
 	}
 }
 
-// StdStubConfig ...
-func StdStubConfig(name string) *Config {
+// StdConfig ...
+func StdConfig(name string) *Config {
 	var config = DefaultConfig()
 	key := "jupiter.redisgo." + name + ".stub"
-	if !strings.HasSuffix(key, ".stub") {
-		key = key + ".stub"
-	}
 
 	if err := cfg.UnmarshalKey(key, &config, cfg.TagName("toml")); err != nil {
+		fmt.Println(err)
 		config.logger.Panic("unmarshal config:"+key, xlog.FieldErr(err), xlog.FieldName(key), xlog.FieldExtMessage(config))
 	}
-	if config.Addr == "" { // 兼容master的写法
-		config.Addr = cfg.GetString(key + ".master.addr")
-	}
-	addr, user, pass := getUsernameAndPassword(config.Addr)
-	if user != "" && config.Username == "" { // 配置里的username优先
-		config.Username = user
-	}
-	if pass != "" && config.Password == "" { // 配置里的password优先
-		config.Password = pass
-	}
-	if addr != "" {
-		config.Addr = addr
-	}
-	if config.Addr == "" {
-		config.logger.Panic("please set redisgo stub addr:"+name, xlog.FieldName(key), xlog.FieldExtMessage(config))
 
+	if config.Master.Addr != "" && config.ReadOnMaster {
+		config.Slaves.Addr = append(config.Slaves.Addr, config.Master.Addr)
 	}
-	config.name = name
-	if xdebug.IsDevelopmentMode() {
-		xdebug.PrettyJsonPrint(key, config)
+	if config.Master.Addr == "" && len(config.Slaves.Addr) == 0 {
+		config.logger.Panic("no master or slaves addr set:"+name, xlog.FieldName(key), xlog.FieldExtMessage(config))
 	}
-
-	return config
-
-}
-
-// StdClusterConfig ...
-func StdClusterConfig(name string) *Config {
-	var config = DefaultConfig()
-	key := "jupiter.redisgo." + name
-
-	if err := cfg.UnmarshalKey(key+".cluster", &config, cfg.TagName("toml")); err != nil {
-		config.logger.Info("unmarshal cluster config:"+key+".cluster", xlog.FieldErr(err), xlog.FieldName(key), xlog.FieldExtMessage(config))
-
-		if err2 := cfg.UnmarshalKey(key+".stub", &config, cfg.TagName("toml")); err2 != nil {
-			config.logger.Panic("unmarshal cluster config:"+key+".stub", xlog.FieldErr(err2), xlog.FieldName(key), xlog.FieldExtMessage(config))
-		}
-		if len(config.Addrs) == 0 { // 兼容slaves的写法
-			if oldAddr := cfg.GetStringSlice(key + ".stub.slaves.addr"); len(oldAddr) > 0 {
-				config.Addrs = oldAddr
-			}
-		}
-		if addr := cfg.GetString(key + ".stub.master.addr"); addr != "" {
-			config.Addrs = append(config.Addrs, addr)
-		}
-
-	}
-	if len(config.Addrs) <= 0 {
-		config.logger.Panic("please set cluster redisgo addrs:"+config.name, xlog.FieldName(key), xlog.FieldExtMessage(config))
-	}
-	// 解析第一个地址
-	addrs := []string{}
-	for _, item := range config.Addrs {
-		addr, user, pass := getUsernameAndPassword(item)
-		if user != "" && config.Username == "" { // 配置里的username优先
-			config.Username = user
-		}
-		if pass != "" && config.Password == "" { // 配置里的password优先
-			config.Password = pass
-		}
-		addrs = append(addrs, addr)
-	}
-	config.Addrs = addrs
-
 	config.name = name
 	if xdebug.IsDevelopmentMode() {
 		xdebug.PrettyJsonPrint(key, config)

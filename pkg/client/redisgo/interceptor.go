@@ -91,7 +91,7 @@ func (i *interceptor) setAfterProcessPipeline(p func(ctx context.Context, cmds [
 	i.afterProcessPipeline = p
 	return i
 }
-func fixedInterceptor(compName string, config *Config, logger *xlog.Logger) *interceptor {
+func fixedInterceptor(compName string, addr string, config *Config, logger *xlog.Logger) *interceptor {
 	return newInterceptor(compName, config, logger).
 		setBeforeProcess(func(ctx context.Context, cmd redis.Cmder) (context.Context, error) {
 			return context.WithValue(ctx, ctxBegKey, time.Now()), nil
@@ -105,7 +105,7 @@ func fixedInterceptor(compName string, config *Config, logger *xlog.Logger) *int
 			logger.Error("slow",
 				xlog.FieldErr(errors.New("redis slow command")),
 				xlog.FieldName(cmd.Name()),
-				xlog.FieldAddr(config.Addr),
+				xlog.FieldAddr(addr),
 				xlog.FieldCost(cost))
 		}
 		return nil
@@ -117,15 +117,14 @@ func fixedInterceptor(compName string, config *Config, logger *xlog.Logger) *int
 				xlog.FieldErr(errors.New("redis slow command")),
 				xlog.FieldType("pipeline"),
 				xlog.FieldName(getCmdsName(cmds)),
-				xlog.FieldAddr(config.Addr),
+				xlog.FieldAddr(addr),
 				xlog.FieldCost(cost))
 		}
 		return nil
 	})
 
 }
-func debugInterceptor(compName string, config *Config, logger *xlog.Logger) *interceptor {
-	addr := config.AddrString()
+func debugInterceptor(compName string, addr string, config *Config, logger *xlog.Logger) *interceptor {
 
 	return newInterceptor(compName, config, logger).
 		setAfterProcess(func(ctx context.Context, cmd redis.Cmder) error {
@@ -156,8 +155,7 @@ func debugInterceptor(compName string, config *Config, logger *xlog.Logger) *int
 			return nil
 		})
 }
-func metricInterceptor(compName string, config *Config, logger *xlog.Logger) *interceptor {
-	addr := config.AddrString()
+func metricInterceptor(compName string, addr string, config *Config, logger *xlog.Logger) *interceptor {
 
 	return newInterceptor(compName, config, logger).
 		setAfterProcess(func(ctx context.Context, cmd redis.Cmder) error {
@@ -190,7 +188,7 @@ func metricInterceptor(compName string, config *Config, logger *xlog.Logger) *in
 		return nil
 	})
 }
-func accessInterceptor(compName string, config *Config, logger *xlog.Logger) *interceptor {
+func accessInterceptor(compName string, addr string, config *Config, logger *xlog.Logger) *interceptor {
 	return newInterceptor(compName, config, logger).
 		setAfterProcess(func(ctx context.Context, cmd redis.Cmder) error {
 			var fields = make([]xlog.Field, 0, 15)
@@ -198,6 +196,7 @@ func accessInterceptor(compName string, config *Config, logger *xlog.Logger) *in
 			cost := time.Since(ctx.Value(ctxBegKey).(time.Time))
 			fields = append(fields, xlog.FieldKey(compName),
 				xlog.FieldMethod(cmd.Name()),
+				xlog.FieldAddr(addr),
 				xlog.Any("req", cmd.Args()),
 				xlog.FieldCost(cost))
 
@@ -258,10 +257,10 @@ func accessInterceptor(compName string, config *Config, logger *xlog.Logger) *in
 		return nil
 	})
 }
-func traceInterceptor(compName string, config *Config, logger *xlog.Logger) *interceptor {
+func traceInterceptor(compName string, addr string, config *Config, logger *xlog.Logger) *interceptor {
 	tracer := xtrace.NewTracer(trace.SpanKindClient)
 	attrs := []attribute.KeyValue{
-		semconv.NetHostPortKey.String(config.Addr),
+		semconv.NetHostPortKey.String(addr),
 		semconv.DBNameKey.Int(config.DB),
 		semconv.DBSystemRedis,
 	}
