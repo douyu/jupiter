@@ -19,7 +19,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"sync"
 	"testing"
 	"time"
 
@@ -230,23 +229,17 @@ func TestApplication_Serve(t *testing.T) {
 		grpcConfig := xgrpc.DefaultConfig()
 		grpcConfig.Port = 0
 
-		mu := &sync.Mutex{}
-
 		app.initialize()
 		err := app.Serve(grpcConfig.MustBuild())
 		So(err, ShouldBeNil)
 		go func() {
 			// make sure Serve() is called
 			time.Sleep(time.Millisecond * 1500)
-			mu.Lock()
 			err = app.Stop()
-			mu.Unlock()
 			c.So(err, ShouldBeNil)
 		}()
 
-		mu.Lock()
 		err = app.Run()
-		mu.Unlock()
 		// So(err, ShouldEqual, grpc.ErrServerStopped)
 		So(err, ShouldBeNil)
 	})
