@@ -228,7 +228,6 @@ func TestApplication_Serve(t *testing.T) {
 		app := &Application{}
 		grpcConfig := xgrpc.DefaultConfig()
 		grpcConfig.Port = 0
-
 		app.initialize()
 		err := app.Serve(grpcConfig.MustBuild())
 		So(err, ShouldBeNil)
@@ -238,7 +237,6 @@ func TestApplication_Serve(t *testing.T) {
 			err = app.Stop()
 			c.So(err, ShouldBeNil)
 		}()
-
 		err = app.Run()
 		// So(err, ShouldEqual, grpc.ErrServerStopped)
 		So(err, ShouldBeNil)
