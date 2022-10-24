@@ -172,7 +172,7 @@ func TestKeepalive(t *testing.T) {
 		Metadata:   map[string]string{},
 		Region:     "default",
 		Zone:       "default",
-		Kind:       constant.ServiceProvider,
+		Kind:       constant.ServiceGovernor,
 		Deployment: "default",
 		Group:      "",
 	}))
