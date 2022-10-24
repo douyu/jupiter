@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/douyu/jupiter/pkg/core/constant"
+
 	"github.com/BurntSushi/toml"
 	"github.com/douyu/jupiter/pkg/conf"
 
@@ -12,6 +14,8 @@ import (
 )
 
 func TestStdConfig(t *testing.T) {
+	assert.Equal(t, constant.ConfigKey("redisgo", "test", "stub"), "jupiter.redisgo.test.stub")
+
 	var configStr = `
 [jupiter.redisgo]
     [jupiter.redisgo.test.stub]

@@ -5,6 +5,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/douyu/jupiter/pkg/core/constant"
+
 	"github.com/spf13/cast"
 
 	"github.com/douyu/jupiter/pkg/xlog"
@@ -97,7 +99,7 @@ func DefaultConfig() *Config {
 // StdConfig ...
 func StdConfig(name string) *Config {
 	var config = DefaultConfig()
-	key := "jupiter.redisgo." + name + ".stub"
+	key := constant.ConfigKey("redisgo", name, "stub")
 
 	if err := cfg.UnmarshalKey(key, &config, cfg.TagName("toml")); err != nil {
 		fmt.Println(err)
