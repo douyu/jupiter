@@ -5,8 +5,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/douyu/jupiter/pkg/governor"
-	prome "github.com/douyu/jupiter/pkg/metric"
+	prome "github.com/douyu/jupiter/pkg/core/metric"
+
+	"github.com/douyu/jupiter/pkg/server/governor"
 	jsoniter "github.com/json-iterator/go"
 
 	"github.com/go-redis/redis/v8"

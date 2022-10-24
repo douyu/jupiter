@@ -8,10 +8,9 @@ import (
 
 	"go.opentelemetry.io/otel/trace"
 
-	"github.com/douyu/jupiter/pkg/xtrace"
-	"github.com/douyu/jupiter/pkg/xtrace/jaeger"
-
 	"github.com/douyu/jupiter/pkg/conf"
+	"github.com/douyu/jupiter/pkg/core/xtrace"
+	"github.com/douyu/jupiter/pkg/core/xtrace/jaeger"
 
 	"github.com/go-redis/redis/v8"
 )

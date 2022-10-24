@@ -7,25 +7,19 @@ import (
 	"strings"
 	"time"
 
+	prome "github.com/douyu/jupiter/pkg/core/metric"
+
+	"github.com/douyu/jupiter/pkg/core/xtrace"
 	"github.com/douyu/jupiter/pkg/util/xstring"
-
+	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/fatih/color"
-
-	"go.opentelemetry.io/otel"
-
+	"github.com/go-redis/redis/v8"
 	"github.com/spf13/cast"
-
-	"github.com/douyu/jupiter/pkg/xtrace"
-
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
 	"go.opentelemetry.io/otel/trace"
-
-	prome "github.com/douyu/jupiter/pkg/metric"
-
-	"github.com/douyu/jupiter/pkg/xlog"
-	"github.com/go-redis/redis/v8"
 )
 
 type redigoContextKeyType struct{}

@@ -62,7 +62,6 @@ require (
 )
 
 require (
-	git.dz11.com/vega/minerva v1.10.4
 	github.com/coocood/freecache v1.2.2
 	github.com/go-redis/redis/v8 v8.11.5
 	google.golang.org/protobuf v1.28.1
