@@ -5,14 +5,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/spf13/cast"
+
 	"github.com/douyu/jupiter/pkg/xlog"
 
 	"go.uber.org/zap"
 
 	cfg "github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/util/xdebug"
-
-	"git.dz11.com/vega/minerva/util/xtime"
 )
 
 // Config ...
@@ -80,15 +80,15 @@ func DefaultConfig() *Config {
 		DB:                      0,
 		PoolSize:                200,
 		MinIdleConns:            20,
-		DialTimeout:             xtime.Duration("3s"),
-		ReadTimeout:             xtime.Duration("1s"),
-		WriteTimeout:            xtime.Duration("1s"),
-		IdleTimeout:             xtime.Duration("60s"),
+		DialTimeout:             cast.ToDuration("3s"),
+		ReadTimeout:             cast.ToDuration("1s"),
+		WriteTimeout:            cast.ToDuration("1s"),
+		IdleTimeout:             cast.ToDuration("60s"),
 		ReadOnMaster:            true,
 		Debug:                   false,
 		EnableMetricInterceptor: true,
 		EnableTraceInterceptor:  true,
-		SlowLogThreshold:        xtime.Duration("250ms"),
+		SlowLogThreshold:        cast.ToDuration("250ms"),
 		logger:                  xlog.Jupiter().With(xlog.FieldMod("redigo")),
 		OnDialError:             "panic",
 	}
