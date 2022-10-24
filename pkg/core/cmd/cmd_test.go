@@ -110,8 +110,10 @@ func run(args []string) {
 }
 
 func TestCMD(t *testing.T) {
+	run([]string{"jupiter", "update"})
 	run([]string{"jupiter", "init"})
 	run([]string{"jupiter", "new", "/tmp/test-go", "-remote", "github.com/douyu/jupiter-layout", "-branch", "main"})
+	run([]string{"jupiter", "struct2interface", "-d", "/tmp/test-go/pkg"})
 	assert.DirExists(t, "/tmp/github.com_douyu_jupiter_layout/")
 	run([]string{"jupiter", "clean"})
 	assert.NoDirExists(t, "/tmp/github.com_douyu_jupiter_layout/")
