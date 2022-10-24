@@ -5,6 +5,7 @@ import (
 	"sort"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli"
 )
 
@@ -111,6 +112,7 @@ func run(args []string) {
 func TestCMD(t *testing.T) {
 	run([]string{"jupiter", "init"})
 	run([]string{"jupiter", "new", "/tmp/test-go", "-remote", "github.com/douyu/jupiter-layout", "-branch", "main"})
-	run([]string{"bash", "-c", "cd /tmp/test-go && go mod tidy && go build ./cmd/exampleserver"})
+	assert.DirExists(t, "/tmp/github.com_douyu_jupiter_layout/")
 	run([]string{"jupiter", "clean"})
+	assert.NoDirExists(t, "/tmp/github.com_douyu_jupiter_layout/")
 }
