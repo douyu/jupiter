@@ -178,18 +178,18 @@ func TestKeepalive(t *testing.T) {
 		Group:      "",
 	}))
 
-	lease := reg.leaseID
-	reg.client.Revoke(reg.ctx, lo.Must(reg.getLeaseID(reg.ctx)))
+	lease := reg.getLeaseID()
+	reg.client.Revoke(reg.ctx, lo.Must(reg.getOrGrantLeaseID(reg.ctx)))
 
 	time.Sleep(1 * time.Second)
-	assert.NotZero(t, lo.Must(reg.getLeaseID(reg.ctx)))
-	assert.True(t, lease != lo.Must(reg.getLeaseID(reg.ctx)))
+	assert.NotZero(t, lo.Must(reg.getOrGrantLeaseID(reg.ctx)))
+	assert.True(t, lease != lo.Must(reg.getOrGrantLeaseID(reg.ctx)))
 
 	ttl, err := reg.client.TimeToLive(reg.ctx, lease)
 	assert.Nil(t, err)
 	assert.Equal(t, int64(-1), ttl.TTL)
 
-	ttl, err = reg.client.TimeToLive(reg.ctx, lo.Must(reg.getLeaseID(reg.ctx)))
+	ttl, err = reg.client.TimeToLive(reg.ctx, lo.Must(reg.getOrGrantLeaseID(reg.ctx)))
 	assert.Nil(t, err)
 	assert.Equal(t, int64(1), ttl.TTL)
 

@@ -237,7 +237,7 @@ func (reg *etcdv3Registry) registerKV(ctx context.Context, key, val string) erro
 	// opOptions = append(opOptions, clientv3.WithSerializable())
 	if ttl := reg.Config.ServiceTTL.Seconds(); ttl > 0 {
 		// 这里基于应用名为key做缓存，每个服务实例应该只需要创建一个lease，降低etcd的压力
-		lease, err := reg.getLeaseID(ctx)
+		lease, err := reg.getOrGrantLeaseID(ctx)
 		if err != nil {
 			reg.logger.Error("getSession failed", xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err),
 				xlog.FieldKeyAny(key), xlog.FieldValueAny(val))
@@ -262,7 +262,7 @@ func (reg *etcdv3Registry) registerKV(ctx context.Context, key, val string) erro
 	return nil
 }
 
-func (reg *etcdv3Registry) getLeaseID(ctx context.Context) (clientv3.LeaseID, error) {
+func (reg *etcdv3Registry) getOrGrantLeaseID(ctx context.Context) (clientv3.LeaseID, error) {
 	reg.rmu.Lock()
 	defer reg.rmu.Unlock()
 
@@ -281,21 +281,35 @@ func (reg *etcdv3Registry) getLeaseID(ctx context.Context) (clientv3.LeaseID, er
 	return grant.ID, nil
 }
 
+func (reg *etcdv3Registry) getLeaseID() clientv3.LeaseID {
+	reg.rmu.RLock()
+	defer reg.rmu.RUnlock()
+
+	return reg.leaseID
+}
+
+func (reg *etcdv3Registry) setLeaseID(leaseId clientv3.LeaseID) {
+	reg.rmu.Lock()
+	defer reg.rmu.Unlock()
+
+	reg.leaseID = leaseId
+}
+
 // doKeepAlive periodically sends keep alive requests to etcd server.
 // when the keep alive request fails or timeout, it will try to re-establish the lease.
 func (reg *etcdv3Registry) doKeepalive(ctx context.Context) {
 
 	reg.logger.Debug("start keepalive...")
 
-	kac, err := reg.client.KeepAlive(ctx, reg.leaseID)
+	kac, err := reg.client.KeepAlive(ctx, reg.getLeaseID())
 	if err != nil {
-		reg.leaseID = 0
+		reg.setLeaseID(0)
 		reg.logger.Error("reg.client.KeepAlive failed", xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err))
 	}
 
 	for {
 		// we should register again, because the leaseID is 0
-		if reg.leaseID == 0 {
+		if reg.getLeaseID() == 0 {
 			cancelCtx, cancel := context.WithCancel(ctx)
 
 			done := make(chan struct{}, 1)
@@ -318,7 +332,7 @@ func (reg *etcdv3Registry) doKeepalive(ctx context.Context) {
 				// we should cancel the context and retry again
 				cancel()
 				// mark leaseID as 0 to retry register
-				reg.leaseID = 0
+				reg.setLeaseID(0)
 
 				continue
 			case <-done:
@@ -328,14 +342,14 @@ func (reg *etcdv3Registry) doKeepalive(ctx context.Context) {
 
 			// try do keepalive again
 			// when error or timeout happens, just continue
-			kac, err = reg.client.KeepAlive(ctx, reg.leaseID)
+			kac, err = reg.client.KeepAlive(ctx, reg.getLeaseID())
 			if err != nil {
 				reg.logger.Error("reg.client.KeepAlive failed", xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err))
 
 				continue
 			}
 
-			reg.logger.Debug("reg.client.KeepAlive finished", xlog.String("leaseid", fmt.Sprintf("%x", reg.leaseID)))
+			reg.logger.Debug("reg.client.KeepAlive finished", xlog.String("leaseid", fmt.Sprintf("%x", reg.getLeaseID())))
 		}
 
 		select {
@@ -343,15 +357,15 @@ func (reg *etcdv3Registry) doKeepalive(ctx context.Context) {
 			if !ok {
 				// when error happens
 				// mark leaseID as 0 to retry register
-				reg.leaseID = 0
+				reg.setLeaseID(0)
 
-				reg.logger.Debug("need to retry registration", xlog.String("leaseid", fmt.Sprintf("%x", reg.leaseID)))
+				reg.logger.Debug("need to retry registration", xlog.String("leaseid", fmt.Sprintf("%x", reg.getLeaseID())))
 
 				continue
 			}
 
 			// just record detailed keepalive info
-			reg.logger.Debug("do keepalive", xlog.Any("data", data), xlog.String("leaseid", fmt.Sprintf("%x", reg.leaseID)))
+			reg.logger.Debug("do keepalive", xlog.Any("data", data), xlog.String("leaseid", fmt.Sprintf("%x", reg.getLeaseID())))
 		case <-reg.ctx.Done():
 			reg.logger.Debug("exit keepalive")
 
