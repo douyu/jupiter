@@ -309,7 +309,7 @@ func checkUpgrade(c *cli.Context, path string) bool {
 	}
 
 	// 和本地对比，如果一致，那么不需要更新
-	if getLocalLastSha(path) == remoteLastSha {
+	if getLocalLastSha(path, c.String("branch")) == remoteLastSha {
 		return false
 	}
 
@@ -404,8 +404,8 @@ func getRemoteLastCommitSha() (string, error) {
 }
 
 // getLocalLastSha 获取本地最后一次的提交sha
-func getLocalLastSha(path string) string {
-	cmd := exec.Command("git", "rev-parse", "main")
+func getLocalLastSha(path, branch string) string {
+	cmd := exec.Command("git", "rev-parse", branch)
 	cmd.Dir = getGlobalLayoutPath(path)
 
 	var out bytes.Buffer
