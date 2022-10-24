@@ -125,27 +125,27 @@ func debugInterceptor(compName string, addr string, config *Config, logger *xlog
 			cost := time.Since(ctx.Value(ctxBegKey).(time.Time))
 			err := cmd.Err()
 			fmt.Println(xstring.CallerName(6))
-			fmt.Printf("[redisgo ] %s (%s) :\n", addr, cost)
+			fmt.Printf("[redisgo ] %s (%s) :\n", addr, cost) // nolint
 			if err != nil {
-				fmt.Printf(color.RedString("# %s %+v, ERR=(%s)\n\n", cmd.Name(), cmd.Args(), err.Error()))
+				fmt.Printf(color.RedString("# %s %+v, ERR=(%s)\n\n", cmd.Name(), cmd.Args(), err.Error())) // nolint
 			} else {
-				fmt.Printf(color.YellowString("# %s %+v: %s\n\n", cmd.Name(), cmd.Args(), response(cmd)))
+				fmt.Printf(color.YellowString("# %s %+v: %s\n\n", cmd.Name(), cmd.Args(), response(cmd))) // nolint
 			}
 			return nil
 		}).
 		setAfterProcessPipeline(func(ctx context.Context, cmds []redis.Cmder) error {
 			cost := time.Since(ctx.Value(ctxBegKey).(time.Time))
 			fmt.Println(xstring.CallerName(8))
-			fmt.Printf("[redisgo pipeline] %s (%s) :\n", addr, cost)
+			fmt.Printf("[redisgo pipeline] %s (%s) :\n", addr, cost) // nolint
 			for _, cmd := range cmds {
 				err := cmd.Err()
 				if err != nil {
-					fmt.Printf(color.RedString("* %s %+v, ERR=<%s>\n", cmd.Name(), cmd.Args(), err.Error()))
+					fmt.Printf(color.RedString("* %s %+v, ERR=<%s>\n", cmd.Name(), cmd.Args(), err.Error())) // nolint
 				} else {
-					fmt.Printf(color.YellowString("* %s %+v: %s\n", cmd.Name(), cmd.Args(), response(cmd)))
+					fmt.Printf(color.YellowString("* %s %+v: %s\n", cmd.Name(), cmd.Args(), response(cmd))) // nolint
 				}
 			}
-			fmt.Print("  \n")
+			fmt.Print("  \n") // nolint
 			return nil
 		})
 }
