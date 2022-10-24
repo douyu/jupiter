@@ -303,23 +303,23 @@ func traceInterceptor(compName string, addr string, config *Config, logger *xlog
 		})
 }
 func response(cmd redis.Cmder) string {
-	switch cmd.(type) {
+	switch recv := cmd.(type) {
 	case *redis.Cmd:
-		return fmt.Sprintf("%v", cmd.(*redis.Cmd).Val())
+		return fmt.Sprintf("%v", recv.Val())
 	case *redis.StringCmd:
-		return fmt.Sprintf("%v", cmd.(*redis.StringCmd).Val())
+		return fmt.Sprintf("%v", recv.Val())
 	case *redis.StatusCmd:
-		return fmt.Sprintf("%v", cmd.(*redis.StatusCmd).Val())
+		return fmt.Sprintf("%v", recv.Val())
 	case *redis.IntCmd:
-		return fmt.Sprintf("%v", cmd.(*redis.IntCmd).Val())
+		return fmt.Sprintf("%v", recv.Val())
 	case *redis.DurationCmd:
-		return fmt.Sprintf("%v", cmd.(*redis.DurationCmd).Val())
+		return fmt.Sprintf("%v", recv.Val())
 	case *redis.BoolCmd:
-		return fmt.Sprintf("%v", cmd.(*redis.BoolCmd).Val())
+		return fmt.Sprintf("%v", recv.Val())
 	case *redis.CommandsInfoCmd:
-		return fmt.Sprintf("%v", cmd.(*redis.CommandsInfoCmd).Val())
+		return fmt.Sprintf("%v", recv.Val())
 	case *redis.StringSliceCmd:
-		return fmt.Sprintf("%v", cmd.(*redis.StringSliceCmd).Val())
+		return fmt.Sprintf("%v", recv.Val())
 	default:
 		return ""
 	}
