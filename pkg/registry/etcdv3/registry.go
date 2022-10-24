@@ -53,10 +53,6 @@ const (
 	defaultRetryTimes = 3
 	// defaultKeepAliveTimeout is the default timeout for keepalive requests.
 	defaultRegisterTimeout = 5 * time.Second
-	// servicePrefix is the prefix of service key
-	servicePrefix = "%s:%s:%s:%s/"
-	// registerService is servicePrefix+host:port
-	registerService = servicePrefix + "%s"
 )
 
 var _ registry.Registry = new(etcdv3Registry)
@@ -106,7 +102,8 @@ func (reg *etcdv3Registry) UnregisterService(ctx context.Context, info *server.S
 func (reg *etcdv3Registry) ListServices(ctx context.Context, prefix string) (services []*server.ServiceInfo, err error) {
 	getResp, getErr := reg.client.Get(ctx, prefix, clientv3.WithPrefix())
 	if getErr != nil {
-		reg.logger.Error(ecode.MsgWatchRequestErr, xlog.FieldErrKind(ecode.ErrKindRequestErr), xlog.FieldErr(getErr), xlog.FieldAddr(prefix))
+		reg.logger.Error("reg.client.Get failed",
+			xlog.FieldErrKind(ecode.ErrKindRequestErr), xlog.FieldErr(getErr), xlog.FieldAddr(prefix))
 		return nil, getErr
 	}
 
@@ -242,7 +239,7 @@ func (reg *etcdv3Registry) registerKV(ctx context.Context, key, val string) erro
 		// 这里基于应用名为key做缓存，每个服务实例应该只需要创建一个lease，降低etcd的压力
 		lease, err := reg.getLeaseID(ctx)
 		if err != nil {
-			reg.logger.Error("getSession", xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err),
+			reg.logger.Error("getSession failed", xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err),
 				xlog.FieldKeyAny(key), xlog.FieldValueAny(val))
 			return err
 		}
@@ -364,7 +361,7 @@ func (reg *etcdv3Registry) doKeepalive(ctx context.Context) {
 }
 
 func (reg *etcdv3Registry) registerKey(info *server.ServiceInfo) string {
-	return fmt.Sprintf(registerService, info.Scheme, info.Name, "v1", pkg.AppMode(), info.Address)
+	return info.RegistryName()
 }
 
 func (reg *etcdv3Registry) registerValue(info *server.ServiceInfo) string {
