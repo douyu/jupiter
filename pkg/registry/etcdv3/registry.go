@@ -325,7 +325,7 @@ func (reg *etcdv3Registry) doKeepalive(ctx context.Context) {
 				done <- struct{}{}
 			}()
 
-			// wait keepalive success
+			// wait registerAllKvs success
 			select {
 			case <-time.After(defaultRegisterTimeout):
 				// when timeout happens
@@ -341,11 +341,11 @@ func (reg *etcdv3Registry) doKeepalive(ctx context.Context) {
 			}
 
 			// try do keepalive again
-			// when error or timeout happens, just continue
+			// when error or timeout happens, just continue and try again
 			kac, err = reg.client.KeepAlive(ctx, reg.getLeaseID())
 			if err != nil {
 				reg.logger.Error("reg.client.KeepAlive failed", xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err))
-
+				time.Sleep(defaultRegisterTimeout)
 				continue
 			}
 
