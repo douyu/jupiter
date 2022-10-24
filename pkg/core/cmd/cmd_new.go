@@ -220,7 +220,7 @@ func getFileInfosByGit(c *cli.Context, gitPath string) (fileInfos map[string]*fi
 	_, err := os.Stat(getGlobalLayoutPath(gitPath))
 	if os.IsNotExist(err) {
 		// 不存在，拉取对应的仓库
-		cloneGitRepo(gitPath)
+		cloneGitRepo(gitPath, c.String("branch"))
 	} else if err != nil {
 		// 这里的错误，是说明出现了未知的错误，应该抛出
 		panic(err)
@@ -257,7 +257,7 @@ func getFileInfosByGit(c *cli.Context, gitPath string) (fileInfos map[string]*fi
 }
 
 // 拉取 jupiter-layout 仓库
-func cloneGitRepo(path string) {
+func cloneGitRepo(path string, branch string) {
 	// 存放于git的模板地址
 	gitPath := "https://" + path + ".git"
 
@@ -266,7 +266,7 @@ func cloneGitRepo(path string) {
 	// clone最新仓库的master分支
 	// 不存在则拉取模板
 	var stdErr bytes.Buffer
-	cmd := exec.Command("git", "clone", gitPath, getGlobalLayoutPath(path), "-b", "main", "--depth=1")
+	cmd := exec.Command("git", "clone", gitPath, getGlobalLayoutPath(path), "-b", branch, "--depth=1")
 	cmd.Stderr = &stdErr
 	if err := cmd.Run(); err != nil {
 		panic(stdErr.String())
@@ -296,7 +296,7 @@ func checkUpgrade(c *cli.Context, path string) bool {
 
 	color.Green("check upgrade (%s) ...", path)
 
-	checkGitCorrectness(path)
+	checkGitCorrectness(path, c.String("branch"))
 
 	// 检查今天是否已经检查过更新
 	if !checkDays(path) {
@@ -319,7 +319,7 @@ func checkUpgrade(c *cli.Context, path string) bool {
 }
 
 // 检查模板的正确性
-func checkGitCorrectness(path string) {
+func checkGitCorrectness(path , branch string) {
 	cmd := exec.Command("git", "status")
 	cmd.Dir = getGlobalLayoutPath(path)
 
@@ -348,7 +348,7 @@ func checkGitCorrectness(path string) {
 		panic(err)
 	}
 
-	cloneGitRepo(path)
+	cloneGitRepo(path, branch)
 
 	createTempLock(path)
 }

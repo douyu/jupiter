@@ -25,7 +25,6 @@ import (
 	"github.com/douyu/jupiter/pkg/registry"
 	"github.com/douyu/jupiter/pkg/server"
 	"github.com/douyu/jupiter/pkg/xlog"
-	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -179,17 +178,17 @@ func TestKeepalive(t *testing.T) {
 	}))
 
 	lease := reg.getLeaseID()
-	reg.client.Revoke(reg.ctx, lo.Must(reg.getOrGrantLeaseID(reg.ctx)))
+	reg.client.Revoke(reg.ctx, lease)
 
 	time.Sleep(1 * time.Second)
-	assert.NotZero(t, lo.Must(reg.getOrGrantLeaseID(reg.ctx)))
-	assert.True(t, lease != lo.Must(reg.getOrGrantLeaseID(reg.ctx)))
+	assert.NotZero(t, reg.getLeaseID())
+	assert.True(t, lease != reg.getLeaseID())
 
 	ttl, err := reg.client.TimeToLive(reg.ctx, lease)
 	assert.Nil(t, err)
 	assert.Equal(t, int64(-1), ttl.TTL)
 
-	ttl, err = reg.client.TimeToLive(reg.ctx, lo.Must(reg.getOrGrantLeaseID(reg.ctx)))
+	ttl, err = reg.client.TimeToLive(reg.ctx, reg.getLeaseID())
 	assert.Nil(t, err)
 	assert.Equal(t, int64(1), ttl.TTL)
 

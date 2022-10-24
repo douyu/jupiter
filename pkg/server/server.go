@@ -16,9 +16,7 @@ package server
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/douyu/jupiter/pkg"
 	"github.com/douyu/jupiter/pkg/core/constant"
@@ -60,27 +58,6 @@ func (s *ServiceInfo) RegistryName() string {
 
 func (s *ServiceInfo) ServicePrefix() string {
 	return fmt.Sprintf("%s:%s:%s:%s/", s.Scheme, s.Name, "v1", pkg.AppMode())
-}
-
-func (s *ServiceInfo) Unmarshal(data string) error {
-	slices := strings.Split(data, ":")
-	if len(slices) != 4 {
-		return errors.New("invalid service info1")
-	}
-
-	s.Scheme = slices[0]
-	s.Name = slices[1]
-	s.Version = slices[2]
-
-	slices = strings.Split(slices[3], "/")
-	if len(slices) != 2 {
-		return errors.New("invalid service info2")
-	}
-
-	s.Mode = slices[0]
-	s.Address = slices[1]
-
-	return nil
 }
 
 // Service ...
