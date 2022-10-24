@@ -85,7 +85,6 @@ func generate(c *cli.Context, remote string) error {
 			// "run to compile......",
 			fmt.Sprintf("Generate %s project success", remote),
 			"\ncd " + goDir,
-			"\njupiter run -c cmd/exampleserver/.jupiter.toml",
 			"\nEnjoy coding~~",
 		},
 	}
@@ -319,7 +318,7 @@ func checkUpgrade(c *cli.Context, path string) bool {
 }
 
 // 检查模板的正确性
-func checkGitCorrectness(path , branch string) {
+func checkGitCorrectness(path, branch string) {
 	cmd := exec.Command("git", "status")
 	cmd.Dir = getGlobalLayoutPath(path)
 
