@@ -18,7 +18,7 @@ func TestMain(m *testing.M) {
 	time.Sleep(200 * time.Millisecond)
 
 	cfg := DefaultConfig()
-	cfg.Address = l.Addr().String()
+	cfg.Addr = l.Addr().String()
 
 	conn := newGRPCClient(cfg)
 	directClient = testproto.NewGreeterClient(conn)

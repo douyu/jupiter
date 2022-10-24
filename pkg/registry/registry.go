@@ -98,8 +98,8 @@ type EventMessage struct {
 type Registry interface {
 	RegisterService(context.Context, *server.ServiceInfo) error
 	UnregisterService(context.Context, *server.ServiceInfo) error
-	ListServices(context.Context, string, string) ([]*server.ServiceInfo, error)
-	WatchServices(context.Context, string, string) (chan Endpoints, error)
+	ListServices(context.Context, string) ([]*server.ServiceInfo, error)
+	WatchServices(context.Context, string) (chan Endpoints, error)
 	Kind() string
 	io.Closer
 }

@@ -25,6 +25,8 @@ import (
 	"google.golang.org/grpc"
 )
 
+type ClientConn = grpc.ClientConn
+
 func init() {
 	// conf.OnLoaded(func(c *conf.Configuration) {
 	// xgrpclog.SetLogger(xlog.Jupiter().With(xlog.FieldMod("grpc")))
@@ -36,7 +38,7 @@ func newGRPCClient(config *Config) *grpc.ClientConn {
 	var dialOptions = config.dialOptions
 	logger := config.logger.With(
 		xlog.FieldMod("client.grpc"),
-		xlog.FieldAddr(config.Address),
+		xlog.FieldAddr(config.Addr),
 	)
 	// 默认配置使用block
 	if config.Block {
@@ -60,10 +62,10 @@ func newGRPCClient(config *Config) *grpc.ClientConn {
 	svcCfg := fmt.Sprintf(`{"loadBalancingPolicy":"%s"}`, config.BalancerName)
 	dialOptions = append(dialOptions, grpc.WithDefaultServiceConfig(svcCfg))
 
-	cc, err := grpc.DialContext(ctx, config.Address, dialOptions...)
+	cc, err := grpc.DialContext(ctx, config.Addr, dialOptions...)
 
 	if err != nil {
-		if config.OnDialError == "panic" {
+		if config.Level == "panic" {
 			logger.Panic("dial grpc server", xlog.FieldErrKind(ecode.ErrKindRequestErr), xlog.FieldErr(err))
 		} else {
 			logger.Error("dial grpc server", xlog.FieldErrKind(ecode.ErrKindRequestErr), xlog.FieldErr(err))

@@ -53,18 +53,16 @@ const (
 	defaultRetryTimes = 3
 	// defaultKeepAliveTimeout is the default timeout for keepalive requests.
 	defaultRegisterTimeout = 5 * time.Second
-	// servicePrefix is the prefix of service key
-	servicePrefix = "%s:%s:%s:%s/"
-	// registerService is servicePrefix+host:port
-	registerService = servicePrefix + "%s"
 )
+
+var _ registry.Registry = new(etcdv3Registry)
 
 func newETCDRegistry(config *Config) (*etcdv3Registry, error) {
 	if config.logger == nil {
 		config.logger = xlog.Jupiter()
 	}
 	config.logger = config.logger.With(xlog.FieldMod(ecode.ModRegistryETCD), xlog.FieldAddrAny(config.Config.Endpoints))
-	etcdv3Client, err := config.Config.Build()
+	etcdv3Client, err := config.Config.Singleton()
 	if err != nil {
 		config.logger.Error("create etcdv3 client", xlog.FieldErrKind(ecode.ErrKindRequestErr), xlog.FieldErr(err))
 		return nil, err
@@ -101,11 +99,11 @@ func (reg *etcdv3Registry) UnregisterService(ctx context.Context, info *server.S
 }
 
 // ListServices list service registered in registry with name `name`
-func (reg *etcdv3Registry) ListServices(ctx context.Context, name string, scheme string) (services []*server.ServiceInfo, err error) {
-	target := fmt.Sprintf(servicePrefix, scheme, name, "v1", pkg.AppMode())
-	getResp, getErr := reg.client.Get(ctx, target, clientv3.WithPrefix())
+func (reg *etcdv3Registry) ListServices(ctx context.Context, prefix string) (services []*server.ServiceInfo, err error) {
+	getResp, getErr := reg.client.Get(ctx, prefix, clientv3.WithPrefix())
 	if getErr != nil {
-		reg.logger.Error(ecode.MsgWatchRequestErr, xlog.FieldErrKind(ecode.ErrKindRequestErr), xlog.FieldErr(getErr), xlog.FieldAddr(target))
+		reg.logger.Error("reg.client.Get failed",
+			xlog.FieldErrKind(ecode.ErrKindRequestErr), xlog.FieldErr(getErr), xlog.FieldAddr(prefix))
 		return nil, getErr
 	}
 
@@ -125,10 +123,10 @@ func (reg *etcdv3Registry) ListServices(ctx context.Context, name string, scheme
 }
 
 // WatchServices watch service change event, then return address list
-func (reg *etcdv3Registry) WatchServices(ctx context.Context, name string, scheme string) (chan registry.Endpoints, error) {
-	prefix := fmt.Sprintf(servicePrefix, scheme, name, "v1", pkg.AppMode())
+func (reg *etcdv3Registry) WatchServices(ctx context.Context, prefix string) (chan registry.Endpoints, error) {
 	watch, err := reg.client.WatchPrefix(context.Background(), prefix)
 	if err != nil {
+		reg.logger.Error("reg.client.WatchPrefix failed", xlog.FieldErrKind(ecode.MsgWatchRequestErr), xlog.FieldErr(err), xlog.FieldAddr(prefix))
 		return nil, err
 	}
 
@@ -139,6 +137,8 @@ func (reg *etcdv3Registry) WatchServices(ctx context.Context, name string, schem
 		ConsumerConfigs: make(map[string]registry.ConsumerConfig),
 		ProviderConfigs: make(map[string]registry.ProviderConfig),
 	}
+
+	scheme := getScheme(prefix)
 
 	for _, kv := range watch.IncipientKeyValues() {
 		updateAddrList(al, prefix, scheme, kv)
@@ -216,10 +216,10 @@ func (reg *etcdv3Registry) registerMetric(ctx context.Context, info *server.Serv
 		return nil
 	}
 
-	metric := "/prometheus/job/%s/%s/%s"
+	metric := "/prometheus/job/%s/%s"
 
 	val := info.Address
-	key := fmt.Sprintf(metric, info.Name, pkg.HostName(), val)
+	key := fmt.Sprintf(metric, info.Name, pkg.HostName())
 
 	return reg.registerKV(ctx, key, val)
 
@@ -237,9 +237,9 @@ func (reg *etcdv3Registry) registerKV(ctx context.Context, key, val string) erro
 	// opOptions = append(opOptions, clientv3.WithSerializable())
 	if ttl := reg.Config.ServiceTTL.Seconds(); ttl > 0 {
 		// 这里基于应用名为key做缓存，每个服务实例应该只需要创建一个lease，降低etcd的压力
-		lease, err := reg.getLeaseID(ctx)
+		lease, err := reg.getOrGrantLeaseID(ctx)
 		if err != nil {
-			reg.logger.Error("getSession", xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err),
+			reg.logger.Error("getSession failed", xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err),
 				xlog.FieldKeyAny(key), xlog.FieldValueAny(val))
 			return err
 		}
@@ -262,7 +262,7 @@ func (reg *etcdv3Registry) registerKV(ctx context.Context, key, val string) erro
 	return nil
 }
 
-func (reg *etcdv3Registry) getLeaseID(ctx context.Context) (clientv3.LeaseID, error) {
+func (reg *etcdv3Registry) getOrGrantLeaseID(ctx context.Context) (clientv3.LeaseID, error) {
 	reg.rmu.Lock()
 	defer reg.rmu.Unlock()
 
@@ -281,21 +281,35 @@ func (reg *etcdv3Registry) getLeaseID(ctx context.Context) (clientv3.LeaseID, er
 	return grant.ID, nil
 }
 
+func (reg *etcdv3Registry) getLeaseID() clientv3.LeaseID {
+	reg.rmu.RLock()
+	defer reg.rmu.RUnlock()
+
+	return reg.leaseID
+}
+
+func (reg *etcdv3Registry) setLeaseID(leaseId clientv3.LeaseID) {
+	reg.rmu.Lock()
+	defer reg.rmu.Unlock()
+
+	reg.leaseID = leaseId
+}
+
 // doKeepAlive periodically sends keep alive requests to etcd server.
 // when the keep alive request fails or timeout, it will try to re-establish the lease.
 func (reg *etcdv3Registry) doKeepalive(ctx context.Context) {
 
 	reg.logger.Debug("start keepalive...")
 
-	kac, err := reg.client.KeepAlive(ctx, reg.leaseID)
+	kac, err := reg.client.KeepAlive(ctx, reg.getLeaseID())
 	if err != nil {
-		reg.leaseID = 0
+		reg.setLeaseID(0)
 		reg.logger.Error("reg.client.KeepAlive failed", xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err))
 	}
 
 	for {
 		// we should register again, because the leaseID is 0
-		if reg.leaseID == 0 {
+		if reg.getLeaseID() == 0 {
 			cancelCtx, cancel := context.WithCancel(ctx)
 
 			done := make(chan struct{}, 1)
@@ -311,14 +325,14 @@ func (reg *etcdv3Registry) doKeepalive(ctx context.Context) {
 				done <- struct{}{}
 			}()
 
-			// wait keepalive success
+			// wait registerAllKvs success
 			select {
 			case <-time.After(defaultRegisterTimeout):
 				// when timeout happens
 				// we should cancel the context and retry again
 				cancel()
 				// mark leaseID as 0 to retry register
-				reg.leaseID = 0
+				reg.setLeaseID(0)
 
 				continue
 			case <-done:
@@ -327,15 +341,15 @@ func (reg *etcdv3Registry) doKeepalive(ctx context.Context) {
 			}
 
 			// try do keepalive again
-			// when error or timeout happens, just continue
-			kac, err = reg.client.KeepAlive(ctx, reg.leaseID)
+			// when error or timeout happens, just continue and try again
+			kac, err = reg.client.KeepAlive(ctx, reg.getLeaseID())
 			if err != nil {
 				reg.logger.Error("reg.client.KeepAlive failed", xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err))
-
+				time.Sleep(defaultRegisterTimeout)
 				continue
 			}
 
-			reg.logger.Debug("reg.client.KeepAlive finished", xlog.String("leaseid", fmt.Sprintf("%x", reg.leaseID)))
+			reg.logger.Debug("reg.client.KeepAlive finished", xlog.String("leaseid", fmt.Sprintf("%x", reg.getLeaseID())))
 		}
 
 		select {
@@ -343,15 +357,15 @@ func (reg *etcdv3Registry) doKeepalive(ctx context.Context) {
 			if !ok {
 				// when error happens
 				// mark leaseID as 0 to retry register
-				reg.leaseID = 0
+				reg.setLeaseID(0)
 
-				reg.logger.Debug("need to retry registration", xlog.String("leaseid", fmt.Sprintf("%x", reg.leaseID)))
+				reg.logger.Debug("need to retry registration", xlog.String("leaseid", fmt.Sprintf("%x", reg.getLeaseID())))
 
 				continue
 			}
 
 			// just record detailed keepalive info
-			reg.logger.Debug("do keepalive", xlog.Any("data", data), xlog.String("leaseid", fmt.Sprintf("%x", reg.leaseID)))
+			reg.logger.Debug("do keepalive", xlog.Any("data", data), xlog.String("leaseid", fmt.Sprintf("%x", reg.getLeaseID())))
 		case <-reg.ctx.Done():
 			reg.logger.Debug("exit keepalive")
 
@@ -361,7 +375,7 @@ func (reg *etcdv3Registry) doKeepalive(ctx context.Context) {
 }
 
 func (reg *etcdv3Registry) registerKey(info *server.ServiceInfo) string {
-	return fmt.Sprintf(registerService, info.Scheme, info.Name, "v1", pkg.AppMode(), info.Address)
+	return info.RegistryName()
 }
 
 func (reg *etcdv3Registry) registerValue(info *server.ServiceInfo) string {
@@ -436,4 +450,8 @@ func updateAddrList(al *registry.Endpoints, prefix, scheme string, kvs ...*mvccp
 func isIPPort(addr string) bool {
 	_, _, err := net.SplitHostPort(addr)
 	return err == nil
+}
+
+func getScheme(prefix string) string {
+	return strings.Split(prefix, ":")[0]
 }

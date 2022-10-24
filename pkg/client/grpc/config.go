@@ -32,12 +32,12 @@ import (
 type Config struct {
 	Name           string // config's name
 	BalancerName   string
-	Address        string
+	Addr           string
 	Block          bool
 	DialTimeout    time.Duration
 	ReadTimeout    time.Duration
 	Direct         bool
-	OnDialError    string // panic | error
+	Level          string // panic | error
 	KeepAlive      *keepalive.ClientParameters
 	RegistryConfig string
 
@@ -66,7 +66,7 @@ func DefaultConfig() *Config {
 		DialTimeout:            time.Second * 3,
 		ReadTimeout:            cast.ToDuration("1s"),
 		SlowThreshold:          cast.ToDuration("600ms"),
-		OnDialError:            "panic",
+		Level:                  "panic",
 		AccessInterceptorLevel: "info",
 		Block:                  true,
 		KeepAlive: &keepalive.ClientParameters{
@@ -111,7 +111,7 @@ func (config *Config) WithDialOption(opts ...grpc.DialOption) *Config {
 func (config *Config) Build() *grpc.ClientConn {
 	if config.Debug {
 		config.dialOptions = append(config.dialOptions,
-			grpc.WithChainUnaryInterceptor(debugUnaryClientInterceptor(config.Address)),
+			grpc.WithChainUnaryInterceptor(debugUnaryClientInterceptor(config.Addr)),
 		)
 	}
 
