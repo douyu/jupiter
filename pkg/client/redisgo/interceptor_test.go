@@ -58,7 +58,7 @@ func Test_Interceptor(t *testing.T) {
 
 	t.Run("access", func(t *testing.T) {
 		conf.Set("jupiter.trace.jaeger", map[string]interface{}{
-			"addr": "wsd-jaeger-agent-go.pub.unp.oyw:6831",
+			"addr": "localhost:6831",
 			"rate": 1,
 		})
 		var con = jaeger.RawConfig("jupiter.trace.jaeger")
@@ -86,7 +86,7 @@ func Test_Interceptor(t *testing.T) {
 	})
 	t.Run("trace", func(t *testing.T) {
 		conf.Set("jupiter.trace.jaeger", map[string]interface{}{
-			"addr": "wsd-jaeger-agent-go.pub.unp.oyw:6831",
+			"addr": "localhost:6831",
 			"rate": 1,
 		})
 		var con = jaeger.RawConfig("jupiter.trace.jaeger")
