@@ -28,7 +28,7 @@ func TestConfig(t *testing.T) {
 	var configStr = `
 [jupiter.grpc.test]
 	balancerName="swr"
-	address="127.0.0.1:9091"
+	addr="127.0.0.1:9091"
 	dialTimeout="10s"
 	`
 	assert.Nil(t, conf.LoadFromReader(bytes.NewBufferString(configStr), toml.Unmarshal))
