@@ -30,8 +30,8 @@ func TestETCD(t *testing.T) {
 	}
 
 	assert.Equal(t, 2, len(results))
-	assert.LessOrEqual(t, n/2-1, results["127.0.0.1:9528"])
-	assert.LessOrEqual(t, n/2-1, results["127.0.0.1:9529"])
+	assert.LessOrEqual(t, n/2-5, results["127.0.0.1:9528"])
+	assert.LessOrEqual(t, n/2-5, results["127.0.0.1:9529"])
 
 	// 删掉一个节点
 	reg := etcdv3.DefaultConfig().MustSingleton()
@@ -52,8 +52,8 @@ func TestETCD(t *testing.T) {
 	}
 
 	assert.Equal(t, 2, len(results))
-	assert.LessOrEqual(t, n/2-1, results["127.0.0.1:9528"])
-	assert.LessOrEqual(t, n/2+n-1, results["127.0.0.1:9529"])
+	assert.LessOrEqual(t, n/2-5, results["127.0.0.1:9528"])
+	assert.LessOrEqual(t, n/2+n-5, results["127.0.0.1:9529"])
 
 	time.Sleep(time.Second)
 	reg.RegisterService(context.Background(), &server.ServiceInfo{
@@ -71,6 +71,6 @@ func TestETCD(t *testing.T) {
 	}
 
 	assert.Equal(t, 2, len(results))
-	assert.LessOrEqual(t, n-1, results["127.0.0.1:9528"])
-	assert.LessOrEqual(t, n+n-1, results["127.0.0.1:9529"])
+	assert.LessOrEqual(t, n-5, results["127.0.0.1:9528"])
+	assert.LessOrEqual(t, n+n-5, results["127.0.0.1:9529"])
 }
