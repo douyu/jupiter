@@ -117,3 +117,11 @@ func (config *Config) MustBuild() *Client {
 	}
 	return client
 }
+
+func (config *Config) MustSingleton() *Client {
+	client, err := config.Singleton()
+	if err != nil {
+		xlog.Jupiter().Panic("build etcd client failed", zap.Error(err))
+	}
+	return client
+}
