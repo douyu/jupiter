@@ -11,6 +11,7 @@ import (
 func TestDNS(t *testing.T) {
 	config := DefaultConfig()
 	config.Addr = "dns:///localhost:9528"
+	config.Debug = true
 	cc := testproto.NewGreeterClient(config.Build())
 
 	res, err := cc.SayHello(context.Background(), &testproto.HelloRequest{})
