@@ -8,7 +8,6 @@ import (
 
 	"go.opentelemetry.io/otel/trace"
 
-	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/core/xtrace"
 	"github.com/douyu/jupiter/pkg/core/xtrace/jaeger"
 
@@ -57,10 +56,11 @@ func Test_Interceptor(t *testing.T) {
 	})
 
 	t.Run("access", func(t *testing.T) {
-		conf.Set("jupiter.trace.jaeger", map[string]interface{}{
-			"addr": "localhost:6831",
-			"rate": 1,
-		})
+		xtrace.SetGlobalTracer((&jaeger.Config{
+			Name:     "trace",
+			Endpoint: "localhost:6831",
+			Sampler:  1,
+		}).Build())
 		var con = jaeger.RawConfig("jupiter.trace.jaeger")
 		xtrace.SetGlobalTracer(con.Build())
 		ctx, span := xtrace.NewTracer(trace.SpanKindServer).Start(context.Background(), "test", nil)
@@ -85,12 +85,11 @@ func Test_Interceptor(t *testing.T) {
 
 	})
 	t.Run("trace", func(t *testing.T) {
-		conf.Set("jupiter.trace.jaeger", map[string]interface{}{
-			"addr": "localhost:6831",
-			"rate": 1,
-		})
-		var con = jaeger.RawConfig("jupiter.trace.jaeger")
-		xtrace.SetGlobalTracer(con.Build())
+		xtrace.SetGlobalTracer((&jaeger.Config{
+			Name:     "trace",
+			Endpoint: "localhost:6831",
+			Sampler:  1,
+		}).Build())
 
 		config.EnableTraceInterceptor = true
 		client := config.Build()
