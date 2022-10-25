@@ -9,7 +9,7 @@ require (
 	github.com/alicebob/miniredis/v2 v2.23.0
 	github.com/apache/rocketmq-client-go/v2 v2.1.1
 	github.com/codegangsta/inject v0.0.0-20150114235600-33e0aa1cb7c0
-	github.com/coocood/freecache v1.2.2
+	github.com/coocood/freecache v1.2.3
 	github.com/cosmtrek/air v1.40.4
 	github.com/davecgh/go-spew v1.1.1
 	github.com/dimiro1/banner v1.1.0
