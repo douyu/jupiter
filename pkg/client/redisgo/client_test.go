@@ -7,8 +7,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var addr = "redis:6379"
-var addr2 = "redis:6379"
+var addr = "localhost:6379"
+var addr2 = "localhost:6379"
 
 func Test_Stub(t *testing.T) {
 	config := DefaultConfig()
