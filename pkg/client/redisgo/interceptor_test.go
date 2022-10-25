@@ -61,8 +61,7 @@ func Test_Interceptor(t *testing.T) {
 			Endpoint: "localhost:6831",
 			Sampler:  1,
 		}).Build())
-		var con = jaeger.RawConfig("jupiter.trace.jaeger")
-		xtrace.SetGlobalTracer(con.Build())
+
 		ctx, span := xtrace.NewTracer(trace.SpanKindServer).Start(context.Background(), "test", nil)
 		fmt.Println(span.SpanContext().TraceID())
 
