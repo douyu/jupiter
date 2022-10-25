@@ -1,7 +1,6 @@
 package redisgo
 
 import (
-	"fmt"
 	"strings"
 	"time"
 
@@ -102,7 +101,6 @@ func StdConfig(name string) *Config {
 	key := constant.ConfigKey("redisgo", name, "stub")
 
 	if err := cfg.UnmarshalKey(key, &config, cfg.TagName("toml")); err != nil {
-		fmt.Println(err)
 		config.logger.Panic("unmarshal config:"+key, xlog.FieldErr(err), xlog.FieldName(key), xlog.FieldExtMessage(config))
 	}
 
