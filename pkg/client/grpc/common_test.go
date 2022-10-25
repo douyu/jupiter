@@ -19,6 +19,9 @@ import (
 var directClient testproto.GreeterClient
 
 var testconf = `
+[jupiter.logger.jupiter]
+	level = "debug"
+	debug = true
 [jupiter.registry.default]
     endpoints = ["http://localhost:2379"]
 	timeout = "3s"

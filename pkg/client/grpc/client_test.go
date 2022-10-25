@@ -26,15 +26,9 @@ func TestDirectGrpc(t *testing.T) {
 
 func TestConfigBlockTrue(t *testing.T) {
 	t.Run("test no address no block", func(t *testing.T) {
-		flag := false
-		defer func() {
-			if r := recover(); r != nil {
-				flag = true
-			}
-
-			assert.False(t, flag)
-		}()
 		cfg := DefaultConfig()
+		cfg.DialTimeout = time.Second
+		cfg.Debug = true
 		conn := cfg.MustSingleton()
 
 		ctx := context.Background()
@@ -43,6 +37,7 @@ func TestConfigBlockTrue(t *testing.T) {
 		res, err := testproto.NewGreeterClient(conn).SayHello(ctx, &testproto.HelloRequest{
 			Name: "hello",
 		})
+
 		assert.ErrorContains(t, err, "missing address")
 		assert.Nil(t, res)
 	})

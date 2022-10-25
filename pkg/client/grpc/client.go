@@ -53,7 +53,7 @@ func newGRPCClient(config *Config) *grpc.ClientConn {
 
 	conn, err := grpc.DialContext(ctx, config.Addr, append(dialOptions, grpc.WithBlock())...)
 	if err != nil {
-		logger.Error("dial grpc server failed, connect without block",
+		xlog.Jupiter().Error("dial grpc server failed, connect without block",
 			xlog.FieldErrKind(ecode.ErrKindRequestErr), xlog.FieldErr(err))
 
 		conn, err = grpc.DialContext(context.Background(), config.Addr, dialOptions...)
@@ -63,7 +63,7 @@ func newGRPCClient(config *Config) *grpc.ClientConn {
 		}
 	}
 
-	logger.Info("start grpc client")
+	xlog.Jupiter().Info("start grpc client")
 
 	return conn
 }
