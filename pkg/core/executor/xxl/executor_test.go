@@ -20,7 +20,7 @@ func Test_StdNewExecutor(t *testing.T) {
 	configStr := `
 	[xxl]
 		[xxl.job]
-			[xxl.job.executor]
+			[xxl.job.admin]
 				appname = "jupiter-xxl-job-demo"  # 执行器名称
 				port = "59001"                    # 开启执行器的服务端口
 				access_token = "jupiter-token"    # xxl-job需要的token信息
@@ -51,7 +51,7 @@ func Test_NewExecutor(t *testing.T) {
 	configStr := `
 [xxl]
 	[xxl.job]
-		[xxl.job.executor]
+		[xxl.job.admin]
 			appname = "jupiter-xxl-job-demo"  # 执行器名称
 			port = "59001"                    # 开启执行器的服务端口
 			access_token = "jupiter-token"    # xxl-job需要的token信息
@@ -109,7 +109,7 @@ func Test_Run(t *testing.T) {
 	configStr := `
 	[xxl]
 		[xxl.job]
-			[xxl.job.executor]
+			[xxl.job.admin]
 				appname = "jupiter-xxl-job-demo"  # 执行器名称
 				port = "59001"                    # 开启执行器的服务端口
 				access_token = "jupiter-token"    # xxl-job需要的token信息
@@ -138,7 +138,7 @@ func Test_RegXJob(t *testing.T) {
 	configStr := `
 	[xxl]
 		[xxl.job]
-			[xxl.job.executor]
+			[xxl.job.admin]
 				appname = "jupiter-xxl-job-demo"  # 执行器名称
 				port = "59001"                    # 开启执行器的服务端口
 				access_token = "jupiter-token"    # xxl-job需要的token信息
@@ -170,7 +170,7 @@ func Test_registryRemove(t *testing.T) {
 	configStr := `
 	[xxl]
 		[xxl.job]
-			[xxl.job.executor]
+			[xxl.job.admin]
 				appname = "jupiter-xxl-job-demo"  # 执行器名称
 				port = "59001"                    # 开启执行器的服务端口
 				access_token = "jupiter-token"    # xxl-job需要的token信息
@@ -199,7 +199,7 @@ func Test_GracefulStop(t *testing.T) {
 	configStr := `
 	[xxl]
 		[xxl.job]
-			[xxl.job.executor]
+			[xxl.job.admin]
 				appname = "jupiter-xxl-job-demo"  # 执行器名称
 				port = "59001"                    # 开启执行器的服务端口
 				access_token = "jupiter-token"    # xxl-job需要的token信息
@@ -228,7 +228,7 @@ func Test_Stop(t *testing.T) {
 	configStr := `
 	[xxl]
 		[xxl.job]
-			[xxl.job.executor]
+			[xxl.job.admin]
 				appname = "jupiter-xxl-job-demo"  # 执行器名称
 				port = "59001"                    # 开启执行器的服务端口
 				access_token = "jupiter-token"    # xxl-job需要的token信息
@@ -257,7 +257,7 @@ func Test_callback(t *testing.T) {
 	configStr := `
 	[xxl]
 		[xxl.job]
-			[xxl.job.executor]
+			[xxl.job.admin]
 				appname = "jupiter-xxl-job-demo"  # 执行器名称
 				port = "59001"                    # 开启执行器的服务端口
 				access_token = "jupiter-token"    # xxl-job需要的token信息
@@ -301,7 +301,7 @@ func Test_post(t *testing.T) {
 	configStr := `
 	[xxl]
 		[xxl.job]
-			[xxl.job.executor]
+			[xxl.job.admin]
 				appname = "jupiter-xxl-job-demo"  # 执行器名称
 				port = "59001"                    # 开启执行器的服务端口
 				access_token = "jupiter-token"    # xxl-job需要的token信息
@@ -329,7 +329,7 @@ func Test_handlerWithAuth(t *testing.T) {
 	configStr := `
 	[xxl]
 		[xxl.job]
-			[xxl.job.executor]
+			[xxl.job.admin]
 				appname = "jupiter-xxl-job-demo"  # 执行器名称
 				port = "59001"                    # 开启执行器的服务端口
 				access_token = "jupiter-token"    # xxl-job需要的token信息
@@ -382,7 +382,7 @@ func Test_verifyAuth(t *testing.T) {
 	configStr := `
 	[xxl]
 		[xxl.job]
-			[xxl.job.executor]
+			[xxl.job.admin]
 				appname = "jupiter-xxl-job-demo"  # 执行器名称
 				port = "59001"                    # 开启执行器的服务端口
 				access_token = "jupiter-token"    # xxl-job需要的token信息
@@ -432,7 +432,7 @@ func Test_GetAddress(t *testing.T) {
 	configStr := `
 	[xxl]
 		[xxl.job]
-			[xxl.job.executor]
+			[xxl.job.admin]
 				appname = "jupiter-xxl-job-demo"  # 执行器名称
 				port = "59001"                    # 开启执行器的服务端口
 				access_token = "jupiter-token"    # xxl-job需要的token信息

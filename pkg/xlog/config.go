@@ -36,10 +36,12 @@ func init() {
 
 		log.Print("hook config, init loggers")
 
-		log.Printf("reload default logger with configKey: %s", prefix+".logger.default")
-		SetDefault(RawConfig(prefix + ".logger.default").Build())
+		key := prefix + ".logger.default"
+		log.Printf("reload default logger with configKey: %s", key)
+		SetDefault(RawConfig(key).Build())
 
-		log.Printf("reload jupiter logger with configKey: %s", prefix+".logger.jupiter")
+		key = prefix + ".logger.jupiter"
+		log.Printf("reload jupiter logger with configKey: %s", key)
 		SetJupiter(jupiterConfig(prefix).Build())
 	})
 }

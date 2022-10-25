@@ -103,13 +103,16 @@ func newLogger(config *Config) *zap.Logger {
 	if config.Debug {
 		ws = os.Stdout
 	} else {
-		ws = zapcore.AddSync(newRotate(config))
-	}
+		if config.Async {
+			ws = &zapcore.BufferedWriteSyncer{
+				WS:            zapcore.AddSync(ws),
+				FlushInterval: defaultFlushInterval,
+				Size:          defaultBufferSize,
+			}
+			hooks.Register(hooks.Stage_AfterStop, func() { _ = ws.Sync() })
+		}
 
-	if config.Async {
-		ws = &zapcore.BufferedWriteSyncer{
-			WS: zapcore.AddSync(ws), FlushInterval: defaultFlushInterval, Size: defaultBufferSize}
-		hooks.Register(hooks.Stage_AfterStop, func() { _ = ws.Sync() })
+		ws = zapcore.AddSync(newRotate(config))
 	}
 
 	lv := zap.NewAtomicLevelAt(zapcore.InfoLevel)

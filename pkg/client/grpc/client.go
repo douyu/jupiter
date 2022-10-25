@@ -23,6 +23,7 @@ import (
 	"github.com/douyu/jupiter/pkg/core/ecode"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type ClientConn = grpc.ClientConn
@@ -35,42 +36,52 @@ func init() {
 
 func newGRPCClient(config *Config) *grpc.ClientConn {
 	var ctx = context.Background()
-	var dialOptions = config.dialOptions
+
+	dialOptions := getDialOptions(config)
+
 	logger := config.logger.With(
-		xlog.FieldMod("client.grpc"),
+		xlog.FieldMod(ecode.ModClientGrpc),
 		xlog.FieldAddr(config.Addr),
 	)
-	// 默认配置使用block
-	if config.Block {
-		if config.DialTimeout > time.Duration(0) {
-			var cancel context.CancelFunc
-			ctx, cancel = context.WithTimeout(ctx, config.DialTimeout)
-			defer cancel()
-		}
+	// 默认使用block连接，失败后fallback到异步连接
+	if config.DialTimeout > time.Duration(0) {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, config.DialTimeout)
 
-		dialOptions = append(dialOptions, grpc.WithBlock())
+		defer cancel()
 	}
+
+	conn, err := grpc.DialContext(ctx, config.Addr, append(dialOptions, grpc.WithBlock())...)
+	if err != nil {
+		xlog.Jupiter().Error("dial grpc server failed, connect without block",
+			xlog.FieldErrKind(ecode.ErrKindRequestErr), xlog.FieldErr(err))
+
+		conn, err = grpc.DialContext(context.Background(), config.Addr, dialOptions...)
+		if err != nil {
+			logger.Error("connect without block failed",
+				xlog.FieldErrKind(ecode.ErrKindRequestErr), xlog.FieldErr(err))
+		}
+	}
+
+	xlog.Jupiter().Info("start grpc client")
+
+	return conn
+}
+
+func getDialOptions(config *Config) []grpc.DialOption {
+	dialOptions := config.dialOptions
 
 	if config.KeepAlive != nil {
 		dialOptions = append(dialOptions, grpc.WithKeepaliveParams(*config.KeepAlive))
 	}
 
-	dialOptions = append(dialOptions, grpc.WithResolvers(
-		resolver.NewEtcdBuilder("etcd", config.RegistryConfig)),
+	dialOptions = append(dialOptions,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithResolvers(resolver.NewEtcdBuilder("etcd", config.RegistryConfig)),
 	)
 
 	svcCfg := fmt.Sprintf(`{"loadBalancingPolicy":"%s"}`, config.BalancerName)
 	dialOptions = append(dialOptions, grpc.WithDefaultServiceConfig(svcCfg))
 
-	cc, err := grpc.DialContext(ctx, config.Addr, dialOptions...)
-
-	if err != nil {
-		if config.Level == "panic" {
-			logger.Panic("dial grpc server", xlog.FieldErrKind(ecode.ErrKindRequestErr), xlog.FieldErr(err))
-		} else {
-			logger.Error("dial grpc server", xlog.FieldErrKind(ecode.ErrKindRequestErr), xlog.FieldErr(err))
-		}
-	}
-	logger.Info("start grpc client")
-	return cc
+	return dialOptions
 }
