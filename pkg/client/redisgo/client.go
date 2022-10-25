@@ -4,6 +4,8 @@ import (
 	"context"
 	"math/rand"
 
+	"github.com/douyu/jupiter/pkg/util/xdebug"
+
 	"github.com/douyu/jupiter/pkg/core/constant"
 	"github.com/douyu/jupiter/pkg/core/singleton"
 
@@ -44,6 +46,9 @@ func (config *Config) Singleton() *Client {
 // Build ..
 func (config *Config) Build() *Client {
 	ins := new(Client)
+	if xdebug.IsDevelopmentMode() {
+		xdebug.PrettyJsonPrint("redisgo's config: "+config.name, config)
+	}
 	if config.Master.Addr != "" {
 		addr, user, pass := getUsernameAndPassword(config.Master.Addr)
 		ins.master = config.build(addr, user, pass)
