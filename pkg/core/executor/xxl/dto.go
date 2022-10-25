@@ -10,7 +10,7 @@ type res struct {
 
 // 注册参数
 type Registry struct {
-	RegistryGroup string `json:"registryGroup"`
+	RegistryGroup string `json:"registGroup"`
 	RegistryKey   string `json:"registryKey"`
 	RegistryValue string `json:"registryValue"`
 }
