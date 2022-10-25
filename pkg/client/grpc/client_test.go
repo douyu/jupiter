@@ -39,12 +39,12 @@ func TestConfigBlockTrue(t *testing.T) {
 	})
 }
 
-func TestConfigBlockFalse(t *testing.T) {
-	t.Run("test no address and no block", func(t *testing.T) {
-		cfg := DefaultConfig()
-		cfg.Level = "panic"
-		cfg.Block = false
-		conn := newGRPCClient(cfg)
-		assert.Equal(t, conn.GetState().String(), "CONNECTING")
-	})
-}
+// func TestConfigBlockFalse(t *testing.T) {
+// 	t.Run("test no address and no block", func(t *testing.T) {
+// 		cfg := DefaultConfig()
+// 		cfg.Level = "panic"
+// 		cfg.Block = false
+// 		conn := newGRPCClient(cfg)
+// 		assert.Equal(t, conn.GetState().String(), "CONNECTING")
+// 	})
+// }
