@@ -21,7 +21,7 @@ func Test_Interceptor(t *testing.T) {
 	config.name = "test"
 	t.Run("slow log", func(t *testing.T) {
 		config.SlowLogThreshold = time.Nanosecond * 10
-		client := config.Build()
+		client, _ := config.Build()
 		client.CmdOnMaster().Set(context.Background(), "redigo", "hello", time.Second)
 		client.CmdOnSlave().Set(context.Background(), "redigo", "hello", time.Second)
 
@@ -37,7 +37,7 @@ func Test_Interceptor(t *testing.T) {
 
 	t.Run("debug", func(t *testing.T) {
 		config.Debug = true
-		client := config.Build()
+		client, _ := config.Build()
 
 		client.CmdOnMaster().Set(context.Background(), "redigo", "hello", time.Second)
 		client.CmdOnMaster().Del(context.Background(), "redigo")
@@ -66,7 +66,7 @@ func Test_Interceptor(t *testing.T) {
 		fmt.Println(span.SpanContext().TraceID())
 
 		config.EnableAccessLogInterceptor = true
-		client := config.Build()
+		client, _ := config.Build()
 
 		client.CmdOnMaster().Set(ctx, "redigo", "hello", time.Second)
 		client.CmdOnMaster().Del(ctx, "redigo")
@@ -91,7 +91,7 @@ func Test_Interceptor(t *testing.T) {
 		}).Build())
 
 		config.EnableTraceInterceptor = true
-		client := config.Build()
+		client, _ := config.Build()
 		ctx := context.Background()
 		client.CmdOnMaster().Set(ctx, "redigo", "hello", time.Second)
 		client.CmdOnMaster().Del(ctx, "redigo")

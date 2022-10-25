@@ -2,6 +2,7 @@ package redisgo
 
 import (
 	"context"
+	"errors"
 	"math/rand"
 
 	"github.com/douyu/jupiter/pkg/util/xdebug"
@@ -33,18 +34,35 @@ func (ins *Client) CmdOnSlave() *redis.Client {
 }
 
 // Singleton 单例模式
-func (config *Config) Singleton() *Client {
+func (config *Config) Singleton() (*Client, error) {
+	if val, ok := singleton.Load(constant.ModuleClientRedis, config.name); ok && val != nil {
+		return val.(*Client), nil
+	}
+
+	cc, err := config.Build()
+	if err != nil {
+		return cc, err
+	}
+	singleton.Store(constant.ModuleClientRedis, config.name, cc)
+	return cc, nil
+}
+
+// MustSingleton 单例模式
+func (config *Config) MustSingleton() *Client {
 	if val, ok := singleton.Load(constant.ModuleClientRedis, config.name); ok && val != nil {
 		return val.(*Client)
 	}
 
-	cc := config.Build()
+	cc, err := config.Build()
+	if err != nil {
+		config.logger.Panic("redisgo:"+err.Error(), xlog.FieldExtMessage(config))
+	}
 	singleton.Store(constant.ModuleClientRedis, config.name, cc)
 	return cc
 }
 
 // Build ..
-func (config *Config) Build() *Client {
+func (config *Config) Build() (*Client, error) {
 	ins := new(Client)
 	if xdebug.IsDevelopmentMode() {
 		xdebug.PrettyJsonPrint("redisgo's config: "+config.name, config)
@@ -62,9 +80,9 @@ func (config *Config) Build() *Client {
 	}
 
 	if ins.master == nil && len(ins.slave) == 0 {
-		config.logger.Panic("redisgo:no master or slaves for "+config.name, xlog.FieldExtMessage(config))
+		return ins, errors.New("no master or slaves for " + config.name)
 	}
-	return ins
+	return ins, nil
 }
 
 func (config *Config) build(addr, user, pass string) *redis.Client {

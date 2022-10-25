@@ -97,8 +97,10 @@ func DefaultConfig() *Config {
 
 // StdConfig ...
 func StdConfig(name string) *Config {
+	return RawConfig(name, constant.ConfigKey("redisgo", name, "stub"))
+}
+func RawConfig(name, key string) *Config {
 	var config = DefaultConfig()
-	key := constant.ConfigKey("redisgo", name, "stub")
 
 	if err := cfg.UnmarshalKey(key, &config, cfg.TagName("toml")); err != nil {
 		config.logger.Panic("unmarshal config:"+key, xlog.FieldErr(err), xlog.FieldName(key), xlog.FieldExtMessage(config))
@@ -118,7 +120,6 @@ func StdConfig(name string) *Config {
 	return config
 
 }
-
 func getUsernameAndPassword(addr string) (realAddr string, username, password string) {
 	addr = strings.TrimPrefix(addr, "redis://")
 	addr = strings.TrimPrefix(addr, "rediss://")

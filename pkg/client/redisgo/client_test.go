@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var addr = "localhost:6379"
+var addr = "10.1.104.19:6740"
 var addr2 = "localhost:6379"
 
 func Test_Stub(t *testing.T) {
@@ -20,26 +20,28 @@ func Test_Stub(t *testing.T) {
 				assert.Nil(t, client)
 			}
 		}()
-		client = config.Build()
+		client, _ = config.Build()
 		assert.Nil(t, client) // 不会执行到这里
 	})
 	t.Run("should not panic when dial err", func(t *testing.T) {
 		config.Master.Addr = "1.1.1.1"
 		config.OnDialError = "error"
-		client := config.Build()
+		client, err := config.Build()
+		assert.Nil(t, err)
 		assert.NotNil(t, client.master)
 
 	})
 	t.Run("normal start", func(t *testing.T) {
 		config.Master.Addr = addr
 		config.name = "test"
-		client := config.Build()
+		client, err := config.Build()
+		assert.Nil(t, err)
 		assert.NotNil(t, client)
-
-		err := client.CmdOnMaster().Ping(context.Background()).Err()
+		err = client.CmdOnMaster().Ping(context.Background()).Err()
 		if err != nil {
 			t.Errorf("TestStdNewRedisStub ping err %v", err)
 		}
 
 	})
+
 }
