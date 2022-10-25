@@ -69,7 +69,7 @@ func newGRPCClient(config *Config) *grpc.ClientConn {
 }
 
 func getDialOptions(config *Config) []grpc.DialOption {
-	var dialOptions = config.dialOptions
+	dialOptions := config.dialOptions
 
 	if config.KeepAlive != nil {
 		dialOptions = append(dialOptions, grpc.WithKeepaliveParams(*config.KeepAlive))
