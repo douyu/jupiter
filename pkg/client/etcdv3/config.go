@@ -57,6 +57,7 @@ func (config *Config) BindFlags(fs *flag.FlagSet) {
 // DefaultConfig 返回默认配置
 func DefaultConfig() *Config {
 	return &Config{
+		Endpoints:      []string{"http://localhost:2379"},
 		BasicAuth:      false,
 		ConnectTimeout: cast.ToDuration("5s"),
 		Secure:         false,

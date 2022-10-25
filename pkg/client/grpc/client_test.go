@@ -45,6 +45,6 @@ func TestConfigBlockFalse(t *testing.T) {
 		cfg.Level = "panic"
 		cfg.Block = false
 		conn := newGRPCClient(cfg)
-		assert.Equal(t, conn.GetState().String(), "IDLE")
+		assert.Equal(t, conn.GetState().String(), "CONNECTING")
 	})
 }

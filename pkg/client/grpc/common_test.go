@@ -1,11 +1,16 @@
 package grpc
 
 import (
+	"bytes"
+	"context"
 	"net"
-	"os"
 	"testing"
 	"time"
 
+	"github.com/BurntSushi/toml"
+	"github.com/douyu/jupiter/pkg/conf"
+	"github.com/douyu/jupiter/pkg/registry/etcdv3"
+	"github.com/douyu/jupiter/pkg/server"
 	"github.com/douyu/jupiter/pkg/util/xtest/server/yell"
 	"github.com/douyu/jupiter/proto/testproto"
 	"google.golang.org/grpc"
@@ -13,9 +18,26 @@ import (
 
 var directClient testproto.GreeterClient
 
+var testconf = `
+[jupiter.logger.jupiter]
+	level = "debug"
+[jupiter.registry.default]
+    endpoints = ["http://localhost:2379"]
+	timeout = "3s"
+`
+
 func TestMain(m *testing.M) {
-	l, s := startServer("127.0.0.1:0", "srv1")
+
+	l, s := startServer("127.0.0.1:9528", "srv1")
 	time.Sleep(200 * time.Millisecond)
+
+	_, s2 := startServer("127.0.0.1:9529", "srv1")
+
+	time.Sleep(200 * time.Millisecond)
+	err := conf.LoadFromReader(bytes.NewBufferString(testconf), toml.Unmarshal)
+	if err != nil {
+		panic(err)
+	}
 
 	cfg := DefaultConfig()
 	cfg.Addr = l.Addr().String()
@@ -24,7 +46,7 @@ func TestMain(m *testing.M) {
 	directClient = testproto.NewGreeterClient(conn)
 	m.Run()
 	s.Stop()
-	os.Exit(0)
+	s2.Stop()
 }
 
 func startServer(addr, name string) (net.Listener, *grpc.Server) {
@@ -32,14 +54,22 @@ func startServer(addr, name string) (net.Listener, *grpc.Server) {
 	if err != nil {
 		panic("failed start server:" + err.Error())
 	}
-	server := grpc.NewServer()
+	gserver := grpc.NewServer()
 	grpcServer := &yell.FooServer{}
 	grpcServer.SetName(name)
-	testproto.RegisterGreeterServer(server, grpcServer)
+
+	testproto.RegisterGreeterServer(gserver, grpcServer)
 	go func() {
-		if err := server.Serve(l); err != nil {
+		if err := gserver.Serve(l); err != nil {
 			panic("failed serve:" + err.Error())
 		}
 	}()
-	return l, server
+
+	reg := etcdv3.DefaultConfig().MustSingleton()
+	reg.RegisterService(context.Background(), &server.ServiceInfo{
+		Name:    name,
+		Address: addr,
+		Scheme:  "grpc",
+	})
+	return l, gserver
 }

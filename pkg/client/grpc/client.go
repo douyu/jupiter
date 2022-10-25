@@ -37,7 +37,7 @@ func newGRPCClient(config *Config) *grpc.ClientConn {
 	var ctx = context.Background()
 	var dialOptions = config.dialOptions
 	logger := config.logger.With(
-		xlog.FieldMod("client.grpc"),
+		xlog.FieldMod(ecode.ModClientGrpc),
 		xlog.FieldAddr(config.Addr),
 	)
 	// 默认配置使用block

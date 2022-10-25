@@ -63,7 +63,7 @@ func DefaultConfig() *Config {
 		},
 		logger:                 xlog.Jupiter().With(xlog.FieldMod(ecode.ModClientGrpc)),
 		BalancerName:           roundrobin.Name, // round robin by default
-		DialTimeout:            time.Second * 3,
+		DialTimeout:            cast.ToDuration("3s"),
 		ReadTimeout:            cast.ToDuration("1s"),
 		SlowThreshold:          cast.ToDuration("600ms"),
 		Level:                  "panic",
