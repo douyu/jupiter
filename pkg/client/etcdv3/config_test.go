@@ -25,7 +25,7 @@ func TestDefaultConfig(t *testing.T) {
 	defaultConfig := DefaultConfig()
 	assert.Equal(t, time.Second*5, defaultConfig.ConnectTimeout)
 	assert.Equal(t, false, defaultConfig.BasicAuth)
-	assert.Equal(t, []string(nil), defaultConfig.Endpoints)
+	assert.Equal(t, []string{"http://localhost:2379"}, defaultConfig.Endpoints)
 	assert.Equal(t, false, defaultConfig.Secure)
 }
 
