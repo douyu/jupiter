@@ -26,12 +26,11 @@ import (
 )
 
 func init() {
-	logger := xlog.Jupiter().Named(ecode.ModeClientRocketMQ)
 
 	primitive.PanicHandler = func(i interface{}) {
 		stack := make([]byte, 1024)
 		length := runtime.Stack(stack, true)
 		fmt.Fprint(os.Stderr, "[rocketmq panic recovery]\n", string(stack[:length]))
-		logger.Error("rocketmq panic recovery", zap.Any("error", i))
+		xlog.Jupiter().Named(ecode.ModeClientRocketMQ).Error("rocketmq panic recovery", zap.Any("error", i))
 	}
 }
