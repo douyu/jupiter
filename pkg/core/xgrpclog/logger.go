@@ -10,6 +10,7 @@ import (
 
 // SetLogger sets loggerWrapper to grpclog
 func SetLogger(logger *xlog.Logger) {
+	logger = logger.WithOptions(zap.AddCallerSkip(4))
 	grpclog.SetLoggerV2(&loggerWrapper{logger: logger, sugar: logger.Sugar()})
 }
 

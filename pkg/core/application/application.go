@@ -33,6 +33,7 @@ import (
 	"github.com/douyu/jupiter/pkg/core/executor"
 	"github.com/douyu/jupiter/pkg/core/hooks"
 	"github.com/douyu/jupiter/pkg/core/signals"
+	"github.com/douyu/jupiter/pkg/core/xgrpclog"
 	"github.com/douyu/jupiter/pkg/flag"
 	"github.com/douyu/jupiter/pkg/registry"
 	"github.com/douyu/jupiter/pkg/server"
@@ -109,6 +110,8 @@ func (app *Application) initialize() {
 
 		_ = app.parseFlags()
 		_ = app.printBanner()
+
+		xgrpclog.SetLogger(xlog.Jupiter())
 	})
 }
 
