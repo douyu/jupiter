@@ -6,12 +6,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-redis/redis/v8"
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/douyu/jupiter/pkg/core/xtrace"
 	"github.com/douyu/jupiter/pkg/core/xtrace/jaeger"
-
-	"github.com/go-redis/redis/v8"
 )
 
 func Test_Interceptor(t *testing.T) {
