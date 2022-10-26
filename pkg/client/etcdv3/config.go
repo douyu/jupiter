@@ -57,6 +57,7 @@ func (config *Config) BindFlags(fs *flag.FlagSet) {
 // DefaultConfig 返回默认配置
 func DefaultConfig() *Config {
 	return &Config{
+		Endpoints:      []string{"http://localhost:2379"},
 		BasicAuth:      false,
 		ConnectTimeout: cast.ToDuration("5s"),
 		Secure:         false,
@@ -111,6 +112,14 @@ func (config *Config) Singleton() (*Client, error) {
 
 func (config *Config) MustBuild() *Client {
 	client, err := config.Build()
+	if err != nil {
+		xlog.Jupiter().Panic("build etcd client failed", zap.Error(err))
+	}
+	return client
+}
+
+func (config *Config) MustSingleton() *Client {
+	client, err := config.Singleton()
 	if err != nil {
 		xlog.Jupiter().Panic("build etcd client failed", zap.Error(err))
 	}

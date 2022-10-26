@@ -6,7 +6,7 @@ example: /example/xxl-job
 ```toml
 [xxl]
   [xxl.job]
-    [xxl.job.executor]
+    [xxl.job.admin]
       address = "http://127.0.0.1:8080/xxl-job-admin"  # 注意换成XXL调度中心对应环境的域名
       access_token = "jupiter-token"    # 注册xxl-job执行器需要的token信息
       appname = "jupiter-xxl-job-demo"  # 启动执行器的名称

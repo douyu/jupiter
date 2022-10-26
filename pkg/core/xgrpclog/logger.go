@@ -5,11 +5,32 @@ import (
 
 	"github.com/douyu/jupiter/pkg/xlog"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc/grpclog"
+)
+
+const (
+	defaultCallerSkip = 4
+
+	// See https://github.com/grpc/grpc-go/blob/v1.35.0/grpclog/loggerv2.go#L77-L86
+	grpcLvlInfo  = 0
+	grpcLvlWarn  = 1
+	grpcLvlError = 2
+	grpcLvlFatal = 3
+)
+
+var (
+	grpcToZapLevel = map[int]zapcore.Level{
+		grpcLvlInfo:  zapcore.DebugLevel,
+		grpcLvlWarn:  zapcore.WarnLevel,
+		grpcLvlError: zapcore.ErrorLevel,
+		grpcLvlFatal: zapcore.FatalLevel,
+	}
 )
 
 // SetLogger sets loggerWrapper to grpclog
 func SetLogger(logger *xlog.Logger) {
+	logger = logger.WithOptions(zap.AddCallerSkip(defaultCallerSkip))
 	grpclog.SetLoggerV2(&loggerWrapper{logger: logger, sugar: logger.Sugar()})
 }
 
@@ -26,7 +47,9 @@ func (l *loggerWrapper) Info(args ...interface{}) {
 
 // Infoln logs to INFO log
 func (l *loggerWrapper) Infoln(args ...interface{}) {
-	l.logger.Info(sprint(args...))
+	if l.logger.Core().Enabled(grpcToZapLevel[grpcLvlInfo]) {
+		l.logger.Info(sprint(args...))
+	}
 }
 
 // Infof logs to INFO log
@@ -41,7 +64,9 @@ func (l *loggerWrapper) Warning(args ...interface{}) {
 
 // Warning logs to WARNING log
 func (l *loggerWrapper) Warningln(args ...interface{}) {
-	l.logger.Warn(sprint(args...))
+	if l.logger.Core().Enabled(grpcToZapLevel[grpcLvlWarn]) {
+		l.logger.Warn(sprint(args...))
+	}
 }
 
 // Warning logs to WARNING log
@@ -56,7 +81,9 @@ func (l *loggerWrapper) Error(args ...interface{}) {
 
 // Errorn logs to ERROR log
 func (l *loggerWrapper) Errorln(args ...interface{}) {
-	l.logger.Error(sprint(args...))
+	if l.logger.Core().Enabled(grpcToZapLevel[grpcLvlError]) {
+		l.logger.Error(sprint(args...))
+	}
 }
 
 // Errorf logs to ERROR log
@@ -81,7 +108,7 @@ func (l *loggerWrapper) Fatalf(format string, args ...interface{}) {
 
 // v returns true for all verbose level.
 func (l *loggerWrapper) V(v int) bool {
-	return true
+	return l.logger.Core().Enabled(grpcToZapLevel[v])
 }
 
 func sprint(args ...interface{}) string {

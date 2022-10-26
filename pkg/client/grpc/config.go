@@ -33,11 +33,8 @@ type Config struct {
 	Name           string // config's name
 	BalancerName   string
 	Addr           string
-	Block          bool
 	DialTimeout    time.Duration
 	ReadTimeout    time.Duration
-	Direct         bool
-	Level          string // panic | error
 	KeepAlive      *keepalive.ClientParameters
 	RegistryConfig string
 
@@ -61,14 +58,12 @@ func DefaultConfig() *Config {
 		dialOptions: []grpc.DialOption{
 			grpc.WithInsecure(),
 		},
-		logger:                 xlog.Jupiter().With(xlog.FieldMod(ecode.ModClientGrpc)),
+		logger:                 xlog.Jupiter(),
 		BalancerName:           roundrobin.Name, // round robin by default
-		DialTimeout:            time.Second * 3,
+		DialTimeout:            cast.ToDuration("3s"),
 		ReadTimeout:            cast.ToDuration("1s"),
 		SlowThreshold:          cast.ToDuration("600ms"),
-		Level:                  "panic",
 		AccessInterceptorLevel: "info",
-		Block:                  true,
 		KeepAlive: &keepalive.ClientParameters{
 			Time:                5 * time.Minute,
 			Timeout:             20 * time.Second,
