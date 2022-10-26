@@ -53,7 +53,7 @@ func DefaultConfig() *Config {
 		Config:      etcdv3.DefaultConfig(),
 		ReadTimeout: time.Second * 3,
 		Prefix:      "wsd-reg",
-		logger:      xlog.Jupiter(),
+		logger:      xlog.Jupiter().Named(ecode.ModRegistryETCD),
 		ServiceTTL:  cast.ToDuration("60s"),
 	}
 }

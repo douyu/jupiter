@@ -15,11 +15,25 @@
 package rocketmq
 
 import (
+	"github.com/apache/rocketmq-client-go/v2/rlog"
+	"github.com/douyu/jupiter/pkg/core/ecode"
 	"go.uber.org/zap"
 )
 
 type mqLogger struct {
 	logger *zap.Logger
+}
+
+const (
+	defaultCallerSkip = 2
+)
+
+func SetLogger(logger *zap.Logger) {
+	rlog.SetLogLevel("debug")
+	rlog.SetLogger(&mqLogger{
+		logger: logger.Named(ecode.ModeClientRocketMQ).
+			WithOptions(zap.AddCallerSkip(defaultCallerSkip)),
+	})
 }
 
 func (l *mqLogger) Debug(msg string, fields map[string]interface{}) {

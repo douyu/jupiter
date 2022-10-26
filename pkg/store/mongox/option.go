@@ -5,9 +5,12 @@ import (
 
 	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/core/constant"
+	"github.com/douyu/jupiter/pkg/core/ecode"
 	"github.com/douyu/jupiter/pkg/core/singleton"
+	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/spf13/cast"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.uber.org/zap"
 )
 
 // Config ...
@@ -20,6 +23,8 @@ type (
 		SocketTimeout time.Duration `json:"socketTimeout" toml:"socketTimeout"`
 		// 连接池大小(最大连接数)
 		PoolLimit int `json:"poolLimit" toml:"poolLimit"`
+
+		logger *zap.Logger
 	}
 )
 
@@ -43,6 +48,7 @@ func DefaultConfig() *Config {
 	return &Config{
 		SocketTimeout: cast.ToDuration("5s"),
 		PoolLimit:     100,
+		logger:        xlog.Jupiter().Named(ecode.ModStoreMongo),
 	}
 }
 

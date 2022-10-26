@@ -23,6 +23,7 @@ import (
 	"github.com/alibaba/sentinel-golang/core/base"
 	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/core/constant"
+	"github.com/douyu/jupiter/pkg/core/ecode"
 	"github.com/douyu/jupiter/pkg/core/metric"
 	"github.com/douyu/jupiter/pkg/core/sentinel"
 	"github.com/douyu/jupiter/pkg/core/xtrace"
@@ -110,7 +111,7 @@ func DefaultConfig() *Config {
 		Timeout:          cast.ToDuration("3000ms"),
 		EnableAccessLog:  false,
 		EnableSentinel:   true,
-		logger:           xlog.Jupiter().With(xlog.FieldMod("resty")),
+		logger:           xlog.Jupiter().Named(ecode.ModeClientResty),
 	}
 }
 
@@ -235,7 +236,7 @@ func (config *Config) Build() (*resty.Client, error) {
 func (c *Config) MustBuild() *resty.Client {
 	cc, err := c.Build()
 	if err != nil {
-		xlog.Jupiter().Panic("resty build failed", zap.Error(err), zap.Any("config", c))
+		c.logger.Panic("resty build failed", zap.Error(err), zap.Any("config", c))
 	}
 
 	return cc

@@ -59,9 +59,9 @@ var _ registry.Registry = new(etcdv3Registry)
 
 func newETCDRegistry(config *Config) (*etcdv3Registry, error) {
 	if config.logger == nil {
-		config.logger = xlog.Jupiter()
+		config.logger = xlog.Jupiter().Named(ecode.ModRegistryETCD)
 	}
-	config.logger = config.logger.With(xlog.FieldMod(ecode.ModRegistryETCD), xlog.FieldAddrAny(config.Config.Endpoints))
+	config.logger = config.logger.With(xlog.FieldAddrAny(config.Config.Endpoints))
 	etcdv3Client, err := config.Config.Singleton()
 	if err != nil {
 		config.logger.Error("create etcdv3 client", xlog.FieldErrKind(ecode.ErrKindRequestErr), xlog.FieldErr(err))
@@ -164,7 +164,7 @@ func (reg *etcdv3Registry) WatchServices(ctx context.Context, prefix string) (ch
 			// case addresses <- snapshot:
 			case addresses <- *out:
 			default:
-				xlog.Jupiter().Warn("invalid")
+				reg.logger.Warn("invalid event")
 			}
 		}
 	})
