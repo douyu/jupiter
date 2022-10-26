@@ -9,6 +9,7 @@ import (
 
 	cfg "github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/core/constant"
+	"github.com/douyu/jupiter/pkg/core/ecode"
 	"github.com/douyu/jupiter/pkg/util/xdebug"
 	"github.com/douyu/jupiter/pkg/xlog"
 )
@@ -87,7 +88,7 @@ func DefaultConfig() *Config {
 		EnableMetricInterceptor: true,
 		EnableTraceInterceptor:  true,
 		SlowLogThreshold:        cast.ToDuration("250ms"),
-		logger:                  xlog.Jupiter().With(xlog.FieldMod("redigo")),
+		logger:                  xlog.Jupiter().Named(ecode.ModClientRedis),
 		OnDialError:             "panic",
 	}
 }
