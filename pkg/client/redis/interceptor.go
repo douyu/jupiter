@@ -1,4 +1,4 @@
-package redisgo
+package redis
 
 import (
 	"context"
@@ -125,7 +125,7 @@ func debugInterceptor(compName string, addr string, config *Config, logger *xlog
 			cost := time.Since(ctx.Value(ctxBegKey).(time.Time))
 			err := cmd.Err()
 			fmt.Println(xstring.CallerName(6))
-			fmt.Printf("[redisgo ] %s (%s) :\n", addr, cost) // nolint
+			fmt.Printf("[redis ] %s (%s) :\n", addr, cost) // nolint
 			if err != nil {
 				fmt.Printf(color.RedString("# %s %+v, ERR=(%s)\n\n", cmd.Name(), cmd.Args(), err.Error())) // nolint
 			} else {
@@ -136,7 +136,7 @@ func debugInterceptor(compName string, addr string, config *Config, logger *xlog
 		setAfterProcessPipeline(func(ctx context.Context, cmds []redis.Cmder) error {
 			cost := time.Since(ctx.Value(ctxBegKey).(time.Time))
 			fmt.Println(xstring.CallerName(8))
-			fmt.Printf("[redisgo pipeline] %s (%s) :\n", addr, cost) // nolint
+			fmt.Printf("[redis pipeline] %s (%s) :\n", addr, cost) // nolint
 			for _, cmd := range cmds {
 				err := cmd.Err()
 				if err != nil {
