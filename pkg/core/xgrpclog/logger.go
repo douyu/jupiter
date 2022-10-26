@@ -8,9 +8,11 @@ import (
 	"google.golang.org/grpc/grpclog"
 )
 
+const defaultCallerSkip = 4
+
 // SetLogger sets loggerWrapper to grpclog
 func SetLogger(logger *xlog.Logger) {
-	logger = logger.WithOptions(zap.AddCallerSkip(4))
+	logger = logger.WithOptions(zap.AddCallerSkip(defaultCallerSkip))
 	grpclog.SetLoggerV2(&loggerWrapper{logger: logger, sugar: logger.Sugar()})
 }
 
