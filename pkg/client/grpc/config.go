@@ -58,7 +58,7 @@ func DefaultConfig() *Config {
 		dialOptions: []grpc.DialOption{
 			grpc.WithInsecure(),
 		},
-		logger:                 xlog.Jupiter(),
+		logger:                 xlog.Jupiter().Named(ecode.ModClientGrpc),
 		BalancerName:           roundrobin.Name, // round robin by default
 		DialTimeout:            cast.ToDuration("3s"),
 		ReadTimeout:            cast.ToDuration("1s"),

@@ -95,7 +95,7 @@ func DefaultConfig() *Config {
 		DisableTrace:              false,
 		EnableTLS:                 false,
 		SlowQueryThresholdInMilli: 500,
-		logger:                    xlog.Jupiter().With(xlog.FieldMod("server.grpc")),
+		logger:                    xlog.Jupiter().Named(ecode.ModGrpcServer),
 		serverOptions:             []grpc.ServerOption{},
 		streamInterceptors:        []grpc.StreamServerInterceptor{},
 		unaryInterceptors:         []grpc.UnaryServerInterceptor{},

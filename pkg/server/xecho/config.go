@@ -26,9 +26,6 @@ import (
 	"go.uber.org/zap"
 )
 
-//ModName named a mod
-const ModName = "server.echo"
-
 //Config HTTP config
 type Config struct {
 	Host          string
@@ -56,7 +53,7 @@ func DefaultConfig() *Config {
 		Debug:                     false,
 		Deployment:                constant.DefaultDeployment,
 		SlowQueryThresholdInMilli: 500, // 500ms
-		logger:                    xlog.Jupiter().With(xlog.FieldMod(ModName)),
+		logger:                    xlog.Jupiter().Named(ecode.ModEchoServer),
 		EnableTLS:                 false,
 		CertFile:                  "cert.pem",
 		PrivateFile:               "private.pem",
