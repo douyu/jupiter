@@ -20,21 +20,18 @@ import (
 	"runtime"
 
 	"github.com/apache/rocketmq-client-go/v2/primitive"
-	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/core/ecode"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"go.uber.org/zap"
 )
 
 func init() {
-	conf.OnLoaded(func(c *conf.Configuration) {
-		logger := xlog.Jupiter().Named(ecode.ModeClientRocketMQ)
+	logger := xlog.Jupiter().Named(ecode.ModeClientRocketMQ)
 
-		primitive.PanicHandler = func(i interface{}) {
-			stack := make([]byte, 1024)
-			length := runtime.Stack(stack, true)
-			fmt.Fprint(os.Stderr, "[rocketmq panic recovery]\n", string(stack[:length]))
-			logger.Error("rocketmq panic recovery", zap.Any("error", i))
-		}
-	})
+	primitive.PanicHandler = func(i interface{}) {
+		stack := make([]byte, 1024)
+		length := runtime.Stack(stack, true)
+		fmt.Fprint(os.Stderr, "[rocketmq panic recovery]\n", string(stack[:length]))
+		logger.Error("rocketmq panic recovery", zap.Any("error", i))
+	}
 }
