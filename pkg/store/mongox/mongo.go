@@ -28,7 +28,7 @@ func newSession(config *Config) *mongo.Client {
 	clientOpts.SocketTimeout = &config.SocketTimeout
 	client, err := mongo.Connect(context.Background(), clientOpts.ApplyURI(config.DSN))
 	if err != nil {
-		_logger.Panic("dial mongo", xlog.FieldAddr(config.DSN), xlog.Any("error", err))
+		config.logger.Panic("dial mongo", xlog.FieldAddr(config.DSN), xlog.Any("error", err))
 	}
 
 	_instances.Store(config.Name, client)
@@ -37,10 +37,10 @@ func newSession(config *Config) *mongo.Client {
 
 func isConfigErr(config *Config) {
 	if config.SocketTimeout == time.Duration(0) {
-		_logger.Panic("invalid config", xlog.FieldExtMessage("socketTimeout"))
+		config.logger.Panic("invalid config", xlog.FieldExtMessage("socketTimeout"))
 	}
 
 	if config.PoolLimit == 0 {
-		_logger.Panic("invalid config", xlog.FieldExtMessage("poolLimit"))
+		config.logger.Panic("invalid config", xlog.FieldExtMessage("poolLimit"))
 	}
 }
