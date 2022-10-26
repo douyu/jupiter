@@ -22,8 +22,8 @@ func TestStdConfig(t *testing.T) {
             dialTimeout="2s"
             readTimeout="5s"
             idleTimeout="60s"
-			username=""
-			password="123"
+            username=""
+            password="123"
 
     [jupiter.redisgo.test.cluster]
             dialTimeout="2s"
