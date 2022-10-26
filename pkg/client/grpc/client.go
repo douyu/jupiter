@@ -28,12 +28,6 @@ import (
 
 type ClientConn = grpc.ClientConn
 
-func init() {
-	// conf.OnLoaded(func(c *conf.Configuration) {
-	// xgrpclog.SetLogger(xlog.Jupiter().With(xlog.FieldMod("grpc")))
-	// })
-}
-
 func newGRPCClient(config *Config) *grpc.ClientConn {
 	var ctx = context.Background()
 
