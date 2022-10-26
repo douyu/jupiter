@@ -3,6 +3,7 @@ package xgrpclog
 import (
 	"fmt"
 
+	"github.com/douyu/jupiter/pkg/core/ecode"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -30,7 +31,7 @@ var (
 
 // SetLogger sets loggerWrapper to grpclog
 func SetLogger(logger *xlog.Logger) {
-	logger = logger.WithOptions(zap.AddCallerSkip(defaultCallerSkip))
+	logger = logger.Named(ecode.ModClientGrpc).WithOptions(zap.AddCallerSkip(defaultCallerSkip))
 	grpclog.SetLoggerV2(&loggerWrapper{logger: logger, sugar: logger.Sugar()})
 }
 

@@ -32,6 +32,7 @@ import (
 	"github.com/douyu/jupiter/pkg/core/ecode"
 	"github.com/douyu/jupiter/pkg/core/executor"
 	"github.com/douyu/jupiter/pkg/core/hooks"
+	"github.com/douyu/jupiter/pkg/core/rocketmq"
 	"github.com/douyu/jupiter/pkg/core/signals"
 	"github.com/douyu/jupiter/pkg/core/xgrpclog"
 	"github.com/douyu/jupiter/pkg/flag"
@@ -110,9 +111,13 @@ func (app *Application) initialize() {
 
 		_ = app.parseFlags()
 		_ = app.printBanner()
-
-		xgrpclog.SetLogger(xlog.Jupiter())
+		app.initLogger()
 	})
+}
+
+func (app *Application) initLogger() {
+	xgrpclog.SetLogger(xlog.Jupiter())
+	rocketmq.SetLogger(xlog.Jupiter())
 }
 
 // // start up application

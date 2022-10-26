@@ -20,7 +20,6 @@ import (
 	"runtime"
 
 	"github.com/apache/rocketmq-client-go/v2/primitive"
-	"github.com/apache/rocketmq-client-go/v2/rlog"
 	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/core/ecode"
 	"github.com/douyu/jupiter/pkg/xlog"
@@ -30,9 +29,6 @@ import (
 func init() {
 	conf.OnLoaded(func(c *conf.Configuration) {
 		logger := xlog.Jupiter().Named(ecode.ModeClientRocketMQ)
-
-		rlog.SetLogLevel("debug")
-		rlog.SetLogger(&mqLogger{logger.WithOptions(zap.AddCallerSkip(2))})
 
 		primitive.PanicHandler = func(i interface{}) {
 			stack := make([]byte, 1024)
