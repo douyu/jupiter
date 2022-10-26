@@ -4,16 +4,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/douyu/jupiter/pkg/core/constant"
-
 	"github.com/spf13/cast"
-
-	"github.com/douyu/jupiter/pkg/xlog"
-
 	"go.uber.org/zap"
 
 	cfg "github.com/douyu/jupiter/pkg/conf"
+	"github.com/douyu/jupiter/pkg/core/constant"
 	"github.com/douyu/jupiter/pkg/util/xdebug"
+	"github.com/douyu/jupiter/pkg/xlog"
 )
 
 // Config ...

@@ -5,12 +5,11 @@ import (
 	"sync"
 	"time"
 
-	prome "github.com/douyu/jupiter/pkg/core/metric"
-
-	"github.com/douyu/jupiter/pkg/server/governor"
+	"github.com/go-redis/redis/v8"
 	jsoniter "github.com/json-iterator/go"
 
-	"github.com/go-redis/redis/v8"
+	prome "github.com/douyu/jupiter/pkg/core/metric"
+	"github.com/douyu/jupiter/pkg/server/governor"
 )
 
 var instances = sync.Map{}

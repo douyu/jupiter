@@ -5,13 +5,12 @@ import (
 	"errors"
 	"math/rand"
 
-	"github.com/douyu/jupiter/pkg/util/xdebug"
+	"github.com/go-redis/redis/v8"
 
 	"github.com/douyu/jupiter/pkg/core/constant"
 	"github.com/douyu/jupiter/pkg/core/singleton"
-
+	"github.com/douyu/jupiter/pkg/util/xdebug"
 	"github.com/douyu/jupiter/pkg/xlog"
-	"github.com/go-redis/redis/v8"
 )
 
 type Client struct {
