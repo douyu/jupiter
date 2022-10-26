@@ -21,6 +21,7 @@ import (
 
 	"github.com/douyu/jupiter/pkg/client/grpc/resolver"
 	"github.com/douyu/jupiter/pkg/core/ecode"
+	"github.com/douyu/jupiter/pkg/core/xgrpclog"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -29,9 +30,7 @@ import (
 type ClientConn = grpc.ClientConn
 
 func init() {
-	// conf.OnLoaded(func(c *conf.Configuration) {
-	// xgrpclog.SetLogger(xlog.Jupiter().With(xlog.FieldMod("grpc")))
-	// })
+	xgrpclog.SetLogger(xlog.Jupiter())
 }
 
 func newGRPCClient(config *Config) *grpc.ClientConn {
