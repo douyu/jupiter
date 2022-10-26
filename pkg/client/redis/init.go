@@ -1,4 +1,4 @@
-package redisgo
+package redis
 
 import (
 	"net/http"

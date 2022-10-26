@@ -1,4 +1,4 @@
-package redisgo
+package redis
 
 import (
 	"bytes"
@@ -13,18 +13,18 @@ import (
 )
 
 func TestStdConfig(t *testing.T) {
-	assert.Equal(t, constant.ConfigKey("redisgo", "test", "stub"), "jupiter.redisgo.test.stub")
+	assert.Equal(t, constant.ConfigKey("redis", "test", "stub"), "jupiter.redis.test.stub")
 
 	var configStr = `
-[jupiter.redisgo]
-    [jupiter.redisgo.test.stub]
+[jupiter.redis]
+    [jupiter.redis.test.stub]
             dialTimeout="2s"
             readTimeout="5s"
             idleTimeout="60s"
             username=""
             password="123"
 
-    [jupiter.redisgo.test.cluster]
+    [jupiter.redis.test.cluster]
             dialTimeout="2s"
             readTimeout="5s"
             idleTimeout="60s"
@@ -46,15 +46,15 @@ func TestStdConfig(t *testing.T) {
 
 func TestConfig(t *testing.T) {
 	var configStr = `
-[jupiter.redisgo]
-    [jupiter.redisgo.test]
-        [jupiter.redisgo.test.stub]
+[jupiter.redis]
+    [jupiter.redis.test]
+        [jupiter.redis.test.stub]
             dialTimeout="2s"
             readTimeout="5s"
             idleTimeout="60s"
-            [jupiter.redisgo.test.stub.master]
+            [jupiter.redis.test.stub.master]
                 addr="redis://:user111:password222@127.0.0.1:6379"
-            [jupiter.redisgo.test.stub.slaves]
+            [jupiter.redis.test.stub.slaves]
                 addr=[
                     "redis://:user111:password222@127.0.0.2:6379",
                 ]

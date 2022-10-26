@@ -1,4 +1,4 @@
-package redisgo
+package redis
 
 import (
 	"context"
@@ -21,13 +21,13 @@ type Client struct {
 
 func (ins *Client) CmdOnMaster() *redis.Client {
 	if ins.master == nil {
-		ins.config.logger.Panic("redisgo:no master for "+ins.config.name, xlog.FieldExtMessage(ins.config))
+		ins.config.logger.Panic("redis:no master for "+ins.config.name, xlog.FieldExtMessage(ins.config))
 	}
 	return ins.master
 }
 func (ins *Client) CmdOnSlave() *redis.Client {
 	if len(ins.slave) == 0 {
-		ins.config.logger.Panic("redisgo:no slave for "+ins.config.name, xlog.FieldExtMessage(ins.config))
+		ins.config.logger.Panic("redis:no slave for "+ins.config.name, xlog.FieldExtMessage(ins.config))
 	}
 	return ins.slave[rand.Intn(len(ins.slave))]
 }
@@ -54,7 +54,7 @@ func (config *Config) MustSingleton() *Client {
 
 	cc, err := config.Build()
 	if err != nil {
-		config.logger.Panic("redisgo:"+err.Error(), xlog.FieldExtMessage(config))
+		config.logger.Panic("redis:"+err.Error(), xlog.FieldExtMessage(config))
 	}
 	singleton.Store(constant.ModuleClientRedis, config.name, cc)
 	return cc
@@ -65,7 +65,7 @@ func (config *Config) Build() (*Client, error) {
 	ins := new(Client)
 	var err error
 	if xdebug.IsDevelopmentMode() {
-		xdebug.PrettyJsonPrint("redisgo's config: "+config.name, config)
+		xdebug.PrettyJsonPrint("redis's config: "+config.name, config)
 	}
 	if config.Master.Addr != "" {
 		addr, user, pass := getUsernameAndPassword(config.Master.Addr)
@@ -123,9 +123,9 @@ func (config *Config) build(addr, user, pass string) (*redis.Client, error) {
 
 	if err := stubClient.Ping(context.Background()).Err(); err != nil {
 		if config.OnDialError == "panic" {
-			config.logger.Panic("redisgo stub client start err: " + err.Error())
+			config.logger.Panic("redis stub client start err: " + err.Error())
 		}
-		config.logger.Error("redisgo stub client start err", xlog.FieldErr(err))
+		config.logger.Error("redis stub client start err", xlog.FieldErr(err))
 		return nil, err
 	}
 

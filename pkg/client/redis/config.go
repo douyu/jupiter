@@ -1,4 +1,4 @@
-package redisgo
+package redis
 
 import (
 	"strings"
@@ -95,7 +95,7 @@ func DefaultConfig() *Config {
 
 // StdConfig ...
 func StdConfig(name string) *Config {
-	return RawConfig(name, constant.ConfigKey("redisgo", name, "stub"))
+	return RawConfig(name, constant.ConfigKey("redis", name, "stub"))
 }
 func RawConfig(name, key string) *Config {
 	var config = DefaultConfig()
