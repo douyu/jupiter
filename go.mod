@@ -6,7 +6,6 @@ require (
 	cirello.io/pglock v1.9.0
 	github.com/BurntSushi/toml v1.2.1
 	github.com/alibaba/sentinel-golang v1.0.4
-	github.com/alicebob/miniredis/v2 v2.23.0
 	github.com/apache/rocketmq-client-go/v2 v2.1.1
 	github.com/codegangsta/inject v0.0.0-20150114235600-33e0aa1cb7c0
 	github.com/coocood/freecache v1.2.3
@@ -19,7 +18,7 @@ require (
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/gin-gonic/gin v1.8.1
 	github.com/go-basic/ipv4 v1.0.0
-	github.com/go-redis/redis v6.15.8+incompatible
+	github.com/go-redis/redis/v8 v8.11.5
 	github.com/go-resty/resty/v2 v2.7.0
 	github.com/gogf/gf v1.16.9
 	github.com/gorilla/websocket v1.5.0
@@ -65,7 +64,6 @@ require (
 
 require (
 	github.com/StackExchange/wmi v1.2.1 // indirect
-	github.com/alicebob/gopher-json v0.0.0-20200520072559-a9ecdc9d1d3a // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
@@ -75,6 +73,7 @@ require (
 	github.com/coreos/go-systemd/v22 v22.3.2 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
 	github.com/creack/pty v1.1.11 // indirect
+	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/emirpasic/gods v1.12.0 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
@@ -109,7 +108,6 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
-	github.com/onsi/ginkgo v1.16.4 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	github.com/pelletier/go-toml v1.9.4 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.1 // indirect
@@ -135,7 +133,6 @@ require (
 	github.com/xdg-go/scram v1.1.1 // indirect
 	github.com/xdg-go/stringprep v1.0.3 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d // indirect
-	github.com/yuin/gopher-lua v0.0.0-20210529063254-f4c35e4016d9 // indirect
 	go.etcd.io/etcd/client/pkg/v3 v3.5.5 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	golang.org/x/crypto v0.1.0 // indirect
