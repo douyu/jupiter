@@ -20,15 +20,15 @@ func Test_Stub(t *testing.T) {
 				assert.Nil(t, client)
 			}
 		}()
-		client, _ = config.Build()
+		client = config.MustSingleton()
 		assert.Nil(t, client) // 不会执行到这里
 	})
 	t.Run("should not panic when dial err", func(t *testing.T) {
 		config.Master.Addr = "1.1.1.1"
 		config.OnDialError = "error"
 		client, err := config.Build()
-		assert.Nil(t, err)
-		assert.NotNil(t, client.master)
+		assert.NotNil(t, err)
+		assert.Nil(t, client.master)
 
 	})
 	t.Run("normal start", func(t *testing.T) {

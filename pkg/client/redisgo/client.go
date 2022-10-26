@@ -63,18 +63,26 @@ func (config *Config) MustSingleton() *Client {
 // Build ..
 func (config *Config) Build() (*Client, error) {
 	ins := new(Client)
+	var err error
 	if xdebug.IsDevelopmentMode() {
 		xdebug.PrettyJsonPrint("redisgo's config: "+config.name, config)
 	}
 	if config.Master.Addr != "" {
 		addr, user, pass := getUsernameAndPassword(config.Master.Addr)
-		ins.master = config.build(addr, user, pass)
+		ins.master, err = config.build(addr, user, pass)
+		if err != nil {
+			return ins, err
+		}
 	}
 	if len(config.Slaves.Addr) > 0 {
 		ins.slave = []*redis.Client{}
 		for _, slave := range config.Slaves.Addr {
 			addr, user, pass := getUsernameAndPassword(slave)
-			ins.slave = append(ins.slave, config.build(addr, user, pass))
+			cli, err := config.build(addr, user, pass)
+			if err != nil {
+				return ins, err
+			}
+			ins.slave = append(ins.slave, cli)
 		}
 	}
 
@@ -84,7 +92,7 @@ func (config *Config) Build() (*Client, error) {
 	return ins, nil
 }
 
-func (config *Config) build(addr, user, pass string) *redis.Client {
+func (config *Config) build(addr, user, pass string) (*redis.Client, error) {
 
 	stubClient := redis.NewClient(&redis.Options{
 		Addr:         addr,
@@ -118,10 +126,11 @@ func (config *Config) build(addr, user, pass string) *redis.Client {
 			config.logger.Panic("redisgo stub client start err: " + err.Error())
 		}
 		config.logger.Error("redisgo stub client start err", xlog.FieldErr(err))
+		return nil, err
 	}
 
 	instances.Store(config.name, &storeRedis{
 		ClientStub: stubClient,
 	})
-	return stubClient
+	return stubClient, nil
 }
