@@ -3,7 +3,7 @@ module github.com/douyu/jupiter
 go 1.18
 
 require (
-	cirello.io/pglock v1.9.0
+	cirello.io/pglock v1.10.0
 	github.com/BurntSushi/toml v1.2.1
 	github.com/alibaba/sentinel-golang v1.0.4
 	github.com/apache/rocketmq-client-go/v2 v2.1.1
