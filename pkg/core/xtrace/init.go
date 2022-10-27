@@ -20,6 +20,7 @@ import (
 	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/core/constant"
 	"github.com/douyu/jupiter/pkg/core/xtrace/jaeger"
+	"github.com/douyu/jupiter/pkg/core/xtrace/otelgrpc"
 )
 
 func init() {
@@ -31,6 +32,16 @@ func init() {
 		if conf.Get(key) != nil {
 			var config = jaeger.RawConfig(key)
 			SetGlobalTracer(config.Build())
+
+			return
+		}
+
+		key = constant.ConfigKey("trace.otelgrpc")
+		if conf.Get(key) != nil {
+			var config = otelgrpc.RawConfig(key)
+			SetGlobalTracer(config.Build())
+
+			return
 		}
 	})
 }
