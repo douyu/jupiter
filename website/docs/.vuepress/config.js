@@ -65,7 +65,7 @@ module.exports = {
     // "GitHub"/"GitLab"/"Bitbucket" 其中之一，或是 "Source"。
     repoLabel: "查看文档源码",
     // 假如文档不是放在仓库的根目录下：
-    docsDir: "docs",
+    docsDir: "website/docs",
     // 假如文档放在一个特定的分支下：
     docsBranch: "master",
     editLinks: true,
