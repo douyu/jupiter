@@ -21,7 +21,7 @@ jobs:
         uses: nosborn/github-action-markdown-cli@v3.1.0
         with:
           files: .
-          # config_file: ".github/markdown_lint_config.json"
+          config_file: ".github/markdown_lint_config.json"
 
   docs-build:
     if: github.event_name == 'push'
