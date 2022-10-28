@@ -3,13 +3,9 @@ name: website
 
 on:
   pull_request:
-    paths:
-      - "website/**"
     branches:
       - "master"
   push:
-    paths:
-      - "website/**"
     branches:
       - "master"
 
@@ -17,10 +13,12 @@ jobs:
   docs-lint:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
+
       - name: Run markdown linter
         uses: nosborn/github-action-markdown-cli@v3.2.0
         with:
-          files: website/
+          files: .
           config_file: ".github/markdown_lint_config.json"
           dot: true
 
