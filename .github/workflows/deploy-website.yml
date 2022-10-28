@@ -3,6 +3,8 @@ name: deploy
 
 on:
   push:
+    paths:
+      - "website/**"
     branches:
       - "**"
 
