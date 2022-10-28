@@ -20,7 +20,7 @@ jobs:
       - name: Run markdown linter
         uses: nosborn/github-action-markdown-cli@v3.1.0
         with:
-          files: .
+          files: website/*
           config_file: ".github/markdown_lint_config.json"
 
   docs-build:
