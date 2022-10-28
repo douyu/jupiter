@@ -81,6 +81,7 @@ func StdConfig(name string) *Config {
 // RawConfig ...
 func RawConfig(key string) *Config {
 	var config = DefaultConfig()
+	config.Name = key
 	if err := conf.UnmarshalKey(key, &config); err != nil {
 		config.logger.Panic("client grpc parse config panic", xlog.FieldErrKind(ecode.ErrKindUnmarshalConfigErr), xlog.FieldErr(err), xlog.FieldKey(key), xlog.FieldValueAny(config))
 	}
