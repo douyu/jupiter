@@ -34,14 +34,32 @@ Jupiter 是斗鱼开源的一套微服务治理框架，提供丰富的后台功
 
 ## 快速开始
 
-要求 Go version>=1.16 and GO111MODULE=on
+要求 Go version>=1.18 and GO111MODULE=on
 
 ## 安装
 
 ```bash
-GOPROXY=https://goproxy.cn/,direct go install github.com/douyu/jupiter/cmd/jupiter@latest
-cd /path/to/workspace
-jupiter new jupiter-demo
+GOPROXY=https://mirrors.aliyun.com/goproxy/,direct go install github.com/douyu/jupiter/cmd/jupiter@latest
+```
+
+```txt
+NAME:
+   jupiter - Fast bootstrap tool for jupiter framework
+
+USAGE:
+   jupiter [global options] command [command options] [arguments...]
+
+COMMANDS:
+   clean                               clear all cached
+   init, i                             init jupiter dependencies
+   new, n                              generate code framework
+   run, r                              auto restart program when files changed
+   struct2interface, struct2interface  Auto generate interface from struct for golang
+   update, upgrade                     Upgrade to the latest version
+   help, h                             Shows a list of commands or help for one command
+
+GLOBAL OPTIONS:
+   --help, -h  show help
 ```
 
 ## 理念
@@ -80,9 +98,9 @@ Web 开发和运维技术在不断的发展，短短几年已涌现出了非常�
 从 Golang 应用的角度来看，面临的是一个在不断变化的运行环境和持续丰富的外部环境，这将不断的产生新的问题，比如：
 
 1. 容器化有 IP 漂移的问题，传统基于 IP 的服务注册和运维方式需要作出改变。
-2. Serverless 的服务监控问题，指标采集以及链路追踪等如何适配？
-3. Service Mesh 相对于传统部署方式，服务注册和发现的方式有很大变化。
-4. 多机房部署中，跨机房调用这种’弱网环境‘ 对服务超时、重试、熔断、负载均衡等可用性策略有更高要求。
+1. Serverless 的服务监控问题，指标采集以及链路追踪等如何适配？
+1. Service Mesh 相对于传统部署方式，服务注册和发现的方式有很大变化。
+1. 多机房部署中，跨机房调用这种’弱网环境‘ 对服务超时、重试、熔断、负载均衡等可用性策略有更高要求。
 
 不同于传统 RPC 框架和微服务治理框架，`Jupiter`从一开始就以应用为中心，定位为一个微服务应用的运行时。在历次技术架构，如:
 

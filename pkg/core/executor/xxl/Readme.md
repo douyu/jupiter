@@ -1,8 +1,11 @@
 # jupiter接入xxl-job分布式调度中心模块
+
 example: /example/xxl-job
 用法如下：
+
 1. 增加配置:
-以下是配置说明
+   以下是配置说明
+
 ```toml
 [xxl]
   [xxl.job]
@@ -21,6 +24,7 @@ example: /example/xxl-job
 ```
 
 2. 示例用法:
+
 ```go
 func main() {
 	eng := NewEngine()

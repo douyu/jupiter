@@ -1,4 +1,3 @@
-
 # JUPITER: Governance-oriented Microservice Framework
 
 ![logo](doc/logo.png)
@@ -19,16 +18,16 @@ See the [中文文档](http://jupiter.douyu.com/) for the Chinese documentation.
 
 ## Requirements
 
-* Go version >= 1.18
-* Docker
+- Go version >= 1.18
+- Docker
 
 ## Quick Start
 
 1. Install [jupiter](https://github.com/douyu/jupiter/tree/master/cmd/jupiter) toolkit
-2. Create example project from [jupiter-layout](https://github.com/douyu/jupiter-layout)
-3. Download go mod dependencies
-4. Run the example project with [jupiter](https://github.com/douyu/jupiter/tree/master/cmd/jupiter) toolkit
-5. Just code yourself :-)
+1. Create example project from [jupiter-layout](https://github.com/douyu/jupiter-layout)
+1. Download go mod dependencies
+1. Run the example project with [jupiter](https://github.com/douyu/jupiter/tree/master/cmd/jupiter) toolkit
+1. Just code yourself :-)
 
 ```bash
 go install github.com/douyu/jupiter/cmd/jupiter@latest
@@ -41,8 +40,8 @@ jupiter run -c cmd/exampleserver/.jupiter.toml
 
 More Example:
 
-* [Project Layout](https://github.com/douyu/jupiter-layout)
-* [Examples](https://github.com/douyu/jupiter-examples)
+- [Project Layout](https://github.com/douyu/jupiter-layout)
+- [Examples](https://github.com/douyu/jupiter-examples)
 
 ## Bugs and Feedback
 
