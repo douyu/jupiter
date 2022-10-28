@@ -6,7 +6,7 @@ on:
     paths:
       - "website/**"
     branches:
-      - "**"
+      - "master"
 
 jobs:
   build:
