@@ -34,14 +34,32 @@ Jupiter 是斗鱼开源的一套微服务治理框架，提供丰富的后台功
 
 ## 快速开始
 
-要求 Go version>=1.16 and GO111MODULE=on
+要求 Go version>=1.18 and GO111MODULE=on
 
 ## 安装
 
 ```bash
-GOPROXY=https://goproxy.cn/,direct go install github.com/douyu/jupiter/cmd/jupiter@latest
-cd /path/to/workspace
-jupiter new jupiter-demo
+GOPROXY=https://mirrors.aliyun.com/goproxy/,direct go install github.com/douyu/jupiter/cmd/jupiter@latest
+```
+
+```txt
+NAME:
+   jupiter - Fast bootstrap tool for jupiter framework
+
+USAGE:
+   jupiter [global options] command [command options] [arguments...]
+
+COMMANDS:
+   clean                               clear all cached
+   init, i                             init jupiter dependencies
+   new, n                              generate code framework
+   run, r                              auto restart program when files changed
+   struct2interface, struct2interface  Auto generate interface from struct for golang
+   update, upgrade                     Upgrade to the latest version
+   help, h                             Shows a list of commands or help for one command
+
+GLOBAL OPTIONS:
+   --help, -h  show help
 ```
 
 ## 理念

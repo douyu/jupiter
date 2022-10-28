@@ -2,6 +2,11 @@
 name: deploy
 
 on:
+  pull_request:
+    paths:
+      - "website/**"
+    branches:
+      - "master"
   push:
     paths:
       - "website/**"
@@ -9,8 +14,19 @@ on:
       - "master"
 
 jobs:
-  build:
+  docs-lint:
     runs-on: ubuntu-latest
+    steps:
+      - name: Run markdown linter
+        uses: nosborn/github-action-markdown-cli@v3.1.0
+        with:
+          files: ./**
+          # config_file: ".github/markdown_lint_config.json"
+
+  docs-build:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    needs: docs-lint
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
