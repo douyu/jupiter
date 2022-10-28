@@ -24,12 +24,12 @@ We use the `master` branch as the development branch, which indicates that this 
 Here are the workflow for contributors:
 
 1. Fork to your own
-2. Clone fork to local repository
-3. Create a new branch and work on it
-4. Keep your branch in sync
-5. Commit your changes (make sure your commit message concise)
-6. Push your commits to your forked repository
-7. Create a pull request
+1. Clone fork to local repository
+1. Create a new branch and work on it
+1. Keep your branch in sync
+1. Commit your changes (make sure your commit message concise)
+1. Push your commits to your forked repository
+1. Create a pull request
 
 Please follow [the pull request template](./.github/PULL_REQUEST_TEMPLATE.md).
 Please make sure the PR has a corresponding issue.
