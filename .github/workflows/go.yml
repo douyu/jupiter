@@ -40,12 +40,10 @@ jobs:
           key: ${{ runner.os }}-go-${{ matrix.go-version }}-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-${{ matrix.go-version }}-
-
       - name: Get dependencies
         run: |
           go env
           go get -v -t -d ./...
-
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3.3.0
         with:
@@ -56,7 +54,6 @@ jobs:
 
   test:
     name: Test on ubuntu
-    needs: lint-and-build
     strategy:
       fail-fast: false
       matrix:
@@ -98,3 +95,7 @@ jobs:
         uses: codecov/codecov-action@v3
         with:
           token: ${{secrets.CODECOV_TOKEN}}
+          fail_ci_if_error: true
+          files: ./coverage.xml
+          name: jupiter
+          verbose: true

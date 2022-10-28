@@ -1,4 +1,4 @@
-______________________________________________________________________
+---
 
 name: Feature request
 about: Suggest an idea for this project
@@ -6,8 +6,7 @@ title: ''
 labels: ''
 assignees: ''
 
-______________________________________________________________________
-
+---
 <!-- Here is for bug reports and feature requests ONLY! 
 
 If you're looking for help, please check our DingTalk and Wechat room.

@@ -1,4 +1,4 @@
-______________________________________________________________________
+---
 
 name: Bug report
 about: Create a bug report to help us improve
@@ -6,7 +6,7 @@ title: "\[BUG\]"
 labels: ''
 assignees: ''
 
-______________________________________________________________________
+---
 
 <!-- Here is for bug reports and feature requests ONLY! 
 
