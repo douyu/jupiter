@@ -1,5 +1,5 @@
 # 构建vuepress，并提交到pages分支
-name: website
+name: Docs
 
 on:
   pull_request:
@@ -21,7 +21,7 @@ jobs:
           files: .
           config_file: ".github/markdown_lint_config.json"
 
-  docs-build:
+  docs-build-and-deploy:
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     needs: docs-lint
