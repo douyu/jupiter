@@ -51,12 +51,17 @@ func (config *Config) MustSingleton() *Client {
 	if val, ok := singleton.Load(constant.ModuleClientRedis, config.name); ok && val != nil {
 		return val.(*Client)
 	}
+	cc := config.MustBuild()
+	singleton.Store(constant.ModuleClientRedis, config.name, cc)
+	return cc
+}
 
+// MustBuild ..
+func (config *Config) MustBuild() *Client {
 	cc, err := config.Build()
 	if err != nil {
 		config.logger.Panic("redis:"+err.Error(), xlog.FieldExtMessage(config))
 	}
-	singleton.Store(constant.ModuleClientRedis, config.name, cc)
 	return cc
 }
 
