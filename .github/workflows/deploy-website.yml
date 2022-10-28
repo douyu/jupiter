@@ -1,5 +1,5 @@
 # 构建vuepress，并提交到pages分支
-name: deploy
+name: website
 
 on:
   pull_request:
