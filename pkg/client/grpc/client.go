@@ -72,6 +72,7 @@ func getDialOptions(config *Config) []grpc.DialOption {
 	dialOptions = append(dialOptions,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithResolvers(resolver.NewEtcdBuilder("etcd", config.RegistryConfig)),
+		grpc.WithDisableServiceConfig(),
 	)
 
 	svcCfg := fmt.Sprintf(`{"loadBalancingPolicy":"%s"}`, config.BalancerName)

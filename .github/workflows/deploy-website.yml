@@ -1,0 +1,47 @@
+# 构建vuepress，并提交到pages分支
+name: deploy
+
+on:
+  push:
+    branches:
+      - "*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      # 首先生成拉取node文件
+      - name: Node install
+        uses: actions/setup-node@v1
+        with:
+          node-version: "16.x"
+
+      # 缓存 node_modules
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        id: npm-cache
+        with:
+          path: |
+            **/node_modules
+          key: ${{ runner.os }}-npm-cache
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
+      # 如果缓存没有命中，安装依赖
+      - name: Install dependencies
+        if: steps.npm-cache.outputs.cache-hit != 'true'
+        run: cd website && npm install vuepress
+
+      # 运行构建脚本
+      - name: Build VuePress site
+        run: cd website && npm run docs:build
+
+      # 提交
+      - name: Deploy 🚀
+        uses: JamesIves/github-pages-deploy-action@4.1.4
+        with:
+          branch: pages
+          folder: ./website/docs/.vuepress/dist
