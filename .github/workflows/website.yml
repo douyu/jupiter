@@ -18,10 +18,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Run markdown linter
-        uses: nosborn/github-action-markdown-cli@v3.1.0
+        uses: nosborn/github-action-markdown-cli@v3.2.0
         with:
-          files: website/*
+          files: website/
           config_file: ".github/markdown_lint_config.json"
+          dot: true
 
   docs-build:
     if: github.event_name == 'push'
