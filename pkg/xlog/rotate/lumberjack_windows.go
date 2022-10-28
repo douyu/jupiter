@@ -370,7 +370,7 @@ func (l *Logger) millRunOnce() error {
 			// Only count the uncompressed log file or the
 			// compressed log file, not both.
 			fn := f.Name()
-			fn = strings.TrimSuffix(fn, compressSuffix)s
+			fn = strings.TrimSuffix(fn, compressSuffix)
 			preserved[fn] = true
 
 			if len(preserved) > l.MaxBackups {
