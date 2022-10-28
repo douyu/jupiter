@@ -17,6 +17,8 @@ package rocketmq
 import (
 	"github.com/apache/rocketmq-client-go/v2/rlog"
 	"github.com/douyu/jupiter/pkg/core/ecode"
+	"github.com/douyu/jupiter/pkg/core/hooks"
+	"github.com/douyu/jupiter/pkg/xlog"
 	"go.uber.org/zap"
 )
 
@@ -27,6 +29,12 @@ type mqLogger struct {
 const (
 	defaultCallerSkip = 2
 )
+
+func init() {
+	hooks.Register(hooks.Stage_AfterLoadConfig, func() {
+		SetLogger(xlog.Jupiter())
+	})
+}
 
 func SetLogger(logger *zap.Logger) {
 	rlog.SetLogLevel("debug")

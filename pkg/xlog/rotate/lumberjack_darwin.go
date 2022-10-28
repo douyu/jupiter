@@ -34,6 +34,7 @@
 // Using the same rotate configuration from multiple processes on the same
 // machine will result in improper behavior.
 
+//go:build darwin
 // +build darwin
 
 package rotate
@@ -163,29 +164,29 @@ var (
 	megabyte = 1024 * 1024
 )
 
-func (l *Logger) write(p []byte) (n int, err error) {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-	select {
-	case <-l.reopen:
-		if err := l.rotate(); err != nil {
-			panic(err)
-		}
-		// n, err = l.file.Write(p)
-		// l.size += int64(n)
-		n = len(p)
-		for len(p) > 0 {
-			buf := _asyncBufferPool.Get().([]byte)
-			num := copy(buf, p)
-			l.queue <- buf[:num]
-			p = p[num:]
-		}
+// func (l *Logger) write(p []byte) (n int, err error) {
+// 	l.mu.Lock()
+// 	defer l.mu.Unlock()
+// 	select {
+// 	case <-l.reopen:
+// 		if err := l.rotate(); err != nil {
+// 			panic(err)
+// 		}
+// 		// n, err = l.file.Write(p)
+// 		// l.size += int64(n)
+// 		n = len(p)
+// 		for len(p) > 0 {
+// 			buf := _asyncBufferPool.Get().([]byte)
+// 			num := copy(buf, p)
+// 			l.queue <- buf[:num]
+// 			p = p[num:]
+// 		}
 
-	default:
-		l.queue <- append(_asyncBufferPool.Get().([]byte)[0:], p...)[:len(p)]
-	}
-	return n, err
-}
+// 	default:
+// 		l.queue <- append(_asyncBufferPool.Get().([]byte)[0:], p...)[:len(p)]
+// 	}
+// 	return n, err
+// }
 
 // buffer pool for asynchronous writer
 var _asyncBufferPool = sync.Pool{
@@ -424,9 +425,7 @@ func (l *Logger) millRunOnce() error {
 			// Only count the uncompressed log file or the
 			// compressed log file, not both.
 			fn := f.Name()
-			if strings.HasSuffix(fn, compressSuffix) {
-				fn = fn[:len(fn)-len(compressSuffix)]
-			}
+			fn = strings.TrimSuffix(fn, compressSuffix)
 			preserved[fn] = true
 
 			if len(preserved) > l.MaxBackups {

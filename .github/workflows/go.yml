@@ -2,9 +2,13 @@ name: Go
 
 on:
   push:
+    paths-ignore:
+      - "website/**"
     branches:
       - "master"
   pull_request:
+    paths-ignore:
+      - "website/**"
     branches:
       - "master"
 
@@ -42,7 +46,10 @@ jobs:
           go env
           go get -v -t -d ./...
 
-      - uses: actions/checkout@v3.1.0
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3.3.0
+        with:
+          version: v1.50.1
 
       - name: Build
         run: go build -v .

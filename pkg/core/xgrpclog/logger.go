@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/douyu/jupiter/pkg/core/ecode"
+	"github.com/douyu/jupiter/pkg/core/hooks"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -28,6 +29,12 @@ var (
 		grpcLvlFatal: zapcore.FatalLevel,
 	}
 )
+
+func init() {
+	hooks.Register(hooks.Stage_AfterLoadConfig, func() {
+		SetLogger(xlog.Jupiter())
+	})
+}
 
 // SetLogger sets loggerWrapper to grpclog
 func SetLogger(logger *xlog.Logger) {
