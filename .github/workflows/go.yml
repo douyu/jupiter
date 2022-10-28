@@ -49,9 +49,7 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3.3.0
         with:
-          args: "--out-${NO_FUTURE}format colored-line-number"
-
-      - uses: actions/checkout@v3.1.0
+          version: v1.50.1
 
       - name: Build
         run: go build -v .
