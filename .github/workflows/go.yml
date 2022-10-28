@@ -2,9 +2,13 @@ name: Go
 
 on:
   push:
+    paths-ignore:
+      - "website/**"
     branches:
       - "master"
   pull_request:
+    paths-ignore:
+      - "website/**"
     branches:
       - "master"
 
@@ -41,6 +45,11 @@ jobs:
         run: |
           go env
           go get -v -t -d ./...
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3.3.0
+        with:
+          args: "--out-${NO_FUTURE}format colored-line-number"
 
       - uses: actions/checkout@v3.1.0
 
