@@ -20,7 +20,6 @@ jobs:
         with:
           files: .
           config_file: ".github/markdown_lint_config.json"
-          dot: true
 
   docs-build:
     if: github.event_name == 'push'
