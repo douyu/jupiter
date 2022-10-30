@@ -16,10 +16,13 @@ package conf
 
 import (
 	"log"
+	"strings"
 
+	"encoding/json"
 	"github.com/BurntSushi/toml"
 	"github.com/douyu/jupiter/pkg/flag"
 	"github.com/douyu/jupiter/pkg/hooks"
+	"gopkg.in/yaml.v3"
 )
 
 const DefaultEnvPrefix = "APP_"
@@ -39,11 +42,28 @@ func init() {
 		if err != nil {
 			log.Fatalf("build datasource[%s] failed: %v", configAddr, err)
 		}
-		if err := LoadFromDataSource(datasource, toml.Unmarshal); err != nil {
-			log.Fatalf("load config from datasource[%s] failed: %v", configAddr, err)
+		suffix := strings.Split(configAddr, ".")
+		if len(suffix) < 1 {
+			log.Fatalf("build datasource[%s] wrong number of suffixes", configAddr)
+		}
+		switch suffix[len(suffix)-1] {
+		case "json":
+			if err := LoadFromDataSource(datasource, json.Unmarshal); err != nil {
+				log.Fatalf("load config from datasource[%s] failed: %v", configAddr, err)
+			}
+		case "toml":
+			if err := LoadFromDataSource(datasource, toml.Unmarshal); err != nil {
+				log.Fatalf("load config from datasource[%s] failed: %v", configAddr, err)
+			}
+		case "yaml":
+			if err := LoadFromDataSource(datasource, yaml.Unmarshal); err != nil {
+				log.Fatalf("load config from datasource[%s] failed: %v", configAddr, err)
+			}
+		default:
+			log.Fatalf("file format error, config Addr: %s", configAddr)
+			return
 		}
 		log.Printf("load config from datasource[%s] completely!", configAddr)
-
 		hooks.Do(hooks.Stage_AfterLoadConfig)
 	}})
 
