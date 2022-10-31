@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/douyu/jupiter/pkg/core/executor"
+	"github.com/douyu/jupiter/pkg/executor"
 )
 
 // 测试XJob

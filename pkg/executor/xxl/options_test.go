@@ -8,7 +8,7 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/douyu/jupiter/pkg/conf"
-	"github.com/douyu/jupiter/pkg/core/executor/xxl/constants"
+	"github.com/douyu/jupiter/pkg/executor/xxl/constants"
 	"github.com/stretchr/testify/assert"
 )
 

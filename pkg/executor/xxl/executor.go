@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/douyu/jupiter/pkg/core/executor"
-	"github.com/douyu/jupiter/pkg/core/executor/xxl/logger"
+	"github.com/douyu/jupiter/pkg/executor"
+	"github.com/douyu/jupiter/pkg/executor/xxl/logger"
 	"github.com/douyu/jupiter/pkg/util/xdebug"
 )
 
