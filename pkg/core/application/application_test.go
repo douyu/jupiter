@@ -24,9 +24,9 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/douyu/jupiter/pkg/conf"
-	"github.com/douyu/jupiter/pkg/core/executor"
-	"github.com/douyu/jupiter/pkg/core/executor/xxl"
 	"github.com/douyu/jupiter/pkg/core/hooks"
+	"github.com/douyu/jupiter/pkg/executor"
+	"github.com/douyu/jupiter/pkg/executor/xxl"
 	"github.com/douyu/jupiter/pkg/server"
 	"github.com/douyu/jupiter/pkg/server/xgrpc"
 	. "github.com/smartystreets/goconvey/convey"

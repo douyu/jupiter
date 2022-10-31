@@ -9,9 +9,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/douyu/jupiter/pkg/core/executor"
-	"github.com/douyu/jupiter/pkg/core/executor/xxl/logger"
 	"github.com/douyu/jupiter/pkg/core/metric"
+	"github.com/douyu/jupiter/pkg/executor"
+	"github.com/douyu/jupiter/pkg/executor/xxl/logger"
 )
 
 // 任务执行函数

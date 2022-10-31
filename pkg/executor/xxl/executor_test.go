@@ -10,8 +10,8 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/douyu/jupiter/pkg/conf"
-	"github.com/douyu/jupiter/pkg/core/executor"
-	"github.com/douyu/jupiter/pkg/core/executor/xxl/constants"
+	"github.com/douyu/jupiter/pkg/executor"
+	"github.com/douyu/jupiter/pkg/executor/xxl/constants"
 	"github.com/go-basic/ipv4"
 	"github.com/stretchr/testify/assert"
 )

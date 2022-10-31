@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/douyu/jupiter/pkg/conf"
-	"github.com/douyu/jupiter/pkg/core/executor/xxl/constants"
+	"github.com/douyu/jupiter/pkg/executor/xxl/constants"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/go-basic/ipv4"
 )

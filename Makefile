@@ -69,3 +69,6 @@ lintd:
 	docker run --rm -v "$(shell pwd)/:/go/src/github.com/douyu/jupiter" --workdir /go/src/github.com/douyu/jupiter  -it golangci/golangci-lint:v1.42.1 golangci-lint run -v
 lintl:
 	golangci-lint run -v
+
+lintmd:
+	markdownlint -c .github/markdown_lint_config.json website/docs README.md pkg
