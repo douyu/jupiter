@@ -24,10 +24,6 @@ func TestStdConfig(t *testing.T) {
             username=""
             password="123"
 
-    [jupiter.redis.test.cluster]
-            dialTimeout="2s"
-            readTimeout="5s"
-            idleTimeout="60s"
 	`
 	assert.Nil(t, conf.LoadFromReader(bytes.NewBufferString(configStr), toml.Unmarshal))
 	t.Run("std config on addr nil", func(t *testing.T) {
