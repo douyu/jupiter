@@ -10,7 +10,6 @@ import (
 	"github.com/fatih/color"
 	"github.com/go-redis/redis/v8"
 	"github.com/spf13/cast"
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
@@ -194,11 +193,9 @@ func accessInterceptor(compName string, addr string, config *Config, logger *xlo
 				xlog.Any("req", cmd.Args()),
 				xlog.FieldCost(cost))
 
-			// 开启了链路，那么就记录链路id
-			if config.EnableTraceInterceptor && otel.GetTracerProvider() != nil {
-				if traceId := xlog.GetTraceID(ctx); len(traceId) > 0 {
-					fields = append(fields, xlog.String("trace_id", traceId))
-				}
+			// 记录链路id
+			if traceId := xlog.GetTraceID(ctx); len(traceId) > 0 {
+				fields = append(fields, xlog.String("trace_id", traceId))
 			}
 			// error
 			if err != nil {
@@ -227,12 +224,11 @@ func accessInterceptor(compName string, addr string, config *Config, logger *xlo
 				xlog.Any("req", cmd.Args()),
 				xlog.FieldCost(cost))
 
-			// 开启了链路，那么就记录链路id
-			if config.EnableTraceInterceptor && otel.GetTracerProvider() != nil {
-				if traceId := xlog.GetTraceID(ctx); len(traceId) > 0 {
-					fields = append(fields, xlog.String("trace_id", traceId))
-				}
+			// 记录链路id
+			if traceId := xlog.GetTraceID(ctx); len(traceId) > 0 {
+				fields = append(fields, xlog.String("trace_id", traceId))
 			}
+
 			// error
 			if err != nil {
 				fields = append(fields, xlog.FieldErr(err))
