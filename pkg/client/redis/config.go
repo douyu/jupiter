@@ -51,8 +51,6 @@ type Config struct {
 	// Should be less than server's timeout.
 	// Default is 5 minutes. -1 disables idle timeout check.
 	IdleTimeout time.Duration `json:"idleTimeout" toml:"idleTimeout"`
-	// Enables read-only commands on slave nodes.
-	ReadOnly bool
 
 	/****** for jupiter ******/
 	ReadOnMaster bool `json:"readOnMaster" toml:"readOnMaster"`
