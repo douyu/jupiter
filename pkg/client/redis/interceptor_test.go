@@ -2,15 +2,14 @@ package redis
 
 import (
 	"context"
-	"fmt"
 	"testing"
 	"time"
 
-	"github.com/go-redis/redis/v8"
-	"go.opentelemetry.io/otel/trace"
+	"github.com/douyu/jupiter/pkg/xlog"
 
 	"github.com/douyu/jupiter/pkg/core/xtrace"
 	"github.com/douyu/jupiter/pkg/core/xtrace/jaeger"
+	"github.com/go-redis/redis/v8"
 )
 
 func Test_Interceptor(t *testing.T) {
@@ -55,15 +54,7 @@ func Test_Interceptor(t *testing.T) {
 	})
 
 	t.Run("access", func(t *testing.T) {
-		xtrace.SetGlobalTracer((&jaeger.Config{
-			Name:     "trace",
-			Endpoint: "localhost:6831",
-			Sampler:  1,
-		}).Build())
-
-		ctx, span := xtrace.NewTracer(trace.SpanKindServer).Start(context.Background(), "test", nil)
-		fmt.Println(span.SpanContext().TraceID())
-
+		ctx := xlog.SetTraceID(context.Background(), "123456")
 		config.EnableAccessLogInterceptor = true
 		client, _ := config.Build()
 
