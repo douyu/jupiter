@@ -44,7 +44,7 @@ type ServiceInfo struct {
 	Kind     constant.ServiceKind `json:"kind"`
 	Version  string               `json:"version"`
 	Mode     string               `json:"mode"`
-	Host     string               `json:"hostName"`
+	Hostname string               `json:"hostname"`
 	// Deployment 部署组: 不同组的流量隔离
 	// 比如某些服务给内部调用和第三方调用，可以配置不同的deployment,进行流量隔离
 	Deployment string `json:"deployment"`
@@ -143,7 +143,7 @@ func defaultServiceInfo() ServiceInfo {
 		Region:     pkg.AppRegion(),
 		Zone:       pkg.AppZone(),
 		Mode:       pkg.AppMode(),
-		Host:       pkg.AppHost(),
+		Hostname:   pkg.AppHost(),
 		Version:    "v1",
 		Kind:       0,
 		Deployment: "",
