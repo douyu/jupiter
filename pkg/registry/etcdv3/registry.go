@@ -108,7 +108,7 @@ func (reg *etcdv3Registry) ListServices(ctx context.Context, prefix string) (ser
 	}
 
 	for _, kv := range getResp.Kvs {
-		var service Update
+		var service registry.Update
 		if err := json.Unmarshal(kv.Value, &service); err != nil {
 			reg.logger.Warn("invalid service", xlog.FieldErr(err))
 			continue
@@ -379,8 +379,8 @@ func (reg *etcdv3Registry) registerKey(info *server.ServiceInfo) string {
 }
 
 func (reg *etcdv3Registry) registerValue(info *server.ServiceInfo) string {
-	update := Update{
-		Op:       Add,
+	update := registry.Update{
+		Op:       registry.Add,
 		Addr:     info.Address,
 		Metadata: info,
 	}
@@ -429,7 +429,7 @@ func updateAddrList(al *registry.Endpoints, prefix, scheme string, kvs ...*mvccp
 	for _, kv := range kvs {
 		var addr = strings.TrimPrefix(string(kv.Key), prefix)
 		if isIPPort(addr) {
-			var meta Update
+			var meta registry.Update
 			if err := json.Unmarshal(kv.Value, &meta); err != nil {
 				xlog.Jupiter().Error("unmarshal meta", xlog.FieldErr(err),
 					xlog.FieldExtMessage("value", string(kv.Value), "key", string(kv.Key)))
@@ -437,11 +437,11 @@ func updateAddrList(al *registry.Endpoints, prefix, scheme string, kvs ...*mvccp
 			}
 
 			switch meta.Op {
-			case Add:
+			case registry.Add:
 				al.Nodes[addr] = server.ServiceInfo{
 					Address: addr,
 				}
-			case Delete:
+			case registry.Delete:
 				delete(al.Nodes, addr)
 			}
 		}
