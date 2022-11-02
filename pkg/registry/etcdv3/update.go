@@ -14,6 +14,10 @@
 
 package etcdv3
 
+import (
+	"github.com/douyu/jupiter/pkg/server"
+)
+
 type Operation uint8
 
 const (
@@ -32,5 +36,5 @@ type Update struct {
 	Addr string
 	// Metadata is the updated metadata. It is nil if there is no metadata update.
 	// Metadata is not required for a custom naming implementation.
-	Metadata interface{}
+	Metadata *server.ServiceInfo
 }
