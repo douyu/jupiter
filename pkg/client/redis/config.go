@@ -93,9 +93,9 @@ func DefaultConfig() *Config {
 
 // StdConfig ...
 func StdConfig(name string) *Config {
-	return RawConfig(name, constant.ConfigKey("redis", name, "stub"))
+	return RawConfig(constant.ConfigKey("redis", name, "stub"))
 }
-func RawConfig(name, key string) *Config {
+func RawConfig(key string) *Config {
 	var config = DefaultConfig()
 
 	if err := cfg.UnmarshalKey(key, &config, cfg.TagName("toml")); err != nil {
@@ -106,9 +106,9 @@ func RawConfig(name, key string) *Config {
 		config.Slaves.Addr = append(config.Slaves.Addr, config.Master.Addr)
 	}
 	if config.Master.Addr == "" && len(config.Slaves.Addr) == 0 {
-		config.logger.Panic("no master or slaves addr set:"+name, xlog.FieldName(key), xlog.FieldExtMessage(config))
+		config.logger.Panic("no master or slaves addr set:"+key, xlog.FieldName(key), xlog.FieldExtMessage(config))
 	}
-	config.name = name
+	config.name = key
 	if xdebug.IsDevelopmentMode() {
 		xdebug.PrettyJsonPrint(key, config)
 	}
