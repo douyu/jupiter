@@ -104,8 +104,7 @@ func TestNotImplementEqual(t *testing.T) {
 		// 比如某些服务给内部调用和第三方调用，可以配置不同的deployment,进行流量隔离
 		Deployment string `json:"deployment"`
 		// Group 流量组: 流量在Group之间进行负载均衡
-		Group    string              `json:"group"`
-		Services map[string]*Service `json:"services" toml:"services"`
+		Group string `json:"group"`
 	}
 
 	info1 := ServiceInfo{
