@@ -232,7 +232,7 @@ func producerDefaultInterceptor(producer *Producer) primitive.Interceptor {
 	}
 }
 
-// 统一 metadata 传递
+// 统一 metadata 传递.
 func producerMDInterceptor(producer *Producer) primitive.Interceptor {
 	return func(ctx context.Context, req, reply interface{}, next primitive.Invoker) error {
 		if md, ok := imeta.FromContext(ctx); ok {
