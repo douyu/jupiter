@@ -61,7 +61,7 @@ func TestAsyncConnect(t *testing.T) {
 		assert.Nil(t, res)
 
 		go func() {
-			startServer("127.0.0.1:9530", "srv1")
+			startServer("127.0.0.1:9530", "test-async-server")
 		}()
 
 		assert.Eventually(t, func() bool {
