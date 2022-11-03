@@ -47,7 +47,7 @@ func (config *Config) Build() trace.TracerProvider {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	conn, err := grpc.DialContext(ctx, config.Endpoint, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithBlock())
+	conn, err := grpc.DialContext(ctx, config.Endpoint, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		xlog.Jupiter().Panic("new otelgrpc", xlog.FieldMod("build"), xlog.FieldErr(err))
 		return nil

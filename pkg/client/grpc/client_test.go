@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -43,12 +44,39 @@ func TestConfigBlockTrue(t *testing.T) {
 	})
 }
 
-// func TestConfigBlockFalse(t *testing.T) {
-// 	t.Run("test no address and no block", func(t *testing.T) {
-// 		cfg := DefaultConfig()
-// 		cfg.Level = "panic"
-// 		cfg.Block = false
-// 		conn := newGRPCClient(cfg)
-// 		assert.Equal(t, conn.GetState().String(), "CONNECTING")
-// 	})
-// }
+func TestAsyncConnect(t *testing.T) {
+	t.Run("test async connect", func(t *testing.T) {
+		cfg := DefaultConfig()
+		cfg.Addr = "127.0.0.1:9530"
+		conn := cfg.Build()
+
+		ctx := context.Background()
+		ctx, cancel := context.WithTimeout(ctx, time.Second)
+		defer cancel()
+
+		res, err := testproto.NewGreeterClient(conn).SayHello(ctx, &testproto.HelloRequest{
+			Name: "hello",
+		})
+		assert.NotNil(t, err)
+		assert.Nil(t, res)
+
+		go func() {
+			startServer("127.0.0.1:9530", "test-async-server")
+		}()
+
+		assert.Eventually(t, func() bool {
+
+			ctx := context.Background()
+			ctx, cancel := context.WithTimeout(ctx, time.Second)
+			defer cancel()
+
+			fmt.Println(conn.GetState())
+			res, err := testproto.NewGreeterClient(conn).SayHello(ctx, &testproto.HelloRequest{
+				Name: "hello",
+			})
+			fmt.Println(err, res)
+			return err == nil && res != nil
+		}, 5*time.Second, time.Second)
+
+	})
+}
