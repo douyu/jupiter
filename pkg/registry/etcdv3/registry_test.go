@@ -178,7 +178,7 @@ func TestKeepalive(t *testing.T) {
 	}))
 
 	lease := reg.getLeaseID()
-	reg.client.Revoke(reg.ctx, lease)
+	reg.client.Revoke(context.Background(), lease)
 
 	assert.Eventually(t, func() bool {
 		return reg.getLeaseID() != 0
@@ -186,11 +186,11 @@ func TestKeepalive(t *testing.T) {
 
 	assert.True(t, lease != reg.getLeaseID())
 
-	ttl, err := reg.client.TimeToLive(reg.ctx, lease)
+	ttl, err := reg.client.TimeToLive(context.Background(), lease)
 	assert.Nil(t, err)
 	assert.Equal(t, int64(-1), ttl.TTL)
 
-	ttl, err = reg.client.TimeToLive(reg.ctx, reg.getLeaseID())
+	ttl, err = reg.client.TimeToLive(context.Background(), reg.getLeaseID())
 	assert.Nil(t, err)
 	assert.Equal(t, int64(1), ttl.TTL)
 
