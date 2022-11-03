@@ -181,10 +181,8 @@ func TestKeepalive(t *testing.T) {
 	reg.client.Revoke(context.Background(), lease)
 
 	assert.Eventually(t, func() bool {
-		return reg.getLeaseID() != 0
+		return reg.getLeaseID() != 0 && lease != reg.getLeaseID()
 	}, 5*time.Second, time.Second)
-
-	assert.True(t, lease != reg.getLeaseID())
 
 	ttl, err := reg.client.TimeToLive(context.Background(), lease)
 	assert.Nil(t, err)
