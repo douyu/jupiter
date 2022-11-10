@@ -31,6 +31,7 @@ import (
 	"time"
 
 	"github.com/fatih/color"
+	"github.com/iancoleman/strcase"
 	"github.com/samber/lo"
 	"github.com/urfave/cli"
 	"github.com/xlab/treeprint"
@@ -528,9 +529,16 @@ func getAppFileInfosByGit(c *cli.Context, gitPath string) (fileInfos map[string]
 				log.Printf("[jupiter] Read file failed: fullPath=[%v] err=[%v]", path, err)
 			}
 
-			fullPath := strings.ReplaceAll(path, layoutPath, "")
-			fullPath = strings.ReplaceAll(fullPath, "exampleserver", c.String("app"))
-			fileInfos[fullPath] = &file{fullPath, []byte(strings.ReplaceAll(string(bs), "exampleserver", c.String("app")))}
+			fullPath := strings.ReplaceAll(path, "exampleserver", c.String("app"))
+			if layoutPath != "." {
+				fullPath = strings.ReplaceAll(fullPath, layoutPath, "")
+			}
+
+			data := strings.ReplaceAll(string(bs), "ExampleServer", strcase.ToCamel(c.String("app")))
+			data = strings.ReplaceAll(data, "exampleserver", c.String("app"))
+			data = strings.ReplaceAll(data, "exampleServer", strcase.ToLowerCamel(c.String("app")))
+
+			fileInfos[fullPath] = &file{fullPath, []byte(data)}
 			return nil
 		}
 
