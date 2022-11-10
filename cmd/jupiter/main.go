@@ -49,6 +49,10 @@ var Commands = []cli.Command{
 				Name:  "upgrade",
 				Usage: "upgrade remote template",
 			},
+			cli.StringFlag{
+				Name:  "app",
+				Usage: "app name",
+			},
 		},
 		Action: cmd.New,
 	},
