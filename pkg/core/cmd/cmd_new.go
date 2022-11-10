@@ -507,20 +507,28 @@ func getAppFileInfosByGit(c *cli.Context, gitPath string) (fileInfos map[string]
 	}
 
 	fileInfos = make(map[string]*file)
+
+	layoutPath := getGlobalLayoutPath(gitPath)
+	// 如果存在cmd/exampleserver，则直接取当前项目的exampleserve为模版
+	if _, err := os.Stat("cmd/exampleserver"); err == nil {
+		gitPath = "."
+	}
+
 	// 获取模板的文件流
 	// io/fs为1.16新增标准库 低版本不支持
 	// os.FileInfo实现了和io/fs.FileInfo相同的接口 确保go低版本可以成功编译通过
-	err = filepath.Walk(getGlobalLayoutPath(gitPath), func(path string, info os.FileInfo, err error) error {
+	err = filepath.Walk(layoutPath, func(path string, info os.FileInfo, err error) error {
 		// 如果app存在，则说明是基于exampleserver创建一个app
 		if !info.IsDir() &&
 			!strings.Contains(strings.ReplaceAll(path, "\\", "/"), ".git/") &&
+			!strings.Contains(path, "vendor") &&
 			strings.Contains(path, "exampleserver") {
 			bs, err := ioutil.ReadFile(path)
 			if err != nil {
 				log.Printf("[jupiter] Read file failed: fullPath=[%v] err=[%v]", path, err)
 			}
 
-			fullPath := strings.ReplaceAll(path, getGlobalLayoutPath(gitPath), "")
+			fullPath := strings.ReplaceAll(path, layoutPath, "")
 			fullPath = strings.ReplaceAll(fullPath, "exampleserver", c.String("app"))
 			fileInfos[fullPath] = &file{fullPath, []byte(strings.ReplaceAll(string(bs), "exampleserver", c.String("app")))}
 			return nil
