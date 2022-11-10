@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"os/exec"
@@ -30,8 +31,10 @@ import (
 	"time"
 
 	"github.com/fatih/color"
+	"github.com/samber/lo"
 	"github.com/urfave/cli"
 	"github.com/xlab/treeprint"
+	"golang.org/x/mod/modfile"
 )
 
 const (
@@ -53,6 +56,12 @@ func getGlobalLayoutLockPath(path string) string {
 
 // New 生成项目
 func New(c *cli.Context) error {
+	// 生成app
+	if c.String("app") != "" {
+		return newApp(c)
+	}
+
+	// 生成项目
 	return generate(c, c.String("remote"))
 }
 
@@ -62,18 +71,15 @@ func generate(c *cli.Context, remote string) error {
 		return errors.New("no project name like test-go found")
 	}
 
-	// fmt.Println("cmd name:", cmd)
-
 	dir := c.Args().First()
 
 	goDir := filepath.Join(path.Clean(dir))
 
-	files := make([]file, 0)
-
 	gitFileInfos := getFileInfosByGit(c, remote)
-	for _, f := range gitFileInfos {
-		files = append(files, *f)
-	}
+
+	files := lo.MapToSlice(gitFileInfos, func(key string, value *file) *file {
+		return value
+	})
 
 	cfg := config{
 		Name:   generateName(dir),
@@ -83,7 +89,7 @@ func generate(c *cli.Context, remote string) error {
 		Files:  files,
 		Comments: []string{
 			// "run to compile......",
-			fmt.Sprintf("Generate %s project success", remote),
+			fmt.Sprintf("Generate %s project success", dir),
 			"\ncd " + goDir,
 			"\nEnjoy coding~~",
 		},
@@ -124,7 +130,7 @@ type config struct {
 	// TemplatePath
 	TemplatePath string
 	// Files
-	Files []file
+	Files []*file
 
 	IsFront bool
 	// Comments
@@ -138,7 +144,7 @@ func create(c config) error {
 	// 	return fmt.Errorf("%s already exists", c.GoDir)
 	// }
 
-	fmt.Printf("Creating service with an app [exampleserver] in %s\n\n", c.GoDir)
+	fmt.Printf("Creating app in %s\n\n", c.GoDir)
 
 	t := treeprint.New()
 
@@ -185,7 +191,7 @@ func create(c config) error {
 			c.Remote, // +"/"+c.Type,
 			c.Dir)
 
-		if err := write(c, f, tpl); err != nil {
+		if err := write(f, tpl); err != nil {
 			return err
 		}
 	}
@@ -200,7 +206,7 @@ func create(c config) error {
 	return nil
 }
 
-func write(c config, file, tmpl string) error {
+func write(file, tmpl string) error {
 
 	f, err := os.Create(file)
 	if err != nil {
@@ -240,7 +246,7 @@ func getFileInfosByGit(c *cli.Context, gitPath string) (fileInfos map[string]*fi
 		if !info.IsDir() && !strings.Contains(strings.ReplaceAll(path, "\\", "/"), ".git/") {
 			bs, err := ioutil.ReadFile(path)
 			if err != nil {
-				fmt.Printf("[jupiter] Read file failed: fullPath=[%v] err=[%v]", path, err)
+				log.Printf("[jupiter] Read file failed: fullPath=[%v] err=[%v]", path, err)
 			}
 
 			fullPath := strings.ReplaceAll(path, getGlobalLayoutPath(gitPath), "")
@@ -437,4 +443,94 @@ func userSelectUpgrade() bool {
 			color.Red("you chose wrong please choose again")
 		}
 	}
+}
+
+func newApp(c *cli.Context) error {
+
+	gitFileInfos := getAppFileInfosByGit(c, c.String("remote"))
+
+	files := lo.MapToSlice(gitFileInfos, func(key string, value *file) *file {
+		return value
+	})
+
+	fs, err := os.ReadFile("go.mod")
+	if err != nil {
+		return err
+	}
+
+	mod, err := modfile.Parse("go.mod", fs, nil)
+	if err != nil {
+		return err
+	}
+
+	dir := mod.Module.Mod.Path
+
+	goDir := "."
+
+	cfg := config{
+		Name:   generateName(dir),
+		Remote: c.String("remote"),
+		Dir:    dir,
+		GoDir:  goDir,
+		Files:  files,
+		Comments: []string{
+			// "run to compile......",
+			fmt.Sprintf("Generate %s app success", c.String("app")),
+			"\nEnjoy coding~~",
+		},
+	}
+
+	if err := create(cfg); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// getFileInfosByGit 从git拉取最新的模板代码 并抽象成map[相对路径]文件流
+func getAppFileInfosByGit(c *cli.Context, gitPath string) (fileInfos map[string]*file) {
+	// 查看临时文件之中是否已经存在该文件夹
+	// os.Stat 获取文件信息
+	_, err := os.Stat(getGlobalLayoutPath(gitPath))
+	if os.IsNotExist(err) {
+		// 不存在，拉取对应的仓库
+		cloneGitRepo(gitPath, c.String("branch"))
+	} else if err != nil {
+		// 这里的错误，是说明出现了未知的错误，应该抛出
+		panic(err)
+	}
+
+	// 判断是否需要刷新模板信息
+	// 存在文件才检查更新
+	if err == nil && checkUpgrade(c, gitPath) {
+		pullGitRepo(gitPath)
+	}
+
+	fileInfos = make(map[string]*file)
+	// 获取模板的文件流
+	// io/fs为1.16新增标准库 低版本不支持
+	// os.FileInfo实现了和io/fs.FileInfo相同的接口 确保go低版本可以成功编译通过
+	err = filepath.Walk(getGlobalLayoutPath(gitPath), func(path string, info os.FileInfo, err error) error {
+		// 如果app存在，则说明是基于exampleserver创建一个app
+		if !info.IsDir() &&
+			!strings.Contains(strings.ReplaceAll(path, "\\", "/"), ".git/") &&
+			strings.Contains(path, "exampleserver") {
+			bs, err := ioutil.ReadFile(path)
+			if err != nil {
+				log.Printf("[jupiter] Read file failed: fullPath=[%v] err=[%v]", path, err)
+			}
+
+			fullPath := strings.ReplaceAll(path, getGlobalLayoutPath(gitPath), "")
+			fullPath = strings.ReplaceAll(fullPath, "exampleserver", c.String("app"))
+			fileInfos[fullPath] = &file{fullPath, []byte(strings.ReplaceAll(string(bs), "exampleserver", c.String("app")))}
+			return nil
+		}
+
+		return nil
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	return fileInfos
 }
