@@ -511,7 +511,7 @@ func getAppFileInfosByGit(c *cli.Context, gitPath string) (fileInfos map[string]
 	layoutPath := getGlobalLayoutPath(gitPath)
 	// 如果存在cmd/exampleserver，则直接取当前项目的exampleserve为模版
 	if _, err := os.Stat("cmd/exampleserver"); err == nil {
-		gitPath = "."
+		layoutPath = "."
 	}
 
 	// 获取模板的文件流
