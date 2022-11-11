@@ -45,7 +45,7 @@ jobs:
           go env
           go get -v -t -d ./...
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v3.3.0
+        uses: golangci/golangci-lint-action@v3.3.1
         with:
           version: v1.50.1
 
