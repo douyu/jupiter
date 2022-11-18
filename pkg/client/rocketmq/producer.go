@@ -129,6 +129,7 @@ func (pc *Producer) Close() error {
 }
 
 // Send rocketmq发送消息
+// Deprecated: use SendWithContext instead
 func (pc *Producer) Send(msg []byte) error {
 	m := primitive.NewMessage(pc.Topic, msg)
 	_, err := pc.SendSync(context.Background(), m)
@@ -151,6 +152,7 @@ func (pc *Producer) SendWithContext(ctx context.Context, msg []byte) error {
 }
 
 // SendWithTag rocket mq 发送消息,可以自定义选择 tag
+// Deprecated: use SendWithMsg instead
 func (pc *Producer) SendWithTag(msg []byte, tag string) error {
 	m := primitive.NewMessage(pc.Topic, msg)
 	if tag != "" {
@@ -166,6 +168,7 @@ func (pc *Producer) SendWithTag(msg []byte, tag string) error {
 }
 
 // SendWithResult rocket mq 发送消息,可以自定义选择 tag 及返回结果
+// Deprecated: use SendWithMsg instead
 func (pc *Producer) SendWithResult(msg []byte, tag string) (*primitive.SendResult, error) {
 	m := primitive.NewMessage(pc.Topic, msg)
 	if tag != "" {
@@ -181,6 +184,7 @@ func (pc *Producer) SendWithResult(msg []byte, tag string) (*primitive.SendResul
 }
 
 // SendMsg... 自定义消息格式
+// Deprecated: use SendWithMsg instead.
 func (pc *Producer) SendMsg(msg *primitive.Message) (*primitive.SendResult, error) {
 	msg.Topic = pc.Topic
 	res, err := pc.SendSync(context.Background(), msg)

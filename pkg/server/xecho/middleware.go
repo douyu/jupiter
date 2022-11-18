@@ -112,6 +112,9 @@ func traceServerInterceptor() echo.MiddlewareFunc {
 		return func(c echo.Context) (err error) {
 			ctx, span := tracer.Start(c.Request().Context(), c.Request().URL.Path, propagation.HeaderCarrier(c.Request().Header), trace.WithAttributes(attrs...))
 			span.SetAttributes(semconv.HTTPServerAttributesFromHTTPRequest(pkg.Name(), c.Request().URL.Path, c.Request())...)
+
+			ctx = xlog.NewContext(ctx, xlog.Default(), span.SpanContext().TraceID().String())
+
 			c.SetRequest(c.Request().WithContext(ctx))
 			defer span.End()
 			return next(c)

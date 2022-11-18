@@ -16,6 +16,7 @@ package rocketmq
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/apache/rocketmq-client-go/v2"
 	"github.com/apache/rocketmq-client-go/v2/consumer"
@@ -153,6 +154,7 @@ func (cc *PushConsumer) RegisterSingleMessage(f func(context.Context, *primitive
 		semconv.MessagingRocketmqClientIDKey.String(cc.InstanceName),
 		semconv.MessagingRocketmqConsumptionModelKey.String(cc.MessageModel),
 	}
+	fmt.Println("!!!!!", cc.EnableTrace)
 
 	fn := func(ctx context.Context, msgs ...*primitive.MessageExt) (consumer.ConsumeResult, error) {
 		for _, msg := range msgs {
@@ -173,6 +175,8 @@ func (cc *PushConsumer) RegisterSingleMessage(f func(context.Context, *primitive
 					semconv.MessagingRocketmqNamespaceKey.String(msg.Topic),
 					semconv.MessagingRocketmqMessageTagKey.String(msg.GetTags()),
 				)
+
+				ctx = xlog.NewContext(ctx, xlog.Default(), span.SpanContext().TraceID().String())
 
 				defer span.End()
 			}

@@ -59,8 +59,8 @@ func Test_log(t *testing.T) {
 
 func Test_trace(t *testing.T) {
 
-	log := xlog.Jupiter().With(xlog.String("traceid", "a:b:c:1"))
-	ctx := xlog.NewContext(context.TODO(), log)
+	log := xlog.Jupiter()
+	ctx := xlog.NewContext(context.TODO(), log, "a:b:c:1")
 
 	stdlog := xlog.FromContext(ctx)
 	stdlog.Debug("debug", xlog.Any("a", "b"))
