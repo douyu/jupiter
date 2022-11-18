@@ -56,7 +56,11 @@ func open(options *Config) (*gorm.DB, error) {
 		inner = inner.Debug()
 	}
 
-	registerInterceptor(inner, options, metricInterceptor(), traceInterceptor())
+	registerInterceptor(inner, options,
+		metricInterceptor(),
+		traceInterceptor(),
+		sentinelInterceptor(),
+	)
 
 	return inner, err
 }

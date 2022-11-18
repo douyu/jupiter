@@ -22,8 +22,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/alibaba/sentinel-golang/core/base"
 	"github.com/douyu/jupiter/pkg/core/ecode"
 	"github.com/douyu/jupiter/pkg/core/metric"
+	"github.com/douyu/jupiter/pkg/core/sentinel"
 	"github.com/douyu/jupiter/pkg/core/xtrace"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"go.opentelemetry.io/otel/attribute"
@@ -277,4 +279,21 @@ func getPeer(ctx context.Context) map[string]string {
 	}
 	return peerMeta
 
+}
+
+func NewSentinelUnaryServerInterceptor() grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+		entry, blockerr := sentinel.Entry(info.FullMethod,
+			sentinel.WithResourceType(base.ResTypeRPC),
+			sentinel.WithTrafficType(base.Inbound),
+		)
+		if blockerr != nil {
+			return nil, blockerr
+		}
+
+		resp, err := handler(ctx, req)
+		entry.Exit(sentinel.WithError(err))
+
+		return resp, err
+	}
 }

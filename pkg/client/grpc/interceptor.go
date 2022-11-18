@@ -21,9 +21,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/alibaba/sentinel-golang/api"
+	"github.com/alibaba/sentinel-golang/core/base"
 	"github.com/douyu/jupiter/pkg"
 	"github.com/douyu/jupiter/pkg/core/ecode"
 	"github.com/douyu/jupiter/pkg/core/metric"
+	"github.com/douyu/jupiter/pkg/core/sentinel"
 	"github.com/douyu/jupiter/pkg/core/xtrace"
 	"github.com/douyu/jupiter/pkg/util/xstring"
 	"github.com/douyu/jupiter/pkg/xlog"
@@ -74,6 +77,24 @@ func metricUnaryClientInterceptor(name string) func(ctx context.Context, method 
 // 		return clientStream, err
 // 	}
 // }
+
+func sentinelUnaryClientInterceptor(name string) grpc.UnaryClientInterceptor {
+	return func(ctx context.Context, method string, req, reply interface{},
+		cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+		entry, blockerr := sentinel.Entry(name,
+			api.WithResourceType(base.ResTypeRPC),
+			api.WithTrafficType(base.Outbound))
+		if blockerr != nil {
+			return blockerr
+		}
+
+		err := invoker(ctx, method, req, reply, cc, opts...)
+
+		entry.Exit(base.WithError(err))
+
+		return err
+	}
+}
 
 func debugUnaryClientInterceptor(addr string) grpc.UnaryClientInterceptor {
 	return func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {

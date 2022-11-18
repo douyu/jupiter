@@ -61,7 +61,11 @@ func (conf *ProducerConfig) Build() *Producer {
 		},
 	}
 
-	cc.interceptors = append(cc.interceptors, producerDefaultInterceptor(cc), producerMDInterceptor(cc))
+	cc.interceptors = append(cc.interceptors,
+		producerDefaultInterceptor(cc),
+		producerMDInterceptor(cc),
+		producerSentinelInterceptor(cc),
+	)
 
 	// 服务启动前先start
 	hooks.Register(hooks.Stage_BeforeRun, func() {

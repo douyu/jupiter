@@ -15,6 +15,7 @@
 package sentinel
 
 import (
+	"github.com/alibaba/sentinel-golang/api"
 	sentinel "github.com/alibaba/sentinel-golang/api"
 	"github.com/alibaba/sentinel-golang/core/base"
 	"github.com/douyu/jupiter/pkg/core/hooks"
@@ -35,7 +36,9 @@ var (
 	sentinelState = metric.NewGaugeVec("sentinel_state",
 		[]string{"resource", "language", "appName", "aid", "region", "zone", "iid", "mode"})
 
-	WithError = base.WithError
+	WithError        = base.WithError
+	WithResourceType = api.WithResourceType
+	WithTrafficType  = api.WithTrafficType
 )
 
 const (
