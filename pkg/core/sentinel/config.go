@@ -84,12 +84,12 @@ func DefaultConfig() Config {
 
 func (e Config) exitHandler(entry *SentinelEntry, ctx *EntryContext) error {
 	if ctx.Err() != nil {
-		sentinelExceptionsThrown.WithLabelValues(labels(entry.Resource().Name())...).Inc()
+		sentinelExceptionsThrown.WithLabelValues(labels(entry)...).Inc()
 	} else {
-		sentinelSuccess.WithLabelValues(labels(entry.Resource().Name())...).Inc()
+		sentinelSuccess.WithLabelValues(labels(entry)...).Inc()
 	}
 
-	sentinelRt.WithLabelValues(labels(entry.Resource().Name())...).Observe(float64(ctx.Rt()) / 1000)
+	sentinelRt.WithLabelValues(labels(entry)...).Observe(float64(ctx.Rt()) / 1000)
 
 	return ctx.Err()
 }
@@ -101,10 +101,10 @@ func (c Config) Entry(resource string, opts ...EntryOption) (*SentinelEntry, *Bl
 
 	a, b := sentinel.Entry(resource, opts...)
 
-	sentinelReqeust.WithLabelValues(labels(resource)...).Inc()
+	sentinelReqeust.WithLabelValues(labels(a)...).Inc()
 
 	if b != nil {
-		sentinelBlocked.WithLabelValues(labels(resource)...).Inc()
+		sentinelBlocked.WithLabelValues(labels(a)...).Inc()
 
 		return a, b
 	}

@@ -15,6 +15,7 @@
 package sentinel
 
 import (
+	"github.com/alibaba/sentinel-golang/core/base"
 	"github.com/alibaba/sentinel-golang/core/circuitbreaker"
 	"github.com/douyu/jupiter/pkg"
 	"github.com/douyu/jupiter/pkg/conf"
@@ -73,25 +74,32 @@ func convertCbRules(rules []*CircuitBreakerRule) []*circuitbreaker.Rule {
 	return cb
 }
 
-func labels(resource string) []string {
-	return []string{resource, language, pkg.Name(), pkg.AppID(),
-		pkg.AppRegion(), pkg.AppZone(), pkg.AppInstance(), conf.GetString("app.mode")}
+func labels(entry *base.SentinelEntry) []string {
+	return []string{entry.Resource().Name(), language, pkg.Name(), pkg.AppID(),
+		pkg.AppRegion(), pkg.AppZone(), pkg.AppInstance(), conf.GetString("app.mode"),
+		entry.Resource().FlowType().String(),
+	}
+}
+func stateLabels(resouce string) []string {
+	return []string{resouce, language, pkg.Name(), pkg.AppID(),
+		pkg.AppRegion(), pkg.AppZone(), pkg.AppInstance(), conf.GetString("app.mode"),
+	}
 }
 
 type stateChangeTestListener struct{}
 
 // OnTransformToClosed ...
 func (s *stateChangeTestListener) OnTransformToClosed(prev circuitbreaker.State, rule circuitbreaker.Rule) {
-	sentinelState.WithLabelValues(labels(rule.ResourceName())...).Set(float64(circuitbreaker.Closed))
+	sentinelState.WithLabelValues(stateLabels(rule.ResourceName())...).Set(float64(circuitbreaker.Closed))
 }
 
 // OnTransformToOpen ...
 func (s *stateChangeTestListener) OnTransformToOpen(
 	prev circuitbreaker.State, rule circuitbreaker.Rule, snapshot interface{}) {
-	sentinelState.WithLabelValues(labels(rule.ResourceName())...).Set(float64(circuitbreaker.Open))
+	sentinelState.WithLabelValues(stateLabels(rule.ResourceName())...).Set(float64(circuitbreaker.Open))
 }
 
 // OnTransformToHalfOpen ...
 func (s *stateChangeTestListener) OnTransformToHalfOpen(prev circuitbreaker.State, rule circuitbreaker.Rule) {
-	sentinelState.WithLabelValues(labels(rule.ResourceName())...).Set(float64(circuitbreaker.HalfOpen))
+	sentinelState.WithLabelValues(stateLabels(rule.ResourceName())...).Set(float64(circuitbreaker.HalfOpen))
 }
