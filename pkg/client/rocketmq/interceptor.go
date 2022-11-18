@@ -16,7 +16,6 @@ package rocketmq
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"time"
 
@@ -191,8 +190,6 @@ func producerDefaultInterceptor(producer *Producer) primitive.Interceptor {
 			ctx, span = tracer.Start(ctx, realReq.Topic, propagation.HeaderCarrier(md), trace.WithAttributes(attrs...))
 
 			defer span.End()
-
-			fmt.Println("~~~~~", span.SpanContext().TraceID().String())
 
 			for k, v := range md {
 				realReq.WithProperty(strings.ToLower(k), strings.Join(v, ","))
