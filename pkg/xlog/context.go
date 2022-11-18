@@ -23,12 +23,11 @@ const (
 )
 
 type (
-	loggerKey  struct{}
-	traceIDKey struct{}
+	loggerKey struct{}
 )
 
 func NewContext(ctx context.Context, l *Logger, traceID string) context.Context {
-	return context.WithValue(ctx, loggerKey{}, l.With(String("trace_id", traceID)))
+	return context.WithValue(ctx, loggerKey{}, l.With(String(traceIDField, traceID)))
 }
 
 func FromContext(ctx context.Context) *Logger {
