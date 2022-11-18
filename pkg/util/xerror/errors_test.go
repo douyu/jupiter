@@ -30,10 +30,7 @@ func TestErr(t *testing.T) {
 		assert.Equal(t, error.Error(), "xerror: ecode = 2 msg = test error")
 	})
 	t.Run("nil", func(t *testing.T) {
-		var err error
-		err = func() *Err {
-			return nil
-		}()
+		var err *Err
 		assert.Equal(t, err.Error(), "nil")
 	})
 	t.Run("New", func(t *testing.T) {
