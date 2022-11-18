@@ -49,11 +49,6 @@ func (conf *ConsumerConfig) Build() *PushConsumer {
 
 	xlog.Jupiter().Debug("rocketmq's config: ", xlog.String("name", name), xlog.Any("conf", conf))
 
-	var bucket *ratelimit.Bucket
-	if conf.Rate > 0 && conf.Capacity > 0 {
-		bucket = ratelimit.NewBucketWithRate(conf.Rate, conf.Capacity)
-	}
-
 	cc := &PushConsumer{
 		name:           name,
 		ConsumerConfig: *conf,
@@ -67,9 +62,12 @@ func (conf *ConsumerConfig) Build() *PushConsumer {
 			Group:        conf.Group,
 			GroupType:    "consumer",
 		},
-		bucket: bucket,
 	}
-	cc.interceptors = append(cc.interceptors, pushConsumerDefaultInterceptor(cc), pushConsumerMDInterceptor(cc))
+	cc.interceptors = append(cc.interceptors,
+		pushConsumerDefaultInterceptor(cc),
+		pushConsumerMDInterceptor(cc),
+		pushConsumerSentinelInterceptor(cc),
+	)
 
 	// 服务启动前先start
 	hooks.Register(hooks.Stage_BeforeRun, func() {

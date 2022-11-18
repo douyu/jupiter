@@ -40,6 +40,8 @@ type Config struct {
 	DisableTrace bool
 	// DisableMetric disable Metric Interceptor, false by default
 	DisableMetric bool
+	// DisableSentinel disable Sentinel Interceptor, false by default
+	DisableSentinel bool
 	// SlowQueryThresholdInMilli, request will be colored if cost over this threshold value
 	SlowQueryThresholdInMilli int64
 	// ServiceAddress service address in registry info, default to 'Host:Port'
@@ -151,6 +153,10 @@ func (config *Config) Build() (*Server, error) {
 	if !config.DisableMetric {
 		config.unaryInterceptors = append(config.unaryInterceptors, prometheusUnaryServerInterceptor)
 		config.streamInterceptors = append(config.streamInterceptors, prometheusStreamServerInterceptor)
+	}
+
+	if !config.DisableSentinel {
+		config.unaryInterceptors = append(config.unaryInterceptors, NewSentinelUnaryServerInterceptor())
 	}
 
 	return newServer(config)

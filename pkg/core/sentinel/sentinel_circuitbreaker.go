@@ -73,9 +73,10 @@ func convertCbRules(rules []*CircuitBreakerRule) []*circuitbreaker.Rule {
 	return cb
 }
 
-func labels(resource string) []string {
-	return []string{resource, language, pkg.Name(), pkg.AppID(),
-		pkg.AppRegion(), pkg.AppZone(), pkg.AppInstance(), conf.GetString("app.mode")}
+func labels(resouce string) []string {
+	return []string{resouce, language, pkg.Name(), pkg.AppID(),
+		pkg.AppRegion(), pkg.AppZone(), pkg.AppInstance(), conf.GetString("app.mode"),
+	}
 }
 
 type stateChangeTestListener struct{}

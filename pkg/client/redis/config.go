@@ -64,6 +64,8 @@ type Config struct {
 	EnableTraceInterceptor bool `json:"enableTrace" toml:"enableTrace"`
 	// EnableAccessLog .. default false
 	EnableAccessLogInterceptor bool `json:"enableAccessLog" toml:"enableAccessLog"`
+	// EnableSentinel .. default true
+	EnableSentinel bool `json:"enableSentinel" toml:"enableSentinel"`
 	// OnDialError panic|error
 	OnDialError string `json:"level"`
 	logger      *zap.Logger
@@ -85,6 +87,7 @@ func DefaultConfig() *Config {
 		Debug:                   false,
 		EnableMetricInterceptor: true,
 		EnableTraceInterceptor:  true,
+		EnableSentinel:          true,
 		SlowLogThreshold:        cast.ToDuration("250ms"),
 		logger:                  xlog.Jupiter().Named(ecode.ModClientRedis),
 		OnDialError:             "panic",

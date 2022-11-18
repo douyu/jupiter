@@ -28,12 +28,13 @@ import (
 
 //Config HTTP config
 type Config struct {
-	Host          string
-	Port          int
-	Deployment    string
-	Debug         bool
-	DisableMetric bool
-	DisableTrace  bool
+	Host            string
+	Port            int
+	Deployment      string
+	Debug           bool
+	DisableMetric   bool
+	DisableTrace    bool
+	DisableSentinel bool
 	// ServiceAddress service address in registry info, default to 'Host:Port'
 	ServiceAddress string
 	CertFile       string
@@ -116,6 +117,11 @@ func (config *Config) Build() (*Server, error) {
 	if !config.DisableTrace {
 		server.Use(traceServerInterceptor())
 	}
+
+	if !config.DisableSentinel {
+		server.Use(sentinelServerInterceptor())
+	}
+
 	return server, nil
 }
 

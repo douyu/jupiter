@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/alibaba/sentinel-golang/core/base"
 	"github.com/fatih/color"
 	"github.com/go-redis/redis/v8"
 	"github.com/spf13/cast"
@@ -16,6 +17,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 
 	prome "github.com/douyu/jupiter/pkg/core/metric"
+	"github.com/douyu/jupiter/pkg/core/sentinel"
 	"github.com/douyu/jupiter/pkg/core/xtrace"
 	"github.com/douyu/jupiter/pkg/util/xstring"
 	"github.com/douyu/jupiter/pkg/xlog"
@@ -330,4 +332,52 @@ func getCmdsName(cmds []redis.Cmder) string {
 		}
 	}
 	return strings.Join(cmdName, "_")
+}
+
+func sentinelInterceptor(compName string, addr string, config *Config, logger *xlog.Logger) *interceptor {
+	return newInterceptor(compName, config, logger).
+		setBeforeProcess(func(ctx context.Context, cmd redis.Cmder) (context.Context, error) {
+			entry, blockerr := sentinel.Entry(addr,
+				sentinel.WithResourceType(base.ResTypeCache),
+				sentinel.WithTrafficType(base.Outbound),
+			)
+			if blockerr != nil {
+				return ctx, blockerr
+			}
+
+			return sentinel.WithContext(ctx, entry), nil
+		}).
+		setAfterProcess(func(ctx context.Context, cmd redis.Cmder) error {
+			if entry := sentinel.FromContext(ctx); entry != nil {
+				entry.Exit(sentinel.WithError(cmd.Err()))
+			}
+
+			return nil
+		}).
+		setBeforeProcessPipeline(func(ctx context.Context, cmds []redis.Cmder) (context.Context, error) {
+			entry, blockerr := sentinel.Entry(addr,
+				sentinel.WithResourceType(base.ResTypeCache),
+				sentinel.WithTrafficType(base.Outbound),
+			)
+			if blockerr != nil {
+				return ctx, blockerr
+			}
+
+			return sentinel.WithContext(ctx, entry), nil
+		}).setAfterProcessPipeline(func(ctx context.Context, cmds []redis.Cmder) error {
+		if entry := sentinel.FromContext(ctx); entry != nil {
+			var err error
+			for _, cmd := range cmds {
+				if cmd.Err() != nil {
+					err = cmd.Err()
+
+					break
+				}
+			}
+
+			entry.Exit(sentinel.WithError(err))
+		}
+
+		return nil
+	})
 }

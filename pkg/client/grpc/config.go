@@ -43,13 +43,14 @@ type Config struct {
 
 	SlowThreshold time.Duration
 
-	Debug                     bool
-	DisableTraceInterceptor   bool
-	DisableAidInterceptor     bool
-	DisableTimeoutInterceptor bool
-	DisableMetricInterceptor  bool
-	DisableAccessInterceptor  bool
-	AccessInterceptorLevel    string
+	Debug                      bool
+	DisableSentinelInterceptor bool
+	DisableTraceInterceptor    bool
+	DisableAidInterceptor      bool
+	DisableTimeoutInterceptor  bool
+	DisableMetricInterceptor   bool
+	DisableAccessInterceptor   bool
+	AccessInterceptorLevel     string
 }
 
 // DefaultConfig ...
@@ -138,6 +139,12 @@ func (config *Config) Build() *grpc.ClientConn {
 	if !config.DisableMetricInterceptor {
 		config.dialOptions = append(config.dialOptions,
 			grpc.WithChainUnaryInterceptor(metricUnaryClientInterceptor(config.Name)),
+		)
+	}
+
+	if !config.DisableSentinelInterceptor {
+		config.dialOptions = append(config.dialOptions,
+			grpc.WithChainUnaryInterceptor(sentinelUnaryClientInterceptor(config.Addr)),
 		)
 	}
 

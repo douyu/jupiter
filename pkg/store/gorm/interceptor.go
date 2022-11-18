@@ -18,7 +18,9 @@ import (
 	"errors"
 	"time"
 
+	"github.com/alibaba/sentinel-golang/core/base"
 	prome "github.com/douyu/jupiter/pkg/core/metric"
+	"github.com/douyu/jupiter/pkg/core/sentinel"
 	"github.com/douyu/jupiter/pkg/core/xtrace"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"go.opentelemetry.io/otel/attribute"
@@ -107,6 +109,26 @@ func traceInterceptor() Interceptor {
 
 			next(scope)
 
+		}
+	}
+}
+
+func sentinelInterceptor() Interceptor {
+	return func(dsn *DSN, op string, options *Config, next Handler) Handler {
+		return func(scope *gorm.DB) {
+			entry, blockerr := sentinel.Entry(dsn.Addr,
+				sentinel.WithResourceType(base.ResTypeDBSQL),
+				sentinel.WithTrafficType(base.Outbound),
+			)
+			if blockerr != nil {
+				_ = scope.AddError(blockerr)
+
+				return
+			}
+
+			next(scope)
+
+			entry.Exit(sentinel.WithError(scope.Error))
 		}
 	}
 }
