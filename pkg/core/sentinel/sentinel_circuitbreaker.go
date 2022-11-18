@@ -80,6 +80,7 @@ func labels(entry *base.SentinelEntry) []string {
 		entry.Resource().FlowType().String(),
 	}
 }
+
 func stateLabels(resouce string) []string {
 	return []string{resouce, language, pkg.Name(), pkg.AppID(),
 		pkg.AppRegion(), pkg.AppZone(), pkg.AppInstance(), conf.GetString("app.mode"),
