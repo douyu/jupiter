@@ -174,6 +174,8 @@ func (cc *PushConsumer) RegisterSingleMessage(f func(context.Context, *primitive
 					semconv.MessagingRocketmqMessageTagKey.String(msg.GetTags()),
 				)
 
+				ctx = xlog.NewContext(ctx, xlog.Default(), span.SpanContext().TraceID().String())
+
 				defer span.End()
 			}
 

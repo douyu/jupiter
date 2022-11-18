@@ -88,12 +88,14 @@ func DefaultConfig() *Config {
 	return &Config{
 		Addresses: make([]string, 0),
 		Producer: &ProducerConfig{
-			Retry: 3,
+			Retry:       3,
+			EnableTrace: true,
 		},
 		Consumer: &ConsumerConfig{
 			Reconsume:       3,
 			WaitMaxDuration: 60 * time.Second,
 			MessageModel:    "Clustering",
+			EnableTrace:     true,
 		},
 	}
 }
@@ -106,6 +108,7 @@ func DefaultConsumerConfig() *ConsumerConfig {
 		Reconsume:       3,
 		WaitMaxDuration: 60 * time.Second,
 		MessageModel:    "Clustering",
+		EnableTrace:     true,
 	}
 }
 
@@ -115,6 +118,7 @@ func DefaultProducerConfig() *ProducerConfig {
 		Retry:       3,
 		DialTimeout: time.Second * 3,
 		RwTimeout:   0,
+		EnableTrace: true,
 	}
 }
 

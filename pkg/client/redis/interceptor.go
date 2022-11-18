@@ -195,10 +195,6 @@ func accessInterceptor(compName string, addr string, config *Config, logger *xlo
 				xlog.Any("req", cmd.Args()),
 				xlog.FieldCost(cost))
 
-			// 记录链路id
-			if traceId := xlog.GetTraceID(ctx); len(traceId) > 0 {
-				fields = append(fields, xlog.String("trace_id", traceId))
-			}
 			// error
 			if err != nil {
 				fields = append(fields, xlog.FieldErr(err))
@@ -225,11 +221,6 @@ func accessInterceptor(compName string, addr string, config *Config, logger *xlo
 				xlog.FieldMethod(cmd.Name()),
 				xlog.Any("req", cmd.Args()),
 				xlog.FieldCost(cost))
-
-			// 记录链路id
-			if traceId := xlog.GetTraceID(ctx); len(traceId) > 0 {
-				fields = append(fields, xlog.String("trace_id", traceId))
-			}
 
 			// error
 			if err != nil {

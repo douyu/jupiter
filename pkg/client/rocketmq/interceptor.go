@@ -171,6 +171,8 @@ func producerDefaultInterceptor(producer *Producer) primitive.Interceptor {
 	tracer := xtrace.NewTracer(trace.SpanKindProducer)
 	attrs := []attribute.KeyValue{
 		semconv.MessagingSystemKey.String("rocketmq"),
+		semconv.MessagingRocketmqClientGroupKey.String(producer.Group),
+		semconv.MessagingRocketmqClientIDKey.String(producer.InstanceName),
 	}
 
 	return func(ctx context.Context, req, reply interface{}, next primitive.Invoker) error {
