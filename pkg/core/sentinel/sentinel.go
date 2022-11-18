@@ -24,15 +24,15 @@ import (
 
 var (
 	sentinelReqeust = metric.NewCounterVec("sentinel_request",
-		[]string{"resource", "language", "appName", "aid", "region", "zone", "iid", "mode", "trafficType"})
+		[]string{"resource", "language", "appName", "aid", "region", "zone", "iid", "mode"})
 	sentinelSuccess = metric.NewCounterVec("sentinel_success",
-		[]string{"resource", "language", "appName", "aid", "region", "zone", "iid", "mode", "trafficType"})
+		[]string{"resource", "language", "appName", "aid", "region", "zone", "iid", "mode"})
 	sentinelExceptionsThrown = metric.NewCounterVec("sentinel_exceptions_thrown",
-		[]string{"resource", "language", "appName", "aid", "region", "zone", "iid", "mode", "trafficType"})
+		[]string{"resource", "language", "appName", "aid", "region", "zone", "iid", "mode"})
 	sentinelBlocked = metric.NewCounterVec("sentinel_blocked",
-		[]string{"resource", "language", "appName", "aid", "region", "zone", "iid", "mode", "trafficType"})
+		[]string{"resource", "language", "appName", "aid", "region", "zone", "iid", "mode"})
 	sentinelRt = metric.NewHistogramVec("sentinel_rt",
-		[]string{"resource", "language", "appName", "aid", "region", "zone", "iid", "mode", "trafficType"})
+		[]string{"resource", "language", "appName", "aid", "region", "zone", "iid", "mode"})
 	sentinelState = metric.NewGaugeVec("sentinel_state",
 		[]string{"resource", "language", "appName", "aid", "region", "zone", "iid", "mode"})
 
