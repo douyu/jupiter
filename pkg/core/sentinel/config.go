@@ -30,6 +30,7 @@ import (
 	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/core/constant"
 	"github.com/douyu/jupiter/pkg/xlog"
+	clientv3 "go.etcd.io/etcd/client/v3"
 	"go.uber.org/zap"
 )
 
@@ -149,28 +150,26 @@ func (c Config) loadRules() {
 
 	switch c.Datasource {
 	case SENTINEL_DATASOURCE_ETCD:
-		circuitbreakerHandler := datasource.NewCircuitBreakerRulesHandler(circuitBreakerRuleJsonArrayParser)
 
 		cli, err := etcdv3.RawConfig(c.EtcdRawKey).Singleton()
 		if err != nil {
 			panic(err)
 		}
 
-		ds, err := newDataSource(cli.Client,
-			fmt.Sprintf(c.CbKey, pkg.Name(), pkg.AppZone(), conf.GetString("app.mode")),
-			circuitbreakerHandler,
-			datasource.NewSystemRulesHandler(datasource.SystemRuleJsonArrayParser),
-			datasource.NewFlowRulesHandler(datasource.FlowRuleJsonArrayParser))
-		if err != nil {
-			xlog.Jupiter().Error("sentinel NewDataSource failed", xlog.FieldErr(err))
-			return
-		}
-
-		err = ds.Initialize()
+		err = initRules(cli.Client, c.CbKey, datasource.NewCircuitBreakerRulesHandler(circuitBreakerRuleJsonArrayParser))
 		if err != nil {
 			xlog.Jupiter().Warn("sentinel etcd Initialize failed", xlog.FieldErr(err))
 		}
 
+		err = initRules(cli.Client, c.SystemKey, datasource.NewSystemRulesHandler(datasource.SystemRuleJsonArrayParser))
+		if err != nil {
+			xlog.Jupiter().Warn("sentinel etcd Initialize failed", xlog.FieldErr(err))
+		}
+
+		err = initRules(cli.Client, c.FlowKey, datasource.NewFlowRulesHandler(datasource.FlowRuleJsonArrayParser))
+		if err != nil {
+			xlog.Jupiter().Warn("sentinel etcd Initialize failed", xlog.FieldErr(err))
+		}
 	default:
 
 		var err error
@@ -197,6 +196,17 @@ func checkSrcComplianceJson(src []byte) (bool, error) {
 		return false, nil
 	}
 	return true, nil
+}
+
+func initRules(client *clientv3.Client, key string, h datasource.PropertyHandler) error {
+	datasource, err := newDataSource(client,
+		fmt.Sprintf(key, pkg.Name(), pkg.AppZone(), conf.GetString("app.mode")),
+		h)
+	if err != nil {
+		return err
+	}
+
+	return datasource.Initialize()
 }
 
 func circuitBreakerRuleJsonArrayParser(src []byte) (interface{}, error) {

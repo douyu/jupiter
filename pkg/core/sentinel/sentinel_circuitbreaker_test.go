@@ -288,7 +288,7 @@ var _ = ginkgo.Describe("sentinel unit test with config", func() {
 
 			_, err = cli.Put(context.Background(),
 				"/wsd-sentinel/go/sentinel.test/unknown/local-live/degrade",
-				`[{"enable":true,"resource":"test-watch","strategy":2,"retryTimeoutMs":5000,"minRequestAmount":2,"maxAllowedRtMs":100,"statIntervalMs":1000,"statSlidingWindowBucketCount":5,"threshold":0.5}]`)
+				`[{"enable":true,"resource":"test-watch","strategy":2,"retryTimeoutMs":5000,"minRequestAmount":5,"maxAllowedRtMs":100,"statIntervalMs":1000,"statSlidingWindowBucketCount":5,"threshold":0.5}]`)
 			Expect(err).Should(BeNil())
 
 			time.Sleep(100 * time.Millisecond) //watch操作里每隔一秒拉取一次etcd
@@ -315,7 +315,7 @@ var _ = ginkgo.Describe("sentinel unit test with config", func() {
 				}
 			}
 
-			Expect(count).Should(BeEquivalentTo(10))
+			Expect(count).Should(BeEquivalentTo(5))
 		})
 	})
 })
