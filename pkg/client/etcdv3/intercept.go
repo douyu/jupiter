@@ -73,16 +73,14 @@ func traceStreamClientInterceptor() grpc.StreamClientInterceptor {
 
 		clientStream, err := streamer(ctx, desc, cc, method, opts...)
 
+		span.SetStatus(codes.Ok, "ok")
+
 		if err != nil {
-			span.SetStatus(codes.Ok, "ok")
-
-			if err != nil {
-				span.RecordError(err)
-				span.SetStatus(codes.Error, err.Error())
-			}
-
-			span.End()
+			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
 		}
+
+		span.End()
 
 		return clientStream, nil
 	}
