@@ -189,7 +189,9 @@ func (cc *PushConsumer) RegisterSingleMessage(f func(context.Context, *primitive
 			err := f(ctx, msg)
 			if err != nil {
 				xlog.Jupiter().Error("consumer message", zap.Error(err), zap.String("field", cc.name), zap.Any("ext", msg))
-				span.RecordError(err)
+				if cc.EnableTrace && span != nil {
+					span.RecordError(err)
+				}
 				return consumer.ConsumeRetryLater, err
 			}
 		}
