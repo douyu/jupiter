@@ -40,7 +40,6 @@ func RunHTTPTestCase(htc HTTPTestCase) {
 	expect := httpexpect.New(ginkgoT, htc.Host)
 
 	req := &httpexpect.Request{}
-	req.WithTimeout(time.Second)
 
 	switch htc.Method {
 	case http.MethodGet:
@@ -64,6 +63,8 @@ func RunHTTPTestCase(htc HTTPTestCase) {
 	if len(htc.Body) > 0 {
 		req.WithText(htc.Body)
 	}
+
+	req.WithTimeout(time.Second)
 
 	resp := req.Expect()
 
