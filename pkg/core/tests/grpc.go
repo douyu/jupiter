@@ -61,7 +61,7 @@ func RunGRPCTestCase(gtc GRPCTestCase) {
 	expectReplyData, err := proto.Marshal(gtc.ExpectReply.(proto.Message))
 	assert.Nil(ginkgoT, err)
 
-	assert.Equal(ginkgoT, expectReplyData, replyData)
+	assert.Equal(ginkgoT, string(expectReplyData), string(replyData))
 
 	assert.Nil(ginkgoT, clientConn.Close())
 }
