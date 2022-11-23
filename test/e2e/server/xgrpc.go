@@ -42,7 +42,7 @@ var _ = ginkgo.Describe("[grpc] e2e test", func() {
 	})
 
 	ginkgo.AfterEach(func() {
-		server.Stop()
+		_ = server.Stop()
 	})
 
 	ginkgo.DescribeTable("xgrpc ", func(gtc tests.GRPCTestCase) {

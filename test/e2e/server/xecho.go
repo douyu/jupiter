@@ -40,7 +40,7 @@ var _ = ginkgo.Describe("[xecho] e2e test", func() {
 	})
 
 	ginkgo.AfterEach(func() {
-		server.Stop()
+		_ = server.Stop()
 	})
 
 	ginkgo.DescribeTable("xecho ", func(htc tests.HTTPTestCase) {
