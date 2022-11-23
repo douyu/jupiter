@@ -46,9 +46,10 @@ var _ = ginkgo.Describe("[xecho] e2e test", func() {
 	ginkgo.DescribeTable("xecho ", func(htc tests.HTTPTestCase) {
 		tests.RunHTTPTestCase(htc)
 	}, ginkgo.Entry("normal case", tests.HTTPTestCase{
-		Host:       "http://localhost:9091",
-		Method:     "GET",
-		Path:       "/",
-		ExpectBody: "hello",
+		Host:         "http://localhost:9091",
+		Method:       "GET",
+		Path:         "/",
+		ExpectStatus: http.StatusOK,
+		ExpectBody:   "hello",
 	}))
 })

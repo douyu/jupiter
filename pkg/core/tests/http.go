@@ -15,66 +15,49 @@
 package tests
 
 import (
-	"net/http"
+	"context"
 	"time"
 
-	"github.com/gavv/httpexpect/v2"
+	"github.com/go-resty/resty/v2"
 	"github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
 )
 
 type HTTPTestCase struct {
-	Host              string
-	Method            string
-	Path              string
-	Body              string
-	Header            map[string]string
-	Query             string
-	ExpectStatusRange httpexpect.StatusRange
-	ExpectBody        string
+	Host         string
+	Method       string
+	Path         string
+	Body         string
+	Timeout      time.Duration
+	Header       map[string]string
+	Query        string
+	ExpectStatus int
+	ExpectBody   string
 }
 
 // RunHTTPTestCase runs a test case against the given handler.
 func RunHTTPTestCase(htc HTTPTestCase) {
 	ginkgoT := ginkgo.GinkgoT()
-	expect := httpexpect.New(ginkgoT, htc.Host)
 
-	req := &httpexpect.Request{}
-
-	switch htc.Method {
-	case http.MethodGet:
-		req = expect.GET(htc.Path)
-	case http.MethodPost:
-		req = expect.POST(htc.Path)
-	case http.MethodPut:
-		req = expect.PUT(htc.Path)
-	case http.MethodDelete:
-		req = expect.DELETE(htc.Path)
-	case http.MethodOptions:
-		req = expect.OPTIONS(htc.Path)
+	if htc.Timeout == 0 {
+		htc.Timeout = time.Second
 	}
 
-	assert.NotNil(ginkgoT, req)
+	ctx, cancel := context.WithTimeout(context.Background(), htc.Timeout)
+	defer cancel()
 
-	if len(htc.Query) > 0 {
-		req.WithQueryString(htc.Query)
+	req := resty.New().R()
+	req.SetQueryString(htc.Query)
+	req.SetBody(htc.Body)
+	req.SetContext(ctx)
+
+	res, err := req.Execute(htc.Method, htc.Host+htc.Path)
+
+	assert.Nil(ginkgoT, err)
+
+	if htc.ExpectStatus > 0 {
+		assert.Equal(ginkgoT, htc.ExpectStatus, res.StatusCode())
 	}
 
-	if len(htc.Body) > 0 {
-		req.WithText(htc.Body)
-	}
-
-	req.WithTimeout(time.Second)
-
-	resp := req.Expect()
-
-	if htc.ExpectStatusRange > 0 {
-		resp.StatusRange(htc.ExpectStatusRange)
-	}
-
-	if len(htc.ExpectBody) == 0 {
-		resp.Body().Empty()
-	} else {
-		resp.Body().Contains(htc.ExpectBody)
-	}
+	assert.Equal(ginkgoT, htc.ExpectBody, res.String())
 }
