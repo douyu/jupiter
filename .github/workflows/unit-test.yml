@@ -1,4 +1,4 @@
-name: Go
+name: unit-test
 
 on:
   push:
@@ -16,7 +16,7 @@ jobs:
   lint-and-build:
     name: Build
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         go: ["1.18.x", "1.19.x"]
         os: [ubuntu-latest, macos-latest, windows-latest]
@@ -89,7 +89,7 @@ jobs:
 
       - name: Test
         run: |
-          go test -cover -race -coverprofile=coverage.txt -covermode=atomic -coverpkg=github.com/douyu/jupiter/... ./...
+          make unit-test
 
       - name: Codecov
         uses: codecov/codecov-action@v3
