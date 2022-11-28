@@ -61,17 +61,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: docker-compose
+        run: docker-compose -f test/docker-compose.yaml up -d
+
       - name: Set up Go ${{ matrix.go }}
         uses: actions/setup-go@v3
         with:
           go-version: ${{ matrix.go }}
         id: go
 
+      - name: Install ginkgo
+        run: |
+          go install github.com/onsi/ginkgo/v2/ginkgo@latest
+          sudo cp ~/go/bin/ginkgo /usr/local/bin
+
       - name: Check out code into the Go module directory
         uses: actions/checkout@v3.1.0
-
-      - name: docker-compose
-        run: docker-compose -f test/docker-compose.yaml up -d
 
       - uses: actions/cache@v3
         with:
@@ -85,7 +90,7 @@ jobs:
       - name: Get dependencies
         run: |
           go env
-          go mod tidy
+          go mod tidy && git diff --exit-code go.mod go.sum
 
       - name: Test
         run: |

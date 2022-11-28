@@ -75,8 +75,8 @@ lintmd:
 
 e2e-test:
 	cd test/e2e \
-		&& ginkgo -cover -covermode=atomic -coverprofile=coverage.txt -r --randomize-all --randomize-suites --trace -coverpkg=github.com/douyu/jupiter/... .\
+		&& ginkgo -r -race -cover -covermode=atomic -coverprofile=coverage.txt -r --randomize-all --randomize-suites --trace -coverpkg=github.com/douyu/jupiter/... .\
 		&& cd -
 
 unit-test:
-	go test -v -cover -coverprofile=coverage.txt -covermode=atomic ./...
+	ginkgo -r -v -race --trace -coverprofile=coverage.txt -covermode=atomic -coverpkg=github.com/douyu/jupiter/... ./...

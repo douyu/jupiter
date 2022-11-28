@@ -51,7 +51,7 @@ jobs:
       - name: Get dependencies
         run: |
           go env
-          go mod tidy
+          go mod tidy && git diff --exit-code go.mod go.sum
 
       - name: E2E test
         run: |
