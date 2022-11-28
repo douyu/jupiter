@@ -34,6 +34,11 @@ jobs:
           go-version: ${{ matrix.go }}
         id: go
 
+      - name: Install ginkgo
+        run: |
+          go install github.com/onsi/ginkgo/v2/ginkgo@latest
+          sudo cp ~/go/bin/ginkgo /usr/local/bin
+
       - uses: actions/cache@v3
         with:
           path: |
@@ -46,7 +51,7 @@ jobs:
       - name: Get dependencies
         run: |
           go env
-          go get -v -t -d ./...
+          go mod tidy
 
       - name: E2E test
         run: |
