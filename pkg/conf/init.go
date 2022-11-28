@@ -51,6 +51,8 @@ func init() {
 			unmarshaler = yaml.Unmarshal
 		case "json":
 			unmarshaler = json.Unmarshal
+		default:
+			log.Fatalf("unsupported config type: %s", filepath.Ext(configAddr))
 		}
 
 		if err := LoadFromDataSource(datasource, unmarshaler); err != nil {

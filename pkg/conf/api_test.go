@@ -20,9 +20,9 @@ import (
 	"io"
 	"testing"
 
-	"github.com/pelletier/go-toml/v2"
+	"github.com/BurntSushi/toml"
 	"github.com/stretchr/testify/assert"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 func TestLoadFromReader(t *testing.T) {
@@ -90,6 +90,9 @@ server:
 			}
 			assert.Equal(t, GetInt("server.http.addr.port"), 8080)
 			assert.Equal(t, GetString("server.http.addr.addr"), "localhost")
+			Reset()
+			assert.Equal(t, GetInt("server.http.addr.port"), 0)
+			assert.Equal(t, GetString("server.http.addr.addr"), "")
 		})
 	}
 }
