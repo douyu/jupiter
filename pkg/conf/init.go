@@ -15,11 +15,14 @@
 package conf
 
 import (
+	"encoding/json"
 	"log"
+	"path/filepath"
 
 	"github.com/BurntSushi/toml"
 	"github.com/douyu/jupiter/pkg/core/hooks"
 	"github.com/douyu/jupiter/pkg/flag"
+	"gopkg.in/yaml.v3"
 )
 
 const DefaultEnvPrefix = "APP_"
@@ -39,7 +42,18 @@ func init() {
 		if err != nil {
 			log.Fatalf("build datasource[%s] failed: %v", configAddr, err)
 		}
-		if err := LoadFromDataSource(datasource, toml.Unmarshal); err != nil {
+
+		unmarshaler := toml.Unmarshal
+		switch filepath.Ext(configAddr) {
+		case "toml":
+			// default config type
+		case "yaml", "yml":
+			unmarshaler = yaml.Unmarshal
+		case "json":
+			unmarshaler = json.Unmarshal
+		}
+
+		if err := LoadFromDataSource(datasource, unmarshaler); err != nil {
 			log.Fatalf("load config from datasource[%s] failed: %v", configAddr, err)
 		}
 		log.Printf("load config from datasource[%s] completely!", configAddr)
