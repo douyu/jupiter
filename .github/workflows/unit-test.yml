@@ -13,13 +13,13 @@ on:
       - "master"
 
 jobs:
-  lint-and-build:
-    name: Build
+  lint:
+    name: Lint
     strategy:
       fail-fast: true
       matrix:
         go: ["1.18.x", "1.19.x"]
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
 
     steps:
