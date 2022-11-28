@@ -89,7 +89,7 @@ jobs:
 
       - name: Test
         run: |
-          go test -race -coverprofile=coverage.txt -covermode=atomic ./...
+          go test -cover -race -coverprofile=coverage.txt -covermode=atomic -coverpkg=github.com/douyu/jupiter/... ./...
 
       - name: Codecov
         uses: codecov/codecov-action@v3
