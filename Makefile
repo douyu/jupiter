@@ -72,3 +72,11 @@ lintl:
 
 lintmd:
 	markdownlint -c .github/markdown_lint_config.json website/docs README.md pkg
+
+e2e-test:
+	cd test/e2e \
+		&& ginkgo -r -race -cover -covermode=atomic -coverprofile=coverage.txt -r --randomize-all --randomize-suites --trace -coverpkg=github.com/douyu/jupiter/... .\
+		&& cd -
+
+unit-test:
+	go test -race -coverprofile=coverage.txt -covermode=atomic ./...

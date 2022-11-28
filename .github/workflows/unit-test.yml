@@ -1,4 +1,4 @@
-name: Go
+name: unit-test
 
 on:
   push:
@@ -13,13 +13,13 @@ on:
       - "master"
 
 jobs:
-  lint-and-build:
-    name: Build
+  lint:
+    name: Lint
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         go: ["1.18.x", "1.19.x"]
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -40,33 +40,26 @@ jobs:
           key: ${{ runner.os }}-go-${{ matrix.go-version }}-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-${{ matrix.go-version }}-
+
       - name: Get dependencies
         run: |
           go env
-          go get -v -t -d ./...
+          go mod tidy && git diff --exit-code go.mod go.sum
+
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3.3.1
         with:
           version: v1.50.1
 
-      - name: Build
-        run: go build -v .
-
   test:
     name: Test on ubuntu
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         go: ["1.18.x", "1.19.x"]
     runs-on: ubuntu-latest
 
     steps:
-      - name: Set up Go ${{ matrix.go }}
-        uses: actions/setup-go@v3
-        with:
-          go-version: ${{ matrix.go }}
-        id: go
-
       - name: Check out code into the Go module directory
         uses: actions/checkout@v3.1.0
 
@@ -82,14 +75,25 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-${{ matrix.go-version }}-
 
+      - name: Set up Go ${{ matrix.go }}
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.go }}
+        id: go
+
+      - name: Install ginkgo
+        run: |
+          go install github.com/onsi/ginkgo/v2/ginkgo@latest
+          sudo cp ~/go/bin/ginkgo /usr/local/bin
+
       - name: Get dependencies
         run: |
           go env
-          go get -v -t -d ./...
+          go mod tidy && git diff --exit-code go.mod go.sum
 
       - name: Test
         run: |
-          go test -race -coverprofile=coverage.txt -covermode=atomic ./...
+          make unit-test
 
       - name: Codecov
         uses: codecov/codecov-action@v3

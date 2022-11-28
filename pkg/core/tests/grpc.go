@@ -23,6 +23,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -32,8 +33,9 @@ type GRPCTestCase struct {
 	Method  string
 	Args    interface{}
 
-	ExpectError error
-	ExpectReply interface{}
+	ExpectError    error
+	ExpectMetadata metadata.MD
+	ExpectReply    interface{}
 }
 
 // RunGRPCTestCase runs a test case against the given handler.
@@ -52,7 +54,11 @@ func RunGRPCTestCase(gtc GRPCTestCase) {
 	assert.Nil(ginkgoT, err)
 
 	reply := reflect.New(reflect.TypeOf(gtc.ExpectReply).Elem())
-	err = clientConn.Invoke(ctx, gtc.Method, gtc.Args, reply.Interface())
+
+	metadata := metadata.New(nil)
+
+	err = clientConn.Invoke(ctx, gtc.Method, gtc.Args, reply.Interface(),
+		grpc.Header(&metadata))
 	assert.Equal(ginkgoT, gtc.ExpectError, err)
 
 	replyData, err := proto.Marshal(reply.Interface().(proto.Message))
@@ -60,6 +66,10 @@ func RunGRPCTestCase(gtc GRPCTestCase) {
 
 	expectReplyData, err := proto.Marshal(gtc.ExpectReply.(proto.Message))
 	assert.Nil(ginkgoT, err)
+
+	if gtc.ExpectMetadata != nil {
+		assert.EqualValues(ginkgoT, gtc.ExpectMetadata, metadata)
+	}
 
 	assert.Equal(ginkgoT, string(expectReplyData), string(replyData))
 

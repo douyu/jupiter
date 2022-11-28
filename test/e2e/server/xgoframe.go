@@ -19,18 +19,18 @@ import (
 	"time"
 
 	"github.com/douyu/jupiter/pkg/core/tests"
-	"github.com/douyu/jupiter/pkg/server/xecho"
-	"github.com/labstack/echo/v4"
+	"github.com/douyu/jupiter/pkg/server/xgoframe"
+	"github.com/gogf/gf/net/ghttp"
 	"github.com/onsi/ginkgo/v2"
 )
 
-var _ = ginkgo.Describe("[xecho] e2e test", func() {
-	var server *xecho.Server
+var _ = ginkgo.Describe("[xgoframe] e2e test", func() {
+	var server *xgoframe.Server
 
 	ginkgo.BeforeEach(func() {
-		server = xecho.DefaultConfig().MustBuild()
-		server.GET("/", func(c echo.Context) error {
-			return c.String(http.StatusOK, "hello")
+		server = xgoframe.DefaultConfig().Build()
+		server.BindHandler("/test", func(r *ghttp.Request) {
+			r.Response.Writeln("hello")
 		})
 		go func() {
 			err := server.Serve()
@@ -45,12 +45,12 @@ var _ = ginkgo.Describe("[xecho] e2e test", func() {
 		_ = server.Stop()
 	})
 
-	ginkgo.DescribeTable("xecho ", func(htc tests.HTTPTestCase) {
+	ginkgo.DescribeTable("xgoframe", func(htc tests.HTTPTestCase) {
 		tests.RunHTTPTestCase(htc)
 	}, ginkgo.Entry("normal case", tests.HTTPTestCase{
-		Host:         "http://localhost:9091",
+		Host:         "http://localhost:8099",
 		Method:       "GET",
-		Path:         "/",
+		Path:         "/test",
 		ExpectStatus: http.StatusOK,
 		ExpectBody:   "hello",
 	}))
