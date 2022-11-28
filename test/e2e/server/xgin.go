@@ -19,18 +19,18 @@ import (
 	"time"
 
 	"github.com/douyu/jupiter/pkg/core/tests"
-	"github.com/douyu/jupiter/pkg/server/xecho"
-	"github.com/labstack/echo/v4"
+	"github.com/douyu/jupiter/pkg/server/xgin"
+	"github.com/gin-gonic/gin"
 	"github.com/onsi/ginkgo/v2"
 )
 
-var _ = ginkgo.Describe("[xecho] e2e test", func() {
-	var server *xecho.Server
+var _ = ginkgo.Describe("[xgin] e2e test", func() {
+	var server *xgin.Server
 
 	ginkgo.BeforeEach(func() {
-		server = xecho.DefaultConfig().MustBuild()
-		server.GET("/", func(c echo.Context) error {
-			return c.String(http.StatusOK, "hello")
+		server = xgin.DefaultConfig().Build()
+		server.GET("/test", func(r *gin.Context) {
+			r.Writer.WriteString("hello")
 		})
 		go func() {
 			err := server.Serve()
@@ -45,12 +45,12 @@ var _ = ginkgo.Describe("[xecho] e2e test", func() {
 		_ = server.Stop()
 	})
 
-	ginkgo.DescribeTable("xecho ", func(htc tests.HTTPTestCase) {
+	ginkgo.DescribeTable("xgin", func(htc tests.HTTPTestCase) {
 		tests.RunHTTPTestCase(htc)
 	}, ginkgo.Entry("normal case", tests.HTTPTestCase{
 		Host:         "http://localhost:9091",
 		Method:       "GET",
-		Path:         "/",
+		Path:         "/test",
 		ExpectStatus: http.StatusOK,
 		ExpectBody:   "hello",
 	}))

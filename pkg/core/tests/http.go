@@ -16,6 +16,7 @@ package tests
 
 import (
 	"context"
+	"net/http"
 	"time"
 
 	"github.com/go-resty/resty/v2"
@@ -31,6 +32,7 @@ type HTTPTestCase struct {
 	Timeout      time.Duration
 	Header       map[string]string
 	Query        string
+	ExpectHeader http.Header
 	ExpectStatus int
 	ExpectBody   string
 }
@@ -53,10 +55,14 @@ func RunHTTPTestCase(htc HTTPTestCase) {
 
 	res, err := req.Execute(htc.Method, htc.Host+htc.Path)
 
-	assert.Nil(ginkgoT, err)
+	assert.Nil(ginkgoT, err, err)
 
 	if htc.ExpectStatus > 0 {
 		assert.Equal(ginkgoT, htc.ExpectStatus, res.StatusCode())
+	}
+
+	if len(htc.ExpectHeader) > 0 {
+		assert.EqualValues(ginkgoT, htc.ExpectHeader, res.Header())
 	}
 
 	assert.Equal(ginkgoT, htc.ExpectBody, res.String())

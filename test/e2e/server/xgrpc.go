@@ -15,16 +15,24 @@
 package server
 
 import (
+	"context"
+	"time"
+
 	"github.com/douyu/jupiter/pkg/core/tests"
 	"github.com/douyu/jupiter/pkg/server/xgrpc"
 	"github.com/douyu/jupiter/proto/testproto"
 	"github.com/onsi/ginkgo/v2"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
+	"google.golang.org/grpc/metadata"
 )
 
 type TestProjectImp struct {
 	testproto.UnimplementedGreeterServer
+}
+
+func (s *TestProjectImp) SayHello(ctx context.Context, req *testproto.HelloRequest) (*testproto.HelloReply, error) {
+	return &testproto.HelloReply{
+		Message: "hello",
+	}, nil
 }
 
 var _ = ginkgo.Describe("[grpc] e2e test", func() {
@@ -39,11 +47,25 @@ var _ = ginkgo.Describe("[grpc] e2e test", func() {
 				panic(err)
 			}
 		}()
+		time.Sleep(time.Second)
 	})
 
 	ginkgo.AfterEach(func() {
 		_ = server.Stop()
 	})
+
+	ginkgo.DescribeTable("xgrpc sayhello", func(gtc tests.GRPCTestCase) {
+		tests.RunGRPCTestCase(gtc)
+	}, ginkgo.Entry("normal case", tests.GRPCTestCase{
+		Addr:   "localhost:9092",
+		Method: "/testproto.Greeter/SayHello",
+		Args: &testproto.HelloRequest{
+			Name: "jupiter",
+		},
+		ExpectError:    nil,
+		ExpectMetadata: metadata.MD{"content-type": []string{"application/grpc"}},
+		ExpectReply:    &testproto.HelloReply{Message: "hello"},
+	}))
 
 	ginkgo.DescribeTable("xgrpc ", func(gtc tests.GRPCTestCase) {
 		tests.RunGRPCTestCase(gtc)
@@ -53,7 +75,8 @@ var _ = ginkgo.Describe("[grpc] e2e test", func() {
 		Args: &testproto.HelloRequest{
 			Name: "jupiter",
 		},
-		ExpectError: status.Errorf(codes.Unimplemented, "method SayHello not implemented"),
-		ExpectReply: (*testproto.HelloReply)(nil),
+		ExpectError:    nil,
+		ExpectMetadata: metadata.MD{"content-type": []string{"application/grpc"}},
+		ExpectReply:    &testproto.HelloReply{Message: "hello"},
 	}))
 })
