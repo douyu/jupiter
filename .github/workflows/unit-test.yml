@@ -40,17 +40,16 @@ jobs:
           key: ${{ runner.os }}-go-${{ matrix.go-version }}-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-${{ matrix.go-version }}-
+
       - name: Get dependencies
         run: |
           go env
-          go get -v -t -d ./...
+          go mod tidy && git diff --exit-code go.mod go.sum
+
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3.3.1
         with:
           version: v1.50.1
-
-      - name: Build
-        run: go build -v .
 
   test:
     name: Test on ubuntu
@@ -67,6 +66,15 @@ jobs:
       - name: docker-compose
         run: docker-compose -f test/docker-compose.yaml up -d
 
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: ${{ runner.os }}-go-${{ matrix.go-version }}-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-${{ matrix.go-version }}-
+
       - name: Set up Go ${{ matrix.go }}
         uses: actions/setup-go@v3
         with:
@@ -77,15 +85,6 @@ jobs:
         run: |
           go install github.com/onsi/ginkgo/v2/ginkgo@latest
           sudo cp ~/go/bin/ginkgo /usr/local/bin
-
-      - uses: actions/cache@v3
-        with:
-          path: |
-            ~/go/pkg/mod
-            ~/.cache/go-build
-          key: ${{ runner.os }}-go-${{ matrix.go-version }}-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-${{ matrix.go-version }}-
 
       - name: Get dependencies
         run: |
