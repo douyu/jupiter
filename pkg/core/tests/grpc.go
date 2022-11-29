@@ -31,11 +31,11 @@ type GRPCTestCase struct {
 	Addr    string
 	Timeout time.Duration
 	Method  string
-	Args    interface{}
+	Args    proto.Message
 
 	ExpectError    error
 	ExpectMetadata metadata.MD
-	ExpectReply    interface{}
+	ExpectReply    proto.Message
 }
 
 // RunGRPCTestCase runs a test case against the given handler.
@@ -54,24 +54,19 @@ func RunGRPCTestCase(gtc GRPCTestCase) {
 	assert.Nil(ginkgoT, err)
 
 	reply := reflect.New(reflect.TypeOf(gtc.ExpectReply).Elem())
-
 	metadata := metadata.New(nil)
 
 	err = clientConn.Invoke(ctx, gtc.Method, gtc.Args, reply.Interface(),
 		grpc.Header(&metadata))
 	assert.Equal(ginkgoT, gtc.ExpectError, err)
 
-	replyData, err := proto.Marshal(reply.Interface().(proto.Message))
-	assert.Nil(ginkgoT, err)
-
-	expectReplyData, err := proto.Marshal(gtc.ExpectReply.(proto.Message))
-	assert.Nil(ginkgoT, err)
+	assert.True(ginkgoT, proto.Equal(gtc.ExpectReply, reply.Interface().(proto.Message)),
+		"expected: %s\nactually: %s", gtc.ExpectReply, reply.Interface().(proto.Message))
 
 	if gtc.ExpectMetadata != nil {
-		assert.EqualValues(ginkgoT, gtc.ExpectMetadata, metadata)
+		assert.Equal(ginkgoT, gtc.ExpectMetadata, metadata,
+			"expected: %s\nactually: %s", gtc.ExpectMetadata, metadata)
 	}
-
-	assert.Equal(ginkgoT, string(expectReplyData), string(replyData))
 
 	assert.Nil(ginkgoT, clientConn.Close())
 }
