@@ -55,15 +55,18 @@ func RunHTTPTestCase(htc HTTPTestCase) {
 
 	res, err := req.Execute(htc.Method, htc.Host+htc.Path)
 
-	assert.Nil(ginkgoT, err, err)
+	assert.Nil(ginkgoT, err, "error: %s", err)
 
 	if htc.ExpectStatus > 0 {
-		assert.Equal(ginkgoT, htc.ExpectStatus, res.StatusCode())
+		assert.Equal(ginkgoT, htc.ExpectStatus, res.StatusCode(),
+			"expected: %s\nactually: %s", htc.ExpectStatus, res.StatusCode())
 	}
 
 	if len(htc.ExpectHeader) > 0 {
-		assert.EqualValues(ginkgoT, htc.ExpectHeader, res.Header())
+		assert.EqualValues(ginkgoT, htc.ExpectHeader, res.Header(),
+			"expected: %s\nactually: %s", htc.ExpectHeader, res.Header())
 	}
 
-	assert.Equal(ginkgoT, htc.ExpectBody, res.String())
+	assert.Equal(ginkgoT, htc.ExpectBody, res.String(),
+		"expected: %s\nactually: %s", htc.ExpectBody, res.String())
 }
