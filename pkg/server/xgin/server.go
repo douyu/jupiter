@@ -103,15 +103,5 @@ func (s *Server) Info() *server.ServiceInfo {
 }
 
 func (s *Server) Healthz() bool {
-	if s.listener == nil {
-		return false
-	}
-
-	conn, err := s.listener.Accept()
-	if err != nil {
-		return false
-	}
-
-	conn.Close()
 	return true
 }

@@ -28,6 +28,17 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+func Test_Server(t *testing.T) {
+	s := DefaultConfig().MustBuild()
+	go func() {
+		s.Serve()
+	}()
+	time.Sleep(time.Second)
+	assert.True(t, s.Healthz())
+	assert.NotNil(t, s.Info())
+	s.Stop()
+}
+
 func TestServer_Serve(t *testing.T) {
 	type fields struct {
 		Server   *grpc.Server
@@ -56,7 +67,7 @@ func TestServer_Serve(t *testing.T) {
 }
 
 func TestServer_Closed(t *testing.T) {
-	convey.Convey("test server stop", t, func() {
+	convey.Convey("test s stop", t, func() {
 		config := DefaultConfig()
 		config.Port = 0
 		ns, err := newServer(config)
@@ -65,14 +76,14 @@ func TestServer_Closed(t *testing.T) {
 		convey.So(err, convey.ShouldBeNil)
 		err = ns.Serve()
 		convey.So(err, convey.ShouldEqual, grpc.ErrServerStopped)
-		// server.Serve is responsible for closing the listener, even if the
-		// server was already stopped.
+		// s.Serve is responsible for closing the listener, even if the
+		// s was already stopped.
 		err = ns.listener.Close()
 		convey.So(errorDesc(err), convey.ShouldContainSubstring, "use of closed")
 	})
 }
 func TestServer_Stop(t *testing.T) {
-	convey.Convey("test server graceful stop", t, func(c convey.C) {
+	convey.Convey("test s graceful stop", t, func(c convey.C) {
 		ns, err := newServer(&Config{
 			Network:                   "tcp4",
 			Host:                      "127.0.0.1",
@@ -81,7 +92,7 @@ func TestServer_Stop(t *testing.T) {
 			DisableMetric:             false,
 			DisableTrace:              false,
 			SlowQueryThresholdInMilli: 500,
-			logger:                    xlog.Jupiter().With(xlog.FieldMod("server.grpc")),
+			logger:                    xlog.Jupiter().With(xlog.FieldMod("s.grpc")),
 			serverOptions:             []grpc.ServerOption{},
 			streamInterceptors:        []grpc.StreamServerInterceptor{},
 			unaryInterceptors:         []grpc.UnaryServerInterceptor{},
@@ -97,14 +108,14 @@ func TestServer_Stop(t *testing.T) {
 
 		err = ns.Serve()
 		convey.So(err, convey.ShouldBeNil)
-		// server.Serve is responsible for closing the listener, even if the
-		// server was already stopped.
+		// s.Serve is responsible for closing the listener, even if the
+		// s was already stopped.
 		err = ns.listener.Close()
 		convey.So(errorDesc(err), convey.ShouldContainSubstring, "use of closed")
 	})
 }
 func TestServer_GracefulStop(t *testing.T) {
-	convey.Convey("test server graceful stop", t, func(c convey.C) {
+	convey.Convey("test s graceful stop", t, func(c convey.C) {
 		ns, err := newServer(&Config{
 			Network:                   "tcp4",
 			Host:                      "127.0.0.1",
@@ -113,7 +124,7 @@ func TestServer_GracefulStop(t *testing.T) {
 			DisableMetric:             false,
 			DisableTrace:              false,
 			SlowQueryThresholdInMilli: 500,
-			logger:                    xlog.Jupiter().With(xlog.FieldMod("server.grpc")),
+			logger:                    xlog.Jupiter().With(xlog.FieldMod("s.grpc")),
 			serverOptions:             []grpc.ServerOption{},
 			streamInterceptors:        []grpc.StreamServerInterceptor{},
 			unaryInterceptors:         []grpc.UnaryServerInterceptor{},
@@ -129,15 +140,15 @@ func TestServer_GracefulStop(t *testing.T) {
 
 		err = ns.Serve()
 		convey.So(err, convey.ShouldBeNil)
-		// server.Serve is responsible for closing the listener, even if the
-		// server was already stopped.
+		// s.Serve is responsible for closing the listener, even if the
+		// s was already stopped.
 		err = ns.listener.Close()
 		convey.So(errorDesc(err), convey.ShouldContainSubstring, "use of closed")
 	})
 }
 
 func TestServer_Info(t *testing.T) {
-	convey.Convey("test server info", t, func(c convey.C) {
+	convey.Convey("test s info", t, func(c convey.C) {
 		ns, err := newServer(&Config{
 			Network:                   "tcp4",
 			Host:                      "127.0.0.1",
@@ -146,7 +157,7 @@ func TestServer_Info(t *testing.T) {
 			DisableMetric:             false,
 			DisableTrace:              false,
 			SlowQueryThresholdInMilli: 500,
-			logger:                    xlog.Jupiter().With(xlog.FieldMod("server.grpc")),
+			logger:                    xlog.Jupiter().With(xlog.FieldMod("s.grpc")),
 			serverOptions:             []grpc.ServerOption{},
 			streamInterceptors:        []grpc.StreamServerInterceptor{},
 			unaryInterceptors:         []grpc.UnaryServerInterceptor{},
