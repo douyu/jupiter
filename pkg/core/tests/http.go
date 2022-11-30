@@ -70,14 +70,14 @@ func RunHTTPTestCase(htc HTTPTestCase) {
 	}
 
 	if len(htc.ExpectBody) > 0 {
-		var expectBody bytes.Buffer
-		err = json.Compact(&expectBody, []byte(htc.ExpectBody))
+		var body bytes.Buffer
+		err = json.Compact(&body, []byte(res.String()))
 		// 如果Compact失败，则说明不是json格式
 		if err != nil {
-			expectBody.WriteString(htc.ExpectBody)
+			body.WriteString(res.String())
 		}
 
-		assert.Equal(ginkgoT, expectBody.String(), res.String(),
-			"expected: %s\nactually: %s", expectBody, res.String())
+		assert.Equal(ginkgoT, htc.ExpectBody, body.String(),
+			"expected: %s\nactually: %s", htc.ExpectBody, body.String())
 	}
 }
