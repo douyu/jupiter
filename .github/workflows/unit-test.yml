@@ -86,11 +86,6 @@ jobs:
           go env
           go mod tidy && git diff --exit-code go.mod go.sum
 
-      - name: Install ginkgo
-        run: |
-          go install github.com/onsi/ginkgo/v2/ginkgo@latest
-          sudo cp ~/go/bin/ginkgo /usr/local/bin
-
       - name: Test
         run: |
           make unit-test
