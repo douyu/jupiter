@@ -90,6 +90,11 @@ jobs:
         run: |
           make unit-test
 
+      - name: Install ginkgo
+        run: |
+          go install github.com/onsi/ginkgo/v2/ginkgo@latest
+          sudo cp ~/go/bin/ginkgo /usr/local/bin
+
       - name: E2E test
         run: |
           make e2e-test
