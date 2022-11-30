@@ -33,7 +33,7 @@ var _ = ginkgo.Describe("[xgrpcgateway] e2e test", func() {
 	ginkgo.BeforeEach(func() {
 		mux := runtime.NewServeMux()
 
-		testproto.RegisterGreeterServiceHandlerServer(context.Background(),
+		_ = testproto.RegisterGreeterServiceHandlerServer(context.Background(),
 			mux, new(yell.FooServer))
 
 		server = xecho.DefaultConfig().MustBuild()
