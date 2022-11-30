@@ -28,7 +28,7 @@ var _ = ginkgo.Describe("[xgin] e2e test", func() {
 	var server *xgin.Server
 
 	ginkgo.BeforeEach(func() {
-		server = xgin.DefaultConfig().Build()
+		server = xgin.DefaultConfig().MustBuild()
 		server.GET("/test", func(r *gin.Context) {
 			_, _ = r.Writer.WriteString("hello")
 		})
