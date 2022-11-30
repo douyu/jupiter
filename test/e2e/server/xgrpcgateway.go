@@ -20,7 +20,7 @@ import (
 
 	"github.com/douyu/jupiter/pkg/core/tests"
 	"github.com/douyu/jupiter/pkg/server/xecho"
-	"github.com/douyu/jupiter/proto/testproto"
+	"github.com/douyu/jupiter/proto/testproto/v1"
 	"github.com/douyu/jupiter/test/e2e/impl"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/labstack/echo/v4"
@@ -33,7 +33,7 @@ var _ = ginkgo.Describe("[xgrpcgateway] e2e test", func() {
 	ginkgo.BeforeEach(func() {
 		mux := runtime.NewServeMux()
 
-		testproto.RegisterGreeterHandlerServer(context.Background(),
+		testproto.RegisterGreeterServiceHandlerServer(context.Background(),
 			mux, new(impl.TestProjectImp))
 
 		server = xecho.DefaultConfig().MustBuild()
@@ -58,7 +58,8 @@ var _ = ginkgo.Describe("[xgrpcgateway] e2e test", func() {
 		Host:         "http://localhost:9091",
 		Method:       "POST",
 		Path:         "/v1/helloworld.Greeter/SayHello",
+		Body:         `{"name":"jupiter"}`,
 		ExpectStatus: http.StatusOK,
-		ExpectBody:   `{"message":"hello", "id64":"0", "id32":0, "idu64":"0", "idu32":0, "name":"", "done":false}`,
+		ExpectBody:   `{"error":0, "msg":"", "data":{"name":"jupiter"}}`,
 	}))
 })

@@ -17,52 +17,42 @@ syntax = "proto3";
 option java_multiple_files = true;
 option java_package = "io.grpc.examples.helloworld";
 option java_outer_classname = "HelloWorldProto";
-option go_package = "github.com/douyu/jupiter;testproto";
+option go_package = "github.com/douyu/jupiter/proto/testproto/v1;testproto";
 
-package testproto;
+package testproto.v1;
 
 import "google/api/annotations.proto";
 
 // The greeting service definition.
-service Greeter {
+service GreeterService {
   // Sends a greeting
-  rpc SayHello (HelloRequest) returns (HelloReply) {
+  rpc SayHello (SayHelloRequest) returns (SayHelloResponse) {
     option (google.api.http) = {
       post: "/v1/helloworld.Greeter/SayHello"
-      body: "*"
-    };
-  }
-  rpc WhoServer (WhoServerReq) returns (WhoServerReply) {
-    option (google.api.http) = {
-      post: "/v1/helloworld.Greeter/WhoServer"
-      body: "*"
-    };
-  }
-  rpc StreamHello (stream HelloRequest) returns (stream HelloReply){
-    option (google.api.http) = {
-      post: "/v1/helloworld.Greeter/StreamHello"
       body: "*"
     };
   }
 }
 
 // The request message containing the user's name.
-message HelloRequest {
+message SayHelloRequest {
+  // name of the user
   string name = 1;
 }
 
-message WhoServerReq{
+
+// The request message containing the user's name.
+message SayHelloResponse {
+  // Data is the data to be sent.
+  message Data {
+    // name of the user
+    string name = 1;
+  }
+  // error is the error code.
+  uint32 error = 1;
+  // msg is the message.
+  string msg = 2;
+  // data is the data.
+  Data data = 3;
 }
-message WhoServerReply{
-    string message = 1;
-}
-// The response message containing the greetings
-message HelloReply {
-  string message = 1;
-  int64 id64 = 2;
-  int32 id32 = 3;
-  uint64 idu64 = 4;
-  uint32 idu32 = 5;
-  bytes name = 6;
-  bool done = 7;
-}
+

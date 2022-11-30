@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/douyu/jupiter/pkg/util/xtest/server/yell"
-	"github.com/douyu/jupiter/proto/testproto"
+	"github.com/douyu/jupiter/proto/testproto/v1"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -17,11 +17,11 @@ func TestDirectGrpc(t *testing.T) {
 		ctx := context.Background()
 		ctx, cancel := context.WithTimeout(ctx, time.Second)
 		defer cancel()
-		res, err := directClient.SayHello(ctx, &testproto.HelloRequest{
+		res, err := directClient.SayHello(ctx, &testproto.SayHelloRequest{
 			Name: "hello",
 		})
 		assert.Nil(t, err)
-		assert.Equal(t, res.Message, yell.RespFantasy.Message)
+		assert.Equal(t, res.Data.Name, yell.RespFantasy.Data.Name)
 	})
 }
 
@@ -35,7 +35,7 @@ func TestConfigBlockTrue(t *testing.T) {
 		ctx := context.Background()
 		ctx, cancel := context.WithTimeout(ctx, time.Second)
 		defer cancel()
-		res, err := testproto.NewGreeterClient(conn).SayHello(ctx, &testproto.HelloRequest{
+		res, err := testproto.NewGreeterServiceClient(conn).SayHello(ctx, &testproto.SayHelloRequest{
 			Name: "hello",
 		})
 
@@ -54,7 +54,7 @@ func TestAsyncConnect(t *testing.T) {
 		ctx, cancel := context.WithTimeout(ctx, time.Second)
 		defer cancel()
 
-		res, err := testproto.NewGreeterClient(conn).SayHello(ctx, &testproto.HelloRequest{
+		res, err := testproto.NewGreeterServiceClient(conn).SayHello(ctx, &testproto.SayHelloRequest{
 			Name: "hello",
 		})
 		assert.NotNil(t, err)
@@ -71,7 +71,7 @@ func TestAsyncConnect(t *testing.T) {
 			defer cancel()
 
 			fmt.Println(conn.GetState())
-			res, err := testproto.NewGreeterClient(conn).SayHello(ctx, &testproto.HelloRequest{
+			res, err := testproto.NewGreeterServiceClient(conn).SayHello(ctx, &testproto.SayHelloRequest{
 				Name: "hello",
 			})
 			fmt.Println(err, res)

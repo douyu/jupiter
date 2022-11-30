@@ -7,7 +7,7 @@ import (
 
 	"github.com/douyu/jupiter/pkg/registry/etcdv3"
 	"github.com/douyu/jupiter/pkg/server"
-	"github.com/douyu/jupiter/proto/testproto"
+	"github.com/douyu/jupiter/proto/testproto/v1"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/peer"
@@ -16,14 +16,14 @@ import (
 func TestETCD(t *testing.T) {
 	config := DefaultConfig()
 	config.Addr = "etcd:///grpc:srv1:v1:unkown-mode"
-	cc := testproto.NewGreeterClient(config.Build())
+	cc := testproto.NewGreeterServiceClient(config.Build())
 
 	results := make(map[string]int)
 
 	n := 10
 	for i := 0; i < n; i++ {
 		peer := peer.Peer{}
-		res, err := cc.SayHello(context.Background(), &testproto.HelloRequest{}, grpc.Peer(&peer))
+		res, err := cc.SayHello(context.Background(), &testproto.SayHelloRequest{}, grpc.Peer(&peer))
 		assert.Nil(t, err)
 		assert.NotNil(t, res)
 		results[peer.Addr.String()] += 1
@@ -45,7 +45,7 @@ func TestETCD(t *testing.T) {
 
 	for i := 0; i < n; i++ {
 		peer := peer.Peer{}
-		res, err := cc.SayHello(context.Background(), &testproto.HelloRequest{}, grpc.Peer(&peer))
+		res, err := cc.SayHello(context.Background(), &testproto.SayHelloRequest{}, grpc.Peer(&peer))
 		assert.Nil(t, err)
 		assert.NotNil(t, res)
 		results[peer.Addr.String()] += 1
@@ -64,7 +64,7 @@ func TestETCD(t *testing.T) {
 
 	for i := 0; i < n; i++ {
 		peer := peer.Peer{}
-		res, err := cc.SayHello(context.Background(), &testproto.HelloRequest{}, grpc.Peer(&peer))
+		res, err := cc.SayHello(context.Background(), &testproto.SayHelloRequest{}, grpc.Peer(&peer))
 		assert.Nil(t, err)
 		assert.NotNil(t, res)
 		results[peer.Addr.String()] += 1

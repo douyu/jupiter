@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/douyu/jupiter/proto/testproto"
+	"github.com/douyu/jupiter/proto/testproto/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -30,16 +30,16 @@ func (s *FooServer) SetHook(f func(context.Context)) {
 var ErrFoo = errors.New("error foo")
 
 // RespFantasy ...
-var RespFantasy = &testproto.HelloReply{Message: "fantasy"}
+var RespFantasy = &testproto.SayHelloResponse{Data: &testproto.SayHelloResponse_Data{Name: "fantasy"}}
 
 // RespBye ...
-var RespBye = &testproto.HelloReply{Message: "bye"}
+var RespBye = &testproto.SayHelloResponse{Data: &testproto.SayHelloResponse_Data{Name: "test"}}
 
 // StatusFoo ...
 var StatusFoo = status.Errorf(codes.DataLoss, ErrFoo.Error())
 
 // SayHello ...
-func (s *FooServer) SayHello(ctx context.Context, in *testproto.HelloRequest) (out *testproto.HelloReply, err error) {
+func (s *FooServer) SayHello(ctx context.Context, in *testproto.SayHelloRequest) (out *testproto.SayHelloResponse, err error) {
 	// sleep to test cost time
 	time.Sleep(20 * time.Millisecond)
 	switch in.Name {
@@ -59,23 +59,23 @@ func (s *FooServer) SayHello(ctx context.Context, in *testproto.HelloRequest) (o
 	return
 }
 
-// StreamHello ...
-func (s *FooServer) StreamHello(ss testproto.Greeter_StreamHelloServer) (err error) {
+// // StreamHello ...
+// func (s *FooServer) StreamHello(ss testproto.Greeter_StreamHelloServer) (err error) {
 
-	for {
-		in, _ := ss.Recv()
-		switch in.Name {
-		case "bye":
-			return ss.Send(RespBye)
-		case "needErr":
-			return StatusFoo
-		default:
-			return ss.Send(RespFantasy)
-		}
-	}
-}
+// 	for {
+// 		in, _ := ss.Recv()
+// 		switch in.Name {
+// 		case "bye":
+// 			return ss.Send(RespBye)
+// 		case "needErr":
+// 			return StatusFoo
+// 		default:
+// 			return ss.Send(RespFantasy)
+// 		}
+// 	}
+// }
 
-// StreamHello ...
-func (s *FooServer) WhoServer(ctx context.Context, in *testproto.WhoServerReq) (out *testproto.WhoServerReply, err error) {
-	return &testproto.WhoServerReply{Message: s.name}, nil
-}
+// // StreamHello ...
+// func (s *FooServer) WhoServer(ctx context.Context, in *testproto.WhoServerReq) (out *testproto.WhoServerReply, err error) {
+// 	return &testproto.WhoServerReply{Message: s.name}, nil
+// }

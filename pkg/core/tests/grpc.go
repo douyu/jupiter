@@ -58,7 +58,8 @@ func RunGRPCTestCase(gtc GRPCTestCase) {
 
 	err = clientConn.Invoke(ctx, gtc.Method, gtc.Args, reply.Interface(),
 		grpc.Header(&metadata))
-	assert.Equal(ginkgoT, gtc.ExpectError, err)
+	assert.Equal(ginkgoT, gtc.ExpectError, err,
+		"expected: %s\nactually: %s", gtc.ExpectError, err)
 
 	assert.True(ginkgoT, proto.Equal(gtc.ExpectReply, reply.Interface().(proto.Message)),
 		"expected: %s\nactually: %s", gtc.ExpectReply, reply.Interface().(proto.Message))
