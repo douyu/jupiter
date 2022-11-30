@@ -13,3 +13,49 @@
 // limitations under the License.
 
 package conf
+
+import (
+	"bytes"
+	"testing"
+
+	"github.com/BurntSushi/toml"
+)
+
+func TestConf(t *testing.T) {
+	t.Run("normal", func(t *testing.T) {
+		LoadFromReader(bytes.NewBuffer([]byte(`
+		[server]
+		[server.http]
+		[server.http.addr]
+			port = 8080
+			addr = "localhost"
+		`)), toml.Unmarshal)
+
+		if GetInt("server.http.addr.port") != 8080 {
+			t.Fatal("get int failed")
+		}
+
+		if GetString("server.http.addr.addr") != "localhost" {
+			t.Fatal("get string failed")
+		}
+
+		type Addr struct {
+			Port int    `toml:"port"`
+			Addr string `toml:"addr"`
+		}
+
+		addr := Addr{}
+		err := UnmarshalKey("server.http.addr", &addr)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if addr.Port != 8080 {
+			t.Fatal("unmarshal failed")
+		}
+
+		if addr.Addr != "localhost" {
+			t.Fatal("unmarshal failed")
+		}
+	})
+}

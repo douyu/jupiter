@@ -18,9 +18,9 @@ import (
 	"time"
 
 	"github.com/douyu/jupiter/pkg/conf"
-	"github.com/douyu/jupiter/pkg/constant"
-	"github.com/douyu/jupiter/pkg/ecode"
-	"github.com/douyu/jupiter/pkg/singleton"
+	"github.com/douyu/jupiter/pkg/core/constant"
+	"github.com/douyu/jupiter/pkg/core/ecode"
+	"github.com/douyu/jupiter/pkg/core/singleton"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/spf13/cast"
 	"google.golang.org/grpc"
@@ -30,27 +30,27 @@ import (
 
 // Config ...
 type Config struct {
-	Name         string // config's name
-	BalancerName string
-	Address      string
-	Block        bool
-	DialTimeout  time.Duration
-	ReadTimeout  time.Duration
-	Direct       bool
-	OnDialError  string // panic | error
-	KeepAlive    *keepalive.ClientParameters
-	logger       *xlog.Logger
-	dialOptions  []grpc.DialOption
+	Name           string // config's name
+	BalancerName   string
+	Addr           string
+	DialTimeout    time.Duration
+	ReadTimeout    time.Duration
+	KeepAlive      *keepalive.ClientParameters
+	RegistryConfig string
+
+	logger      *xlog.Logger
+	dialOptions []grpc.DialOption
 
 	SlowThreshold time.Duration
 
-	Debug                     bool
-	DisableTraceInterceptor   bool
-	DisableAidInterceptor     bool
-	DisableTimeoutInterceptor bool
-	DisableMetricInterceptor  bool
-	DisableAccessInterceptor  bool
-	AccessInterceptorLevel    string
+	Debug                      bool
+	DisableSentinelInterceptor bool
+	DisableTraceInterceptor    bool
+	DisableAidInterceptor      bool
+	DisableTimeoutInterceptor  bool
+	DisableMetricInterceptor   bool
+	DisableAccessInterceptor   bool
+	AccessInterceptorLevel     string
 }
 
 // DefaultConfig ...
@@ -59,25 +59,30 @@ func DefaultConfig() *Config {
 		dialOptions: []grpc.DialOption{
 			grpc.WithInsecure(),
 		},
-		logger:                 xlog.Jupiter().With(xlog.FieldMod(ecode.ModClientGrpc)),
+		logger:                 xlog.Jupiter().Named(ecode.ModClientGrpc),
 		BalancerName:           roundrobin.Name, // round robin by default
-		DialTimeout:            time.Second * 3,
+		DialTimeout:            cast.ToDuration("3s"),
 		ReadTimeout:            cast.ToDuration("1s"),
 		SlowThreshold:          cast.ToDuration("600ms"),
-		OnDialError:            "panic",
 		AccessInterceptorLevel: "info",
-		Block:                  true,
+		KeepAlive: &keepalive.ClientParameters{
+			Time:                5 * time.Minute,
+			Timeout:             20 * time.Second,
+			PermitWithoutStream: true,
+		},
+		RegistryConfig: constant.ConfigKey("registry.default"),
 	}
 }
 
 // StdConfig ...
 func StdConfig(name string) *Config {
-	return RawConfig("jupiter.client." + name)
+	return RawConfig(constant.ConfigKey("grpc." + name))
 }
 
 // RawConfig ...
 func RawConfig(key string) *Config {
 	var config = DefaultConfig()
+	config.Name = key
 	if err := conf.UnmarshalKey(key, &config); err != nil {
 		config.logger.Panic("client grpc parse config panic", xlog.FieldErrKind(ecode.ErrKindUnmarshalConfigErr), xlog.FieldErr(err), xlog.FieldKey(key), xlog.FieldValueAny(config))
 	}
@@ -103,7 +108,7 @@ func (config *Config) WithDialOption(opts ...grpc.DialOption) *Config {
 func (config *Config) Build() *grpc.ClientConn {
 	if config.Debug {
 		config.dialOptions = append(config.dialOptions,
-			grpc.WithChainUnaryInterceptor(debugUnaryClientInterceptor(config.Address)),
+			grpc.WithChainUnaryInterceptor(debugUnaryClientInterceptor(config.Addr)),
 		)
 	}
 
@@ -121,7 +126,7 @@ func (config *Config) Build() *grpc.ClientConn {
 
 	if !config.DisableTraceInterceptor {
 		config.dialOptions = append(config.dialOptions,
-			grpc.WithChainUnaryInterceptor(traceUnaryClientInterceptor()),
+			grpc.WithChainUnaryInterceptor(TraceUnaryClientInterceptor()),
 		)
 	}
 
@@ -134,6 +139,12 @@ func (config *Config) Build() *grpc.ClientConn {
 	if !config.DisableMetricInterceptor {
 		config.dialOptions = append(config.dialOptions,
 			grpc.WithChainUnaryInterceptor(metricUnaryClientInterceptor(config.Name)),
+		)
+	}
+
+	if !config.DisableSentinelInterceptor {
+		config.dialOptions = append(config.dialOptions,
+			grpc.WithChainUnaryInterceptor(sentinelUnaryClientInterceptor(config.Addr)),
 		)
 	}
 

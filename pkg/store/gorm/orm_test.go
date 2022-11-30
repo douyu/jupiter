@@ -21,7 +21,7 @@ import (
 
 	"fmt"
 
-	"github.com/douyu/jupiter/pkg/imeta"
+	"github.com/douyu/jupiter/pkg/core/imeta"
 	"github.com/stretchr/testify/assert"
 )
 

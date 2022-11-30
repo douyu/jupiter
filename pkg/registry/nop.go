@@ -25,12 +25,12 @@ import (
 type Local struct{}
 
 // ListServices ...
-func (n Local) ListServices(ctx context.Context, s string, s2 string) ([]*server.ServiceInfo, error) {
+func (n Local) ListServices(ctx context.Context, s string) ([]*server.ServiceInfo, error) {
 	panic("implement me")
 }
 
 // WatchServices ...
-func (n Local) WatchServices(ctx context.Context, s string, s2 string) (chan Endpoints, error) {
+func (n Local) WatchServices(ctx context.Context, s string) (chan Endpoints, error) {
 	panic("implement me")
 }
 

@@ -3,8 +3,7 @@ package mongox
 import (
 	"net/http"
 
-	"github.com/douyu/jupiter/pkg/application"
-	"github.com/douyu/jupiter/pkg/xlog"
+	"github.com/douyu/jupiter/pkg/core/application"
 	jsoniter "github.com/json-iterator/go"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -31,5 +30,3 @@ func init() {
 		_ = jsoniter.NewEncoder(w).Encode(rets)
 	})
 }
-
-var _logger = xlog.Jupiter().With(xlog.FieldMod("mongodb"))

@@ -21,16 +21,19 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/alibaba/sentinel-golang/api"
+	"github.com/alibaba/sentinel-golang/core/base"
 	"github.com/douyu/jupiter/pkg"
-	"github.com/douyu/jupiter/pkg/ecode"
-	"github.com/douyu/jupiter/pkg/metric"
+	"github.com/douyu/jupiter/pkg/core/ecode"
+	"github.com/douyu/jupiter/pkg/core/metric"
+	"github.com/douyu/jupiter/pkg/core/sentinel"
+	"github.com/douyu/jupiter/pkg/core/xtrace"
 	"github.com/douyu/jupiter/pkg/util/xstring"
 	"github.com/douyu/jupiter/pkg/xlog"
-	"github.com/douyu/jupiter/pkg/xtrace"
 	"github.com/fatih/color"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
-	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -75,6 +78,24 @@ func metricUnaryClientInterceptor(name string) func(ctx context.Context, method 
 // 	}
 // }
 
+func sentinelUnaryClientInterceptor(name string) grpc.UnaryClientInterceptor {
+	return func(ctx context.Context, method string, req, reply interface{},
+		cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+		entry, blockerr := sentinel.Entry(name,
+			api.WithResourceType(base.ResTypeRPC),
+			api.WithTrafficType(base.Outbound))
+		if blockerr != nil {
+			return blockerr
+		}
+
+		err := invoker(ctx, method, req, reply, cc, opts...)
+
+		entry.Exit(base.WithError(err))
+
+		return err
+	}
+}
+
 func debugUnaryClientInterceptor(addr string) grpc.UnaryClientInterceptor {
 	return func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 		var p peer.Peer
@@ -95,7 +116,12 @@ func debugUnaryClientInterceptor(addr string) grpc.UnaryClientInterceptor {
 	}
 }
 
-func traceUnaryClientInterceptor() grpc.UnaryClientInterceptor {
+func TraceUnaryClientInterceptor() grpc.UnaryClientInterceptor {
+	tracer := xtrace.NewTracer(trace.SpanKindClient)
+	attrs := []attribute.KeyValue{
+		semconv.RPCSystemGRPC,
+	}
+
 	return func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) (err error) {
 		md, ok := metadata.FromOutgoingContext(ctx)
 		if !ok {
@@ -103,25 +129,25 @@ func traceUnaryClientInterceptor() grpc.UnaryClientInterceptor {
 		} else {
 			md = md.Copy()
 		}
-		tracer := xtrace.NewTracer(trace.SpanKindClient)
-		attrs := []attribute.KeyValue{
-			semconv.RPCSystemKey.String("grpc"),
-		}
 
 		ctx, span := tracer.Start(ctx, method, xtrace.MetadataReaderWriter(md), trace.WithAttributes(attrs...))
 		ctx = metadata.NewOutgoingContext(ctx, md)
 		span.SetAttributes(
 			semconv.RPCMethodKey.String(method),
 		)
-		defer func() {
-			if err != nil {
-				span.RecordError(err)
-				span.SetStatus(codes.Error, err.Error())
-			}
-			span.SetStatus(codes.Ok, "ok")
-			span.End()
-		}()
-		return invoker(ctx, method, req, reply, cc, opts...)
+
+		err = invoker(ctx, method, req, reply, cc, opts...)
+
+		span.SetStatus(codes.Ok, "ok")
+
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
+		}
+
+		span.End()
+
+		return err
 	}
 }
 

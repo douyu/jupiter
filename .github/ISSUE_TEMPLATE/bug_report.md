@@ -1,7 +1,8 @@
 ---
+
 name: Bug report
 about: Create a bug report to help us improve
-title: "[BUG]"
+title: "\[BUG\]"
 labels: ''
 assignees: ''
 
@@ -20,15 +21,13 @@ Type: *bug report*
 
 ### Describe what happened
 
-
 ### Describe what you expected to happen
-
 
 ### How to reproduce it (as minimally and precisely as possible)
 
-1. 
-2. 
-3. 
+1.
+1.
+1.
 
 ### Tell us your environment
 

@@ -22,11 +22,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/douyu/jupiter/pkg/constant"
+	"github.com/douyu/jupiter/pkg/core/constant"
 	"github.com/fatih/color"
 )
 
-const jupiterVersion = "0.2.0"
+const jupiterVersion = "v0.9.9"
 
 var (
 	startTime string

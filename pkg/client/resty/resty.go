@@ -22,22 +22,27 @@ import (
 	"github.com/alibaba/sentinel-golang/api"
 	"github.com/alibaba/sentinel-golang/core/base"
 	"github.com/douyu/jupiter/pkg/conf"
-	"github.com/douyu/jupiter/pkg/metric"
-	"github.com/douyu/jupiter/pkg/sentinel"
+	"github.com/douyu/jupiter/pkg/core/constant"
+	"github.com/douyu/jupiter/pkg/core/ecode"
+	"github.com/douyu/jupiter/pkg/core/metric"
+	"github.com/douyu/jupiter/pkg/core/sentinel"
+	"github.com/douyu/jupiter/pkg/core/xtrace"
 	"github.com/douyu/jupiter/pkg/util/xdebug"
 	"github.com/douyu/jupiter/pkg/xlog"
-	"github.com/douyu/jupiter/pkg/xtrace"
 	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cast"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/propagation"
-	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
 var errSlowCommand = errors.New("http resty slow command")
+
+// Client ...
+type Client = resty.Client
 
 // Config ...
 type (
@@ -75,12 +80,12 @@ type (
 )
 
 // StdConfig 返回标准配置
-func StdConfig(name string) Config {
-	return RawConfig("jupiter.resty." + name)
+func StdConfig(name string) *Config {
+	return RawConfig(constant.ConfigKey("resty." + name))
 }
 
 // RawConfig 返回配置
-func RawConfig(key string) Config {
+func RawConfig(key string) *Config {
 	var config = DefaultConfig()
 	if err := conf.UnmarshalKey(key, &config, conf.TagName("toml")); err != nil {
 		xlog.Jupiter().Panic("unmarshal config", xlog.FieldName(key), xlog.FieldExtMessage(config))
@@ -93,8 +98,8 @@ func RawConfig(key string) Config {
 }
 
 // DefaultConfig 返回默认配置
-func DefaultConfig() Config {
-	return Config{
+func DefaultConfig() *Config {
+	return &Config{
 		Debug:            false,
 		EnableMetric:     true,
 		EnableTrace:      true,
@@ -106,7 +111,7 @@ func DefaultConfig() Config {
 		Timeout:          cast.ToDuration("3000ms"),
 		EnableAccessLog:  false,
 		EnableSentinel:   true,
-		logger:           xlog.Jupiter().With(xlog.FieldMod("resty")),
+		logger:           xlog.Jupiter().Named(ecode.ModeClientResty),
 	}
 }
 
@@ -154,19 +159,16 @@ func (config *Config) Build() (*resty.Client, error) {
 
 	})
 
+	tracer := xtrace.NewTracer(trace.SpanKindClient)
+	attrs := []attribute.KeyValue{
+		semconv.RPCSystemKey.String("http"),
+	}
+
 	client.OnBeforeRequest(func(c *resty.Client, r *resty.Request) error {
 		if config.EnableTrace {
-			tracer := xtrace.NewTracer(trace.SpanKindClient)
-			attrs := []attribute.KeyValue{
-				semconv.RPCSystemKey.String("http"),
-			}
-			ctx, span := tracer.Start(r.Context(), r.Method, propagation.HeaderCarrier(r.Header), trace.WithAttributes(attrs...))
-			span.SetAttributes(
-				semconv.RPCSystemKey.String("http"),
-				semconv.PeerServiceKey.String("http_client_request"),
-				semconv.HTTPMethodKey.String(r.Method),
-				semconv.HTTPURLKey.String(r.URL),
-			)
+
+			ctx, _ := tracer.Start(r.Context(), r.URL, propagation.HeaderCarrier(r.Header), trace.WithAttributes(attrs...))
+
 			r.SetContext(ctx)
 		}
 
@@ -198,6 +200,7 @@ func (config *Config) Build() (*resty.Client, error) {
 
 		if config.EnableTrace {
 			span := trace.SpanFromContext(r.Request.Context())
+			span.SetAttributes(semconv.HTTPClientAttributesFromHTTPRequest(r.Request.RawRequest)...)
 			span.SetAttributes(
 				semconv.HTTPStatusCodeKey.Int64(int64(r.StatusCode())),
 			)
@@ -233,7 +236,7 @@ func (config *Config) Build() (*resty.Client, error) {
 func (c *Config) MustBuild() *resty.Client {
 	cc, err := c.Build()
 	if err != nil {
-		xlog.Jupiter().Panic("resty build failed", zap.Error(err), zap.Any("config", c))
+		c.logger.Panic("resty build failed", zap.Error(err), zap.Any("config", c))
 	}
 
 	return cc

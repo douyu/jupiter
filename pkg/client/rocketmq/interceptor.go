@@ -16,21 +16,24 @@ package rocketmq
 
 import (
 	"context"
-	"github.com/douyu/jupiter/pkg/xtrace"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/codes"
-	"go.opentelemetry.io/otel/propagation"
 	"strings"
 	"time"
 
+	"github.com/alibaba/sentinel-golang/core/base"
+	"github.com/douyu/jupiter/pkg/core/sentinel"
+	"github.com/douyu/jupiter/pkg/core/xtrace"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/propagation"
+
 	"github.com/apache/rocketmq-client-go/v2/consumer"
 	"github.com/apache/rocketmq-client-go/v2/primitive"
-	"github.com/douyu/jupiter/pkg/imeta"
-	"github.com/douyu/jupiter/pkg/istats"
-	"github.com/douyu/jupiter/pkg/metric"
+	"github.com/douyu/jupiter/pkg/core/imeta"
+	"github.com/douyu/jupiter/pkg/core/istats"
+	"github.com/douyu/jupiter/pkg/core/metric"
 	"github.com/douyu/jupiter/pkg/util/xdebug"
 	"github.com/douyu/jupiter/pkg/xlog"
-	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc/metadata"
 )
@@ -64,7 +67,7 @@ func consumeResultStr(result consumer.ConsumeResult) string {
 func pushConsumerDefaultInterceptor(pushConsumer *PushConsumer) primitive.Interceptor {
 	return func(ctx context.Context, req, reply interface{}, next primitive.Invoker) error {
 		beg := time.Now()
-		msgs := req.([]*primitive.MessageExt)
+		msgs, _ := req.([]*primitive.MessageExt)
 
 		err := next(ctx, msgs, reply)
 		if reply == nil {
@@ -116,7 +119,7 @@ func pushConsumerDefaultInterceptor(pushConsumer *PushConsumer) primitive.Interc
 
 func pushConsumerMDInterceptor(pushConsumer *PushConsumer) primitive.Interceptor {
 	return func(ctx context.Context, req, reply interface{}, next primitive.Invoker) error {
-		msgs := req.([]*primitive.MessageExt)
+		msgs, _ := req.([]*primitive.MessageExt)
 		if len(msgs) > 0 {
 			var meta = imeta.New(nil)
 			for key, vals := range msgs[0].GetProperties() {
@@ -127,6 +130,24 @@ func pushConsumerMDInterceptor(pushConsumer *PushConsumer) primitive.Interceptor
 			ctx = imeta.WithContext(ctx, meta)
 		}
 		err := next(ctx, msgs, reply)
+		return err
+	}
+}
+
+func pushConsumerSentinelInterceptor(pushConsumer *PushConsumer) primitive.Interceptor {
+	return func(ctx context.Context, req, reply interface{}, next primitive.Invoker) error {
+		msgs, _ := req.([]*primitive.MessageExt)
+
+		entry, blockerr := sentinel.Entry(pushConsumer.Addr[0],
+			sentinel.WithResourceType(base.ResTypeMQ),
+			sentinel.WithTrafficType(base.Inbound))
+		if blockerr != nil {
+			return blockerr
+		}
+
+		err := next(ctx, msgs, reply)
+		entry.Exit(sentinel.WithError(err))
+
 		return err
 	}
 }
@@ -147,6 +168,13 @@ func produceResultStr(result primitive.SendStatus) string {
 }
 
 func producerDefaultInterceptor(producer *Producer) primitive.Interceptor {
+	tracer := xtrace.NewTracer(trace.SpanKindProducer)
+	attrs := []attribute.KeyValue{
+		semconv.MessagingSystemKey.String("rocketmq"),
+		semconv.MessagingRocketmqClientGroupKey.String(producer.Group),
+		semconv.MessagingRocketmqClientIDKey.String(producer.InstanceName),
+	}
+
 	return func(ctx context.Context, req, reply interface{}, next primitive.Invoker) error {
 		beg := time.Now()
 		realReq := req.(*primitive.Message)
@@ -157,10 +185,7 @@ func producerDefaultInterceptor(producer *Producer) primitive.Interceptor {
 		)
 
 		if producer.EnableTrace {
-			tracer := xtrace.NewTracer(trace.SpanKindProducer)
-			attrs := []attribute.KeyValue{
-				semconv.MessagingSystemKey.String("rocketmq"),
-			}
+
 			md := metadata.New(nil)
 			ctx, span = tracer.Start(ctx, realReq.Topic, propagation.HeaderCarrier(md), trace.WithAttributes(attrs...))
 
@@ -229,7 +254,7 @@ func producerDefaultInterceptor(producer *Producer) primitive.Interceptor {
 	}
 }
 
-// 统一minerva metadata 传递
+// 统一 metadata 传递.
 func producerMDInterceptor(producer *Producer) primitive.Interceptor {
 	return func(ctx context.Context, req, reply interface{}, next primitive.Invoker) error {
 		if md, ok := imeta.FromContext(ctx); ok {
@@ -239,6 +264,22 @@ func producerMDInterceptor(producer *Producer) primitive.Interceptor {
 			}
 		}
 		err := next(ctx, req, reply)
+		return err
+	}
+}
+
+func producerSentinelInterceptor(producer *Producer) primitive.Interceptor {
+	return func(ctx context.Context, req, reply interface{}, next primitive.Invoker) error {
+		entry, blockerr := sentinel.Entry(producer.Addr[0],
+			sentinel.WithResourceType(base.ResTypeMQ),
+			sentinel.WithTrafficType(base.Outbound))
+		if blockerr != nil {
+			return blockerr
+		}
+
+		err := next(ctx, req, reply)
+		entry.Exit(sentinel.WithError(err))
+
 		return err
 	}
 }

@@ -20,8 +20,8 @@ import (
 	"github.com/apache/rocketmq-client-go/v2"
 	"github.com/apache/rocketmq-client-go/v2/primitive"
 	"github.com/apache/rocketmq-client-go/v2/producer"
-	"github.com/douyu/jupiter/pkg/hooks"
-	"github.com/douyu/jupiter/pkg/istats"
+	"github.com/douyu/jupiter/pkg/core/hooks"
+	"github.com/douyu/jupiter/pkg/core/istats"
 	"github.com/douyu/jupiter/pkg/util/xdebug"
 	"github.com/douyu/jupiter/pkg/xlog"
 )
@@ -42,9 +42,6 @@ func StdNewProducer(name string) *Producer {
 
 func (conf *ProducerConfig) Build() *Producer {
 	name := conf.Name
-	if _, ok := _producers.Load(name); ok {
-		xlog.Jupiter().Panic("duplicated load", xlog.String("name", name))
-	}
 
 	if xdebug.IsDevelopmentMode() {
 		xdebug.PrettyJsonPrint("rocketmq's config: "+name, conf)
@@ -64,14 +61,17 @@ func (conf *ProducerConfig) Build() *Producer {
 		},
 	}
 
-	cc.interceptors = append(cc.interceptors, producerDefaultInterceptor(cc), producerMDInterceptor(cc))
+	cc.interceptors = append(cc.interceptors,
+		producerDefaultInterceptor(cc),
+		producerMDInterceptor(cc),
+		producerSentinelInterceptor(cc),
+	)
 
 	// 服务启动前先start
 	hooks.Register(hooks.Stage_BeforeRun, func() {
 		_ = cc.Start()
 	})
 
-	_producers.Store(name, cc)
 	return cc
 }
 
@@ -125,11 +125,11 @@ func (pc *Producer) Close() error {
 		xlog.Jupiter().Warn("consumer close fail", xlog.Any("error", err.Error()))
 		return err
 	}
-	_producers.Delete(pc.name)
 	return nil
 }
 
 // Send rocketmq发送消息
+// Deprecated: use SendWithContext instead
 func (pc *Producer) Send(msg []byte) error {
 	m := primitive.NewMessage(pc.Topic, msg)
 	_, err := pc.SendSync(context.Background(), m)
@@ -152,6 +152,7 @@ func (pc *Producer) SendWithContext(ctx context.Context, msg []byte) error {
 }
 
 // SendWithTag rocket mq 发送消息,可以自定义选择 tag
+// Deprecated: use SendWithMsg instead
 func (pc *Producer) SendWithTag(msg []byte, tag string) error {
 	m := primitive.NewMessage(pc.Topic, msg)
 	if tag != "" {
@@ -167,6 +168,7 @@ func (pc *Producer) SendWithTag(msg []byte, tag string) error {
 }
 
 // SendWithResult rocket mq 发送消息,可以自定义选择 tag 及返回结果
+// Deprecated: use SendWithMsg instead
 func (pc *Producer) SendWithResult(msg []byte, tag string) (*primitive.SendResult, error) {
 	m := primitive.NewMessage(pc.Topic, msg)
 	if tag != "" {
@@ -182,6 +184,7 @@ func (pc *Producer) SendWithResult(msg []byte, tag string) (*primitive.SendResul
 }
 
 // SendMsg... 自定义消息格式
+// Deprecated: use SendWithMsg instead.
 func (pc *Producer) SendMsg(msg *primitive.Message) (*primitive.SendResult, error) {
 	msg.Topic = pc.Topic
 	res, err := pc.SendSync(context.Background(), msg)

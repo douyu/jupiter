@@ -16,31 +16,41 @@ package resolver
 
 import (
 	"context"
+	"strings"
 
-	"github.com/douyu/jupiter/pkg/constant"
-	"github.com/douyu/jupiter/pkg/registry"
+	"github.com/douyu/jupiter/pkg/core/constant"
+	"github.com/douyu/jupiter/pkg/registry/etcdv3"
 	"github.com/douyu/jupiter/pkg/util/xgo"
+	"github.com/douyu/jupiter/pkg/xlog"
 	"google.golang.org/grpc/attributes"
 	"google.golang.org/grpc/resolver"
 )
 
-// Register ...
-func Register(name string, reg registry.Registry) {
-	resolver.Register(&baseBuilder{
-		name: name,
-		reg:  reg,
-	})
+// NewEtcdBuilder returns a new etcdv3 resolver builder.
+func NewEtcdBuilder(name string, registryConfig string) resolver.Builder {
+	return &baseBuilder{
+		name:           name,
+		registryConfig: registryConfig,
+	}
 }
 
 type baseBuilder struct {
 	name string
-	reg  registry.Registry
+
+	registryConfig string
 }
 
 // Build ...
 func (b *baseBuilder) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOptions) (resolver.Resolver, error) {
-	endpoints, err := b.reg.WatchServices(context.Background(), target.Endpoint, "grpc")
+	reg := etcdv3.RawConfig(b.registryConfig).MustSingleton()
+
+	if !strings.HasSuffix(target.Endpoint, "/") {
+		target.Endpoint += "/"
+	}
+
+	endpoints, err := reg.WatchServices(context.Background(), target.Endpoint)
 	if err != nil {
+		xlog.Jupiter().Error("watch services failed", xlog.FieldErr(err))
 		return nil, err
 	}
 
@@ -49,6 +59,8 @@ func (b *baseBuilder) Build(target resolver.Target, cc resolver.ClientConn, opts
 		for {
 			select {
 			case endpoint := <-endpoints:
+				xlog.Jupiter().Debug("watch services finished", xlog.FieldValueAny(endpoint))
+
 				var state = resolver.State{
 					Addresses: make([]resolver.Address, 0),
 					Attributes: attributes.

@@ -18,6 +18,8 @@ import (
 	"log"
 
 	"github.com/douyu/jupiter/pkg/conf"
+	"github.com/douyu/jupiter/pkg/core/constant"
+	"github.com/douyu/jupiter/pkg/xlog"
 )
 
 // var _registerers = sync.Map{}
@@ -35,10 +37,10 @@ var DefaultRegisterer Registry = &Local{}
 func init() {
 	// 初始化注册中心
 	conf.OnLoaded(func(c *conf.Configuration) {
-		log.Print("hook config, init registry")
+		xlog.Jupiter().Sugar().Info("hook config, init registry")
 		var config Config
-		if err := c.UnmarshalKey("jupiter.registry", &config); err != nil {
-			log.Printf("hook config, read registry config failed: %v", err)
+		if err := c.UnmarshalKey(constant.ConfigKey("registry"), &config); err != nil {
+			xlog.Jupiter().Sugar().Infof("hook config, read registry config failed: %v", err)
 			return
 		}
 
@@ -47,13 +49,19 @@ func init() {
 			if itemKind == "" {
 				itemKind = "etcdv3"
 			}
+
+			if item.ConfigKey == "" {
+				item.ConfigKey = constant.ConfigKey("registry.default")
+			}
+
 			build, ok := registryBuilder[itemKind]
 			if !ok {
-				log.Printf("invalid registry kind: %s", itemKind)
+				xlog.Jupiter().Sugar().Infof("invalid registry kind: %s", itemKind)
 				continue
 			}
+
+			xlog.Jupiter().Sugar().Infof("build registrerer %s with config: %s", name, item.ConfigKey)
 			DefaultRegisterer = build(item.ConfigKey)
-			log.Printf("build registrerer %s with config: %s", name, item.ConfigKey)
 		}
 	})
 }

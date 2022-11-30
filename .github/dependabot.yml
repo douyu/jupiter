@@ -8,6 +8,13 @@ updates:
     schedule:
       interval: daily
 
+  - package-ecosystem: gomod
+    directory: /test/e2e
+    labels:
+      - dependencies
+    schedule:
+      interval: daily
+
   - package-ecosystem: "github-actions"
     directory: "/"
     labels:

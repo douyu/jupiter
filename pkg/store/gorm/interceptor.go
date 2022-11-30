@@ -18,8 +18,16 @@ import (
 	"errors"
 	"time"
 
-	prome "github.com/douyu/jupiter/pkg/metric"
+	"github.com/alibaba/sentinel-golang/core/base"
+	prome "github.com/douyu/jupiter/pkg/core/metric"
+	"github.com/douyu/jupiter/pkg/core/sentinel"
+	"github.com/douyu/jupiter/pkg/core/xtrace"
 	"github.com/douyu/jupiter/pkg/xlog"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/propagation"
+	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
+	"go.opentelemetry.io/otel/trace"
+	"google.golang.org/grpc/metadata"
 	"gorm.io/gorm"
 )
 
@@ -73,34 +81,54 @@ func logSQL(sql string, args []interface{}, containArgs bool) string {
 }
 
 func traceInterceptor() Interceptor {
+	tracer := xtrace.NewTracer(trace.SpanKindClient)
+	attrs := []attribute.KeyValue{
+		semconv.RPCSystemKey.String("gorm"),
+	}
+
 	return func(dsn *DSN, op string, options *Config, next Handler) Handler {
 		return func(scope *gorm.DB) {
-			// if ctx := scope.Statement.Context; ctx != nil {
-			// 	tracer := xtrace.NewTracer(trace.SpanKindClient)
 
-			// 	span, _ := trace.Start(
-			// 		ctx,
-			// 		"GORM",
-			// 		trace.TagComponent("mysql"),
-			// 		trace.TagSpanKind("client"),
-			// 	)
-			// 	defer span.Finish()
+			if ctx := scope.Statement.Context; ctx != nil {
+				md := metadata.New(nil)
 
-			// 	// 延迟执行 scope.CombinedConditionSql() 避免sqlVar被重复追加
-			// 	next(scope)
+				_, span := tracer.Start(ctx, op, propagation.HeaderCarrier(md), trace.WithAttributes(attrs...))
 
-			// 	span.SetTag("sql.inner", dsn.DBName)
-			// 	span.SetTag("sql.addr", dsn.Addr)
-			// 	span.SetTag("span.kind", "client")
-			// 	span.SetTag("peer.service", "mysql")
-			// 	span.SetTag("db.instance", dsn.DBName)
-			// 	span.SetTag("peer.address", dsn.Addr)
-			// 	span.SetTag("peer.statement", logSQL(scope.Statement.SQL.String(), scope.Statement.Vars, options.DetailSQL))
+				span.SetAttributes(semconv.DBNameKey.String(dsn.DBName))
+				span.SetAttributes(semconv.DBConnectionStringKey.String(dsn.Addr))
+				span.SetAttributes(semconv.DBUserKey.String(dsn.User))
+				span.SetAttributes(semconv.DBStatementKey.String(
+					logSQL(scope.Statement.SQL.String(), scope.Statement.Vars, options.DetailSQL)))
 
-			// 	return
-			// }
+				defer span.End()
+
+				next(scope)
+
+				return
+			}
 
 			next(scope)
+
+		}
+	}
+}
+
+func sentinelInterceptor() Interceptor {
+	return func(dsn *DSN, op string, options *Config, next Handler) Handler {
+		return func(scope *gorm.DB) {
+			entry, blockerr := sentinel.Entry(dsn.Addr,
+				sentinel.WithResourceType(base.ResTypeDBSQL),
+				sentinel.WithTrafficType(base.Outbound),
+			)
+			if blockerr != nil {
+				_ = scope.AddError(blockerr)
+
+				return
+			}
+
+			next(scope)
+
+			entry.Exit(sentinel.WithError(scope.Error))
 		}
 	}
 }

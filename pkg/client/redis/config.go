@@ -1,236 +1,139 @@
-// Copyright 2020 Douyu
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 package redis
 
 import (
+	"strings"
 	"time"
 
-	"github.com/go-redis/redis"
 	"github.com/spf13/cast"
+	"go.uber.org/zap"
 
-	"github.com/douyu/jupiter/pkg/conf"
+	cfg "github.com/douyu/jupiter/pkg/conf"
+	"github.com/douyu/jupiter/pkg/core/constant"
+	"github.com/douyu/jupiter/pkg/core/ecode"
+	"github.com/douyu/jupiter/pkg/util/xdebug"
 	"github.com/douyu/jupiter/pkg/xlog"
 )
 
-const (
-	// ClusterMode using clusterClient
-	ClusterMode string = "cluster"
-	// StubMode using reidsClient
-	StubMode string = "stub"
-)
-
-// Config for redis, contains RedisStubConfig and RedisClusterConfig
+// Config ...
 type Config struct {
-	// Addrs 实例配置地址
-	Addrs []string `json:"addrs"`
-	// Addr stubConfig 实例配置地址
-	Addr string `json:"addr"`
-	// Mode Redis模式 cluster|stub
-	Mode string `json:"mode"`
-	// Password 密码
-	Password string `json:"password"`
-	// DB，默认为0, 一般应用不推荐使用DB分片
-	DB int `json:"db"`
-	// PoolSize 集群内每个节点的最大连接池限制 默认每个CPU10个连接
-	PoolSize int `json:"poolSize"`
-	// MaxRetries 网络相关的错误最大重试次数 默认8次
-	MaxRetries int `json:"maxRetries"`
-	// MinIdleConns 最小空闲连接数
-	MinIdleConns int `json:"minIdleConns"`
-	// DialTimeout 拨超时时间
-	DialTimeout time.Duration `json:"dialTimeout"`
-	// ReadTimeout 读超时 默认3s
-	ReadTimeout time.Duration `json:"readTimeout"`
-	// WriteTimeout 读超时 默认3s
-	WriteTimeout time.Duration `json:"writeTimeout"`
-	// IdleTimeout 连接最大空闲时间，默认60s, 超过该时间，连接会被主动关闭
-	IdleTimeout time.Duration `json:"idleTimeout"`
-	// Debug开关
-	Debug bool `json:"debug"`
-	// ReadOnly 集群模式 在从属节点上启用读模式
-	ReadOnly bool `json:"readOnly"`
-	// 是否开启链路追踪，开启以后。使用DoCotext的请求会被trace
-	EnableTrace bool `json:"enableTrace"`
-	// 慢日志门限值，超过该门限值的请求，将被记录到慢日志中
-	SlowThreshold time.Duration `json:"slowThreshold"`
+	// Master host:port addresses of Master node
+	Master struct {
+		Addr string `json:"addr" toml:"addr"`
+	} `json:"master" toml:"master"`
+	// Slaves A list of host:port addresses of Slave nodes.
+	Slaves struct {
+		Addr []string `json:"addr" toml:"addr"`
+	} `json:"slaves" toml:"slaves"`
+
+	/****** for github.com/go-redis/redis/v8 ******/
+	// DB default 0,not recommend
+	DB int `json:"db" toml:"db"`
+	// PoolSize applies per Stub node and not for the whole Stub.
+	PoolSize int `json:"poolSize" toml:"poolSize"`
+	// Maximum number of retries before giving up.
+	// Default is 3 retries; -1 (not 0) disables retries.
+	MaxRetries int `json:"maxRetries" toml:"maxRetries"`
+	// Minimum number of idle connections which is useful when establishing
+	// new connection is slow.
+	MinIdleConns int `json:"minIdleConns" toml:"minIdleConns"`
+	// Dial timeout for establishing new connections.
+	// Default is 5 seconds.
+	DialTimeout time.Duration `json:"dialTimeout" toml:"dialTimeout"`
+	// Timeout for socket reads. If reached, commands will fail
+	// with a timeout instead of blocking. Use value 0 for no timeout and 0 for default.
+	// Default is 3 seconds.
+	ReadTimeout time.Duration `json:"readTimeout" toml:"readTimeout"`
+	// Timeout for socket writes. If reached, commands will fail
+	// with a timeout instead of blocking.
+	// Default is ReadTimeout.
+	WriteTimeout time.Duration `json:"writeTimeout" toml:"writeTimeout"`
+	// Amount of time after which client closes idle connections.
+	// Should be less than server's timeout.
+	// Default is 5 minutes. -1 disables idle timeout check.
+	IdleTimeout time.Duration `json:"idleTimeout" toml:"idleTimeout"`
+
+	/****** for jupiter ******/
+	ReadOnMaster bool `json:"readOnMaster" toml:"readOnMaster"`
+	// nice option
+	Debug bool `json:"debug" toml:"debug"`
+	// a require will be recorded if cost bigger than this
+	SlowLogThreshold time.Duration `json:"slowThreshold" toml:"slowThreshold"`
+	// EnableMetric .. default true
+	EnableMetricInterceptor bool `json:"enableMetric" toml:"enableMetric"`
+	// EnableTrace .. default true
+	EnableTraceInterceptor bool `json:"enableTrace" toml:"enableTrace"`
+	// EnableAccessLog .. default false
+	EnableAccessLogInterceptor bool `json:"enableAccessLog" toml:"enableAccessLog"`
+	// EnableSentinel .. default true
+	EnableSentinel bool `json:"enableSentinel" toml:"enableSentinel"`
 	// OnDialError panic|error
 	OnDialError string `json:"level"`
-	logger      *xlog.Logger
+	logger      *zap.Logger
+	name        string
 }
 
-// DefaultRedisConfig default config ...
-func DefaultRedisConfig() Config {
-	return Config{
-		DB:            0,
-		PoolSize:      10,
-		MaxRetries:    3,
-		MinIdleConns:  100,
-		DialTimeout:   cast.ToDuration("1s"),
-		ReadTimeout:   cast.ToDuration("1s"),
-		WriteTimeout:  cast.ToDuration("1s"),
-		IdleTimeout:   cast.ToDuration("60s"),
-		ReadOnly:      false,
-		Debug:         false,
-		EnableTrace:   false,
-		SlowThreshold: cast.ToDuration("250ms"),
-		OnDialError:   "panic",
-		logger:        xlog.Jupiter(),
+// DefaultConfig default config ...
+func DefaultConfig() *Config {
+	return &Config{
+		name:                    "default",
+		DB:                      0,
+		PoolSize:                200,
+		MinIdleConns:            20,
+		DialTimeout:             cast.ToDuration("3s"),
+		ReadTimeout:             cast.ToDuration("1s"),
+		WriteTimeout:            cast.ToDuration("1s"),
+		IdleTimeout:             cast.ToDuration("60s"),
+		ReadOnMaster:            true,
+		Debug:                   false,
+		EnableMetricInterceptor: true,
+		EnableTraceInterceptor:  true,
+		EnableSentinel:          true,
+		SlowLogThreshold:        cast.ToDuration("250ms"),
+		logger:                  xlog.Jupiter().Named(ecode.ModClientRedis),
+		OnDialError:             "panic",
 	}
 }
 
-// StdRedisConfig ...
-func StdRedisConfig(name string) Config {
-	return RawRedisConfig("jupiter.redis." + name)
+// StdConfig ...
+func StdConfig(name string) *Config {
+	return RawConfig(constant.ConfigKey("redis", name, "stub"))
 }
+func RawConfig(key string) *Config {
+	var config = DefaultConfig()
 
-// RawRedisConfig ...
-func RawRedisConfig(key string) Config {
-	var config = DefaultRedisConfig()
-
-	if err := conf.UnmarshalKey(key, &config); err != nil {
-		xlog.Jupiter().Panic("unmarshal redisConfig",
-			xlog.String("key", key),
-			xlog.Any("redisConfig", config),
-			xlog.String("error", err.Error()))
+	if err := cfg.UnmarshalKey(key, &config, cfg.TagName("toml")); err != nil {
+		config.logger.Panic("unmarshal config:"+key, xlog.FieldErr(err), xlog.FieldName(key), xlog.FieldExtMessage(config))
 	}
+
+	if config.Master.Addr != "" && config.ReadOnMaster {
+		config.Slaves.Addr = append(config.Slaves.Addr, config.Master.Addr)
+	}
+	if config.Master.Addr == "" && len(config.Slaves.Addr) == 0 {
+		config.logger.Panic("no master or slaves addr set:"+key, xlog.FieldName(key), xlog.FieldExtMessage(config))
+	}
+	config.name = key
+	if xdebug.IsDevelopmentMode() {
+		xdebug.PrettyJsonPrint(key, config)
+	}
+
 	return config
-}
-
-// Build ...
-func (config Config) Build() *Redis {
-	count := len(config.Addrs)
-	if count < 1 {
-		if config.Addr == "" {
-			config.logger.Panic("no address in redis config", xlog.Any("config", config))
-		}
-
-		// 兼容单个地址
-		config.Addrs = append(config.Addrs, config.Addr)
-	}
-	if len(config.Mode) == 0 {
-		config.Mode = StubMode
-		if count > 1 {
-			config.Mode = ClusterMode
-		}
-	}
-	var client redis.Cmdable
-	switch config.Mode {
-	case ClusterMode:
-		if count == 1 {
-			config.logger.Warn("redis config has only 1 address but with cluster mode")
-		}
-		client = config.buildCluster()
-	case StubMode:
-		if count > 1 {
-			config.logger.Warn("redis config has more than 1 address but with stub mode")
-		}
-		client = config.buildStub()
-	default:
-		config.logger.Panic("redis mode must be one of (stub, cluster)")
-	}
-	return &Redis{
-		Config: &config,
-		Client: client,
-	}
-}
-
-func (config Config) buildStub() *redis.Client {
-	stubClient := redis.NewClient(&redis.Options{
-		Addr:         config.Addrs[0],
-		Password:     config.Password,
-		DB:           config.DB,
-		MaxRetries:   config.MaxRetries,
-		DialTimeout:  config.DialTimeout,
-		ReadTimeout:  config.ReadTimeout,
-		WriteTimeout: config.WriteTimeout,
-		PoolSize:     config.PoolSize,
-		MinIdleConns: config.MinIdleConns,
-		IdleTimeout:  config.IdleTimeout,
-	})
-
-	if err := stubClient.Ping().Err(); err != nil {
-		switch config.OnDialError {
-		case "panic":
-			config.logger.Panic("dial redis fail", xlog.Any("err", err), xlog.Any("config", config))
-		default:
-			config.logger.Error("dial redis fail", xlog.Any("err", err), xlog.Any("config", config))
-		}
-	}
-
-	return stubClient
 
 }
-
-func (config Config) buildCluster() *redis.ClusterClient {
-	clusterClient := redis.NewClusterClient(&redis.ClusterOptions{
-		Addrs:        config.Addrs,
-		MaxRedirects: config.MaxRetries,
-		ReadOnly:     config.ReadOnly,
-		Password:     config.Password,
-		MaxRetries:   config.MaxRetries,
-		DialTimeout:  config.DialTimeout,
-		ReadTimeout:  config.ReadTimeout,
-		WriteTimeout: config.WriteTimeout,
-		PoolSize:     config.PoolSize,
-		MinIdleConns: config.MinIdleConns,
-		IdleTimeout:  config.IdleTimeout,
-	})
-	if err := clusterClient.Ping().Err(); err != nil {
-		switch config.OnDialError {
-		case "panic":
-			config.logger.Panic("start cluster redis", xlog.Any("err", err))
-		default:
-			config.logger.Error("start cluster redis", xlog.Any("err", err))
-		}
+func getUsernameAndPassword(addr string) (realAddr string, username, password string) {
+	addr = strings.TrimPrefix(addr, "redis://")
+	addr = strings.TrimPrefix(addr, "rediss://")
+	arr := strings.Split(addr, "@")
+	if len(arr) < 2 {
+		return addr, "", ""
 	}
-	return clusterClient
-}
+	realAddr = arr[1]
 
-// StdRedisStubConfig ...
-func StdRedisStubConfig(name string) Config {
-	return RawRedisStubConfig("jupiter.redis." + name + ".stub")
-}
-
-// RawRedisStubConfig ...
-func RawRedisStubConfig(key string) Config {
-	var config = DefaultRedisConfig()
-	if err := conf.UnmarshalKey(key, &config); err != nil {
-		config.logger.Panic("unmarshal config",
-			xlog.String("key", key),
-			xlog.Any("config", config),
-			xlog.Any("error", err))
+	// username:password
+	auth := arr[0]
+	subArr := strings.Split(auth, ":")
+	if len(subArr) >= 2 {
+		username = subArr[0]
+		password = strings.Join(subArr[1:], ":")
 	}
-	config.Addrs = []string{config.Addr}
-	config.Mode = StubMode
-	return config
-}
-
-// StdRedisClusterConfig ...
-func StdRedisClusterConfig(name string) Config {
-	return RawRedisClusterConfig("jupiter.redis." + name + ".cluster")
-}
-
-// RawRedisClusterConfig ...
-func RawRedisClusterConfig(key string) Config {
-	var config = DefaultRedisConfig()
-	if err := conf.UnmarshalKey(key, &config); err != nil {
-		config.logger.Panic("unmarshal config",
-			xlog.String("key", key),
-			xlog.Any("config", config),
-			xlog.Any("error", err))
-	}
-	config.Mode = ClusterMode
-	return config
+	return realAddr, username, password
 }

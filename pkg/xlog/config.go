@@ -21,14 +21,14 @@ import (
 
 	"github.com/douyu/jupiter/pkg"
 	"github.com/douyu/jupiter/pkg/conf"
-	"github.com/douyu/jupiter/pkg/constant"
+	"github.com/douyu/jupiter/pkg/core/constant"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
 func init() {
 	conf.OnLoaded(func(c *conf.Configuration) {
-		prefix := constant.ConfigPrefix
+		prefix := constant.GetConfigPrefix()
 		// compatible with app.logger
 		if conf.Get("app.logger") != nil {
 			prefix = "app"
@@ -36,10 +36,12 @@ func init() {
 
 		log.Print("hook config, init loggers")
 
-		log.Printf("reload default logger with configKey: %s", prefix+".logger.default")
-		SetDefault(RawConfig(prefix + ".logger.default").Build())
+		key := prefix + ".logger.default"
+		log.Printf("reload default logger with configKey: %s", key)
+		SetDefault(RawConfig(key).Build())
 
-		log.Printf("reload jupiter logger with configKey: %s", prefix+".logger.jupiter")
+		key = prefix + ".logger.jupiter"
+		log.Printf("reload jupiter logger with configKey: %s", key)
 		SetJupiter(jupiterConfig(prefix).Build())
 	})
 }
@@ -84,7 +86,6 @@ func RawConfig(key string) *Config {
 	var config = DefaultConfig()
 	config, _ = conf.UnmarshalWithExpect(key, config).(*Config)
 	config.configKey = key
-	fmt.Printf("%+v", config)
 	return config
 }
 

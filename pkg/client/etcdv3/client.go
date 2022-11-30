@@ -23,14 +23,12 @@ import (
 	"strings"
 	"time"
 
-	"go.etcd.io/etcd/client/v3/concurrency"
-
+	"github.com/douyu/jupiter/pkg/core/ecode"
 	"github.com/douyu/jupiter/pkg/xlog"
 	grpcprom "github.com/grpc-ecosystem/go-grpc-prometheus"
-	clientv3 "go.etcd.io/etcd/client/v3"
-
-	//"go.etcd.io/etcd/mvcc/mvccpb"
 	mvccpb "go.etcd.io/etcd/api/v3/mvccpb"
+	clientv3 "go.etcd.io/etcd/client/v3"
+	"go.etcd.io/etcd/client/v3/concurrency"
 	"google.golang.org/grpc"
 )
 
@@ -42,17 +40,27 @@ type Client struct {
 
 // New ...
 func newClient(config *Config) (*Client, error) {
+	dialOptions := []grpc.DialOption{
+		grpc.WithBlock(),
+		grpc.WithChainUnaryInterceptor(grpcprom.UnaryClientInterceptor),
+		grpc.WithChainStreamInterceptor(grpcprom.StreamClientInterceptor),
+	}
+
+	if config.EnableTrace {
+		dialOptions = append(dialOptions,
+			grpc.WithChainUnaryInterceptor(traceUnaryClientInterceptor()),
+			grpc.WithChainStreamInterceptor(traceStreamClientInterceptor()),
+		)
+	}
+
 	conf := clientv3.Config{
 		Endpoints:            config.Endpoints,
 		DialTimeout:          config.ConnectTimeout,
 		DialKeepAliveTime:    10 * time.Second,
 		DialKeepAliveTimeout: 3 * time.Second,
-		DialOptions: []grpc.DialOption{
-			grpc.WithBlock(),
-			grpc.WithUnaryInterceptor(grpcprom.UnaryClientInterceptor),
-			grpc.WithStreamInterceptor(grpcprom.StreamClientInterceptor),
-		},
-		AutoSyncInterval: config.AutoSyncInterval,
+		DialOptions:          dialOptions,
+		AutoSyncInterval:     config.AutoSyncInterval,
+		Logger:               xlog.Jupiter().With(xlog.FieldMod("etcdv3")),
 	}
 
 	config.logger = config.logger.With(xlog.FieldAddrAny(config.Endpoints))
@@ -106,7 +114,7 @@ func newClient(config *Config) (*Client, error) {
 	client, err := clientv3.New(conf)
 
 	if err != nil {
-		// config.logger.Panic("client etcd start panic", xlog.FieldMod(ecode.ModClientETCD), xlog.FieldErrKind(ecode.ErrKindAny), xlog.FieldErr(err), xlog.FieldValueAny(config))
+		config.logger.Panic("client etcd start panic", xlog.FieldMod(ecode.ModClientETCD), xlog.FieldErrKind(ecode.ErrKindAny), xlog.FieldErr(err), xlog.FieldValueAny(config))
 		return nil, fmt.Errorf("client etcd start failed: %v", err)
 	}
 

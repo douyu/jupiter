@@ -257,7 +257,7 @@ func (e *JobExecutor) registry() {
 	req := &Registry{
 		RegistryGroup: e.opts.RegistryGroup, // EXECUTOR  CONTAINER
 		RegistryKey:   e.opts.RegistryKey,
-		RegistryValue: "http://" + e.address,
+		RegistryValue: e.address,
 	}
 	param, err := json.Marshal(req)
 	if err != nil {

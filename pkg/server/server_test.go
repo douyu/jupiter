@@ -17,7 +17,7 @@ package server
 import (
 	"testing"
 
-	"github.com/douyu/jupiter/pkg/constant"
+	"github.com/douyu/jupiter/pkg/core/constant"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/attributes"
 	"google.golang.org/grpc/resolver"
@@ -104,8 +104,7 @@ func TestNotImplementEqual(t *testing.T) {
 		// 比如某些服务给内部调用和第三方调用，可以配置不同的deployment,进行流量隔离
 		Deployment string `json:"deployment"`
 		// Group 流量组: 流量在Group之间进行负载均衡
-		Group    string              `json:"group"`
-		Services map[string]*Service `json:"services" toml:"services"`
+		Group string `json:"group"`
 	}
 
 	info1 := ServiceInfo{
@@ -139,4 +138,17 @@ func TestNotImplementEqual(t *testing.T) {
 		// This will cause panic
 		address1.Equal(address2)
 	})
+}
+
+func TestServer(t *testing.T) {
+	server := ApplyOptions(
+		WithScheme("grpc"),
+		WithAddress("127.0.0.1"),
+		WithKind(constant.ServiceGovernor),
+		WithMetaData("zone", "wh"),
+	)
+
+	assert.Equal(t, "grpc:server.test:v1:unkown-mode/127.0.0.1", server.RegistryName())
+	assert.Equal(t, "grpc:server.test:v1:unkown-mode/", server.ServicePrefix())
+	assert.Equal(t, "grpc://127.0.0.1", server.Label())
 }

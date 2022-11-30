@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/douyu/jupiter/pkg/constant"
+	"github.com/douyu/jupiter/pkg/conf"
+	"github.com/douyu/jupiter/pkg/core/constant"
 )
 
 var (
@@ -42,7 +43,17 @@ func SetAppLogDir(logDir string) {
 	appLogDir = logDir
 }
 
+// AppMode returns the current application mode.
 func AppMode() string {
+	confMode := conf.GetString(constant.ConfigKey("mode"))
+	if appMode == "" {
+		if confMode == "" {
+			return "unkown-mode"
+		}
+
+		return confMode
+	}
+
 	return appMode
 }
 

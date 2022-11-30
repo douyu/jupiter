@@ -19,49 +19,66 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
-	"net/url"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/douyu/jupiter/pkg"
 	"github.com/douyu/jupiter/pkg/client/etcdv3"
-	"github.com/douyu/jupiter/pkg/constant"
-	"github.com/douyu/jupiter/pkg/ecode"
+	"github.com/douyu/jupiter/pkg/core/constant"
+	"github.com/douyu/jupiter/pkg/core/ecode"
 	"github.com/douyu/jupiter/pkg/registry"
 	"github.com/douyu/jupiter/pkg/server"
 	"github.com/douyu/jupiter/pkg/util/xgo"
+	"github.com/douyu/jupiter/pkg/util/xretry"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"go.etcd.io/etcd/api/v3/mvccpb"
 	clientv3 "go.etcd.io/etcd/client/v3"
-	"go.etcd.io/etcd/client/v3/concurrency"
 )
 
 type etcdv3Registry struct {
+	ctx    context.Context
 	client *etcdv3.Client
 	kvs    sync.Map
 	*Config
-	cancel   context.CancelFunc
-	rmu      *sync.RWMutex
-	sessions map[string]*concurrency.Session
+	cancel  context.CancelFunc
+	rmu     *sync.RWMutex
+	leaseID clientv3.LeaseID
+
+	once sync.Once
 }
+
+const (
+	// defaultRetryTimes default retry times
+	defaultRetryTimes = 3
+	// defaultKeepAliveTimeout is the default timeout for keepalive requests.
+	defaultRegisterTimeout = 5 * time.Second
+)
+
+var _ registry.Registry = new(etcdv3Registry)
 
 func newETCDRegistry(config *Config) (*etcdv3Registry, error) {
 	if config.logger == nil {
-		config.logger = xlog.Jupiter()
+		config.logger = xlog.Jupiter().Named(ecode.ModRegistryETCD)
 	}
-	config.logger = config.logger.With(xlog.FieldMod(ecode.ModRegistryETCD), xlog.FieldAddrAny(config.Config.Endpoints))
-	etcdv3Client, err := config.Config.Build()
+	config.logger = config.logger.With(xlog.FieldAddrAny(config.Config.Endpoints))
+	etcdv3Client, err := config.Config.Singleton()
 	if err != nil {
+		config.logger.Error("create etcdv3 client", xlog.FieldErrKind(ecode.ErrKindRequestErr), xlog.FieldErr(err))
 		return nil, err
 	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+
 	reg := &etcdv3Registry{
-		client:   etcdv3Client,
-		Config:   config,
-		kvs:      sync.Map{},
-		rmu:      &sync.RWMutex{},
-		sessions: make(map[string]*concurrency.Session),
+		ctx:    ctx,
+		cancel: cancel,
+		client: etcdv3Client,
+		Config: config,
+		kvs:    sync.Map{},
+		rmu:    &sync.RWMutex{},
 	}
+
 	return reg, nil
 }
 
@@ -82,31 +99,34 @@ func (reg *etcdv3Registry) UnregisterService(ctx context.Context, info *server.S
 }
 
 // ListServices list service registered in registry with name `name`
-func (reg *etcdv3Registry) ListServices(ctx context.Context, name string, scheme string) (services []*server.ServiceInfo, err error) {
-	target := fmt.Sprintf("/%s/%s/providers/%s://", reg.Prefix, name, scheme)
-	getResp, getErr := reg.client.Get(ctx, target, clientv3.WithPrefix())
+func (reg *etcdv3Registry) ListServices(ctx context.Context, prefix string) (services []*server.ServiceInfo, err error) {
+	getResp, getErr := reg.client.Get(ctx, prefix, clientv3.WithPrefix())
 	if getErr != nil {
-		reg.logger.Error(ecode.MsgWatchRequestErr, xlog.FieldErrKind(ecode.ErrKindRequestErr), xlog.FieldErr(getErr), xlog.FieldAddr(target))
+		reg.logger.Error("reg.client.Get failed",
+			xlog.FieldErrKind(ecode.ErrKindRequestErr), xlog.FieldErr(getErr), xlog.FieldAddr(prefix))
 		return nil, getErr
 	}
 
 	for _, kv := range getResp.Kvs {
-		var service server.ServiceInfo
+		var service registry.Update
 		if err := json.Unmarshal(kv.Value, &service); err != nil {
 			reg.logger.Warn("invalid service", xlog.FieldErr(err))
 			continue
 		}
-		services = append(services, &service)
+
+		services = append(services, &server.ServiceInfo{
+			Address: service.Addr,
+		})
 	}
 
 	return
 }
 
 // WatchServices watch service change event, then return address list
-func (reg *etcdv3Registry) WatchServices(ctx context.Context, name string, scheme string) (chan registry.Endpoints, error) {
-	prefix := fmt.Sprintf("/%s/%s/", reg.Prefix, name)
+func (reg *etcdv3Registry) WatchServices(ctx context.Context, prefix string) (chan registry.Endpoints, error) {
 	watch, err := reg.client.WatchPrefix(context.Background(), prefix)
 	if err != nil {
+		reg.logger.Error("reg.client.WatchPrefix failed", xlog.FieldErrKind(ecode.MsgWatchRequestErr), xlog.FieldErr(err), xlog.FieldAddr(prefix))
 		return nil, err
 	}
 
@@ -117,6 +137,8 @@ func (reg *etcdv3Registry) WatchServices(ctx context.Context, name string, schem
 		ConsumerConfigs: make(map[string]registry.ConsumerConfig),
 		ProviderConfigs: make(map[string]registry.ProviderConfig),
 	}
+
+	scheme := getScheme(prefix)
 
 	for _, kv := range watch.IncipientKeyValues() {
 		updateAddrList(al, prefix, scheme, kv)
@@ -142,7 +164,7 @@ func (reg *etcdv3Registry) WatchServices(ctx context.Context, name string, schem
 			// case addresses <- snapshot:
 			case addresses <- *out:
 			default:
-				xlog.Jupiter().Warn("invalid")
+				reg.logger.Warn("invalid event")
 			}
 		}
 	})
@@ -155,10 +177,6 @@ func (reg *etcdv3Registry) unregister(ctx context.Context, key string) error {
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithTimeout(ctx, reg.ReadTimeout)
 		defer cancel()
-	}
-
-	if err := reg.delSession(key); err != nil {
-		return err
 	}
 
 	_, err := reg.client.Delete(ctx, key)
@@ -198,140 +216,206 @@ func (reg *etcdv3Registry) registerMetric(ctx context.Context, info *server.Serv
 		return nil
 	}
 
-	metric := "/prometheus/job/%s/%s/%s"
-
-	if _, ok := ctx.Deadline(); !ok {
-		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(ctx, reg.ReadTimeout)
-		defer cancel()
-	}
+	metric := "/prometheus/job/%s/%s"
 
 	val := info.Address
-	key := fmt.Sprintf(metric, info.Name, pkg.HostName(), val)
+	key := fmt.Sprintf(metric, info.Name, pkg.HostName())
 
-	opOptions := make([]clientv3.OpOption, 0)
-	// opOptions = append(opOptions, clientv3.WithSerializable())
-	if ttl := reg.Config.ServiceTTL.Seconds(); ttl > 0 {
-		//todo ctx without timeout for same as service life?
-		sess, err := reg.getSession(key, concurrency.WithTTL(int(ttl)))
-		if err != nil {
-			return err
-		}
-		opOptions = append(opOptions, clientv3.WithLease(sess.Lease()))
-	}
-	_, err := reg.client.Put(ctx, key, val, opOptions...)
-	if err != nil {
-		reg.logger.Error("register service", xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err), xlog.FieldKeyAny(key), xlog.FieldValueAny(info))
-		return err
-	}
-
-	reg.logger.Info("register service", xlog.FieldKeyAny(key), xlog.FieldValueAny(val))
-	reg.kvs.Store(key, val)
-	return nil
+	return reg.registerKV(ctx, key, val)
 
 }
 func (reg *etcdv3Registry) registerBiz(ctx context.Context, info *server.ServiceInfo) error {
-	if _, ok := ctx.Deadline(); !ok {
-		var readCancel context.CancelFunc
-		ctx, readCancel = context.WithTimeout(ctx, reg.ReadTimeout)
-		defer readCancel()
-	}
-
 	key := reg.registerKey(info)
 	val := reg.registerValue(info)
+
+	return reg.registerKV(ctx, key, val)
+}
+
+func (reg *etcdv3Registry) registerKV(ctx context.Context, key, val string) error {
 
 	opOptions := make([]clientv3.OpOption, 0)
 	// opOptions = append(opOptions, clientv3.WithSerializable())
 	if ttl := reg.Config.ServiceTTL.Seconds(); ttl > 0 {
-		//todo ctx without timeout for same as service life?
-		sess, err := reg.getSession(key, concurrency.WithTTL(int(ttl)))
+		// 这里基于应用名为key做缓存，每个服务实例应该只需要创建一个lease，降低etcd的压力
+		lease, err := reg.getOrGrantLeaseID(ctx)
 		if err != nil {
+			reg.logger.Error("getSession failed", xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err),
+				xlog.FieldKeyAny(key), xlog.FieldValueAny(val))
 			return err
 		}
-		opOptions = append(opOptions, clientv3.WithLease(sess.Lease()))
+
+		reg.once.Do(func() {
+			// we use reg.ctx to manully cancel lease keepalive loop
+			go reg.doKeepalive(reg.ctx)
+		})
+
+		opOptions = append(opOptions, clientv3.WithLease(lease))
 	}
 	_, err := reg.client.Put(ctx, key, val, opOptions...)
 	if err != nil {
-		reg.logger.Error("register service", xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err), xlog.FieldKeyAny(key), xlog.FieldValueAny(info))
+		reg.logger.Error("register service", xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err), xlog.FieldKeyAny(key))
 		return err
 	}
+
 	reg.logger.Info("register service", xlog.FieldKeyAny(key), xlog.FieldValueAny(val))
 	reg.kvs.Store(key, val)
 	return nil
 }
 
-func (reg *etcdv3Registry) getSession(k string, opts ...concurrency.SessionOption) (*concurrency.Session, error) {
-	reg.rmu.RLock()
-	sess, ok := reg.sessions[k]
-	reg.rmu.RUnlock()
-	if ok {
-		return sess, nil
-	}
-	sess, err := concurrency.NewSession(reg.client.Client, opts...)
-	if err != nil {
-		return sess, err
-	}
+func (reg *etcdv3Registry) getOrGrantLeaseID(ctx context.Context) (clientv3.LeaseID, error) {
 	reg.rmu.Lock()
-	reg.sessions[k] = sess
-	reg.rmu.Unlock()
-	return sess, nil
+	defer reg.rmu.Unlock()
+
+	if reg.leaseID != 0 {
+		return reg.leaseID, nil
+	}
+
+	grant, err := reg.client.Grant(ctx, int64(reg.ServiceTTL.Seconds()))
+	if err != nil {
+		reg.logger.Error("reg.client.Grant failed", xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err))
+		return 0, err
+	}
+
+	reg.leaseID = grant.ID
+
+	return grant.ID, nil
 }
 
-func (reg *etcdv3Registry) delSession(k string) error {
-	if ttl := reg.Config.ServiceTTL.Seconds(); ttl > 0 {
-		reg.rmu.RLock()
-		sess, ok := reg.sessions[k]
-		reg.rmu.RUnlock()
-		if ok {
-			reg.rmu.Lock()
-			delete(reg.sessions, k)
-			reg.rmu.Unlock()
-			if err := sess.Close(); err != nil {
-				return err
+func (reg *etcdv3Registry) getLeaseID() clientv3.LeaseID {
+	reg.rmu.RLock()
+	defer reg.rmu.RUnlock()
+
+	return reg.leaseID
+}
+
+func (reg *etcdv3Registry) setLeaseID(leaseId clientv3.LeaseID) {
+	reg.rmu.Lock()
+	defer reg.rmu.Unlock()
+
+	reg.leaseID = leaseId
+}
+
+// doKeepAlive periodically sends keep alive requests to etcd server.
+// when the keep alive request fails or timeout, it will try to re-establish the lease.
+func (reg *etcdv3Registry) doKeepalive(ctx context.Context) {
+
+	reg.logger.Debug("start keepalive...")
+
+	kac, err := reg.client.KeepAlive(ctx, reg.getLeaseID())
+	if err != nil {
+		reg.setLeaseID(0)
+		reg.logger.Error("reg.client.KeepAlive failed", xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err))
+	}
+
+	for {
+		// we should register again, because the leaseID is 0
+		if reg.getLeaseID() == 0 {
+			cancelCtx, cancel := context.WithCancel(ctx)
+
+			done := make(chan struct{}, 1)
+
+			go func() {
+				// do register again, and retry 3 times
+				err := reg.registerAllKvs(cancelCtx)
+				if err != nil {
+					cancel()
+					return
+				}
+
+				done <- struct{}{}
+			}()
+
+			// wait registerAllKvs success
+			select {
+			case <-time.After(defaultRegisterTimeout):
+				// when timeout happens
+				// we should cancel the context and retry again
+				cancel()
+				// mark leaseID as 0 to retry register
+				reg.setLeaseID(0)
+
+				continue
+			case <-done:
+				// when done happens, we just receive the kac channel
+				// or wait the registry context done
 			}
+
+			// try do keepalive again
+			// when error or timeout happens, just continue and try again
+			kac, err = reg.client.KeepAlive(ctx, reg.getLeaseID())
+			if err != nil {
+				reg.logger.Error("reg.client.KeepAlive failed", xlog.FieldErrKind(ecode.ErrKindRegisterErr), xlog.FieldErr(err))
+				time.Sleep(defaultRegisterTimeout)
+				continue
+			}
+
+			reg.logger.Debug("reg.client.KeepAlive finished", xlog.String("leaseid", fmt.Sprintf("%x", reg.getLeaseID())))
+		}
+
+		select {
+		case data, ok := <-kac:
+			if !ok {
+				// when error happens
+				// mark leaseID as 0 to retry register
+				reg.setLeaseID(0)
+
+				reg.logger.Debug("need to retry registration", xlog.String("leaseid", fmt.Sprintf("%x", reg.getLeaseID())))
+
+				continue
+			}
+
+			// just record detailed keepalive info
+			reg.logger.Debug("do keepalive", xlog.Any("data", data), xlog.String("leaseid", fmt.Sprintf("%x", reg.getLeaseID())))
+		case <-reg.ctx.Done():
+			reg.logger.Debug("exit keepalive")
+
+			return
 		}
 	}
-	return nil
 }
 
 func (reg *etcdv3Registry) registerKey(info *server.ServiceInfo) string {
-	return registry.GetServiceKey(reg.Prefix, info)
+	return info.RegistryName()
 }
 
 func (reg *etcdv3Registry) registerValue(info *server.ServiceInfo) string {
-	return registry.GetServiceValue(info)
+	update := registry.Update{
+		Op:       registry.Add,
+		Addr:     info.Address,
+		Metadata: info,
+	}
+
+	val, _ := json.Marshal(update)
+
+	return string(val)
+}
+
+func (reg *etcdv3Registry) registerAllKvs(ctx context.Context) error {
+	// do register again, and retry 3 times
+	return xretry.Do(defaultRetryTimes, time.Second, func() error {
+		var err error
+
+		// all kvs stored in reg.kvs, and we can range this map to register again
+		reg.kvs.Range(func(key, value any) bool {
+			err = reg.registerKV(ctx, key.(string), value.(string))
+			if err != nil {
+				reg.logger.Error("registerKV failed",
+					xlog.FieldErrKind(ecode.ErrKindRegisterErr),
+					xlog.FieldKeyAny(key),
+					xlog.FieldValueAny(value),
+					xlog.FieldErr(err))
+			}
+
+			return err == nil
+		})
+
+		return err
+	})
 }
 
 func deleteAddrList(al *registry.Endpoints, prefix, scheme string, kvs ...*mvccpb.KeyValue) {
 	for _, kv := range kvs {
 		var addr = strings.TrimPrefix(string(kv.Key), prefix)
-		if strings.HasPrefix(addr, "providers/"+scheme) {
-			// 解析服务注册键
-			addr = strings.TrimPrefix(addr, "providers/")
-			if addr == "" {
-				continue
-			}
-			uri, err := url.Parse(addr)
-			if err != nil {
-				xlog.Jupiter().Error("parse uri", xlog.FieldErrKind(ecode.ErrKindUriErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)))
-				continue
-			}
-			delete(al.Nodes, uri.String())
-		}
-
-		if strings.HasPrefix(addr, "configurators/"+scheme) {
-			// 解析服务配置键
-			addr = strings.TrimPrefix(addr, "configurators/")
-			if addr == "" {
-				continue
-			}
-			uri, err := url.Parse(addr)
-			if err != nil {
-				xlog.Jupiter().Error("parse uri", xlog.FieldErrKind(ecode.ErrKindUriErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)))
-				continue
-			}
-			delete(al.RouteConfigs, uri.String())
-		}
 
 		if isIPPort(addr) {
 			// 直接删除addr 因为Delete操作的value值为空
@@ -344,69 +428,21 @@ func deleteAddrList(al *registry.Endpoints, prefix, scheme string, kvs ...*mvccp
 func updateAddrList(al *registry.Endpoints, prefix, scheme string, kvs ...*mvccpb.KeyValue) {
 	for _, kv := range kvs {
 		var addr = strings.TrimPrefix(string(kv.Key), prefix)
-		switch {
-		// 解析服务注册键
-		case strings.HasPrefix(addr, "providers/"+scheme):
-			addr = strings.TrimPrefix(addr, "providers/")
-			uri, err := url.Parse(addr)
-			if err != nil {
-				xlog.Jupiter().Error("parse uri", xlog.FieldErrKind(ecode.ErrKindUriErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)))
-				continue
-			}
-			var serviceInfo server.ServiceInfo
-			if err := json.Unmarshal(kv.Value, &serviceInfo); err != nil {
-				xlog.Jupiter().Error("parse uri", xlog.FieldErrKind(ecode.ErrKindUriErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)))
-				continue
-			}
-			if serviceInfo.Enable {
-				al.Nodes[uri.String()] = serviceInfo
-			} else {
-				delete(al.Nodes, uri.String())
-			}
-
-		case strings.HasPrefix(addr, "configurators/"+scheme):
-			addr = strings.TrimPrefix(addr, "configurators/")
-
-			uri, err := url.Parse(addr)
-			if err != nil {
-				xlog.Jupiter().Error("parse uri", xlog.FieldErrKind(ecode.ErrKindUriErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)))
+		if isIPPort(addr) {
+			var meta registry.Update
+			if err := json.Unmarshal(kv.Value, &meta); err != nil {
+				xlog.Jupiter().Error("unmarshal meta", xlog.FieldErr(err),
+					xlog.FieldExtMessage("value", string(kv.Value), "key", string(kv.Key)))
 				continue
 			}
 
-			if strings.HasPrefix(uri.Path, "/routes/") { // 路由配置
-				var routeConfig registry.RouteConfig
-				if err := json.Unmarshal(kv.Value, &routeConfig); err != nil {
-					xlog.Jupiter().Error("parse uri", xlog.FieldErrKind(ecode.ErrKindUriErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)))
-					continue
+			switch meta.Op {
+			case registry.Add:
+				al.Nodes[addr] = server.ServiceInfo{
+					Address: addr,
 				}
-				routeConfig.ID = strings.TrimPrefix(uri.Path, "/routes/")
-				routeConfig.Scheme = uri.Scheme
-				routeConfig.Host = uri.Host
-				al.RouteConfigs[uri.String()] = routeConfig
-			}
-
-			if strings.HasPrefix(uri.Path, "/providers/") {
-				var providerConfig registry.ProviderConfig
-				if err := json.Unmarshal(kv.Value, &providerConfig); err != nil {
-					xlog.Jupiter().Error("parse uri", xlog.FieldErrKind(ecode.ErrKindUriErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)))
-					continue
-				}
-				providerConfig.ID = strings.TrimPrefix(uri.Path, "/providers/")
-				providerConfig.Scheme = uri.Scheme
-				providerConfig.Host = uri.Host
-				al.ProviderConfigs[uri.String()] = providerConfig
-			}
-
-			if strings.HasPrefix(uri.Path, "/consumers/") {
-				var consumerConfig registry.ConsumerConfig
-				if err := json.Unmarshal(kv.Value, &consumerConfig); err != nil {
-					xlog.Jupiter().Error("parse uri", xlog.FieldErrKind(ecode.ErrKindUriErr), xlog.FieldErr(err), xlog.FieldKey(string(kv.Key)))
-					continue
-				}
-				consumerConfig.ID = strings.TrimPrefix(uri.Path, "/consumers/")
-				consumerConfig.Scheme = uri.Scheme
-				consumerConfig.Host = uri.Host
-				al.ConsumerConfigs[uri.String()] = consumerConfig
+			case registry.Delete:
+				delete(al.Nodes, addr)
 			}
 		}
 	}
@@ -417,44 +453,6 @@ func isIPPort(addr string) bool {
 	return err == nil
 }
 
-/*
-key: /jupiter/main/configurator/grpc:///routes/1
-val:
-{
-	"upstream": { // 客户端配置
-		"nodes": { // 按照node负载均衡
-			"127.0.0.1:1980": 1,
-			"127.0.0.1:1981": 4
-		},
-		"group": { // 按照group负载均衡
-			"red": 2,
-			"green": 1
-		}
-	},
-	"uri": "/hello",
-	"deployment": "open_api"
+func getScheme(prefix string) string {
+	return strings.Split(prefix, ":")[0]
 }
-
-key: /jupiter/main/configurator/grpc://127.0.0.1/routes/2
-val:
-{
-	"upstream": { // 客户端配置
-		"nodes": { // 按照node负载均衡
-			"127.0.0.1:1980": 1,
-			"127.0.0.1:1981": 1
-		},
-		"group": { // 按照group负载均衡
-			"red": 1,
-			"green": 2
-		}
-	},
-	"uri": "/hello",
-	"deployment": "core_api" // 部署组
-}
-
-key: /jupiter/main/configurator/grpc:///consumers/client-demo
-val:
-{
-
-}
-*/

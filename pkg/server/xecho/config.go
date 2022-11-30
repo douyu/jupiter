@@ -18,25 +18,23 @@ import (
 	"fmt"
 
 	"github.com/douyu/jupiter/pkg/conf"
-	"github.com/douyu/jupiter/pkg/constant"
-	"github.com/douyu/jupiter/pkg/ecode"
+	"github.com/douyu/jupiter/pkg/core/constant"
+	"github.com/douyu/jupiter/pkg/core/ecode"
 	"github.com/douyu/jupiter/pkg/flag"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
 
-//ModName named a mod
-const ModName = "server.echo"
-
 //Config HTTP config
 type Config struct {
-	Host          string
-	Port          int
-	Deployment    string
-	Debug         bool
-	DisableMetric bool
-	DisableTrace  bool
+	Host            string
+	Port            int
+	Deployment      string
+	Debug           bool
+	DisableMetric   bool
+	DisableTrace    bool
+	DisableSentinel bool
 	// ServiceAddress service address in registry info, default to 'Host:Port'
 	ServiceAddress string
 	CertFile       string
@@ -56,7 +54,7 @@ func DefaultConfig() *Config {
 		Debug:                     false,
 		Deployment:                constant.DefaultDeployment,
 		SlowQueryThresholdInMilli: 500, // 500ms
-		logger:                    xlog.Jupiter().With(xlog.FieldMod(ModName)),
+		logger:                    xlog.Jupiter().Named(ecode.ModEchoServer),
 		EnableTLS:                 false,
 		CertFile:                  "cert.pem",
 		PrivateFile:               "private.pem",
@@ -65,7 +63,7 @@ func DefaultConfig() *Config {
 
 // StdConfig Jupiter Standard HTTP Server config
 func StdConfig(name string) *Config {
-	return RawConfig("jupiter.server." + name)
+	return RawConfig(constant.ConfigKey("server." + name))
 }
 
 // RawConfig ...
@@ -119,6 +117,11 @@ func (config *Config) Build() (*Server, error) {
 	if !config.DisableTrace {
 		server.Use(traceServerInterceptor())
 	}
+
+	if !config.DisableSentinel {
+		server.Use(sentinelServerInterceptor())
+	}
+
 	return server, nil
 }
 

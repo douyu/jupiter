@@ -1,0 +1,8 @@
+coverage:
+  status:
+    project:
+      default:
+        # basic
+        target: 50%
+        threshold: 5%
+        if_ci_failed: error

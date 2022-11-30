@@ -9,9 +9,9 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/douyu/jupiter/pkg/core/metric"
 	"github.com/douyu/jupiter/pkg/executor"
 	"github.com/douyu/jupiter/pkg/executor/xxl/logger"
-	"github.com/douyu/jupiter/pkg/metric"
 )
 
 // 任务执行函数
@@ -74,7 +74,7 @@ func (t *Task) Run(ctx context.Context, cb CallbackFunc) {
 			defer func() {
 				// recover panic
 				if err := recover(); err != nil {
-					log.Println(t.Info()+" panic: ", err)
+					log.Println("panic: ", err)
 					debug.PrintStack() // 堆栈跟踪
 					done <- TaskResult{TaskResultTypePanic, "panic", fmt.Errorf("%v", err)}
 					close(done)

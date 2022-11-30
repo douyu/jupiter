@@ -33,7 +33,11 @@ type Err struct {
 }
 
 // Error implements the error interface.
-func (e Err) Error() string {
+func (e *Err) Error() string {
+	if e == nil {
+		return "nil"
+	}
+
 	return fmt.Sprintf("xerror: ecode = %v msg = %s", e.GetEcode(), e.GetMsg())
 }
 

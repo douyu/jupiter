@@ -17,25 +17,26 @@ package xgrpc
 import (
 	"context"
 	"fmt"
-	"go.opentelemetry.io/otel/attribute"
-	"google.golang.org/grpc/status"
 	"net"
 	"runtime"
 	"strings"
 	"time"
 
-	"github.com/douyu/jupiter/pkg/ecode"
+	"github.com/alibaba/sentinel-golang/core/base"
+	"github.com/douyu/jupiter/pkg/core/ecode"
+	"github.com/douyu/jupiter/pkg/core/metric"
+	"github.com/douyu/jupiter/pkg/core/sentinel"
+	"github.com/douyu/jupiter/pkg/core/xtrace"
 	"github.com/douyu/jupiter/pkg/xlog"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
+	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
-
-	"github.com/douyu/jupiter/pkg/metric"
-	"github.com/douyu/jupiter/pkg/xtrace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
-	"go.opentelemetry.io/otel/trace"
-	"google.golang.org/grpc"
+	"google.golang.org/grpc/status"
 )
 
 func prometheusUnaryServerInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
@@ -56,40 +57,46 @@ func prometheusStreamServerInterceptor(srv interface{}, ss grpc.ServerStream, in
 	return err
 }
 
-func traceUnaryServerInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (reply interface{}, err error) {
-	var remote string
-	md, ok := metadata.FromIncomingContext(ctx)
-	if ok {
-		md = md.Copy()
-	} else {
-		md = metadata.MD{}
-	}
+func NewTraceUnaryServerInterceptor() grpc.UnaryServerInterceptor {
 	tracer := xtrace.NewTracer(trace.SpanKindServer)
-	operation, mAttrs := xtrace.ParseFullMethod(info.FullMethod)
-	attrs := []attribute.KeyValue{
-		semconv.RPCSystemKey.String("grpc"),
-	}
-	attrs = append(attrs, mAttrs...)
-	if p, ok := peer.FromContext(ctx); ok {
-		remote = p.Addr.String()
-	}
-	attrs = append(attrs, xtrace.PeerAttr(remote)...)
-	ctx, span := tracer.Start(ctx, operation, xtrace.MetadataReaderWriter(md), trace.WithAttributes(attrs...))
-	defer func() {
-		if err != nil {
-			span.RecordError(err)
-			s, ok := status.FromError(err)
-			if ok {
-				span.SetAttributes(semconv.RPCGRPCStatusCodeKey.Int64(int64(s.Code())))
-			} else {
-				span.SetStatus(codes.Error, err.Error())
-			}
+
+	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (reply interface{}, err error) {
+		var remote string
+		md, ok := metadata.FromIncomingContext(ctx)
+		if ok {
+			md = md.Copy()
 		} else {
-			span.SetStatus(codes.Ok, "OK")
+			md = metadata.MD{}
 		}
-		span.End()
-	}()
-	return handler(ctx, req)
+		operation, mAttrs := xtrace.ParseFullMethod(info.FullMethod)
+		attrs := []attribute.KeyValue{
+			semconv.RPCSystemGRPC,
+		}
+		attrs = append(attrs, mAttrs...)
+		if p, ok := peer.FromContext(ctx); ok {
+			remote = p.Addr.String()
+		}
+		attrs = append(attrs, xtrace.PeerAttr(remote)...)
+		ctx, span := tracer.Start(ctx, operation, xtrace.MetadataReaderWriter(md), trace.WithAttributes(attrs...))
+		defer func() {
+			if err != nil {
+				span.RecordError(err)
+				s, ok := status.FromError(err)
+				if ok {
+					span.SetAttributes(semconv.RPCGRPCStatusCodeKey.Int64(int64(s.Code())))
+				} else {
+					span.SetStatus(codes.Error, err.Error())
+				}
+			} else {
+				span.SetStatus(codes.Ok, "OK")
+			}
+			span.End()
+		}()
+
+		ctx = xlog.NewContext(ctx, xlog.Default(), span.SpanContext().TraceID().String())
+
+		return handler(ctx, req)
+	}
 }
 
 type contextedServerStream struct {
@@ -102,31 +109,39 @@ func (css contextedServerStream) Context() context.Context {
 	return css.ctx
 }
 
-func traceStreamServerInterceptor(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
-	var remote string
-	md, ok := metadata.FromIncomingContext(ss.Context())
-	if ok {
-		md = md.Copy()
-	} else {
-		md = metadata.MD{}
-	}
+func NewTraceStreamServerInterceptor() grpc.StreamServerInterceptor {
 	tracer := xtrace.NewTracer(trace.SpanKindServer)
-	operation, mAttrs := xtrace.ParseFullMethod(info.FullMethod)
 	attrs := []attribute.KeyValue{
-		semconv.RPCSystemKey.String("grpc"),
+		semconv.RPCSystemGRPC,
 	}
-	attrs = append(attrs, mAttrs...)
-	if p, ok := peer.FromContext(ss.Context()); ok {
-		remote = p.Addr.String()
+
+	return func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+		var remote string
+		md, ok := metadata.FromIncomingContext(ss.Context())
+		if ok {
+			md = md.Copy()
+		} else {
+			md = metadata.MD{}
+		}
+
+		operation, mAttrs := xtrace.ParseFullMethod(info.FullMethod)
+
+		attrs = append(attrs, mAttrs...)
+		if p, ok := peer.FromContext(ss.Context()); ok {
+			remote = p.Addr.String()
+		}
+		attrs = append(attrs, xtrace.PeerAttr(remote)...)
+
+		ctx, span := tracer.Start(ss.Context(), operation, xtrace.MetadataReaderWriter(md), trace.WithAttributes(attrs...))
+		defer span.End()
+
+		ctx = xlog.NewContext(ctx, xlog.Default(), span.SpanContext().TraceID().String())
+
+		return handler(srv, contextedServerStream{
+			ServerStream: ss,
+			ctx:          ctx,
+		})
 	}
-	attrs = append(attrs, xtrace.PeerAttr(remote)...)
-	//ctx, span := tracer.Start(ss.Context(), operation, propagation.HeaderCarrier(md), trace.WithAttributes(attrs...))
-	ctx, span := tracer.Start(ss.Context(), operation, xtrace.MetadataReaderWriter(md), trace.WithAttributes(attrs...))
-	defer span.End()
-	return handler(srv, contextedServerStream{
-		ServerStream: ss,
-		ctx:          ctx,
-	})
 }
 
 func extractAID(ctx context.Context) string {
@@ -270,4 +285,21 @@ func getPeer(ctx context.Context) map[string]string {
 	}
 	return peerMeta
 
+}
+
+func NewSentinelUnaryServerInterceptor() grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+		entry, blockerr := sentinel.Entry(info.FullMethod,
+			sentinel.WithResourceType(base.ResTypeRPC),
+			sentinel.WithTrafficType(base.Inbound),
+		)
+		if blockerr != nil {
+			return nil, blockerr
+		}
+
+		resp, err := handler(ctx, req)
+		entry.Exit(sentinel.WithError(err))
+
+		return resp, err
+	}
 }

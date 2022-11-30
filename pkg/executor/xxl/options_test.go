@@ -43,7 +43,7 @@ func Test_DefaultConfig(t *testing.T) {
 	configStr := `
 	[xxl]
 		[xxl.job]
-			[xxl.job.executor]
+			[xxl.job.admin]
 				appname = "jupiter-xxl-job-demo"  # 执行器名称
 				port = "59001"                    # 开启执行器的服务端口
 				access_token = "jupiter-token"    # xxl-job需要的token信息

@@ -19,17 +19,18 @@ import (
 
 	"github.com/douyu/jupiter/pkg/client/etcdv3"
 	"github.com/douyu/jupiter/pkg/conf"
-	"github.com/douyu/jupiter/pkg/constant"
-	"github.com/douyu/jupiter/pkg/ecode"
+	"github.com/douyu/jupiter/pkg/core/constant"
+	"github.com/douyu/jupiter/pkg/core/ecode"
+	"github.com/douyu/jupiter/pkg/core/singleton"
 	"github.com/douyu/jupiter/pkg/registry"
-	"github.com/douyu/jupiter/pkg/singleton"
 	"github.com/douyu/jupiter/pkg/xlog"
+	"github.com/spf13/cast"
 	"go.uber.org/zap"
 )
 
 // StdConfig ...
 func StdConfig(name string) *Config {
-	return RawConfig("jupiter.registry." + name)
+	return RawConfig(constant.ConfigKey("registry." + name))
 }
 
 // RawConfig ...
@@ -51,9 +52,9 @@ func DefaultConfig() *Config {
 	return &Config{
 		Config:      etcdv3.DefaultConfig(),
 		ReadTimeout: time.Second * 3,
-		Prefix:      "jupiter",
-		logger:      xlog.Jupiter(),
-		ServiceTTL:  0,
+		Prefix:      "wsd-reg",
+		logger:      xlog.Jupiter().Named(ecode.ModRegistryETCD),
+		ServiceTTL:  cast.ToDuration("60s"),
 	}
 }
 
@@ -84,7 +85,7 @@ func (config Config) MustBuild() registry.Registry {
 }
 
 func (config *Config) Singleton() (registry.Registry, error) {
-	if val, ok := singleton.Load(constant.ModuleClientEtcd, "etcdv3"); ok {
+	if val, ok := singleton.Load(constant.ModuleClientEtcd, config.ConfigKey); ok {
 		return val.(registry.Registry), nil
 	}
 
@@ -93,7 +94,7 @@ func (config *Config) Singleton() (registry.Registry, error) {
 		return nil, err
 	}
 
-	singleton.Store(constant.ModuleClientEtcd, "etcdv3", reg)
+	singleton.Store(constant.ModuleClientEtcd, config.ConfigKey, reg)
 
 	return reg, nil
 }

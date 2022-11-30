@@ -50,8 +50,8 @@ func DefaultConfig() *Options {
 	// 加载框架默认Options
 	options := DefaultOptions()
 	// 加载用户自定义Options
-	if err := conf.UnmarshalKey("xxl.job.executor", options, conf.TagName("toml")); err != nil {
-		xlog.Jupiter().Panic("unmarshal config", xlog.FieldName("xxl.job.executor"), xlog.FieldErr(err))
+	if err := conf.UnmarshalKey("xxl.job.admin", options, conf.TagName("toml")); err != nil {
+		xlog.Jupiter().Panic("unmarshal config", xlog.FieldName("xxl.job.admin"), xlog.FieldErr(err))
 	}
 	if strings.TrimSpace(options.LogDir) == "" {
 		options.LogDir = constants.BasePath + options.RegistryKey + "/jobhandler/"

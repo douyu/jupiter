@@ -69,3 +69,15 @@ lintd:
 	docker run --rm -v "$(shell pwd)/:/go/src/github.com/douyu/jupiter" --workdir /go/src/github.com/douyu/jupiter  -it golangci/golangci-lint:v1.42.1 golangci-lint run -v
 lintl:
 	golangci-lint run -v
+
+lintmd:
+	markdownlint -c .github/markdown_lint_config.json website/docs README.md pkg
+
+e2e-test:
+	cd test/e2e \
+		&& go mod tidy \
+		&& ginkgo -r -race -cover -covermode=atomic -coverprofile=coverage.txt -r --randomize-all --randomize-suites --trace -coverpkg=github.com/douyu/jupiter/... .\
+		&& cd -
+
+unit-test:
+	go test -race -coverprofile=coverage.txt -covermode=atomic ./...

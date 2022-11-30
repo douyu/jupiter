@@ -16,8 +16,6 @@ package registry
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	"io"
 
 	"github.com/douyu/jupiter/pkg/server"
@@ -100,29 +98,10 @@ type EventMessage struct {
 type Registry interface {
 	RegisterService(context.Context, *server.ServiceInfo) error
 	UnregisterService(context.Context, *server.ServiceInfo) error
-	ListServices(context.Context, string, string) ([]*server.ServiceInfo, error)
-	WatchServices(context.Context, string, string) (chan Endpoints, error)
+	ListServices(context.Context, string) ([]*server.ServiceInfo, error)
+	WatchServices(context.Context, string) (chan Endpoints, error)
 	Kind() string
 	io.Closer
-}
-
-//GetServiceKey ..
-func GetServiceKey(prefix string, s *server.ServiceInfo) string {
-	return fmt.Sprintf("/%s/%s/%s/%s://%s", prefix, s.Name, s.Kind.String(), s.Scheme, s.Address)
-}
-
-//GetServiceValue ..
-func GetServiceValue(s *server.ServiceInfo) string {
-	val, _ := json.Marshal(s)
-	return string(val)
-}
-
-//GetService ..
-func GetService(s string) *server.ServiceInfo {
-	var si server.ServiceInfo
-	// TODO: 查询服务
-	_ = json.Unmarshal([]byte(s), &si)
-	return &si
 }
 
 // Configuration ...

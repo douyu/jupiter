@@ -18,8 +18,8 @@ import (
 	"fmt"
 
 	"github.com/douyu/jupiter/pkg/conf"
-	"github.com/douyu/jupiter/pkg/constant"
-	"github.com/douyu/jupiter/pkg/ecode"
+	"github.com/douyu/jupiter/pkg/core/constant"
+	"github.com/douyu/jupiter/pkg/core/ecode"
 	"github.com/douyu/jupiter/pkg/flag"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"go.uber.org/zap"
@@ -40,6 +40,8 @@ type Config struct {
 	DisableTrace bool
 	// DisableMetric disable Metric Interceptor, false by default
 	DisableMetric bool
+	// DisableSentinel disable Sentinel Interceptor, false by default
+	DisableSentinel bool
 	// SlowQueryThresholdInMilli, request will be colored if cost over this threshold value
 	SlowQueryThresholdInMilli int64
 	// ServiceAddress service address in registry info, default to 'Host:Port'
@@ -66,7 +68,7 @@ type Config struct {
 // which will parse config by conf package,
 // panic if no config key found in conf
 func StdConfig(name string) *Config {
-	return RawConfig("jupiter.server." + name)
+	return RawConfig(constant.ConfigKey("server." + name))
 }
 
 // RawConfig ...
@@ -95,7 +97,7 @@ func DefaultConfig() *Config {
 		DisableTrace:              false,
 		EnableTLS:                 false,
 		SlowQueryThresholdInMilli: 500,
-		logger:                    xlog.Jupiter().With(xlog.FieldMod("server.grpc")),
+		logger:                    xlog.Jupiter().Named(ecode.ModGrpcServer),
 		serverOptions:             []grpc.ServerOption{},
 		streamInterceptors:        []grpc.StreamServerInterceptor{},
 		unaryInterceptors:         []grpc.UnaryServerInterceptor{},
@@ -144,13 +146,17 @@ func (config *Config) MustBuild() *Server {
 // Build ...
 func (config *Config) Build() (*Server, error) {
 	if !config.DisableTrace {
-		config.unaryInterceptors = append(config.unaryInterceptors, traceUnaryServerInterceptor)
-		config.streamInterceptors = append(config.streamInterceptors, traceStreamServerInterceptor)
+		config.unaryInterceptors = append(config.unaryInterceptors, NewTraceUnaryServerInterceptor())
+		config.streamInterceptors = append(config.streamInterceptors, NewTraceStreamServerInterceptor())
 	}
 
 	if !config.DisableMetric {
 		config.unaryInterceptors = append(config.unaryInterceptors, prometheusUnaryServerInterceptor)
 		config.streamInterceptors = append(config.streamInterceptors, prometheusStreamServerInterceptor)
+	}
+
+	if !config.DisableSentinel {
+		config.unaryInterceptors = append(config.unaryInterceptors, NewSentinelUnaryServerInterceptor())
 	}
 
 	return newServer(config)

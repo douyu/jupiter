@@ -17,37 +17,20 @@ package etcdv3
 import (
 	"context"
 	"fmt"
-	"log"
 	"testing"
 	"time"
 
 	"github.com/douyu/jupiter/pkg/client/etcdv3"
-	"github.com/douyu/jupiter/pkg/constant"
+	"github.com/douyu/jupiter/pkg/core/constant"
 	"github.com/douyu/jupiter/pkg/registry"
 	"github.com/douyu/jupiter/pkg/server"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/stretchr/testify/assert"
-	"go.etcd.io/etcd/client/v3/mock/mockserver"
 )
-
-func startMockServer() {
-	ms, err := mockserver.StartMockServers(1)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if err := ms.StartAt(0); err != nil {
-		log.Fatal(err)
-	}
-}
-
-func TestMain(m *testing.M) {
-	go startMockServer()
-}
 
 func Test_etcdv3Registry(t *testing.T) {
 	etcdConfig := etcdv3.DefaultConfig()
-	etcdConfig.Endpoints = []string{"localhost:0"}
+	etcdConfig.Endpoints = []string{"localhost:2379"}
 	registry, err := newETCDRegistry(&Config{
 		Config:      etcdConfig,
 		ReadTimeout: time.Second * 10,
@@ -72,7 +55,7 @@ func Test_etcdv3Registry(t *testing.T) {
 		Group:      "",
 	}))
 
-	services, err := registry.ListServices(context.Background(), "service_1", "grpc")
+	services, err := registry.ListServices(context.Background(), "grpc:service_1")
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(services))
 	assert.Equal(t, "10.10.10.1:9091", services[0].Address)
@@ -96,7 +79,7 @@ func Test_etcdv3Registry(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	go func() {
-		endpoints, err := registry.WatchServices(ctx, "service_1", "grpc")
+		endpoints, err := registry.WatchServices(ctx, "grpc:service_1")
 		assert.Nil(t, err)
 		for msg := range endpoints {
 			t.Logf("watch service: %+v\n", msg)
@@ -112,7 +95,7 @@ func Test_etcdv3Registry(t *testing.T) {
 
 func Test_etcdv3registry_UpdateAddressList(t *testing.T) {
 	etcdConfig := etcdv3.DefaultConfig()
-	etcdConfig.Endpoints = []string{"localhost:0"}
+	etcdConfig.Endpoints = []string{"localhost:2379"}
 	reg, err := newETCDRegistry(&Config{
 		Config:      etcdConfig,
 		ReadTimeout: time.Second * 10,
@@ -139,7 +122,7 @@ func Test_etcdv3registry_UpdateAddressList(t *testing.T) {
 	assert.Nil(t, err)
 	ctx, cancel := context.WithCancel(context.Background())
 	go func() {
-		services, err := reg.WatchServices(ctx, "service_1", "grpc")
+		services, err := reg.WatchServices(ctx, "grpc:service_1")
 		assert.Nil(t, err)
 		fmt.Printf("len(services) = %+v\n", len(services))
 		for service := range services {
@@ -148,6 +131,67 @@ func Test_etcdv3registry_UpdateAddressList(t *testing.T) {
 	}()
 	time.Sleep(time.Second * 3)
 	cancel()
+	_ = reg.Close()
+	time.Sleep(time.Second * 1)
+}
+
+func TestKeepalive(t *testing.T) {
+	etcdConfig := etcdv3.DefaultConfig()
+	etcdConfig.Endpoints = []string{"localhost:2379"}
+	reg, err := newETCDRegistry(&Config{
+		Config:      etcdConfig,
+		ReadTimeout: time.Second * 10,
+		Prefix:      "jupiter",
+		logger:      xlog.Jupiter(),
+		ServiceTTL:  time.Second,
+	})
+	assert.Nil(t, err)
+	assert.Nil(t, reg.RegisterService(context.Background(), &server.ServiceInfo{
+		Name:       "service_2",
+		AppID:      "",
+		Scheme:     "grpc",
+		Address:    "10.10.10.1:9091",
+		Weight:     0,
+		Enable:     true,
+		Healthy:    true,
+		Metadata:   map[string]string{},
+		Region:     "default",
+		Zone:       "default",
+		Kind:       constant.ServiceProvider,
+		Deployment: "default",
+		Group:      "",
+	}))
+	assert.Nil(t, reg.RegisterService(context.Background(), &server.ServiceInfo{
+		Name:       "service_2",
+		AppID:      "",
+		Scheme:     "grpc",
+		Address:    "10.10.10.1:9092",
+		Weight:     0,
+		Enable:     true,
+		Healthy:    true,
+		Metadata:   map[string]string{},
+		Region:     "default",
+		Zone:       "default",
+		Kind:       constant.ServiceGovernor,
+		Deployment: "default",
+		Group:      "",
+	}))
+
+	lease := reg.getLeaseID()
+	reg.client.Revoke(context.Background(), lease)
+
+	assert.Eventually(t, func() bool {
+		return reg.getLeaseID() != 0 && lease != reg.getLeaseID()
+	}, 5*time.Second, time.Second)
+
+	ttl, err := reg.client.TimeToLive(context.Background(), lease)
+	assert.Nil(t, err)
+	assert.Equal(t, int64(-1), ttl.TTL)
+
+	ttl, err = reg.client.TimeToLive(context.Background(), reg.getLeaseID())
+	assert.Nil(t, err)
+	assert.Equal(t, int64(1), ttl.TTL)
+
 	_ = reg.Close()
 	time.Sleep(time.Second * 1)
 }

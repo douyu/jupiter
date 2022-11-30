@@ -19,7 +19,7 @@ import (
 	"fmt"
 
 	"github.com/douyu/jupiter/pkg"
-	"github.com/douyu/jupiter/pkg/constant"
+	"github.com/douyu/jupiter/pkg/core/constant"
 )
 
 type Option func(c *ServiceInfo)
@@ -42,20 +42,22 @@ type ServiceInfo struct {
 	Region   string               `json:"region"`
 	Zone     string               `json:"zone"`
 	Kind     constant.ServiceKind `json:"kind"`
+	Version  string               `json:"version"`
+	Mode     string               `json:"mode"`
+	Hostname string               `json:"hostname"`
 	// Deployment 部署组: 不同组的流量隔离
 	// 比如某些服务给内部调用和第三方调用，可以配置不同的deployment,进行流量隔离
 	Deployment string `json:"deployment"`
 	// Group 流量组: 流量在Group之间进行负载均衡
-	Group    string              `json:"group"`
-	Services map[string]*Service `json:"services" toml:"services"`
+	Group string `json:"group"`
 }
 
-// Service ...
-type Service struct {
-	Namespace string            `json:"namespace" toml:"namespace"`
-	Name      string            `json:"name" toml:"name"`
-	Labels    map[string]string `json:"labels" toml:"labels"`
-	Methods   []string          `json:"methods" toml:"methods"`
+func (s *ServiceInfo) RegistryName() string {
+	return fmt.Sprintf("%s:%s:%s:%s/%s", s.Scheme, s.Name, "v1", pkg.AppMode(), s.Address)
+}
+
+func (s *ServiceInfo) ServicePrefix() string {
+	return fmt.Sprintf("%s:%s:%s:%s/", s.Scheme, s.Name, "v1", pkg.AppMode())
 }
 
 // Label ...
@@ -140,12 +142,13 @@ func defaultServiceInfo() ServiceInfo {
 		Metadata:   make(map[string]string),
 		Region:     pkg.AppRegion(),
 		Zone:       pkg.AppZone(),
+		Mode:       pkg.AppMode(),
+		Hostname:   pkg.AppHost(),
+		Version:    "v1",
 		Kind:       0,
 		Deployment: "",
 		Group:      "",
 	}
-	si.Metadata["appMode"] = pkg.AppMode()
-	si.Metadata["appHost"] = pkg.AppHost()
 	si.Metadata["startTime"] = pkg.StartTime()
 	si.Metadata["buildTime"] = pkg.BuildTime()
 	si.Metadata["appVersion"] = pkg.AppVersion()
