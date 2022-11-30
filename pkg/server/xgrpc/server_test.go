@@ -54,12 +54,12 @@ func TestServer_Serve(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := &Server{
+			server := &Server{
 				Server:   tt.fields.Server,
 				listener: tt.fields.listener,
 				Config:   tt.fields.Config,
 			}
-			if err := s.Serve(); (err != nil) != tt.wantErr {
+			if err := server.Serve(); (err != nil) != tt.wantErr {
 				t.Errorf("Server.Serve() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -76,8 +76,8 @@ func TestServer_Closed(t *testing.T) {
 		convey.So(err, convey.ShouldBeNil)
 		err = ns.Serve()
 		convey.So(err, convey.ShouldEqual, grpc.ErrServerStopped)
-		// s.Serve is responsible for closing the listener, even if the
-		// s was already stopped.
+		// server.Serve is responsible for closing the listener, even if the
+		// server was already stopped.
 		err = ns.listener.Close()
 		convey.So(errorDesc(err), convey.ShouldContainSubstring, "use of closed")
 	})
