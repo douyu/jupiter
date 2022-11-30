@@ -67,7 +67,7 @@ func TestServer_Serve(t *testing.T) {
 }
 
 func TestServer_Closed(t *testing.T) {
-	convey.Convey("test s stop", t, func() {
+	convey.Convey("test server stop", t, func() {
 		config := DefaultConfig()
 		config.Port = 0
 		ns, err := newServer(config)
@@ -83,7 +83,7 @@ func TestServer_Closed(t *testing.T) {
 	})
 }
 func TestServer_Stop(t *testing.T) {
-	convey.Convey("test s graceful stop", t, func(c convey.C) {
+	convey.Convey("test server graceful stop", t, func(c convey.C) {
 		ns, err := newServer(&Config{
 			Network:                   "tcp4",
 			Host:                      "127.0.0.1",
@@ -92,7 +92,7 @@ func TestServer_Stop(t *testing.T) {
 			DisableMetric:             false,
 			DisableTrace:              false,
 			SlowQueryThresholdInMilli: 500,
-			logger:                    xlog.Jupiter().With(xlog.FieldMod("s.grpc")),
+			logger:                    xlog.Jupiter().With(xlog.FieldMod("server.grpc")),
 			serverOptions:             []grpc.ServerOption{},
 			streamInterceptors:        []grpc.StreamServerInterceptor{},
 			unaryInterceptors:         []grpc.UnaryServerInterceptor{},
@@ -115,7 +115,7 @@ func TestServer_Stop(t *testing.T) {
 	})
 }
 func TestServer_GracefulStop(t *testing.T) {
-	convey.Convey("test s graceful stop", t, func(c convey.C) {
+	convey.Convey("test server graceful stop", t, func(c convey.C) {
 		ns, err := newServer(&Config{
 			Network:                   "tcp4",
 			Host:                      "127.0.0.1",
@@ -124,7 +124,7 @@ func TestServer_GracefulStop(t *testing.T) {
 			DisableMetric:             false,
 			DisableTrace:              false,
 			SlowQueryThresholdInMilli: 500,
-			logger:                    xlog.Jupiter().With(xlog.FieldMod("s.grpc")),
+			logger:                    xlog.Jupiter().With(xlog.FieldMod("server.grpc")),
 			serverOptions:             []grpc.ServerOption{},
 			streamInterceptors:        []grpc.StreamServerInterceptor{},
 			unaryInterceptors:         []grpc.UnaryServerInterceptor{},
@@ -148,7 +148,7 @@ func TestServer_GracefulStop(t *testing.T) {
 }
 
 func TestServer_Info(t *testing.T) {
-	convey.Convey("test s info", t, func(c convey.C) {
+	convey.Convey("test server info", t, func(c convey.C) {
 		ns, err := newServer(&Config{
 			Network:                   "tcp4",
 			Host:                      "127.0.0.1",
@@ -157,7 +157,7 @@ func TestServer_Info(t *testing.T) {
 			DisableMetric:             false,
 			DisableTrace:              false,
 			SlowQueryThresholdInMilli: 500,
-			logger:                    xlog.Jupiter().With(xlog.FieldMod("s.grpc")),
+			logger:                    xlog.Jupiter().With(xlog.FieldMod("server.grpc")),
 			serverOptions:             []grpc.ServerOption{},
 			streamInterceptors:        []grpc.StreamServerInterceptor{},
 			unaryInterceptors:         []grpc.UnaryServerInterceptor{},
