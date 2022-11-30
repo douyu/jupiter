@@ -81,11 +81,6 @@ jobs:
           go-version: ${{ matrix.go }}
         id: go
 
-      - name: Install ginkgo
-        run: |
-          go install github.com/onsi/ginkgo/v2/ginkgo@latest
-          sudo cp ~/go/bin/ginkgo /usr/local/bin
-
       - name: Get dependencies
         run: |
           go env

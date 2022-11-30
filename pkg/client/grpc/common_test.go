@@ -12,11 +12,11 @@ import (
 	"github.com/douyu/jupiter/pkg/server"
 	"github.com/douyu/jupiter/pkg/util/xtest/server/yell"
 	"github.com/douyu/jupiter/pkg/xlog"
-	"github.com/douyu/jupiter/proto/testproto"
+	"github.com/douyu/jupiter/proto/testproto/v1"
 	"google.golang.org/grpc"
 )
 
-var directClient testproto.GreeterClient
+var directClient testproto.GreeterServiceClient
 
 var testconf = `
 [jupiter.logger.jupiter]
@@ -44,7 +44,7 @@ func init() {
 	cfg.Addr = l.Addr().String()
 
 	conn := newGRPCClient(cfg)
-	directClient = testproto.NewGreeterClient(conn)
+	directClient = testproto.NewGreeterServiceClient(conn)
 }
 
 func startServer(addr, name string) (net.Listener, *grpc.Server) {
@@ -59,7 +59,7 @@ func startServer(addr, name string) (net.Listener, *grpc.Server) {
 	grpcServer := &yell.FooServer{}
 	grpcServer.SetName(name)
 
-	testproto.RegisterGreeterServer(gserver, grpcServer)
+	testproto.RegisterGreeterServiceServer(gserver, grpcServer)
 	go func() {
 		if err := gserver.Serve(l); err != nil {
 			panic("failed serve:" + err.Error())
