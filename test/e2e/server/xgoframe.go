@@ -28,7 +28,7 @@ var _ = ginkgo.Describe("[xgoframe] e2e test", func() {
 	var server *xgoframe.Server
 
 	ginkgo.BeforeEach(func() {
-		server = xgoframe.DefaultConfig().Build()
+		server = xgoframe.DefaultConfig().MustBuild()
 		server.BindHandler("/test", func(r *ghttp.Request) {
 			r.Response.Writeln("hello")
 		})

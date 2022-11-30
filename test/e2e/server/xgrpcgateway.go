@@ -20,8 +20,8 @@ import (
 
 	"github.com/douyu/jupiter/pkg/core/tests"
 	"github.com/douyu/jupiter/pkg/server/xecho"
+	"github.com/douyu/jupiter/pkg/util/xtest/server/yell"
 	"github.com/douyu/jupiter/proto/testproto/v1"
-	"github.com/douyu/jupiter/test/e2e/impl"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/labstack/echo/v4"
 	"github.com/onsi/ginkgo/v2"
@@ -33,8 +33,8 @@ var _ = ginkgo.Describe("[xgrpcgateway] e2e test", func() {
 	ginkgo.BeforeEach(func() {
 		mux := runtime.NewServeMux()
 
-		testproto.RegisterGreeterServiceHandlerServer(context.Background(),
-			mux, new(impl.TestProjectImp))
+		_ = testproto.RegisterGreeterServiceHandlerServer(context.Background(),
+			mux, new(yell.FooServer))
 
 		server = xecho.DefaultConfig().MustBuild()
 		server.Any("/*", echo.WrapHandler(mux))
@@ -61,7 +61,7 @@ var _ = ginkgo.Describe("[xgrpcgateway] e2e test", func() {
 			Path:         "/v1/helloworld.Greeter/SayHello",
 			Body:         `{"name":"jupiter"}`,
 			ExpectStatus: http.StatusOK,
-			ExpectBody:   `{"error":0, "msg":"", "data":{"name":"jupiter"}}`,
+			ExpectBody:   `{"error":0,"msg":"","data":{"name":"jupiter"}}`,
 		}),
 		ginkgo.Entry("404", tests.HTTPTestCase{
 			Host:         "http://localhost:9091",
@@ -69,7 +69,7 @@ var _ = ginkgo.Describe("[xgrpcgateway] e2e test", func() {
 			Path:         "/v1/helloworld.Greeter/SayHelloNotFound",
 			Body:         `{"name":"jupiter"}`,
 			ExpectStatus: http.StatusNotFound,
-			ExpectBody:   `{"code":5, "message":"Not Found", "details":[]}`,
+			ExpectBody:   `{"code":5,"message":"Not Found","details":[]}`,
 		}),
 	)
 })

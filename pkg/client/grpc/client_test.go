@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/douyu/jupiter/pkg/util/xtest/server/yell"
 	"github.com/douyu/jupiter/proto/testproto/v1"
 	"github.com/stretchr/testify/assert"
 )
@@ -21,7 +20,7 @@ func TestDirectGrpc(t *testing.T) {
 			Name: "hello",
 		})
 		assert.Nil(t, err)
-		assert.Equal(t, res.Data.Name, yell.RespFantasy.Data.Name)
+		assert.Equal(t, res.Data.Name, "hello")
 	})
 }
 

@@ -2,13 +2,13 @@ module github.com/douyu/jupiter/test/e2e
 
 go 1.18
 
-replace github.com/douyu/jupiter => ../../
+replace github.com/douyu/jupiter => ../..
 
 require (
 	github.com/douyu/jupiter v0.0.0-00010101000000-000000000000
 	github.com/gin-gonic/gin v1.8.1
 	github.com/gogf/gf v1.16.9
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.11.3
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.14.0
 	github.com/labstack/echo/v4 v4.9.1
 	github.com/onsi/ginkgo/v2 v2.5.1
 	github.com/onsi/gomega v1.24.1
@@ -97,7 +97,7 @@ require (
 	golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4 // indirect
 	golang.org/x/sys v0.2.0 // indirect
 	golang.org/x/text v0.4.0 // indirect
-	google.golang.org/genproto v0.0.0-20220822174746-9e6da59bd2fc // indirect
+	google.golang.org/genproto v0.0.0-20221114212237-e4508ebdbee1 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

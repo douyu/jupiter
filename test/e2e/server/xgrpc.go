@@ -19,8 +19,8 @@ import (
 
 	"github.com/douyu/jupiter/pkg/core/tests"
 	"github.com/douyu/jupiter/pkg/server/xgrpc"
+	"github.com/douyu/jupiter/pkg/util/xtest/server/yell"
 	"github.com/douyu/jupiter/proto/testproto/v1"
-	"github.com/douyu/jupiter/test/e2e/impl"
 	"github.com/onsi/ginkgo/v2"
 	"google.golang.org/grpc/metadata"
 )
@@ -30,7 +30,7 @@ var _ = ginkgo.Describe("[grpc] e2e test", func() {
 
 	ginkgo.BeforeEach(func() {
 		server = xgrpc.DefaultConfig().MustBuild()
-		testproto.RegisterGreeterServiceServer(server.Server, new(impl.TestProjectImp))
+		testproto.RegisterGreeterServiceServer(server.Server, new(yell.FooServer))
 		go func() {
 			err := server.Serve()
 			if err != nil {

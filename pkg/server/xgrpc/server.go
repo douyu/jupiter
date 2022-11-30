@@ -92,12 +92,6 @@ func newServer(config *Config) (*Server, error) {
 }
 
 func (s *Server) Healthz() bool {
-	conn, err := s.listener.Accept()
-	if err != nil {
-		return false
-	}
-
-	conn.Close()
 	return true
 }
 

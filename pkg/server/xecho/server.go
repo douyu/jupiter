@@ -79,16 +79,6 @@ func newServer(config *Config) (*Server, error) {
 }
 
 func (s *Server) Healthz() bool {
-	if s.Echo.Listener == nil {
-		return false
-	}
-
-	conn, err := s.Echo.Listener.Accept()
-	if err != nil {
-		return false
-	}
-
-	conn.Close()
 	return true
 }
 
