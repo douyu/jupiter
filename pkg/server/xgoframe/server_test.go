@@ -22,12 +22,17 @@ import (
 )
 
 func Test_Server(t *testing.T) {
-	s := DefaultConfig().MustBuild()
+	c := DefaultConfig()
+	c.Port = 0
+	s := c.MustBuild()
+	stoped := make(chan struct{}, 1)
 	go func() {
+		time.AfterFunc(time.Second, func() {
+			stoped <- struct{}{}
+		})
+		assert.True(t, s.Healthz())
+		assert.NotNil(t, s.Info())
 		s.Serve()
 	}()
-	time.Sleep(time.Second)
-	assert.True(t, s.Healthz())
-	assert.NotNil(t, s.Info())
-	s.Stop()
+	<-stoped
 }

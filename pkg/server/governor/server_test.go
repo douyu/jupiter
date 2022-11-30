@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package xgin
+package governor
 
 import (
 	"testing"
@@ -22,17 +22,12 @@ import (
 )
 
 func Test_Server(t *testing.T) {
-	c := DefaultConfig()
-	c.Port = 0
-	s := c.MustBuild()
-	stoped := make(chan struct{}, 1)
+	s := DefaultConfig().Build()
 	go func() {
-		time.AfterFunc(time.Second, func() {
-			stoped <- struct{}{}
-		})
-		assert.True(t, s.Healthz())
-		assert.NotNil(t, s.Info())
 		s.Serve()
 	}()
-	<-stoped
+	time.Sleep(time.Second)
+	assert.True(t, s.Healthz())
+	assert.NotNil(t, s.Info())
+	s.Stop()
 }
