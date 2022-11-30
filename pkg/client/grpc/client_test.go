@@ -39,7 +39,7 @@ func TestConfigBlockTrue(t *testing.T) {
 			Name: "hello",
 		})
 
-		assert.ErrorContains(t, err, "missing address")
+		assert.ErrorContains(t, err, "code = Unavailable desc = last connection error")
 		assert.Nil(t, res)
 	})
 }
