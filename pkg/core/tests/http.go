@@ -59,7 +59,7 @@ func RunHTTPTestCase(htc HTTPTestCase) {
 
 	if htc.ExpectStatus > 0 {
 		assert.Equal(ginkgoT, htc.ExpectStatus, res.StatusCode(),
-			"expected: %s\nactually: %s", htc.ExpectStatus, res.StatusCode())
+			"expected: %d\nactually: %d", htc.ExpectStatus, res.StatusCode())
 	}
 
 	if len(htc.ExpectHeader) > 0 {

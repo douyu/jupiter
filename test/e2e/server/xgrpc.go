@@ -15,32 +15,22 @@
 package server
 
 import (
-	"context"
 	"time"
 
 	"github.com/douyu/jupiter/pkg/core/tests"
 	"github.com/douyu/jupiter/pkg/server/xgrpc"
 	"github.com/douyu/jupiter/proto/testproto"
+	"github.com/douyu/jupiter/test/e2e/impl"
 	"github.com/onsi/ginkgo/v2"
 	"google.golang.org/grpc/metadata"
 )
-
-type TestProjectImp struct {
-	testproto.UnimplementedGreeterServer
-}
-
-func (s *TestProjectImp) SayHello(ctx context.Context, req *testproto.HelloRequest) (*testproto.HelloReply, error) {
-	return &testproto.HelloReply{
-		Message: "hello",
-	}, nil
-}
 
 var _ = ginkgo.Describe("[grpc] e2e test", func() {
 	var server *xgrpc.Server
 
 	ginkgo.BeforeEach(func() {
 		server = xgrpc.DefaultConfig().MustBuild()
-		testproto.RegisterGreeterServer(server.Server, new(TestProjectImp))
+		testproto.RegisterGreeterServer(server.Server, new(impl.TestProjectImp))
 		go func() {
 			err := server.Serve()
 			if err != nil {
