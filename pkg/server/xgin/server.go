@@ -18,7 +18,6 @@ import (
 	"context"
 	"net"
 	"net/http"
-	"sync"
 
 	"github.com/douyu/jupiter/pkg/core/constant"
 	"github.com/douyu/jupiter/pkg/core/ecode"
@@ -33,7 +32,6 @@ type Server struct {
 	Server   *http.Server
 	config   *Config
 	listener net.Listener
-	mu       sync.Mutex
 }
 
 func newServer(config *Config) *Server {
