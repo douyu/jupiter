@@ -69,11 +69,11 @@ jobs:
       - uses: actions/cache@v3
         with:
           path: |
-            ~/go/pkg/mod
             ~/.cache/go-build
-          key: ${{ runner.os }}-go-${{ matrix.go-version }}-${{ hashFiles('**/go.sum') }}
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            ${{ runner.os }}-go-${{ matrix.go-version }}-
+            ${{ runner.os }}-go-
 
       - name: Set up Go ${{ matrix.go }}
         uses: actions/setup-go@v3
@@ -104,6 +104,6 @@ jobs:
         with:
           token: ${{secrets.CODECOV_TOKEN}}
           fail_ci_if_error: true
-          files: ./coverage.txt, ./e2e.txt
+          files: ./coverage.txt, ./test/e2e/coverage.txt
           name: jupiter
           verbose: true
