@@ -22,7 +22,9 @@ import (
 )
 
 func Test_Server(t *testing.T) {
-	s := DefaultConfig().Build()
+	c := DefaultConfig()
+	c.Port = 0
+	s := c.Build()
 	go func() {
 		s.Serve()
 	}()
