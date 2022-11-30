@@ -54,12 +54,22 @@ var _ = ginkgo.Describe("[xgrpcgateway] e2e test", func() {
 
 	ginkgo.DescribeTable("xgrpcgateway", func(htc tests.HTTPTestCase) {
 		tests.RunHTTPTestCase(htc)
-	}, ginkgo.Entry("normal case", tests.HTTPTestCase{
-		Host:         "http://localhost:9091",
-		Method:       "POST",
-		Path:         "/v1/helloworld.Greeter/SayHello",
-		Body:         `{"name":"jupiter"}`,
-		ExpectStatus: http.StatusOK,
-		ExpectBody:   `{"error":0, "msg":"", "data":{"name":"jupiter"}}`,
-	}))
+	},
+		ginkgo.Entry("normal case", tests.HTTPTestCase{
+			Host:         "http://localhost:9091",
+			Method:       "POST",
+			Path:         "/v1/helloworld.Greeter/SayHello",
+			Body:         `{"name":"jupiter"}`,
+			ExpectStatus: http.StatusOK,
+			ExpectBody:   `{"error":0, "msg":"", "data":{"name":"jupiter"}}`,
+		}),
+		ginkgo.Entry("404", tests.HTTPTestCase{
+			Host:         "http://localhost:9091",
+			Method:       "POST",
+			Path:         "/v1/helloworld.Greeter/SayHelloNotFound",
+			Body:         `{"name":"jupiter"}`,
+			ExpectStatus: http.StatusNotFound,
+			ExpectBody:   `{"code":5, "message":"Not Found", "details":[]}`,
+		}),
+	)
 })
