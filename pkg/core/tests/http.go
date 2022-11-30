@@ -15,7 +15,9 @@
 package tests
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"net/http"
 	"time"
 
@@ -67,6 +69,15 @@ func RunHTTPTestCase(htc HTTPTestCase) {
 			"expected: %s\nactually: %s", htc.ExpectHeader, res.Header())
 	}
 
-	assert.Equal(ginkgoT, htc.ExpectBody, res.String(),
-		"expected: %s\nactually: %s", htc.ExpectBody, res.String())
+	if len(htc.ExpectBody) > 0 {
+		var expectBody bytes.Buffer
+		err = json.Compact(&expectBody, []byte(htc.ExpectBody))
+		// 如果Compact失败，则说明不是json格式
+		if err != nil {
+			expectBody.WriteString(htc.ExpectBody)
+		}
+
+		assert.Equal(ginkgoT, expectBody.String(), res.String(),
+			"expected: %s\nactually: %s", expectBody, res.String())
+	}
 }
