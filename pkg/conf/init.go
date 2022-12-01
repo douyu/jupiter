@@ -45,11 +45,11 @@ func init() {
 
 		unmarshaler := toml.Unmarshal
 		switch filepath.Ext(configAddr) {
-		case "toml":
+		case ".toml":
 			// default config type
-		case "yaml", "yml":
+		case ".yaml", ".yml":
 			unmarshaler = yaml.Unmarshal
-		case "json":
+		case ".json":
 			unmarshaler = json.Unmarshal
 		default:
 			log.Fatalf("unsupported config type: %s", filepath.Ext(configAddr))
