@@ -8,6 +8,7 @@ import (
 	"github.com/douyu/jupiter/pkg/core/xtrace"
 	"github.com/douyu/jupiter/pkg/core/xtrace/jaeger"
 	"github.com/go-redis/redis/v8"
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_Interceptor(t *testing.T) {
@@ -95,5 +96,26 @@ func Test_Interceptor(t *testing.T) {
 		})
 		client.CmdOnMaster().Get(ctx, "redigo")
 
+	})
+	t.Run("sentinel", func(t *testing.T) {
+
+		client, _ := config.Build()
+		ctx := context.Background()
+		assert.Equal(t, redis.Nil, client.CmdOnMaster().Get(ctx, "redigo").Err())
+
+		time.Sleep(time.Millisecond)
+
+		_, err := client.CmdOnMaster().Pipelined(ctx, func(pipeliner redis.Pipeliner) error {
+			pipeliner.Get(ctx, "redigo")
+			return nil
+		})
+		assert.Equal(t, redis.Nil, err)
+		assert.Contains(t, client.CmdOnMaster().Do(ctx, "get").Err().Error(), "wrong number of arguments")
+
+		_, err = client.CmdOnMaster().Pipelined(ctx, func(pipeliner redis.Pipeliner) error {
+			pipeliner.Do(ctx, "get")
+			return nil
+		})
+		assert.Contains(t, err, "wrong number of arguments")
 	})
 }
