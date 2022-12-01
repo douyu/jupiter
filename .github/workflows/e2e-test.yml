@@ -63,5 +63,5 @@ jobs:
           token: ${{secrets.CODECOV_TOKEN}}
           fail_ci_if_error: true
           files: ./test/e2e/coverage.txt
-          name: jupiter
+          name: jupiter-e2e
           verbose: true
