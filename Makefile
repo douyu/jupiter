@@ -31,7 +31,7 @@ lintmd: ## Lint markdown files
 e2e-test: ## Run e2e test
 	cd test/e2e \
 		&& go mod tidy \
-		&& ginkgo -r -race -cover -covermode=atomic -coverprofile=coverage.txt --randomize-all --randomize-suites --trace -coverpkg=github.com/douyu/jupiter/... .\
+		&& ginkgo -r -race -cover -covermode=atomic -coverprofile=coverage.txt --randomize-suites --trace -coverpkg=github.com/douyu/jupiter/... .\
 		&& cd -
 
 covsh-e2e: ## Get the coverage of e2e test
