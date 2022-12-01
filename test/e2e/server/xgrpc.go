@@ -27,10 +27,10 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-var _ = ginkgo.Describe("[grpc] e2e test", func() {
-	var server *xgrpc.Server
+var server *xgrpc.Server
 
-	ginkgo.BeforeEach(func() {
+var _ = ginkgo.Describe("[grpc] e2e test", func() {
+	var _ = ginkgo.BeforeEach(func() {
 		server = xgrpc.DefaultConfig().MustBuild()
 		testproto.RegisterGreeterServiceServer(server.Server, new(yell.FooServer))
 		go func() {
@@ -40,37 +40,25 @@ var _ = ginkgo.Describe("[grpc] e2e test", func() {
 		time.Sleep(time.Second)
 	})
 
-	ginkgo.AfterEach(func() {
+	var _ = ginkgo.AfterEach(func() {
 		_ = server.Stop()
 	})
 
 	ginkgo.DescribeTable("xgrpc sayhello", func(gtc tests.GRPCTestCase) {
 		tests.RunGRPCTestCase(gtc)
-	}, ginkgo.Entry("normal case", tests.GRPCTestCase{
-		Conf: &grpc.Config{
-			Addr: "localhost:9092",
-		},
-		Method: "/testproto.v1.GreeterService/SayHello",
-		Args: &testproto.SayHelloRequest{
-			Name: "jupiter",
-		},
-		ExpectError:    nil,
-		ExpectMetadata: metadata.MD{"content-type": []string{"application/grpc"}},
-		ExpectReply:    &testproto.SayHelloResponse{Data: &testproto.SayHelloResponse_Data{Name: "jupiter"}},
-	}))
+	},
+		ginkgo.Entry("normal case", tests.GRPCTestCase{
+			Conf: &grpc.Config{
+				Addr: "localhost:9092",
+			},
+			Method: "/testproto.v1.GreeterService/SayHello",
+			Args: &testproto.SayHelloRequest{
+				Name: "jupiter",
+			},
+			ExpectError:    nil,
+			ExpectMetadata: metadata.MD{"content-type": []string{"application/grpc"}},
+			ExpectReply:    &testproto.SayHelloResponse{Data: &testproto.SayHelloResponse_Data{Name: "jupiter"}},
+		}),
+	)
 
-	ginkgo.DescribeTable("xgrpc ", func(gtc tests.GRPCTestCase) {
-		tests.RunGRPCTestCase(gtc)
-	}, ginkgo.Entry("normal case", tests.GRPCTestCase{
-		Conf: &grpc.Config{
-			Addr: "localhost:9092",
-		},
-		Method: "/testproto.v1.GreeterService/SayHello",
-		Args: &testproto.SayHelloRequest{
-			Name: "jupiter",
-		},
-		ExpectError:    nil,
-		ExpectMetadata: metadata.MD{"content-type": []string{"application/grpc"}},
-		ExpectReply:    &testproto.SayHelloResponse{Data: &testproto.SayHelloResponse_Data{Name: "jupiter"}},
-	}))
 })

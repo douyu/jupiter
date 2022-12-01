@@ -110,7 +110,8 @@ func (reg *etcdv3Registry) ListServices(ctx context.Context, prefix string) (ser
 	for _, kv := range getResp.Kvs {
 		var service registry.Update
 		if err := json.Unmarshal(kv.Value, &service); err != nil {
-			reg.logger.Warn("invalid service", xlog.FieldErr(err))
+			reg.logger.Warn("invalid service", xlog.FieldErr(err),
+				xlog.FieldKey(string(kv.Key)), xlog.FieldValue(string(kv.Value)))
 			continue
 		}
 
