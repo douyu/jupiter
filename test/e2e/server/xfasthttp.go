@@ -18,6 +18,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/douyu/jupiter/pkg/client/resty"
 	"github.com/douyu/jupiter/pkg/core/tests"
 	"github.com/douyu/jupiter/pkg/server/xfasthttp"
 	"github.com/onsi/ginkgo/v2"
@@ -47,7 +48,9 @@ var _ = ginkgo.Describe("[xfasthttp] e2e test", func() {
 	ginkgo.DescribeTable("xfasthttp", func(htc tests.HTTPTestCase) {
 		tests.RunHTTPTestCase(htc)
 	}, ginkgo.Entry("normal case", tests.HTTPTestCase{
-		Host:         "http://localhost:9091",
+		Conf: &resty.Config{
+			Addr: "http://localhost:9091",
+		},
 		Method:       "GET",
 		Path:         "/test",
 		ExpectStatus: http.StatusOK,

@@ -17,21 +17,20 @@ package tests
 import (
 	"context"
 	"reflect"
-	"time"
 
+	"github.com/douyu/jupiter/pkg/client/grpc"
+	"github.com/imdario/mergo"
 	"github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
+	ggrpc "google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/proto"
 )
 
 type GRPCTestCase struct {
-	Addr    string
-	Timeout time.Duration
-	Method  string
-	Args    proto.Message
+	Conf   *grpc.Config
+	Method string
+	Args   proto.Message
 
 	ExpectError    error
 	ExpectMetadata metadata.MD
@@ -42,22 +41,16 @@ type GRPCTestCase struct {
 func RunGRPCTestCase(gtc GRPCTestCase) {
 	ginkgoT := ginkgo.GinkgoT()
 
-	if gtc.Timeout == 0 {
-		gtc.Timeout = time.Second
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), gtc.Timeout)
-	defer cancel()
-
-	clientConn, err := grpc.DialContext(ctx, gtc.Addr,
-		grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	err := mergo.Merge(gtc.Conf, grpc.DefaultConfig())
 	assert.Nil(ginkgoT, err)
+
+	clientConn := gtc.Conf.Build()
 
 	reply := reflect.New(reflect.TypeOf(gtc.ExpectReply).Elem())
 	metadata := metadata.New(nil)
 
-	err = clientConn.Invoke(ctx, gtc.Method, gtc.Args, reply.Interface(),
-		grpc.Header(&metadata))
+	err = clientConn.Invoke(context.Background(), gtc.Method, gtc.Args, reply.Interface(),
+		ggrpc.Header(&metadata))
 	assert.Equal(ginkgoT, gtc.ExpectError, err,
 		"expected: %s\nactually: %s", gtc.ExpectError, err)
 

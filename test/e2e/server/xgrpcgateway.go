@@ -18,6 +18,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/douyu/jupiter/pkg/client/resty"
 	"github.com/douyu/jupiter/pkg/core/tests"
 	"github.com/douyu/jupiter/pkg/server/xecho"
 	"github.com/douyu/jupiter/pkg/util/xtest/server/yell"
@@ -55,7 +56,9 @@ var _ = ginkgo.Describe("[xgrpcgateway] e2e test", func() {
 		tests.RunHTTPTestCase(htc)
 	},
 		ginkgo.Entry("normal case", tests.HTTPTestCase{
-			Host:         "http://localhost:9091",
+			Conf: &resty.Config{
+				Addr: "http://localhost:9091",
+			},
 			Method:       "POST",
 			Path:         "/v1/helloworld.Greeter/SayHello",
 			Body:         `{"name":"jupiter"}`,
@@ -63,7 +66,9 @@ var _ = ginkgo.Describe("[xgrpcgateway] e2e test", func() {
 			ExpectBody:   `{"error":0,"msg":"","data":{"name":"jupiter"}}`,
 		}),
 		ginkgo.Entry("404", tests.HTTPTestCase{
-			Host:         "http://localhost:9091",
+			Conf: &resty.Config{
+				Addr: "http://localhost:9091",
+			},
 			Method:       "POST",
 			Path:         "/v1/helloworld.Greeter/SayHelloNotFound",
 			Body:         `{"name":"jupiter"}`,

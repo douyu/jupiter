@@ -56,10 +56,6 @@ type Config struct {
 // DefaultConfig ...
 func DefaultConfig() *Config {
 	return &Config{
-		dialOptions: []grpc.DialOption{
-			grpc.WithInsecure(),
-		},
-		logger:                 xlog.Jupiter().Named(ecode.ModClientGrpc),
 		BalancerName:           roundrobin.Name, // round robin by default
 		DialTimeout:            cast.ToDuration("3s"),
 		ReadTimeout:            cast.ToDuration("1s"),
@@ -106,6 +102,12 @@ func (config *Config) WithDialOption(opts ...grpc.DialOption) *Config {
 
 // Build ...
 func (config *Config) Build() *grpc.ClientConn {
+	config.dialOptions = []grpc.DialOption{
+		grpc.WithInsecure(),
+	}
+
+	config.logger = xlog.Jupiter().Named(ecode.ModClientGrpc)
+
 	if config.Debug {
 		config.dialOptions = append(config.dialOptions,
 			grpc.WithChainUnaryInterceptor(debugUnaryClientInterceptor(config.Addr)),

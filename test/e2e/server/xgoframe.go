@@ -18,6 +18,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/douyu/jupiter/pkg/client/resty"
 	"github.com/douyu/jupiter/pkg/core/tests"
 	"github.com/douyu/jupiter/pkg/server/xgoframe"
 	"github.com/gogf/gf/net/ghttp"
@@ -47,7 +48,9 @@ var _ = ginkgo.Describe("[xgoframe] e2e test", func() {
 	ginkgo.DescribeTable("xgoframe", func(htc tests.HTTPTestCase) {
 		tests.RunHTTPTestCase(htc)
 	}, ginkgo.Entry("normal case", tests.HTTPTestCase{
-		Host:         "http://localhost:8099",
+		Conf: &resty.Config{
+			Addr: "http://localhost:8099",
+		},
 		Method:       "GET",
 		Path:         "/test",
 		ExpectStatus: http.StatusOK,

@@ -18,6 +18,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/douyu/jupiter/pkg/client/resty"
 	"github.com/douyu/jupiter/pkg/core/tests"
 	"github.com/douyu/jupiter/pkg/server/xgin"
 	"github.com/gin-gonic/gin"
@@ -47,7 +48,9 @@ var _ = ginkgo.Describe("[xgin] e2e test", func() {
 	ginkgo.DescribeTable("xgin", func(htc tests.HTTPTestCase) {
 		tests.RunHTTPTestCase(htc)
 	}, ginkgo.Entry("normal case", tests.HTTPTestCase{
-		Host:         "http://localhost:9091",
+		Conf: &resty.Config{
+			Addr: "http://localhost:9091",
+		},
 		Method:       "GET",
 		Path:         "/test",
 		ExpectStatus: http.StatusOK,

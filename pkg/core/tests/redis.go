@@ -45,8 +45,7 @@ func RunRedisTestCase(rtc RedisTestCase) {
 	ctx, cancel := context.WithTimeout(context.Background(), rtc.Timeout)
 	defer cancel()
 
-	conf := rtc.Conf
-	err := mergo.Merge(conf, redis.DefaultConfig())
+	err := mergo.Merge(rtc.Conf, redis.DefaultConfig())
 	assert.Nil(ginkgoT, err)
 
 	client := rtc.Conf.MustBuild()

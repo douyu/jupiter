@@ -21,13 +21,14 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/go-resty/resty/v2"
+	jresty "github.com/douyu/jupiter/pkg/client/resty"
+	"github.com/imdario/mergo"
 	"github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
 )
 
 type HTTPTestCase struct {
-	Host         string
+	Conf         *jresty.Config
 	Method       string
 	Path         string
 	Body         string
@@ -50,12 +51,15 @@ func RunHTTPTestCase(htc HTTPTestCase) {
 	ctx, cancel := context.WithTimeout(context.Background(), htc.Timeout)
 	defer cancel()
 
-	req := resty.New().R()
+	err := mergo.Merge(htc.Conf, jresty.DefaultConfig())
+	assert.Nil(ginkgoT, err)
+
+	req := htc.Conf.MustBuild().R()
 	req.SetQueryString(htc.Query)
 	req.SetBody(htc.Body)
 	req.SetContext(ctx)
 
-	res, err := req.Execute(htc.Method, htc.Host+htc.Path)
+	res, err := req.Execute(htc.Method, htc.Path)
 
 	assert.Nil(ginkgoT, err, "error: %s", err)
 
