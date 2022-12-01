@@ -26,6 +26,7 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.14.0
 	github.com/hnlq715/struct2interface v0.1.2
 	github.com/iancoleman/strcase v0.2.0
+	github.com/imdario/mergo v0.3.12
 	github.com/json-iterator/go v1.1.12
 	github.com/juju/ratelimit v1.0.2
 	github.com/labstack/echo/v4 v4.9.1
@@ -100,7 +101,6 @@ require (
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
 	github.com/grokify/html-strip-tags-go v0.0.1 // indirect
-	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/jtolds/gls v4.20.0+incompatible // indirect

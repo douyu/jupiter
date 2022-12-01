@@ -18,10 +18,12 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/douyu/jupiter/pkg/client/resty"
 	"github.com/douyu/jupiter/pkg/core/tests"
 	"github.com/douyu/jupiter/pkg/server/xgin"
 	"github.com/gin-gonic/gin"
 	"github.com/onsi/ginkgo/v2"
+	"github.com/stretchr/testify/assert"
 )
 
 var _ = ginkgo.Describe("[xgin] e2e test", func() {
@@ -34,9 +36,7 @@ var _ = ginkgo.Describe("[xgin] e2e test", func() {
 		})
 		go func() {
 			err := server.Serve()
-			if err != nil {
-				panic(err)
-			}
+			assert.Nil(ginkgo.GinkgoT(), err)
 		}()
 		time.Sleep(time.Second)
 	})
@@ -48,7 +48,9 @@ var _ = ginkgo.Describe("[xgin] e2e test", func() {
 	ginkgo.DescribeTable("xgin", func(htc tests.HTTPTestCase) {
 		tests.RunHTTPTestCase(htc)
 	}, ginkgo.Entry("normal case", tests.HTTPTestCase{
-		Host:         "http://localhost:9091",
+		Conf: &resty.Config{
+			Addr: "http://localhost:9091",
+		},
 		Method:       "GET",
 		Path:         "/test",
 		ExpectStatus: http.StatusOK,

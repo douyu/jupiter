@@ -17,11 +17,13 @@ package server
 import (
 	"time"
 
+	"github.com/douyu/jupiter/pkg/client/grpc"
 	"github.com/douyu/jupiter/pkg/core/tests"
 	"github.com/douyu/jupiter/pkg/server/xgrpc"
 	"github.com/douyu/jupiter/pkg/util/xtest/server/yell"
 	"github.com/douyu/jupiter/proto/testproto/v1"
 	"github.com/onsi/ginkgo/v2"
+	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -33,9 +35,7 @@ var _ = ginkgo.Describe("[grpc] e2e test", func() {
 		testproto.RegisterGreeterServiceServer(server.Server, new(yell.FooServer))
 		go func() {
 			err := server.Serve()
-			if err != nil {
-				panic(err)
-			}
+			assert.Nil(ginkgo.GinkgoT(), err)
 		}()
 		time.Sleep(time.Second)
 	})
@@ -47,7 +47,9 @@ var _ = ginkgo.Describe("[grpc] e2e test", func() {
 	ginkgo.DescribeTable("xgrpc sayhello", func(gtc tests.GRPCTestCase) {
 		tests.RunGRPCTestCase(gtc)
 	}, ginkgo.Entry("normal case", tests.GRPCTestCase{
-		Addr:   "localhost:9092",
+		Conf: &grpc.Config{
+			Addr: "localhost:9092",
+		},
 		Method: "/testproto.v1.GreeterService/SayHello",
 		Args: &testproto.SayHelloRequest{
 			Name: "jupiter",
@@ -60,7 +62,9 @@ var _ = ginkgo.Describe("[grpc] e2e test", func() {
 	ginkgo.DescribeTable("xgrpc ", func(gtc tests.GRPCTestCase) {
 		tests.RunGRPCTestCase(gtc)
 	}, ginkgo.Entry("normal case", tests.GRPCTestCase{
-		Addr:   "localhost:9092",
+		Conf: &grpc.Config{
+			Addr: "localhost:9092",
+		},
 		Method: "/testproto.v1.GreeterService/SayHello",
 		Args: &testproto.SayHelloRequest{
 			Name: "jupiter",
