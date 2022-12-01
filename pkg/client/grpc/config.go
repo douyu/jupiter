@@ -102,10 +102,6 @@ func (config *Config) WithDialOption(opts ...grpc.DialOption) *Config {
 
 // Build ...
 func (config *Config) Build() *grpc.ClientConn {
-	config.dialOptions = []grpc.DialOption{
-		grpc.WithInsecure(),
-	}
-
 	config.logger = xlog.Jupiter().Named(ecode.ModClientGrpc)
 
 	if config.Debug {
