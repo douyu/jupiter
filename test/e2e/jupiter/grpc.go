@@ -12,13 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package server
+package jupiter
 
 import (
+	"context"
 	"time"
 
+	"github.com/douyu/jupiter"
+	cetcdv3 "github.com/douyu/jupiter/pkg/client/etcdv3"
 	"github.com/douyu/jupiter/pkg/client/grpc"
+	"github.com/douyu/jupiter/pkg/core/application"
 	"github.com/douyu/jupiter/pkg/core/tests"
+	"github.com/douyu/jupiter/pkg/registry"
+	"github.com/douyu/jupiter/pkg/registry/etcdv3"
+	"github.com/douyu/jupiter/pkg/server"
 	"github.com/douyu/jupiter/pkg/server/xgrpc"
 	"github.com/douyu/jupiter/pkg/util/xtest/server/yell"
 	"github.com/douyu/jupiter/proto/testproto/v1"
@@ -27,24 +34,27 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-var server *xgrpc.Server
+var _ = ginkgo.Describe("[jupiter] e2e test", ginkgo.Ordered, func() {
+	var app *jupiter.Application
 
-var _ = ginkgo.Describe("[grpc] e2e test", func() {
-	var _ = ginkgo.BeforeEach(func() {
-		server = xgrpc.DefaultConfig().MustBuild()
+	var _ = ginkgo.BeforeAll(func() {
+		app = jupiter.DefaultApp()
+		server := xgrpc.DefaultConfig().MustBuild()
 		testproto.RegisterGreeterServiceServer(server.Server, new(yell.FooServer))
-		go func() {
-			err := server.Serve()
+		app.Serve(server)
+		app.SetRegistry(etcdv3.DefaultConfig().MustBuild())
+		go func(a *application.Application) {
+			err := a.Run()
 			assert.Nil(ginkgo.GinkgoT(), err)
-		}()
+		}(app)
 		time.Sleep(time.Second)
 	})
 
-	var _ = ginkgo.AfterEach(func() {
-		_ = server.Stop()
+	var _ = ginkgo.AfterAll(func() {
+		_ = app.Stop()
 	})
 
-	ginkgo.DescribeTable("xgrpc sayhello", func(gtc tests.GRPCTestCase) {
+	ginkgo.DescribeTable("jupiter grpc sayhello", func(gtc tests.GRPCTestCase) {
 		tests.RunGRPCTestCase(gtc)
 	},
 		ginkgo.Entry("normal case", tests.GRPCTestCase{
@@ -61,4 +71,21 @@ var _ = ginkgo.Describe("[grpc] e2e test", func() {
 		}),
 	)
 
+	ginkgo.DescribeTable("jupiter registry", func(tc tests.ETCDTestCase) {
+		tests.RunETCDTestCase(tc)
+	},
+		ginkgo.Entry("normal case", tests.ETCDTestCase{
+			Conf: &etcdv3.Config{
+				Config: &cetcdv3.Config{
+					Endpoints: []string{"http://localhost:2379"},
+				},
+			},
+			DoFn: func(reg registry.Registry) (interface{}, error) {
+				res, err := reg.ListServices(context.Background(), "grpc:e2e.test:v1:unkown-mode")
+				return res, err
+			},
+			ExpectError: nil,
+			ExpectReply: []*server.ServiceInfo{{Address: "0.0.0.0:9092"}},
+		}),
+	)
 })
