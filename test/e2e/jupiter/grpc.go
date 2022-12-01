@@ -18,9 +18,12 @@ import (
 	"context"
 	"time"
 
+	"github.com/BurntSushi/toml"
 	"github.com/douyu/jupiter"
 	cetcdv3 "github.com/douyu/jupiter/pkg/client/etcdv3"
 	"github.com/douyu/jupiter/pkg/client/grpc"
+	"github.com/douyu/jupiter/pkg/conf"
+	"github.com/douyu/jupiter/pkg/conf/datasource/file"
 	"github.com/douyu/jupiter/pkg/core/application"
 	"github.com/douyu/jupiter/pkg/core/tests"
 	"github.com/douyu/jupiter/pkg/registry"
@@ -38,11 +41,14 @@ var _ = ginkgo.Describe("[jupiter] e2e test", ginkgo.Ordered, func() {
 	var app *jupiter.Application
 
 	var _ = ginkgo.BeforeAll(func() {
+		err := conf.LoadFromDataSource(file.NewDataSource("./config/jupiter.toml", false), toml.Unmarshal)
+		assert.NoError(ginkgo.GinkgoT(), err)
+
 		app = jupiter.DefaultApp()
-		server := xgrpc.DefaultConfig().MustBuild()
+		server := xgrpc.StdConfig("grpc").MustBuild()
 		testproto.RegisterGreeterServiceServer(server.Server, new(yell.FooServer))
 		app.Serve(server)
-		app.SetRegistry(etcdv3.DefaultConfig().MustBuild())
+		// app.SetRegistry(etcdv3.DefaultConfig().MustBuild())
 		go func(a *application.Application) {
 			err := a.Run()
 			assert.Nil(ginkgo.GinkgoT(), err)
@@ -52,6 +58,7 @@ var _ = ginkgo.Describe("[jupiter] e2e test", ginkgo.Ordered, func() {
 
 	var _ = ginkgo.AfterAll(func() {
 		_ = app.Stop()
+		conf.Reset()
 	})
 
 	ginkgo.DescribeTable("jupiter grpc sayhello", func(gtc tests.GRPCTestCase) {
@@ -59,7 +66,7 @@ var _ = ginkgo.Describe("[jupiter] e2e test", ginkgo.Ordered, func() {
 	},
 		ginkgo.Entry("normal case", tests.GRPCTestCase{
 			Conf: &grpc.Config{
-				Addr: "localhost:9092",
+				Addr: "localhost:9527",
 			},
 			Method: "/testproto.v1.GreeterService/SayHello",
 			Args: &testproto.SayHelloRequest{
@@ -81,11 +88,11 @@ var _ = ginkgo.Describe("[jupiter] e2e test", ginkgo.Ordered, func() {
 				},
 			},
 			DoFn: func(reg registry.Registry) (interface{}, error) {
-				res, err := reg.ListServices(context.Background(), "grpc:e2e.test:v1:unkown-mode")
+				res, err := reg.ListServices(context.Background(), "grpc:e2e.test:v1:dev")
 				return res, err
 			},
 			ExpectError: nil,
-			ExpectReply: []*server.ServiceInfo{{Address: "0.0.0.0:9092"}},
+			ExpectReply: []*server.ServiceInfo{{Address: "0.0.0.0:9527"}},
 		}),
 	)
 })

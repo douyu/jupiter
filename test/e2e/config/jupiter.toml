@@ -1,0 +1,26 @@
+[jupiter.server.grpc]
+    port = 9527
+[jupiter.server.http]
+    port = 9528
+
+
+[jupiter]
+mode = "dev"
+
+    [jupiter.registry.default]
+        endpoints = ["localhost:2379"]
+        timeout = "5s"
+
+[jupiter.sentinel]
+    enable = true
+    datasource = "files"
+    [[jupiter.sentinel.cbRules]]
+        enable = true
+        resource = "recomend"
+        strategy = 2
+        retryTimeoutMs = 3000
+        minRequestAmount = 10
+        statIntervalMs = 5000
+        maxAllowedRtMs = 1000
+        statSlidingWindowBucketCount = 10
+        threshold = 0.4

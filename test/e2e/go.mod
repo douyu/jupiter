@@ -5,6 +5,7 @@ go 1.18
 replace github.com/douyu/jupiter => ../..
 
 require (
+	github.com/BurntSushi/toml v1.2.1
 	github.com/douyu/jupiter v0.0.0-00010101000000-000000000000
 	github.com/gin-gonic/gin v1.8.1
 	github.com/gogf/gf v1.16.9
@@ -18,7 +19,6 @@ require (
 )
 
 require (
-	github.com/BurntSushi/toml v1.2.1 // indirect
 	github.com/StackExchange/wmi v1.2.1 // indirect
 	github.com/alibaba/sentinel-golang v1.0.4 // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
