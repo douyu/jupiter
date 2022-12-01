@@ -25,6 +25,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/labstack/echo/v4"
 	"github.com/onsi/ginkgo/v2"
+	"github.com/stretchr/testify/assert"
 )
 
 var _ = ginkgo.Describe("[xgrpcgateway] e2e test", func() {
@@ -41,9 +42,7 @@ var _ = ginkgo.Describe("[xgrpcgateway] e2e test", func() {
 
 		go func() {
 			err := server.Serve()
-			if err != nil {
-				panic(err)
-			}
+			assert.Nil(ginkgo.GinkgoT(), err)
 		}()
 		time.Sleep(time.Second)
 	})

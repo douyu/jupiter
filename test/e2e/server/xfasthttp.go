@@ -21,6 +21,7 @@ import (
 	"github.com/douyu/jupiter/pkg/core/tests"
 	"github.com/douyu/jupiter/pkg/server/xfasthttp"
 	"github.com/onsi/ginkgo/v2"
+	"github.com/stretchr/testify/assert"
 	"github.com/valyala/fasthttp"
 )
 
@@ -34,9 +35,7 @@ var _ = ginkgo.Describe("[xfasthttp] e2e test", func() {
 		}
 		go func() {
 			err := server.Serve()
-			if err != nil {
-				panic(err)
-			}
+			assert.Nil(ginkgo.GinkgoT(), err)
 		}()
 		time.Sleep(time.Second)
 	})

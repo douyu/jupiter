@@ -20,7 +20,7 @@ import (
 	"github.com/onsi/ginkgo/v2"
 )
 
-var _ = ginkgo.XDescribe("[redis] e2e test", func() {
+var _ = ginkgo.Describe("[redis] e2e test", func() {
 	ginkgo.DescribeTable("redis ", func(tc tests.RedisTestCase) {
 		tests.RunRedisTestCase(tc)
 	},

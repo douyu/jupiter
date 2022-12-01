@@ -12,6 +12,7 @@ require (
 	github.com/labstack/echo/v4 v4.9.1
 	github.com/onsi/ginkgo/v2 v2.5.1
 	github.com/onsi/gomega v1.24.1
+	github.com/stretchr/testify v1.8.1
 	github.com/valyala/fasthttp v1.43.0
 	google.golang.org/grpc v1.51.0
 )
@@ -74,7 +75,6 @@ require (
 	github.com/shirou/gopsutil/v3 v3.21.7 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/stretchr/objx v0.5.0 // indirect
-	github.com/stretchr/testify v1.8.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/tklauser/go-sysconf v0.3.7 // indirect
 	github.com/tklauser/numcpus v0.2.3 // indirect

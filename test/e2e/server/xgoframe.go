@@ -22,6 +22,7 @@ import (
 	"github.com/douyu/jupiter/pkg/server/xgoframe"
 	"github.com/gogf/gf/net/ghttp"
 	"github.com/onsi/ginkgo/v2"
+	"github.com/stretchr/testify/assert"
 )
 
 var _ = ginkgo.Describe("[xgoframe] e2e test", func() {
@@ -34,9 +35,7 @@ var _ = ginkgo.Describe("[xgoframe] e2e test", func() {
 		})
 		go func() {
 			err := server.Serve()
-			if err != nil {
-				panic(err)
-			}
+			assert.Nil(ginkgo.GinkgoT(), err)
 		}()
 		time.Sleep(time.Second)
 	})
