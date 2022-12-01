@@ -17,67 +17,28 @@ fmt: ## Format the files
 fmtcheck: ## Check and format the files
 	@gofmt -l -s $(GO_FILES) | read; if [ $$? == 0 ]; then echo "gofmt check failed for:"; gofmt -l -s $(GO_FILES); fi
 
-########################################################
-lint:  ## lint check
-	@hash revive 2>&- || go get -u github.com/mgechev/revive
-	@revive -formatter stylish pkg/...
-
-########################################################
-cmt: ## auto comment exported Function
-	@hash gocmt 2>&- || go get -u github.com/Gnouc/gocmt
-	@gocmt -d pkg -i
-
-########################################################
-errcheck: ## check error
-	@hash errcheck 2>&- || go get -u github.com/kisielk/errcheck
-	@errcheck pkg/...
-
-########################################################
-test: ## Run unittests
-	@go test -short ${PKG_LIST}
-
-########################################################
-race: dep ## Run data race detector
-	@go test -race -short ${PKG_LIST}
-
-########################################################
-msan: dep ## Run memory sanitizer
-	@go test -msan -short ${PKG_LIST}
-
-########################################################
-dep: ## Get the dependencies
-	@go get -v -d ./...
-
-########################################################
-version: ## Print git revision info
-	@echo $(expr substr $(git rev-parse HEAD) 1 8)
-
 help: ## Display this help screen
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 default: help
 
-demo: ## Build jupiter demo and Run it
-	@APP_NAME=dev go run example/all/cmd/demo/main.go --config=example/all/config/config.toml --watch
-
-demo.build: ## Build jupiter Demo
-	@JUPITER_MODE=dev go build -ldflags  "-X github.com/douyu/jupiter/initialize.AppName=hello" example/all/cmd/demo/main.go
-
-license: ## Add license header for all code files
-	@find . -name \*.go -exec sh -c "if ! grep -q 'LICENSE' '{}'; then mv '{}' tmp && cp doc/LICENSEHEADER.txt '{}' && cat tmp >> '{}' && rm tmp; fi" \;
-lintd:
-	docker run --rm -v "$(shell pwd)/:/go/src/github.com/douyu/jupiter" --workdir /go/src/github.com/douyu/jupiter  -it golangci/golangci-lint:v1.42.1 golangci-lint run -v
-lintl:
+lint: ## Lint the go files
 	golangci-lint run -v
 
-lintmd:
+lintmd: ## Lint markdown files
 	markdownlint -c .github/markdown_lint_config.json website/docs README.md pkg
 
-e2e-test:
+e2e-test: ## Run e2e test
 	cd test/e2e \
 		&& go mod tidy \
 		&& ginkgo -r -race -cover -covermode=atomic -coverprofile=coverage.txt --randomize-all --randomize-suites --trace -coverpkg=github.com/douyu/jupiter/... .\
 		&& cd -
 
-unit-test:
+covsh-e2e: ## Get the coverage of e2e test
+	gocovsh --profile test/e2e/coverage.txt
+
+unit-test: ## Run unit test
 	go test -race -coverprofile=coverage.txt -covermode=atomic ./...
+
+covsh-unit: ## Get the coverage of unit test
+	gocovsh --profile coverage.txt
