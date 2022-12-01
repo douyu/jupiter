@@ -43,7 +43,7 @@ func init() {
 	cfg := DefaultConfig()
 	cfg.Addr = l.Addr().String()
 
-	conn := newGRPCClient(cfg)
+	conn := cfg.Build()
 	directClient = testproto.NewGreeterServiceClient(conn)
 }
 
