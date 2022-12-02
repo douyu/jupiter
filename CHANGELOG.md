@@ -1,10 +1,8 @@
 # CHANGELOG
 
-## v0.9.11
-
 <!-- Release notes generated using configuration in .github/release.yml at master -->
 
-## What's Changed
+## v0.9.11
 
 ### Exciting New Features 🎉
 
