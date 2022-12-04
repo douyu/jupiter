@@ -25,7 +25,8 @@ type PullConsumer struct {
 	rocketmq.PullConsumer
 	name string
 	PullConsumerConfig
-	subscribers  map[string]consumer.MessageSelector
+
+	subscribers  map[string]func()
 	interceptors []primitive.Interceptor
 	bucket       *ratelimit.Bucket
 	started      *atomic.Bool
@@ -40,7 +41,7 @@ func (conf *PullConsumerConfig) Build() *PullConsumer {
 	cc := &PullConsumer{
 		name:               name,
 		PullConsumerConfig: *conf,
-		subscribers:        make(map[string]consumer.MessageSelector),
+		subscribers:        make(map[string]func()),
 		interceptors:       []primitive.Interceptor{},
 		done:               make(chan struct{}, 1),
 		started:            new(atomic.Bool),
@@ -109,7 +110,7 @@ func (cc *PullConsumer) Start() error {
 	}
 
 	if err != nil {
-		xlog.Jupiter().Panic("Subscribe a topic for consuming",
+		xlog.Jupiter().Panic("subscribe a topic for consuming",
 			xlog.FieldName(cc.name),
 			xlog.FieldExtMessage(cc.PullConsumerConfig),
 			xlog.FieldErr(err),
@@ -125,6 +126,9 @@ func (cc *PullConsumer) Start() error {
 			)
 			return err
 		}
+		for _, fn := range cc.subscribers {
+			fn()
+		}
 		// 在应用退出的时候，保证注销
 		hooks.Register(hooks.Stage_BeforeStop, func() {
 			cc.Close()
@@ -135,38 +139,129 @@ func (cc *PullConsumer) Start() error {
 	return nil
 }
 
-func (cc *PullConsumer) Pull(ctx context.Context, fn func(context.Context, []*primitive.MessageExt) error) {
-	xgo.Go(func() {
-		tracer := xtrace.NewTracer(trace.SpanKindConsumer)
-		for {
-			select {
-			case <-cc.done:
-				rlog.Info("Poll close message handle.", map[string]interface{}{
-					rlog.LogKeyConsumerGroup: cc.Group,
-				})
-				return
-			default:
-				pullResult, err := cc.PullConsumer.Pull(ctx, int(cc.PullBatchSize))
-				if err != nil {
-					xlog.Jupiter().Error("pull error", zap.String("topic", cc.Topic), xlog.FieldErr(err))
-					continue
-				}
-				switch pullResult.Status {
-				case primitive.PullFound:
-					if len(pullResult.GetMessages()) <= 0 {
-						continue
-					}
-					if fn(ctx, pullResult.GetMessageExts()) != nil {
-						continue
+func (cc *PullConsumer) Pull(ctx context.Context, f func(context.Context, []*primitive.MessageExt) error) {
+	if _, ok := cc.subscribers[cc.Topic]; ok {
+		xlog.Jupiter().Panic("duplicated register Pull message", zap.String("topic", cc.Topic))
+	}
+	fn := func() {
 
-					}
-					queue := pullResult.GetMessages()[0].Queue
-					err = cc.PullConsumer.UpdateOffset(queue, pullResult.NextBeginOffset)
+		xgo.Go(func() {
+			tracer := xtrace.NewTracer(trace.SpanKindConsumer)
+			for {
+				select {
+				case <-cc.done:
+					rlog.Info("Pull close message handle", map[string]interface{}{
+						rlog.LogKeyConsumerGroup: cc.Group,
+					})
+					return
+				default:
+					pullResult, err := cc.PullConsumer.Pull(ctx, int(cc.PullBatchSize))
 					if err != nil {
-						xlog.Jupiter().Error("pullConsumer updateOffset", zap.String("topic", cc.Topic), xlog.FieldErr(err))
+						xlog.Jupiter().Error("pull error", zap.String("topic", cc.Topic), xlog.FieldErr(err))
+						continue
+					}
+					switch pullResult.Status {
+					case primitive.PullFound:
+						if len(pullResult.GetMessages()) <= 0 {
+							continue
+						}
+						if f(ctx, pullResult.GetMessageExts()) != nil {
+							continue
+
+						}
+						queue := pullResult.GetMessages()[0].Queue
+						err = cc.PullConsumer.UpdateOffset(queue, pullResult.NextBeginOffset)
+						if err != nil {
+							xlog.Jupiter().Error("pullConsumer updateOffset", zap.String("topic", cc.Topic), xlog.FieldErr(err))
+						}
+						if cc.EnableTrace {
+							for _, msg := range pullResult.GetMessageExts() {
+								var (
+									span trace.Span
+								)
+								carrier := propagation.MapCarrier{}
+								attrs := []attribute.KeyValue{
+									semconv.MessagingSystemKey.String("rocketmq"),
+									semconv.MessagingDestinationKindKey.String(msg.Topic),
+								}
+								for key, value := range msg.GetProperties() {
+									carrier[key] = value
+								}
+								ctx, span = tracer.Start(ctx, msg.Topic, carrier, trace.WithAttributes(attrs...))
+								defer span.End()
+							}
+						}
+
+					case primitive.PullNoNewMsg, primitive.PullNoMsgMatched:
+						xlog.Jupiter().Info("no pull message", zap.String("topic", cc.Topic), zap.String("nextBeginOffset", strconv.FormatInt(pullResult.NextBeginOffset, 10)))
+						// todo
+						time.Sleep(100 * time.Millisecond)
+					case primitive.PullBrokerTimeout:
+						xlog.Jupiter().Error("pull broker timeout", zap.String("topic", cc.Topic), zap.String("nextBeginOffset", strconv.FormatInt(pullResult.NextBeginOffset, 10)))
+						// todo
+						time.Sleep(10 * time.Second)
+					case primitive.PullOffsetIllegal:
+						xlog.Jupiter().Error("pull offset illegal", zap.String("topic", cc.Topic), zap.String("nextBeginOffset", strconv.FormatInt(pullResult.NextBeginOffset, 10)))
+					default:
+						xlog.Jupiter().Error("pull error", zap.String("topic", cc.Topic), zap.String("nextBeginOffset", strconv.FormatInt(pullResult.NextBeginOffset, 10)))
+					}
+				}
+			}
+		})
+
+		xgo.Go(func() {
+			timer := time.NewTimer(cc.RefreshPersistOffsetDuration)
+			go func() {
+				select {
+				case <-cc.done:
+					rlog.Info("pull close message handle.", map[string]interface{}{
+						rlog.LogKeyConsumerGroup: cc.Group,
+					})
+					return
+				default:
+					for ; true; <-timer.C {
+						err := cc.PullConsumer.PersistOffset(context.TODO(), cc.Topic)
+						if err != nil {
+							xlog.Jupiter().Error("pullConsumer.PersistOffset error", xlog.FieldErr(err))
+						}
+						timer.Reset(cc.RefreshPersistOffsetDuration)
+					}
+				}
+			}()
+		})
+	}
+	cc.subscribers[cc.Topic] = fn
+}
+
+func (cc *PullConsumer) Poll(ctx context.Context, f func(context.Context, []*primitive.MessageExt) error) {
+	if _, ok := cc.subscribers[cc.Topic]; ok {
+		xlog.Jupiter().Panic("duplicated register poll message", zap.String("topic", cc.Topic))
+	}
+
+	fn := func() {
+		xgo.Go(func() {
+			tracer := xtrace.NewTracer(trace.SpanKindConsumer)
+			for {
+				select {
+				case <-cc.done:
+					rlog.Info("Poll close message handle.", map[string]interface{}{
+						rlog.LogKeyConsumerGroup: cc.Group,
+					})
+					return
+				default:
+					pullResult, err := cc.PullConsumer.Poll(ctx, cc.PollTimeout)
+					if consumer.IsNoNewMsgError(err) {
+						return
+					}
+					if err != nil {
+						xlog.Jupiter().Error("poll error", xlog.FieldErr(err))
+						return
+					}
+					if f(ctx, pullResult.GetMsgList()) != nil {
+						continue
 					}
 					if cc.EnableTrace {
-						for _, msg := range pullResult.GetMessageExts() {
+						for _, msg := range pullResult.GetMsgList() {
 							var (
 								span trace.Span
 							)
@@ -183,88 +278,13 @@ func (cc *PullConsumer) Pull(ctx context.Context, fn func(context.Context, []*pr
 						}
 					}
 
-				case primitive.PullNoNewMsg, primitive.PullNoMsgMatched:
-					xlog.Jupiter().Info("no pull message", zap.String("topic", cc.Topic), zap.String("nextBeginOffset", strconv.FormatInt(pullResult.NextBeginOffset, 10)))
-					time.Sleep(100 * time.Millisecond)
-				case primitive.PullBrokerTimeout:
-					xlog.Jupiter().Error("pull broker timeout", zap.String("topic", cc.Topic), zap.String("nextBeginOffset", strconv.FormatInt(pullResult.NextBeginOffset, 10)))
-					time.Sleep(10 * time.Second)
-				case primitive.PullOffsetIllegal:
-					xlog.Jupiter().Error("pull offset illegal", zap.String("topic", cc.Topic), zap.String("nextBeginOffset", strconv.FormatInt(pullResult.NextBeginOffset, 10)))
-				default:
-					xlog.Jupiter().Error("pull error", zap.String("topic", cc.Topic), zap.String("nextBeginOffset", strconv.FormatInt(pullResult.NextBeginOffset, 10)))
+					cc.PullConsumer.ACK(context.TODO(), pullResult, consumer.ConsumeSuccess)
+
 				}
 			}
-		}
-	})
-
-	xgo.Go(func() {
-		timer := time.NewTimer(cc.RefreshPersistOffsetDuration)
-		go func() {
-			select {
-			case <-cc.done:
-				rlog.Info("pull close message handle.", map[string]interface{}{
-					rlog.LogKeyConsumerGroup: cc.Group,
-				})
-				return
-			default:
-				for ; true; <-timer.C {
-					err := cc.PullConsumer.PersistOffset(context.TODO(), cc.Topic)
-					if err != nil {
-						xlog.Jupiter().Error("pullConsumer.PersistOffset error", xlog.FieldErr(err))
-					}
-					timer.Reset(cc.RefreshPersistOffsetDuration)
-				}
-			}
-		}()
-	})
-}
-
-func (cc *PullConsumer) Poll(ctx context.Context, timeout time.Duration, fn func(context.Context, []*primitive.MessageExt) error) {
-	xgo.Go(func() {
-		tracer := xtrace.NewTracer(trace.SpanKindConsumer)
-		for {
-			select {
-			case <-cc.done:
-				rlog.Info("Poll close message handle.", map[string]interface{}{
-					rlog.LogKeyConsumerGroup: cc.Group,
-				})
-				return
-			default:
-				pullResult, err := cc.PullConsumer.Poll(ctx, timeout)
-				if consumer.IsNoNewMsgError(err) {
-					return
-				}
-				if err != nil {
-					xlog.Jupiter().Error("poll error", xlog.FieldErr(err))
-					return
-				}
-				if fn(ctx, pullResult.GetMsgList()) != nil {
-					continue
-				}
-				if cc.EnableTrace {
-					for _, msg := range pullResult.GetMsgList() {
-						var (
-							span trace.Span
-						)
-						carrier := propagation.MapCarrier{}
-						attrs := []attribute.KeyValue{
-							semconv.MessagingSystemKey.String("rocketmq"),
-							semconv.MessagingDestinationKindKey.String(msg.Topic),
-						}
-						for key, value := range msg.GetProperties() {
-							carrier[key] = value
-						}
-						ctx, span = tracer.Start(ctx, msg.Topic, carrier, trace.WithAttributes(attrs...))
-						defer span.End()
-					}
-				}
-
-				cc.PullConsumer.ACK(context.TODO(), pullResult, consumer.ConsumeSuccess)
-
-			}
-		}
-	})
+		})
+	}
+	cc.subscribers[cc.Topic] = fn
 }
 
 func (cc *PullConsumer) Close() {

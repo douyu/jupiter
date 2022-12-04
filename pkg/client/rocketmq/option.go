@@ -99,6 +99,7 @@ type PullConsumerConfig struct {
 	ConsumerDefaultConfig
 	// 持久化offset间隔
 	RefreshPersistOffsetDuration time.Duration `json:"refreshPersistOffsetDuration" toml:"refreshPersistOffsetDuration"`
+	PollTimeout                  time.Duration `json:"pollTimeout" toml:"pollTimeout"`
 }
 
 // ProducerConfig producer config
@@ -145,6 +146,7 @@ func DefaultConfig() *Config {
 				MessageModel: "Clustering",
 			},
 			RefreshPersistOffsetDuration: time.Second * 5,
+			PollTimeout:                  time.Second * 5,
 		},
 	}
 }
