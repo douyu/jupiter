@@ -409,6 +409,7 @@ func (c *Configuration) UnmarshalKey(key string, rawVal interface{}, opts ...Get
 		DecodeHook: mapstructure.StringToTimeDurationHookFunc(),
 		Result:     rawVal,
 		TagName:    options.TagName,
+		Squash:     true,
 	}
 	decoder, err := mapstructure.NewDecoder(&config)
 	if err != nil {

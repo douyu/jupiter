@@ -21,7 +21,6 @@ import (
 	"github.com/apache/rocketmq-client-go/v2/primitive"
 	"github.com/apache/rocketmq-client-go/v2/producer"
 	"github.com/douyu/jupiter/pkg/core/hooks"
-	"github.com/douyu/jupiter/pkg/core/istats"
 	"github.com/douyu/jupiter/pkg/util/xdebug"
 	"github.com/douyu/jupiter/pkg/xlog"
 )
@@ -51,14 +50,14 @@ func (conf *ProducerConfig) Build() *Producer {
 		name:           name,
 		ProducerConfig: *conf,
 		interceptors:   []primitive.Interceptor{},
-		fInfo: FlowInfo{
-			FlowInfoBase: istats.NewFlowInfoBase(conf.Shadow.Mode),
-			Name:         name,
-			Addr:         conf.Addr,
-			Topic:        conf.Topic,
-			Group:        conf.Group,
-			GroupType:    "producer",
-		},
+		//fInfo: FlowInfo{
+		//	FlowInfoBase: istats.NewFlowInfoBase(conf.Shadow.Mode),
+		//	Name:         name,
+		//	Addr:         conf.Addr,
+		//	Topic:        conf.Topic,
+		//	Group:        conf.Group,
+		//	GroupType:    "producer",
+		//},
 	}
 
 	cc.interceptors = append(cc.interceptors,

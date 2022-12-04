@@ -64,7 +64,7 @@ func consumeResultStr(result consumer.ConsumeResult) string {
 	}
 }
 
-func pushConsumerDefaultInterceptor(pushConsumer *PushConsumer) primitive.Interceptor {
+func consumerMetricInterceptor() primitive.Interceptor {
 	return func(ctx context.Context, req, reply interface{}, next primitive.Invoker) error {
 		beg := time.Now()
 		msgs, _ := req.([]*primitive.MessageExt)
@@ -103,10 +103,31 @@ func pushConsumerDefaultInterceptor(pushConsumer *PushConsumer) primitive.Interc
 			metric.ClientHandleCounter.Inc(metric.TypeRocketMQ, topic, "consume", host, result)
 			metric.ClientHandleHistogram.Observe(time.Since(beg).Seconds(), metric.TypeRocketMQ, topic, "consume", host)
 		}
-		if pushConsumer.RwTimeout > time.Duration(0) {
-			if time.Since(beg) > pushConsumer.RwTimeout {
+		return err
+	}
+}
+
+func consumerSlowInterceptor(topic string, rwTimeout time.Duration) primitive.Interceptor {
+	return func(ctx context.Context, req, reply interface{}, next primitive.Invoker) error {
+		beg := time.Now()
+		msgs, _ := req.([]*primitive.MessageExt)
+
+		err := next(ctx, msgs, reply)
+		if reply == nil {
+			return err
+		}
+
+		holder := reply.(*consumer.ConsumeResultHolder)
+		xdebug.PrintObject("consume", map[string]interface{}{
+			"err":    err,
+			"count":  len(msgs),
+			"result": consumeResultStr(holder.ConsumeResult),
+		})
+
+		if rwTimeout > time.Duration(0) {
+			if time.Since(beg) > rwTimeout {
 				xlog.Jupiter().Error("slow",
-					xlog.String("topic", pushConsumer.Topic),
+					xlog.String("topic", topic),
 					xlog.String("result", consumeResultStr(holder.ConsumeResult)),
 					xlog.Any("cost", time.Since(beg).Seconds()),
 				)
@@ -116,8 +137,7 @@ func pushConsumerDefaultInterceptor(pushConsumer *PushConsumer) primitive.Interc
 		return err
 	}
 }
-
-func pushConsumerMDInterceptor(pushConsumer *PushConsumer) primitive.Interceptor {
+func consumerMDInterceptor() primitive.Interceptor {
 	return func(ctx context.Context, req, reply interface{}, next primitive.Invoker) error {
 		msgs, _ := req.([]*primitive.MessageExt)
 		if len(msgs) > 0 {
@@ -134,11 +154,11 @@ func pushConsumerMDInterceptor(pushConsumer *PushConsumer) primitive.Interceptor
 	}
 }
 
-func pushConsumerSentinelInterceptor(pushConsumer *PushConsumer) primitive.Interceptor {
+func consumerSentinelInterceptor(add []string) primitive.Interceptor {
 	return func(ctx context.Context, req, reply interface{}, next primitive.Invoker) error {
 		msgs, _ := req.([]*primitive.MessageExt)
 
-		entry, blockerr := sentinel.Entry(pushConsumer.Addr[0],
+		entry, blockerr := sentinel.Entry(add[0],
 			sentinel.WithResourceType(base.ResTypeMQ),
 			sentinel.WithTrafficType(base.Inbound))
 		if blockerr != nil {
