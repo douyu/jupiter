@@ -2,6 +2,7 @@ package tstore
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"github.com/BurntSushi/toml"
@@ -59,10 +60,11 @@ func TestCURD(t *testing.T) {
 			// 清理历史
 			dropSearchIndex(client, true, t)
 			dropTable(client, true, t)
-			t.Log("tablestoreEndponint", tablestoreEndponint)
-			t.Log("tablestoreInstance", tablestoreInstance)
-			t.Log("accessKeyId", accessKeyId)
-			t.Log("accessKeySecret", accessKeySecret)
+
+			t.Log("tablestoreEndponint", base64.StdEncoding.EncodeToString([]byte(tablestoreEndponint)))
+			t.Log("tablestoreInstance", base64.StdEncoding.EncodeToString([]byte(tablestoreInstance)))
+			t.Log("accessKeyId", base64.StdEncoding.EncodeToString([]byte(accessKeyId)))
+			t.Log("accessKeySecret", base64.StdEncoding.EncodeToString([]byte(accessKeySecret)))
 			// 创建表
 			createTableKeyAutoIncrementSample(client, t)
 			defer dropTable(client, false, t)
