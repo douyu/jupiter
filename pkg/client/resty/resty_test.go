@@ -69,4 +69,17 @@ var _ = Describe("normal case", func() {
 			config.MustBuild().R().Get("")
 		}).Should(Panic())
 	})
+
+	FIt("retry", func() {
+		config := DefaultConfig()
+		config.Addr = "https://httpbin.org"
+		config.RetryCount = 1
+		config.Timeout = time.Millisecond
+		// 测试慢日志
+		config.SlowThreshold = time.Millisecond
+		res, err := config.MustBuild().R().Get("/get")
+
+		Expect(err.Error()).Should(ContainSubstring("context deadline exceeded (Client.Timeout exceeded while awaiting headers)"))
+		Expect(res.Status()).Should(Equal(""))
+	})
 })
