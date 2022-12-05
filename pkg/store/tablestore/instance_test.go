@@ -41,10 +41,10 @@ func TestCURD(t *testing.T) {
 			[jupiter.tablestore.demo]
 			   debug = false
 			   enableAccessLog = false
-			   endPoint = ""
-			   instance = ""
-			   accessKeyId = ""
-			   accessKeySecret = ""
+			   endPoint ="` + tablestoreEndponint + `"
+			   instance = "` + tablestoreInstance + `"
+			   accessKeyId ="` + accessKeyId + `"
+			   accessKeySecret = "` + accessKeySecret + `"
 			   requestTimeout = "30s"
 			   slowThreshold = "10s"
 			   maxIdleConnections = 2000

@@ -20,9 +20,17 @@ import (
 	cfg "github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/core/constant"
 	"github.com/stretchr/testify/assert"
+	"os"
 	"reflect"
 	"testing"
 	"time"
+)
+
+var (
+	tablestoreEndponint = os.Getenv("TABLESTORE_ENDPOINT_ENV")
+	accessKeyId         = os.Getenv("TABLESTORE_ACCESSKEYID_ENV")
+	accessKeySecret     = os.Getenv("TABLESTORE_ACCESSKEYSECRET_ENV")
+	tablestoreInstance  = os.Getenv("TABLESTORE_INSTANCE_ENV")
 )
 
 func TestStdConfig(t *testing.T) {
@@ -44,10 +52,10 @@ func TestStdConfig(t *testing.T) {
 			[jupiter.tablestore.demo]
 			   debug = false
 			   enableAccessLog = false
-			   endPoint = ""
-			   instance = ""
-			   accessKeyId = ""
-			   accessKeySecret = ""
+			   endPoint ="` + tablestoreEndponint + `"
+			   instance = "` + tablestoreInstance + `"
+			   accessKeyId ="` + accessKeyId + `"
+			   accessKeySecret = "` + accessKeySecret + `"
 			   requestTimeout = "30s"
 			   slowThreshold = "1s"
 			   maxIdleConnections = 2000
@@ -57,10 +65,10 @@ func TestStdConfig(t *testing.T) {
 				Debug:              false,
 				EnableAccessLog:    false,
 				EnableMetric:       true,
-				EndPoint:           "",
-				Instance:           "",
-				AccessKeyId:        "",
-				AccessKeySecret:    "",
+				EndPoint:           tablestoreEndponint,
+				Instance:           tablestoreInstance,
+				AccessKeyId:        accessKeyId,
+				AccessKeySecret:    accessKeySecret,
 				SecurityToken:      "",
 				RetryTimes:         1,
 				SlowThreshold:      time.Second * 1,
