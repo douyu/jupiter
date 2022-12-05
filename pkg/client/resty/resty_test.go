@@ -70,7 +70,7 @@ var _ = Describe("normal case", func() {
 		}).Should(Panic())
 	})
 
-	FIt("retry", func() {
+	It("retry", func() {
 		config := DefaultConfig()
 		config.Addr = "https://httpbin.org"
 		config.RetryCount = 1
