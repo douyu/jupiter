@@ -59,7 +59,10 @@ func TestCURD(t *testing.T) {
 			// 清理历史
 			dropSearchIndex(client, true, t)
 			dropTable(client, true, t)
-
+			t.Log("tablestoreEndponint", tablestoreEndponint)
+			t.Log("tablestoreInstance", tablestoreInstance)
+			t.Log("accessKeyId", accessKeyId)
+			t.Log("accessKeySecret", accessKeySecret)
 			// 创建表
 			createTableKeyAutoIncrementSample(client, t)
 			defer dropTable(client, false, t)
