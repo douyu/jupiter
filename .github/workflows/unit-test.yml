@@ -57,6 +57,11 @@ jobs:
       fail-fast: true
       matrix:
         go: ["1.18.x", "1.19.x"]
+    env:
+      TABLESTORE_ACCESSKEYID_ENV: ${{ secrets.TABLESTORE_ACCESSKEYID_ENV }}
+      TABLESTORE_ACCESSKEYSECRET_ENV: ${{ secrets.TABLESTORE_ACCESSKEYSECRET_ENV }}
+      TABLESTORE_ENDPOINT_ENV: ${{ secrets.TABLESTORE_ENDPOINT_ENV }}
+      TABLESTORE_INSTANCE_ENV: ${{ secrets.TABLESTORE_INSTANCE_ENV }}    
     runs-on: ubuntu-latest
 
     steps:
