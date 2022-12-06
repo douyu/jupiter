@@ -92,11 +92,6 @@ jobs:
           go mod tidy && git diff --exit-code go.mod go.sum
 
       - name: Test
-        env:
-          TABLESTORE_ACCESSKEYID_ENV: ${{ secrets.TABLESTORE_ACCESSKEYID_ENV }}
-          TABLESTORE_ACCESSKEYSECRET_ENV: ${{ secrets.TABLESTORE_ACCESSKEYSECRET_ENV }}
-          TABLESTORE_ENDPOINT_ENV: ${{ secrets.TABLESTORE_ENDPOINT_ENV }}
-          TABLESTORE_INSTANCE_ENV: ${{ secrets.TABLESTORE_INSTANCE_ENV }}
         run: |
           make unit-test
 
