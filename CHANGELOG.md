@@ -2,6 +2,20 @@
 
 <!-- Release notes generated using configuration in .github/release.yml at master -->
 
+## v0.9.12
+
+### Exciting New Features 🎉
+
+* feat: support tablestore client by @hnlq715 in https://github.com/douyu/jupiter/pull/603
+
+### Other Changes
+
+* fix: resty retry panic by @hnlq715 in https://github.com/douyu/jupiter/pull/604
+* feat: improve ci test by @hnlq715 in https://github.com/douyu/jupiter/pull/606
+
+**Full Changelog**: https://github.com/douyu/jupiter/compare/v0.9.11...v0.9.12
+<!-- Release notes generated using configuration in .github/release.yml at master -->
+
 ## v0.9.11
 
 ### Exciting New Features 🎉
