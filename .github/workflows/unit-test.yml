@@ -13,57 +13,19 @@ on:
       - "master"
 
 jobs:
-  lint:
-    name: Lint
-    strategy:
-      fail-fast: true
-      matrix:
-        go: ["1.18.x", "1.19.x"]
-        os: [ubuntu-latest]
-    runs-on: ${{ matrix.os }}
-
-    steps:
-      - name: Set up Go ${{ matrix.go }}
-        uses: actions/setup-go@v3
-        with:
-          go-version: ${{ matrix.go }}
-        id: go
-
-      - name: Check out code into the Go module directory
-        uses: actions/checkout@v3.1.0
-
-      - uses: actions/cache@v3
-        with:
-          path: |
-            ~/go/pkg/mod
-            ~/.cache/go-build
-          key: ${{ runner.os }}-go-${{ matrix.go-version }}-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-${{ matrix.go-version }}-
-
-      - name: Get dependencies
-        run: |
-          go env
-          go mod tidy && git diff --exit-code go.mod go.sum
-
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v3.3.1
-        with:
-          version: v1.50.1
-
   test:
     name: Test on ubuntu
-    environment: 
-      name: tablestore-live    	
+    environment:
+      name: tablestore-live
     env:
       TABLESTORE_ACCESSKEYID_ENV: ${{ secrets.TABLESTORE_ACCESSKEYID_ENV }}
       TABLESTORE_ACCESSKEYSECRET_ENV: ${{ secrets.TABLESTORE_ACCESSKEYSECRET_ENV }}
       TABLESTORE_ENDPOINT_ENV: ${{ secrets.TABLESTORE_ENDPOINT_ENV }}
-      TABLESTORE_INSTANCE_ENV: ${{ secrets.TABLESTORE_INSTANCE_ENV }}   
+      TABLESTORE_INSTANCE_ENV: ${{ secrets.TABLESTORE_INSTANCE_ENV }}
     strategy:
       fail-fast: true
       matrix:
-        go: ["1.18.x", "1.19.x"] 
+        go: ["1.18.x"]
     runs-on: ubuntu-latest
 
     steps:
