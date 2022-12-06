@@ -2,9 +2,10 @@ package tstore
 
 import (
 	"bytes"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"testing"
+
 	"github.com/BurntSushi/toml"
 	"github.com/aliyun/aliyun-tablestore-go-sdk/tablestore"
 	"github.com/aliyun/aliyun-tablestore-go-sdk/tablestore/search"
@@ -12,7 +13,6 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 const (
@@ -61,10 +61,6 @@ func TestCURD(t *testing.T) {
 			dropSearchIndex(client, true, t)
 			dropTable(client, true, t)
 
-			t.Log("tablestoreEndponint", base64.StdEncoding.EncodeToString([]byte(tablestoreEndponint)))
-			t.Log("tablestoreInstance", base64.StdEncoding.EncodeToString([]byte(tablestoreInstance)))
-			t.Log("accessKeyId", base64.StdEncoding.EncodeToString([]byte(accessKeyId)))
-			t.Log("accessKeySecret", base64.StdEncoding.EncodeToString([]byte(accessKeySecret)))
 			// 创建表
 			createTableKeyAutoIncrementSample(client, t)
 			defer dropTable(client, false, t)
