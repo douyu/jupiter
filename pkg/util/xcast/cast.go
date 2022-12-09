@@ -13,10 +13,10 @@ func ToInt64Slice(i interface{}) []int64 {
 	return v
 }
 
-// ToIntSliceE casts an interface to a []int64 type.
+// ToInt64SliceE casts an empty interface to a []int64.
 func ToInt64SliceE(i interface{}) ([]int64, error) {
 	if i == nil {
-		return []int64{}, fmt.Errorf("unable to cast %#v of type %T to []int", i, i)
+		return []int64{}, fmt.Errorf("Unable to Cast %#v to []int64", i)
 	}
 
 	switch v := i.(type) {
@@ -32,12 +32,13 @@ func ToInt64SliceE(i interface{}) ([]int64, error) {
 		for j := 0; j < s.Len(); j++ {
 			val, err := cast.ToInt64E(s.Index(j).Interface())
 			if err != nil {
-				return []int64{}, fmt.Errorf("unable to cast %#v of type %T to []int", i, i)
+				return []int64{}, fmt.Errorf("Unable to Cast %#v to []int64", i)
 			}
 			a[j] = val
+
 		}
 		return a, nil
 	default:
-		return []int64{}, fmt.Errorf("unable to cast %#v of type %T to []int", i, i)
+		return []int64{}, fmt.Errorf("Unable to Cast %#v to []int64", i)
 	}
 }

@@ -16,6 +16,7 @@ package conf
 
 import (
 	"bytes"
+	"reflect"
 	"testing"
 
 	"github.com/BurntSushi/toml"
@@ -58,4 +59,37 @@ func TestConf(t *testing.T) {
 			t.Fatal("unmarshal failed")
 		}
 	})
+}
+
+func TestGetInt64Slice(t *testing.T) {
+
+	LoadFromReader(bytes.NewBufferString(`
+	[test]
+		ids = [1000]
+	`), toml.Unmarshal)
+	defer Reset()
+
+	type args struct {
+		key string
+	}
+	tests := []struct {
+		name string
+		args args
+		want []int64
+	}{
+		{
+			name: "case 1",
+			args: args{
+				key: "test.ids",
+			},
+			want: []int64{1000},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := GetInt64Slice(tt.args.key); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("GetInt64Slice() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }
