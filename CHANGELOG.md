@@ -2,6 +2,17 @@
 
 <!-- Release notes generated using configuration in .github/release.yml at master -->
 
+## v0.9.13
+
+### Other Changes
+
+* build(deps): bump otel to v1.11.2 by @hnlq715 in https://github.com/douyu/jupiter/pull/615
+* fix: GetInt64Slice by @hnlq715 in https://github.com/douyu/jupiter/pull/616
+
+**Full Changelog**: https://github.com/douyu/jupiter/compare/v0.9.12...v0.9.13
+
+<!-- Release notes generated using configuration in .github/release.yml at master -->
+
 ## v0.9.12
 
 ### Exciting New Features 🎉
