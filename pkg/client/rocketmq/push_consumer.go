@@ -233,7 +233,6 @@ func (cc *PushConsumer) Start() error {
 		}
 	}
 
-	// if client == nil. <--- fix lint: this comparison is never true.
 	if err != nil {
 		xlog.Jupiter().Panic("create push consumer panic",
 			xlog.FieldName(cc.name),
