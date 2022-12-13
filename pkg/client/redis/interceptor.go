@@ -340,7 +340,12 @@ func sentinelInterceptor(compName string, addr string, config *Config, logger *x
 		}).
 		setAfterProcess(func(ctx context.Context, cmd redis.Cmder) error {
 			if entry := sentinel.FromContext(ctx); entry != nil {
-				entry.Exit(sentinel.WithError(cmd.Err()))
+				var err error
+				if cmd.Err() != nil && !errors.Is(cmd.Err(), redis.Nil) {
+					err = cmd.Err()
+				}
+
+				entry.Exit(sentinel.WithError(err))
 			}
 
 			return nil
@@ -359,7 +364,8 @@ func sentinelInterceptor(compName string, addr string, config *Config, logger *x
 		if entry := sentinel.FromContext(ctx); entry != nil {
 			var err error
 			for _, cmd := range cmds {
-				if cmd.Err() != nil {
+				// skip redis.Nil error
+				if cmd.Err() != nil && !errors.Is(cmd.Err(), redis.Nil) {
 					err = cmd.Err()
 
 					break

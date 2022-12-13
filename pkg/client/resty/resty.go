@@ -127,7 +127,6 @@ func (config *Config) Build() (*resty.Client, error) {
 	client.SetRetryCount(config.RetryCount)
 	client.SetCloseConnection(config.CloseConnection)
 	client.SetRedirectPolicy(resty.NoRedirectPolicy())
-	client.AddRetryCondition(config.RetryCondition)
 
 	if config.RetryWaitTime != time.Duration(0) {
 		client.SetRetryWaitTime(config.RetryWaitTime)

@@ -15,4 +15,5 @@ const (
 
 	ModuleStoreMongoDB
 	ModuleStoreGorm
+	ModuleStoreTableStore
 )

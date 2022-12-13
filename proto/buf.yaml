@@ -1,4 +1,8 @@
 version: v1
+
+deps:
+  - buf.build/googleapis/googleapis
+
 lint:
   ignore:
     - vendor

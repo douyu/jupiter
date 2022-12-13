@@ -28,6 +28,17 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+func Test_Server(t *testing.T) {
+	s := DefaultConfig().MustBuild()
+	go func() {
+		s.Serve()
+	}()
+	time.Sleep(time.Second)
+	assert.True(t, s.Healthz())
+	assert.NotNil(t, s.Info())
+	s.Stop()
+}
+
 func TestServer_Serve(t *testing.T) {
 	type fields struct {
 		Server   *grpc.Server

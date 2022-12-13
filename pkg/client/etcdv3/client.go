@@ -63,7 +63,7 @@ func newClient(config *Config) (*Client, error) {
 		Logger:               xlog.Jupiter().With(xlog.FieldMod("etcdv3")),
 	}
 
-	config.logger = config.logger.With(xlog.FieldAddrAny(config.Endpoints))
+	config.logger = xlog.Jupiter().With(xlog.FieldMod("etcdv3"))
 
 	if config.Endpoints == nil {
 		return nil, fmt.Errorf("client etcd endpoints empty, empty endpoints")
