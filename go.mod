@@ -6,8 +6,8 @@ require (
 	cirello.io/pglock v1.10.0
 	github.com/BurntSushi/toml v1.2.1
 	github.com/alibaba/sentinel-golang v1.0.4
-	github.com/apache/rocketmq-client-go/v2 v2.1.2-0.20221202035048-f56a2dba2af8
 	github.com/aliyun/aliyun-tablestore-go-sdk v1.7.7
+	github.com/apache/rocketmq-client-go/v2 v2.1.2-0.20221202035048-f56a2dba2af8
 	github.com/codegangsta/inject v0.0.0-20150114235600-33e0aa1cb7c0
 	github.com/coocood/freecache v1.2.3
 	github.com/cosmtrek/air v1.40.4
@@ -155,6 +155,5 @@ require (
 	golang.org/x/tools v0.2.0 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 	stathat.com/c/consistent v1.0.0 // indirect
 )

@@ -67,7 +67,7 @@ var _ = Describe("consume", func() {
 			return nil
 		})
 
-		err := consumerClient.Start()
+		err = consumerClient.Start()
 		Expect(err).Should(BeNil())
 
 		Eventually(func() int {
