@@ -32,7 +32,6 @@ type Producer struct {
 	name string
 	ProducerConfig
 	interceptors []primitive.Interceptor
-	fInfo        FlowInfo
 }
 
 func StdNewProducer(name string) *Producer {

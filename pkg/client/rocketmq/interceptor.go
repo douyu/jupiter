@@ -137,22 +137,6 @@ func consumerSlowInterceptor(topic string, rwTimeout time.Duration) primitive.In
 		return err
 	}
 }
-func consumerMDInterceptor() primitive.Interceptor {
-	return func(ctx context.Context, req, reply interface{}, next primitive.Invoker) error {
-		msgs, _ := req.([]*primitive.MessageExt)
-		if len(msgs) > 0 {
-			var meta = imeta.New(nil)
-			for key, vals := range msgs[0].GetProperties() {
-				if strings.HasPrefix(strings.ToLower(key), "x-dy") {
-					meta.Set(key, strings.Split(vals, ",")...)
-				}
-			}
-			ctx = imeta.WithContext(ctx, meta)
-		}
-		err := next(ctx, msgs, reply)
-		return err
-	}
-}
 
 func consumerSentinelInterceptor(add []string) primitive.Interceptor {
 	return func(ctx context.Context, req, reply interface{}, next primitive.Invoker) error {

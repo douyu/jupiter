@@ -38,7 +38,6 @@ type PushConsumer struct {
 
 	subscribers  map[string]func(context.Context, ...*primitive.MessageExt) (consumer.ConsumeResult, error)
 	interceptors []primitive.Interceptor
-	fInfo        FlowInfo
 	bucket       *ratelimit.Bucket
 	started      bool
 }

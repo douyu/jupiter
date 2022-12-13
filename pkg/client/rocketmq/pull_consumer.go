@@ -10,7 +10,6 @@ import (
 	"github.com/douyu/jupiter/pkg/core/xtrace"
 	"github.com/douyu/jupiter/pkg/util/xgo"
 	"github.com/douyu/jupiter/pkg/xlog"
-	"github.com/juju/ratelimit"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/propagation"
 	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
@@ -28,7 +27,6 @@ type PullConsumer struct {
 
 	subscribers  map[string]func()
 	interceptors []primitive.Interceptor
-	bucket       *ratelimit.Bucket
 	started      *atomic.Bool
 	done         chan struct{}
 }
