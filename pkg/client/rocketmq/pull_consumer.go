@@ -31,6 +31,11 @@ type PullConsumer struct {
 	done         chan struct{}
 }
 
+const (
+	// Delay some time when exception error
+	_PullDelayTimeWhenError = 3 * time.Second
+)
+
 func (conf *PullConsumerConfig) Build() *PullConsumer {
 	name := conf.Name
 
@@ -73,6 +78,7 @@ func (cc *PullConsumer) Start() error {
 		consumer.WithInterceptor(cc.interceptors...),
 		consumer.WithConsumeMessageBatchMaxSize(cc.ConsumeMessageBatchMaxSize),
 		consumer.WithPullBatchSize(cc.PullBatchSize),
+		consumer.WithPullInterval(cc.PullInterval),
 		consumer.WithCredentials(primitive.Credentials{
 			AccessKey: cc.AccessKey,
 			SecretKey: cc.SecretKey,
@@ -142,10 +148,11 @@ func (cc *PullConsumer) Pull(ctx context.Context, f func(context.Context, []*pri
 		xlog.Jupiter().Panic("duplicated register Pull message", zap.String("topic", cc.Topic))
 	}
 	fn := func() {
-
 		xgo.Go(func() {
 			tracer := xtrace.NewTracer(trace.SpanKindConsumer)
+			var sleepTime time.Duration
 			for {
+			NEXT:
 				select {
 				case <-cc.done:
 					rlog.Info("Pull close message handle", map[string]interface{}{
@@ -153,6 +160,11 @@ func (cc *PullConsumer) Pull(ctx context.Context, f func(context.Context, []*pri
 					})
 					return
 				default:
+					if sleepTime > 0 {
+						time.Sleep(sleepTime)
+					}
+					// reset time
+					sleepTime = cc.PullInterval
 					pullResult, err := cc.PullConsumer.Pull(ctx, int(cc.PullBatchSize))
 					if err != nil {
 						xlog.Jupiter().Error("pull error", zap.String("topic", cc.Topic), xlog.FieldErr(err))
@@ -160,12 +172,8 @@ func (cc *PullConsumer) Pull(ctx context.Context, f func(context.Context, []*pri
 					}
 					switch pullResult.Status {
 					case primitive.PullFound:
-						if len(pullResult.GetMessages()) <= 0 {
+						if len(pullResult.GetMessages()) <= 0 || f(ctx, pullResult.GetMessageExts()) != nil {
 							continue
-						}
-						if f(ctx, pullResult.GetMessageExts()) != nil {
-							continue
-
 						}
 						queue := pullResult.GetMessages()[0].Queue
 						err = cc.PullConsumer.UpdateOffset(queue, pullResult.NextBeginOffset)
@@ -192,16 +200,18 @@ func (cc *PullConsumer) Pull(ctx context.Context, f func(context.Context, []*pri
 
 					case primitive.PullNoNewMsg, primitive.PullNoMsgMatched:
 						xlog.Jupiter().Info("no pull message", zap.String("topic", cc.Topic), zap.String("nextBeginOffset", strconv.FormatInt(pullResult.NextBeginOffset, 10)))
-						// todo
-						time.Sleep(100 * time.Millisecond)
 					case primitive.PullBrokerTimeout:
+						sleepTime = _PullDelayTimeWhenError
 						xlog.Jupiter().Error("pull broker timeout", zap.String("topic", cc.Topic), zap.String("nextBeginOffset", strconv.FormatInt(pullResult.NextBeginOffset, 10)))
-						// todo
-						time.Sleep(10 * time.Second)
+						goto NEXT
 					case primitive.PullOffsetIllegal:
+						sleepTime = _PullDelayTimeWhenError
 						xlog.Jupiter().Error("pull offset illegal", zap.String("topic", cc.Topic), zap.String("nextBeginOffset", strconv.FormatInt(pullResult.NextBeginOffset, 10)))
+						goto NEXT
 					default:
+						sleepTime = _PullDelayTimeWhenError
 						xlog.Jupiter().Error("pull error", zap.String("topic", cc.Topic), zap.String("nextBeginOffset", strconv.FormatInt(pullResult.NextBeginOffset, 10)))
+						goto NEXT
 					}
 				}
 			}
@@ -249,11 +259,11 @@ func (cc *PullConsumer) Poll(ctx context.Context, f func(context.Context, []*pri
 				default:
 					pullResult, err := cc.PullConsumer.Poll(ctx, cc.PollTimeout)
 					if consumer.IsNoNewMsgError(err) {
-						return
+						continue
 					}
 					if err != nil {
 						xlog.Jupiter().Error("poll error", xlog.FieldErr(err))
-						return
+						continue
 					}
 					if f(ctx, pullResult.GetMsgList()) != nil {
 						continue

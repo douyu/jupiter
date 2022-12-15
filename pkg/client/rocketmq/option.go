@@ -42,7 +42,7 @@ type ConsumerDefaultConfig struct {
 	Group         string        `json:"group" toml:"group"`
 	DialTimeout   time.Duration `json:"dialTimeout" toml:"dialTimeout"`
 	SubExpression string        `json:"subExpression" toml:"subExpression"`
-
+	// 最大重复消费次数
 	Reconsume    int32  `json:"reconsume" toml:"reconsume"`
 	AccessKey    string `json:"accessKey" toml:"accessKey"`
 	SecretKey    string `json:"secretKey" toml:"secretKey"`
@@ -53,7 +53,10 @@ type ConsumerDefaultConfig struct {
 	ConsumeMessageBatchMaxSize int `json:"consumeMessageBatchMaxSize" toml:"consumeMessageBatchMaxSize"`
 	// 每批次从broker拉取消息的最大个数，取值范围：[1, 1024]，默认值为32
 	PullBatchSize int32 `json:"pullBatchSize" toml:"pullBatchSize"`
-	EnableTrace   bool  `json:"enableTrace" toml:"enableTrace"`
+	// 设置每次消息拉取的时间间隔，push模式最大为65535*time.Millisecond
+	PullInterval time.Duration `json:"pullInterval" toml:"pullInterval"`
+	// 是否开启trace
+	EnableTrace bool `json:"enableTrace" toml:"enableTrace"`
 }
 
 /**
@@ -123,7 +126,7 @@ func DefaultConfig() *Config {
 	return &Config{
 		Addresses: make([]string, 0),
 		Producer: &ProducerConfig{
-			Retry:       3,
+			Retry:       5,
 			DialTimeout: time.Second * 3,
 			RwTimeout:   0,
 			EnableTrace: true,

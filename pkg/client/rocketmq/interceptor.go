@@ -101,7 +101,9 @@ func consumerMetricInterceptor() primitive.Interceptor {
 				)
 			}
 			metric.ClientHandleCounter.Inc(metric.TypeRocketMQ, topic, "consume", host, result)
-			metric.ClientHandleHistogram.Observe(time.Since(beg).Seconds(), metric.TypeRocketMQ, topic, "consume", host)
+			metric.ClientHandleHistogram.Observe(time.Since(beg).Seconds(), metric.TypeRocketMQ, topic, "consume-delay", host)
+			// StoreTimestamp 消息存储到消息队列RocketMQ版服务端的时间戳
+			metric.ClientHandleHistogram.Observe(beg.Sub(time.Unix(msg.StoreTimestamp, 0)).Seconds(), metric.TypeRocketMQ, topic, "broken-delay", host)
 		}
 		return err
 	}
