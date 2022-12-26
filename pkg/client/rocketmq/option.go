@@ -59,35 +59,6 @@ type ConsumerDefaultConfig struct {
 	EnableTrace bool `json:"enableTrace" toml:"enableTrace"`
 }
 
-/**
-// ConsumerConfig consumer config
-type ConsumerConfig struct {
-	Name            string        `json:"name" toml:"name"`
-	Enable          bool          `json:"enable" toml:"enable"`
-	Addr            []string      `json:"addr" toml:"addr"`
-	Topic           string        `json:"topic" toml:"topic"`
-	Group           string        `json:"group" toml:"group"`
-	DialTimeout     time.Duration `json:"dialTimeout" toml:"dialTimeout"`
-	RwTimeout       time.Duration `json:"rwTimeout" toml:"rwTimeout"`
-	SubExpression   string        `json:"subExpression" toml:"subExpression"`
-	Rate            float64       `json:"rate" toml:"rate"`
-	Capacity        int64         `json:"capacity" toml:"capacity"`
-	WaitMaxDuration time.Duration `json:"waitMaxDuration" toml:"waitMaxDuration"`
-	Shadow          Shadow        `json:"shadow" toml:"shadow"`
-	Reconsume       int32         `json:"reconsume" toml:"reconsume"`
-	AccessKey       string        `json:"accessKey" toml:"accessKey"`
-	SecretKey       string        `json:"secretKey" toml:"secretKey"`
-	MessageModel    string        `json:"messageModel" toml:"messageModel"` // 消费模式,默认clustering
-	// client实例名，默认会基于Addr字段生成md5，支持多集群
-	InstanceName string `json:"instanceName" toml:"instanceName"`
-	EnableTrace  bool   `json:"enableTrace" toml:"enableTrace"`
-	// 批量消费的最大消息数量，取值范围：[1, 1024]，默认值为1
-	ConsumeMessageBatchMaxSize int `json:"consumeMessageBatchMaxSize" toml:"consumeMessageBatchMaxSize"`
-	// 每批次从broker拉取消息的最大个数，取值范围：[1, 1024]，默认值为32
-	PullBatchSize int32 `json:"pullBatchSize" toml:"pullBatchSize"`
-}
-*/
-
 // PushConsumerConfig push consumer config
 type PushConsumerConfig struct {
 	ConsumerDefaultConfig
