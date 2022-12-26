@@ -28,36 +28,52 @@ import (
 
 // Config config...
 type Config struct {
-	Addresses []string        `json:"addr" toml:"addr"`
-	Consumer  *ConsumerConfig `json:"consumer" toml:"consumer"`
-	Producer  *ProducerConfig `json:"producer" toml:"producer"`
+	Addresses    []string            `json:"addr" toml:"addr"`
+	PushConsumer *PushConsumerConfig `json:"consumer" toml:"consumer" mapstructure:",squash"`
+	PullConsumer *PullConsumerConfig `json:"pullConsumer" toml:"pullConsumer" mapstructure:",squash"`
+	Producer     *ProducerConfig     `json:"producer" toml:"producer"`
 }
 
-// ConsumerConfig consumer config
-type ConsumerConfig struct {
-	Name            string        `json:"name" toml:"name"`
-	Enable          bool          `json:"enable" toml:"enable"`
-	Addr            []string      `json:"addr" toml:"addr"`
-	Topic           string        `json:"topic" toml:"topic"`
-	Group           string        `json:"group" toml:"group"`
-	DialTimeout     time.Duration `json:"dialTimeout" toml:"dialTimeout"`
-	RwTimeout       time.Duration `json:"rwTimeout" toml:"rwTimeout"`
-	SubExpression   string        `json:"subExpression" toml:"subExpression"`
-	Rate            float64       `json:"rate" toml:"rate"`
-	Capacity        int64         `json:"capacity" toml:"capacity"`
-	WaitMaxDuration time.Duration `json:"waitMaxDuration" toml:"waitMaxDuration"`
-	Shadow          Shadow        `json:"shadow" toml:"shadow"`
-	Reconsume       int32         `json:"reconsume" toml:"reconsume"`
-	AccessKey       string        `json:"accessKey" toml:"accessKey"`
-	SecretKey       string        `json:"secretKey" toml:"secretKey"`
-	MessageModel    string        `json:"messageModel" toml:"messageModel"` // 消费模式,默认clustering
+type ConsumerDefaultConfig struct {
+	Name          string        `json:"name" toml:"name"`
+	Enable        bool          `json:"enable" toml:"enable"`
+	Addr          []string      `json:"addr" toml:"addr"`
+	Topic         string        `json:"topic" toml:"topic"`
+	Group         string        `json:"group" toml:"group"`
+	DialTimeout   time.Duration `json:"dialTimeout" toml:"dialTimeout"`
+	SubExpression string        `json:"subExpression" toml:"subExpression"`
+	// 最大重复消费次数
+	Reconsume    int32  `json:"reconsume" toml:"reconsume"`
+	AccessKey    string `json:"accessKey" toml:"accessKey"`
+	SecretKey    string `json:"secretKey" toml:"secretKey"`
+	MessageModel string `json:"messageModel" toml:"messageModel"` // 消费模式,默认clustering
 	// client实例名，默认会基于Addr字段生成md5，支持多集群
 	InstanceName string `json:"instanceName" toml:"instanceName"`
-	EnableTrace  bool   `json:"enableTrace" toml:"enableTrace"`
 	// 批量消费的最大消息数量，取值范围：[1, 1024]，默认值为1
 	ConsumeMessageBatchMaxSize int `json:"consumeMessageBatchMaxSize" toml:"consumeMessageBatchMaxSize"`
 	// 每批次从broker拉取消息的最大个数，取值范围：[1, 1024]，默认值为32
 	PullBatchSize int32 `json:"pullBatchSize" toml:"pullBatchSize"`
+	// 设置每次消息拉取的时间间隔，push模式最大为65535*time.Millisecond
+	PullInterval time.Duration `json:"pullInterval" toml:"pullInterval"`
+	// 是否开启trace
+	EnableTrace bool `json:"enableTrace" toml:"enableTrace"`
+}
+
+// PushConsumerConfig push consumer config
+type PushConsumerConfig struct {
+	ConsumerDefaultConfig
+	RwTimeout       time.Duration `json:"rwTimeout" toml:"rwTimeout"`
+	Rate            float64       `json:"rate" toml:"rate"`
+	Capacity        int64         `json:"capacity" toml:"capacity"`
+	WaitMaxDuration time.Duration `json:"waitMaxDuration" toml:"waitMaxDuration"`
+}
+
+// PullConsumerConfig pull consumer config
+type PullConsumerConfig struct {
+	ConsumerDefaultConfig
+	// 持久化offset间隔
+	RefreshPersistOffsetDuration time.Duration `json:"refreshPersistOffsetDuration" toml:"refreshPersistOffsetDuration"`
+	PollTimeout                  time.Duration `json:"pollTimeout" toml:"pollTimeout"`
 }
 
 // ProducerConfig producer config
@@ -69,7 +85,6 @@ type ProducerConfig struct {
 	Retry       int           `json:"retry" toml:"retry"`
 	DialTimeout time.Duration `json:"dialTimeout" toml:"dialTimeout"`
 	RwTimeout   time.Duration `json:"rwTimeout" toml:"rwTimeout"`
-	Shadow      Shadow        `json:"shadow" toml:"shadow"`
 	AccessKey   string        `json:"accessKey" toml:"accessKey"`
 	SecretKey   string        `json:"secretKey" toml:"secretKey"`
 	// client实例名，默认会基于Addr字段生成md5，支持多集群
@@ -77,84 +92,100 @@ type ProducerConfig struct {
 	EnableTrace  bool   `json:"enableTrace" toml:"enableTrace"`
 }
 
-type Shadow struct {
-	Mode string `json:"mode" toml:"mode"`
-	// mode开启模式下白名单内topic不进行丢弃
-	WitheTopics []string `json:"witheTopics" toml:"witheTopics"`
-}
-
 // DefaultConfig ...
 func DefaultConfig() *Config {
 	return &Config{
 		Addresses: make([]string, 0),
 		Producer: &ProducerConfig{
-			Retry:       3,
+			Retry:       5,
+			DialTimeout: time.Second * 3,
+			RwTimeout:   0,
 			EnableTrace: true,
 		},
-		Consumer: &ConsumerConfig{
-			Reconsume:       3,
+		PushConsumer: &PushConsumerConfig{
+			ConsumerDefaultConfig: ConsumerDefaultConfig{
+				DialTimeout:  time.Second * 3,
+				Reconsume:    16,
+				EnableTrace:  true,
+				MessageModel: "Clustering",
+			},
+			RwTimeout:       time.Second * 10,
 			WaitMaxDuration: 60 * time.Second,
-			MessageModel:    "Clustering",
-			EnableTrace:     true,
 		},
-	}
-}
-
-// DefaultConsumerConfig ...
-func DefaultConsumerConfig() *ConsumerConfig {
-	return &ConsumerConfig{
-		DialTimeout:     time.Second * 3,
-		RwTimeout:       time.Second * 10,
-		Reconsume:       3,
-		WaitMaxDuration: 60 * time.Second,
-		MessageModel:    "Clustering",
-		EnableTrace:     true,
-	}
-}
-
-// DefaultProducerConfig ...
-func DefaultProducerConfig() *ProducerConfig {
-	return &ProducerConfig{
-		Retry:       3,
-		DialTimeout: time.Second * 3,
-		RwTimeout:   0,
-		EnableTrace: true,
+		PullConsumer: &PullConsumerConfig{
+			ConsumerDefaultConfig: ConsumerDefaultConfig{
+				DialTimeout:  time.Second * 3,
+				Reconsume:    16,
+				EnableTrace:  true,
+				MessageModel: "Clustering",
+			},
+			RefreshPersistOffsetDuration: time.Second * 5,
+			PollTimeout:                  time.Second * 5,
+		},
 	}
 }
 
 // StdPushConsumerConfig ...
-func StdPushConsumerConfig(name string) *ConsumerConfig {
-
-	cc := RawConsumerConfig(constant.ConfigKey("rocketmq." + name + ".consumer"))
+func StdPushConsumerConfig(name string) *PushConsumerConfig {
 	rc := RawConfig(constant.ConfigKey("rocketmq." + name))
-
+	pc := rc.PushConsumer
 	// 兼容rocket_client_mq变更，addr需要携带shceme
-	if len(cc.Addr) == 0 {
-		cc.Addr = rc.Addresses
+	if len(rc.PushConsumer.Addr) == 0 {
+		pc.Addr = rc.Addresses
 	}
 
-	cc.Name = name
-	for ind, addr := range cc.Addr {
+	pc.Name = name
+
+	for ind, addr := range pc.Addr {
 		if strings.HasPrefix(addr, "http") {
-			cc.Addr[ind] = addr
+			pc.Addr[ind] = addr
 		} else {
-			cc.Addr[ind] = "http://" + addr
+			pc.Addr[ind] = "http://" + addr
 		}
 	}
 
 	// 这里根据mq集群地址的md5，生成默认InstanceName
 	// 实现自动支持多集群，解决官方库默认不支持多集群消费的问题
-	if cc.InstanceName == "" {
-		cc.InstanceName = fmt.Sprintf("%x", md5.Sum([]byte(strings.Join(cc.Addr, ","))))
+	if pc.InstanceName == "" {
+		pc.InstanceName = fmt.Sprintf("%x", md5.Sum([]byte(strings.Join(pc.Addr, ","))))
 	}
 
-	return cc
+	return pc
+}
+
+// StdPullConsumerConfig ...
+func StdPullConsumerConfig(name string) *PullConsumerConfig {
+
+	rc := RawConfig(constant.ConfigKey("rocketmq." + name))
+	pc := rc.PullConsumer
+	// 兼容rocket_client_mq变更，addr需要携带shceme
+	if len(pc.Addr) == 0 {
+		pc.Addr = rc.Addresses
+	}
+
+	pc.Name = name
+
+	for ind, addr := range pc.Addr {
+		if strings.HasPrefix(addr, "http") {
+			pc.Addr[ind] = addr
+		} else {
+			pc.Addr[ind] = "http://" + addr
+		}
+	}
+
+	// 这里根据mq集群地址的md5，生成默认InstanceName
+	// 实现自动支持多集群，解决官方库默认不支持多集群消费的问题
+	if pc.InstanceName == "" {
+		pc.InstanceName = fmt.Sprintf("%x", md5.Sum([]byte(strings.Join(pc.Addr, ","))))
+	}
+	return pc
 }
 
 // StdProducerConfig ...
 func StdProducerConfig(name string) *ProducerConfig {
-	pc := RawProducerConfig(constant.ConfigKey("rocketmq." + name + ".producer"))
+
 	rc := RawConfig(constant.ConfigKey("rocketmq." + name))
+	pc := rc.Producer
 	// 兼容rocket_client_mq变更，addr需要携带shceme
 	if len(pc.Addr) == 0 {
 		pc.Addr = rc.Addresses
@@ -187,25 +218,6 @@ func RawConfig(key string) *Config {
 
 	if xdebug.IsDevelopmentMode() {
 		xdebug.PrettyJsonPrint(key, config)
-	}
-	return config
-}
-
-// RawConsumerConfig 返回配置
-func RawConsumerConfig(key string) *ConsumerConfig {
-	var config = DefaultConsumerConfig()
-	if err := conf.UnmarshalKey(key, &config); err != nil {
-		xlog.Jupiter().Panic("unmarshal config", xlog.FieldErr(err), xlog.String("key", key), xlog.Any("config", config))
-	}
-
-	return config
-}
-
-// RawProducerConfig ...
-func RawProducerConfig(key string) *ProducerConfig {
-	var config = DefaultProducerConfig()
-	if err := conf.UnmarshalKey(key, &config); err != nil {
-		xlog.Jupiter().Panic("unmarshal config", xlog.FieldErr(err), xlog.String("key", key), xlog.Any("config", config))
 	}
 	return config
 }

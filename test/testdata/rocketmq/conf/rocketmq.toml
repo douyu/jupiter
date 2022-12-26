@@ -1,20 +1,26 @@
 [jupiter.rocketmq.example]
     [jupiter.rocketmq.example.consumer]
         enable = true
-        addr = ["127.0.0.1:9876"]
-        group = "testGroup"
-        dialTimeout = "3s"
-        rwTimeout = "3s"
-        topic = "DefaultCluster"
-        subExpression = "TagA || TagB || TagC "
-        rate = 100
-        enableTrace = true
+        topic = "TopicTest02"
+        group="TopicTest02"
+        addr=["127.0.0.1:9876"]
+        subExpression="*"
+        rate=50
+        pullBatchSize=10
+    [jupiter.rocketmq.example.pullConsumer]
+        enable = true
+        topic = "TopicTest02"
+        group="TopicTest02"
+        addr=["127.0.0.1:9876"]
+        subExpression="*"
+        rate=50
+        pullBatchSize=10
     [jupiter.rocketmq.example.producer]
-        group = "testGroup"
-        addr = ["127.0.0.1:9876"]
+        group = "TopicTest02"
+        addr=["127.0.0.1:9876"]
         dialTimeout = "3s"
         rwTimeout = "3s"
-        topic = "DefaultCluster"
+        topic = "TopicTest02"
         enableTrace = true
 
 # - NAME_SERVER_ADDRESS=127.0.0.1:9876

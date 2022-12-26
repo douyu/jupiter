@@ -21,7 +21,6 @@ import (
 	"github.com/apache/rocketmq-client-go/v2/primitive"
 	"github.com/apache/rocketmq-client-go/v2/producer"
 	"github.com/douyu/jupiter/pkg/core/hooks"
-	"github.com/douyu/jupiter/pkg/core/istats"
 	"github.com/douyu/jupiter/pkg/util/xdebug"
 	"github.com/douyu/jupiter/pkg/xlog"
 )
@@ -33,7 +32,6 @@ type Producer struct {
 	name string
 	ProducerConfig
 	interceptors []primitive.Interceptor
-	fInfo        FlowInfo
 }
 
 func StdNewProducer(name string) *Producer {
@@ -51,14 +49,6 @@ func (conf *ProducerConfig) Build() *Producer {
 		name:           name,
 		ProducerConfig: *conf,
 		interceptors:   []primitive.Interceptor{},
-		fInfo: FlowInfo{
-			FlowInfoBase: istats.NewFlowInfoBase(conf.Shadow.Mode),
-			Name:         name,
-			Addr:         conf.Addr,
-			Topic:        conf.Topic,
-			Group:        conf.Group,
-			GroupType:    "producer",
-		},
 	}
 
 	cc.interceptors = append(cc.interceptors,
@@ -128,18 +118,6 @@ func (pc *Producer) Close() error {
 	return nil
 }
 
-// Send rocketmq发送消息
-// Deprecated: use SendWithContext instead
-func (pc *Producer) Send(msg []byte) error {
-	m := primitive.NewMessage(pc.Topic, msg)
-	_, err := pc.SendSync(context.Background(), m)
-	if err != nil {
-		xlog.Jupiter().Error("send message error", xlog.Any("msg", msg))
-		return err
-	}
-	return nil
-}
-
 // SendWithContext 发送消息
 func (pc *Producer) SendWithContext(ctx context.Context, msg []byte) error {
 	m := primitive.NewMessage(pc.Topic, msg)
@@ -151,51 +129,7 @@ func (pc *Producer) SendWithContext(ctx context.Context, msg []byte) error {
 	return nil
 }
 
-// SendWithTag rocket mq 发送消息,可以自定义选择 tag
-// Deprecated: use SendWithMsg instead
-func (pc *Producer) SendWithTag(msg []byte, tag string) error {
-	m := primitive.NewMessage(pc.Topic, msg)
-	if tag != "" {
-		m.WithTag(tag)
-	}
-
-	_, err := pc.SendSync(context.Background(), m)
-	if err != nil {
-		xlog.Jupiter().Error("send message error", xlog.Any("msg", msg))
-		return err
-	}
-	return nil
-}
-
-// SendWithResult rocket mq 发送消息,可以自定义选择 tag 及返回结果
-// Deprecated: use SendWithMsg instead
-func (pc *Producer) SendWithResult(msg []byte, tag string) (*primitive.SendResult, error) {
-	m := primitive.NewMessage(pc.Topic, msg)
-	if tag != "" {
-		m.WithTag(tag)
-	}
-
-	res, err := pc.SendSync(context.Background(), m)
-	if err != nil {
-		xlog.Jupiter().Error("send message error", xlog.Any("msg", msg))
-		return res, err
-	}
-	return res, nil
-}
-
-// SendMsg... 自定义消息格式
-// Deprecated: use SendWithMsg instead.
-func (pc *Producer) SendMsg(msg *primitive.Message) (*primitive.SendResult, error) {
-	msg.Topic = pc.Topic
-	res, err := pc.SendSync(context.Background(), msg)
-	if err != nil {
-		xlog.Jupiter().Error("send message error", xlog.Any("msg", msg))
-		return res, err
-	}
-	return res, nil
-}
-
-// SendWithMsg... 自定义消息格式
+// SendWithMsg 发送消息,可以自定义选择tag
 func (pc *Producer) SendWithMsg(ctx context.Context, msg *primitive.Message) error {
 	msg.Topic = pc.Topic
 	_, err := pc.SendSync(ctx, msg)

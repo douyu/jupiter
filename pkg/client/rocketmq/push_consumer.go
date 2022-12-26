@@ -21,7 +21,6 @@ import (
 	"github.com/apache/rocketmq-client-go/v2/consumer"
 	"github.com/apache/rocketmq-client-go/v2/primitive"
 	"github.com/douyu/jupiter/pkg/core/hooks"
-	"github.com/douyu/jupiter/pkg/core/istats"
 	"github.com/douyu/jupiter/pkg/core/xtrace"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/juju/ratelimit"
@@ -35,38 +34,29 @@ import (
 type PushConsumer struct {
 	rocketmq.PushConsumer
 	name string
-	ConsumerConfig
+	PushConsumerConfig
 
 	subscribers  map[string]func(context.Context, ...*primitive.MessageExt) (consumer.ConsumeResult, error)
 	interceptors []primitive.Interceptor
-	fInfo        FlowInfo
 	bucket       *ratelimit.Bucket
 	started      bool
 }
 
-func (conf *ConsumerConfig) Build() *PushConsumer {
+func (conf *PushConsumerConfig) Build() *PushConsumer {
 	name := conf.Name
 
 	xlog.Jupiter().Debug("rocketmq's config: ", xlog.String("name", name), xlog.Any("conf", conf))
 
 	cc := &PushConsumer{
-		name:           name,
-		ConsumerConfig: *conf,
-		subscribers:    make(map[string]func(context.Context, ...*primitive.MessageExt) (consumer.ConsumeResult, error)),
-		interceptors:   []primitive.Interceptor{},
-		fInfo: FlowInfo{
-			FlowInfoBase: istats.NewFlowInfoBase(conf.Shadow.Mode),
-			Name:         name,
-			Addr:         conf.Addr,
-			Topic:        conf.Topic,
-			Group:        conf.Group,
-			GroupType:    "consumer",
-		},
+		name:               name,
+		PushConsumerConfig: *conf,
+		subscribers:        make(map[string]func(context.Context, ...*primitive.MessageExt) (consumer.ConsumeResult, error)),
+		interceptors:       []primitive.Interceptor{},
 	}
 	cc.interceptors = append(cc.interceptors,
-		pushConsumerDefaultInterceptor(cc),
-		pushConsumerMDInterceptor(cc),
-		pushConsumerSentinelInterceptor(cc),
+		consumerMetricInterceptor(),
+		consumerSlowInterceptor(cc.Topic, cc.RwTimeout),
+		consumerSentinelInterceptor(cc.Addr),
 	)
 
 	// 服务启动前先start
@@ -89,55 +79,6 @@ func (cc *PushConsumer) Close() {
 
 func (cc *PushConsumer) WithInterceptor(fs ...primitive.Interceptor) *PushConsumer {
 	cc.interceptors = append(cc.interceptors, fs...)
-	return cc
-}
-
-// Deprecated: use RegisterSingleMessage or RegisterBatchMessage instead
-func (cc *PushConsumer) Subscribe(topic string, f func(context.Context, *primitive.MessageExt) error) *PushConsumer {
-	if _, ok := cc.subscribers[topic]; ok {
-		xlog.Jupiter().Panic("duplicated subscribe", zap.String("topic", topic))
-	}
-
-	tracer := xtrace.NewTracer(trace.SpanKindConsumer)
-
-	fn := func(ctx context.Context, msgs ...*primitive.MessageExt) (consumer.ConsumeResult, error) {
-		for _, msg := range msgs {
-			var (
-				span trace.Span
-			)
-			if cc.EnableTrace {
-				carrier := propagation.MapCarrier{}
-				attrs := []attribute.KeyValue{
-					semconv.MessagingSystemKey.String("rocketmq"),
-					semconv.MessagingDestinationKindKey.String(msg.Topic),
-				}
-
-				for key, value := range msg.GetProperties() {
-					carrier[key] = value
-				}
-
-				ctx, span = tracer.Start(ctx, msg.Topic, carrier, trace.WithAttributes(attrs...))
-				defer span.End()
-			}
-
-			if cc.bucket != nil {
-				if ok := cc.bucket.WaitMaxDuration(1, cc.WaitMaxDuration); !ok {
-					xlog.Jupiter().Warn("too many messages, reconsume later", zap.String("body", string(msg.Body)), zap.String("topic", cc.Topic))
-					return consumer.ConsumeRetryLater, nil
-				}
-			}
-
-			err := f(ctx, msg)
-			if err != nil {
-				xlog.Jupiter().Error("consumer message", zap.Error(err), zap.String("field", cc.name), zap.Any("ext", msg))
-				return consumer.ConsumeRetryLater, err
-			}
-		}
-
-		return consumer.ConsumeSuccess, nil
-	}
-
-	cc.subscribers[topic] = fn
 	return cc
 }
 
@@ -268,7 +209,7 @@ func (cc *PushConsumer) Start() error {
 		}),
 	}
 	// 增加广播模式
-	if cc.ConsumerConfig.MessageModel == "BroadCasting" {
+	if cc.PushConsumerConfig.MessageModel == "BroadCasting" {
 		opts = append(opts, consumer.WithConsumerModel(consumer.BroadCasting))
 	}
 	// 初始化 PushConsumer
@@ -281,8 +222,8 @@ func (cc *PushConsumer) Start() error {
 		Type:       consumer.TAG,
 		Expression: "",
 	}
-	if cc.ConsumerConfig.SubExpression != "*" {
-		selector.Expression = cc.ConsumerConfig.SubExpression
+	if cc.PushConsumerConfig.SubExpression != "*" {
+		selector.Expression = cc.PushConsumerConfig.SubExpression
 	}
 
 	for topic, fn := range cc.subscribers {
@@ -291,20 +232,19 @@ func (cc *PushConsumer) Start() error {
 		}
 	}
 
-	// if client == nil. <--- fix lint: this comparison is never true.
 	if err != nil {
-		xlog.Jupiter().Panic("create consumer",
+		xlog.Jupiter().Panic("create push consumer panic",
 			xlog.FieldName(cc.name),
-			xlog.FieldExtMessage(cc.ConsumerConfig),
+			xlog.FieldExtMessage(cc.PushConsumerConfig),
 			xlog.FieldErr(err),
 		)
 	}
 
 	if cc.Enable {
 		if err := client.Start(); err != nil {
-			xlog.Jupiter().Panic("start consumer",
+			xlog.Jupiter().Panic("start push consumer",
 				xlog.FieldName(cc.name),
-				xlog.FieldExtMessage(cc.ConsumerConfig),
+				xlog.FieldExtMessage(cc.PushConsumerConfig),
 				xlog.FieldErr(err),
 			)
 			return err
