@@ -221,3 +221,42 @@ func RawConfig(key string) *Config {
 	}
 	return config
 }
+
+// RawPushConsumerConfig 返push consume回配置
+func RawPushConsumerConfig(key string) *PushConsumerConfig {
+	var pushConsumerConfig = DefaultConfig().PushConsumer
+	if err := conf.UnmarshalKey(key, &pushConsumerConfig, conf.TagName("toml")); err != nil {
+		xlog.Jupiter().Panic("unmarshal config", xlog.FieldErr(err), xlog.String("key", key), xlog.Any("config", pushConsumerConfig))
+	}
+
+	if xdebug.IsDevelopmentMode() {
+		xdebug.PrettyJsonPrint(key, pushConsumerConfig)
+	}
+	return pushConsumerConfig
+}
+
+// RawPullConsumerConfig 返回pull consume配置
+func RawPullConsumerConfig(key string) *PullConsumerConfig {
+	var pullConsumerConfig = DefaultConfig().PullConsumer
+	if err := conf.UnmarshalKey(key, &pullConsumerConfig, conf.TagName("toml")); err != nil {
+		xlog.Jupiter().Panic("unmarshal config", xlog.FieldErr(err), xlog.String("key", key), xlog.Any("config", pullConsumerConfig))
+	}
+
+	if xdebug.IsDevelopmentMode() {
+		xdebug.PrettyJsonPrint(key, pullConsumerConfig)
+	}
+	return pullConsumerConfig
+}
+
+// RawProducerConfig 返回produce配置
+func RawProducerConfig(key string) *ProducerConfig {
+	var producerConfig = DefaultConfig().Producer
+	if err := conf.UnmarshalKey(key, &producerConfig, conf.TagName("toml")); err != nil {
+		xlog.Jupiter().Panic("unmarshal config", xlog.FieldErr(err), xlog.String("key", key), xlog.Any("config", producerConfig))
+	}
+
+	if xdebug.IsDevelopmentMode() {
+		xdebug.PrettyJsonPrint(key, producerConfig)
+	}
+	return producerConfig
+}
