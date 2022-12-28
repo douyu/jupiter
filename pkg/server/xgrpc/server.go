@@ -18,6 +18,7 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"fmt"
 	"io/ioutil"
 	"net"
 
@@ -97,6 +98,14 @@ func (s *Server) Healthz() bool {
 
 // Server implements server.Server interface.
 func (s *Server) Serve() error {
+	// display grpc server method list
+	for fm, info := range s.GetServiceInfo() {
+		for _, method := range info.Methods {
+			fmt.Printf("[GRPC] \x1b[34m%8s\x1b[0m.%s\n", fm, method.Name)
+		}
+	}
+	// display grpc server addr
+	fmt.Printf("[GRPC] \x1b[33m%8s\x1b[0m %s\n", "Listen On", s.listener.Addr().String())
 	err := s.Server.Serve(s.listener)
 	return err
 }

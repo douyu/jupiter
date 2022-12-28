@@ -16,6 +16,7 @@ package xgrpc
 
 import (
 	"context"
+	"github.com/douyu/jupiter/proto/testproto/v1"
 	"net"
 	"testing"
 	"time"
@@ -30,6 +31,12 @@ import (
 
 func Test_Server(t *testing.T) {
 	s := DefaultConfig().MustBuild()
+	// add server impl
+	impl := struct {
+		testproto.GreeterServiceServer
+	}{}
+	// register
+	testproto.RegisterGreeterServiceServer(s.Server, impl)
 	go func() {
 		s.Serve()
 	}()

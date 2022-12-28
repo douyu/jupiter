@@ -15,6 +15,8 @@
 package xecho
 
 import (
+	"github.com/labstack/echo/v4"
+	"net/http"
 	"testing"
 	"time"
 
@@ -25,6 +27,26 @@ func Test_Server(t *testing.T) {
 	c := DefaultConfig()
 	c.Port = 0
 	s := c.MustBuild()
+	s.GET("/", func(c echo.Context) error {
+		return c.JSON(http.StatusOK, map[string]interface{}{
+			"data": "hello jupiter",
+		})
+	})
+	s.GET("/api/jupiter/biz", func(c echo.Context) error {
+		return c.JSON(http.StatusOK, map[string]interface{}{
+			"data": "hello jupiter",
+		})
+	})
+	s.POST("/api/jupiter/internal", func(c echo.Context) error {
+		return c.JSON(http.StatusOK, map[string]interface{}{
+			"data": "hello jupiter",
+		})
+	})
+	s.POST("/api/jupiter/hello", func(c echo.Context) error {
+		return c.JSON(http.StatusOK, map[string]interface{}{
+			"data": "hello jupiter",
+		})
+	})
 	go func() {
 		s.Serve()
 	}()
