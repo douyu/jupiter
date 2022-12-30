@@ -11,8 +11,8 @@ require (
 	github.com/gogf/gf v1.16.9
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.15.0
 	github.com/labstack/echo/v4 v4.10.0
-	github.com/onsi/ginkgo/v2 v2.5.1
-	github.com/onsi/gomega v1.24.1
+	github.com/onsi/ginkgo/v2 v2.6.1
+	github.com/onsi/gomega v1.24.2
 	github.com/stretchr/testify v1.8.1
 	github.com/valyala/fasthttp v1.43.0
 	google.golang.org/grpc v1.51.0
@@ -100,7 +100,7 @@ require (
 	go.uber.org/zap v1.24.0 // indirect
 	golang.org/x/crypto v0.2.0 // indirect
 	golang.org/x/net v0.4.0 // indirect
-	golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4 // indirect
+	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/sys v0.3.0 // indirect
 	golang.org/x/text v0.5.0 // indirect
 	google.golang.org/genproto v0.0.0-20221207170731-23e4bf6bdc37 // indirect
