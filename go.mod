@@ -26,7 +26,7 @@ require (
 	github.com/gorilla/websocket v1.5.0
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.15.0
-	github.com/hnlq715/struct2interface v0.1.2
+	github.com/hnlq715/struct2interface v0.1.3
 	github.com/iancoleman/strcase v0.2.0
 	github.com/imdario/mergo v0.3.13
 	github.com/json-iterator/go v1.1.12
