@@ -26,7 +26,7 @@ import (
 	"github.com/fatih/color"
 )
 
-const jupiterVersion = "v0.9.13"
+const jupiterVersion = "v0.10.0"
 
 var (
 	startTime string
@@ -72,12 +72,12 @@ func Name() string {
 	return appName
 }
 
-//SetName set app anme
+// SetName set app anme
 func SetName(s string) {
 	appName = s
 }
 
-//AppID get appID
+// AppID get appID
 func AppID() string {
 	if appID == "" {
 		return "1234567890" //default appid when APP_ID Env var not set
@@ -85,12 +85,12 @@ func AppID() string {
 	return appID
 }
 
-//SetAppID set appID
+// SetAppID set appID
 func SetAppID(s string) {
 	appID = s
 }
 
-//AppVersion get buildAppVersion
+// AppVersion get buildAppVersion
 func AppVersion() string {
 	return buildAppVersion
 }
@@ -100,7 +100,7 @@ func SetAppVersion(s string) {
 	buildAppVersion = s
 }
 
-//JupiterVersion get jupiterVersion
+// JupiterVersion get jupiterVersion
 func JupiterVersion() string {
 	return jupiterVersion
 }
@@ -110,22 +110,22 @@ func JupiterVersion() string {
 // 	jupiterVersion = s
 // }
 
-//BuildTime get buildTime
+// BuildTime get buildTime
 func BuildTime() string {
 	return buildTime
 }
 
-//BuildUser get buildUser
+// BuildUser get buildUser
 func BuildUser() string {
 	return buildUser
 }
 
-//BuildHost get buildHost
+// BuildHost get buildHost
 func BuildHost() string {
 	return buildHost
 }
 
-//SetBuildTime set buildTime
+// SetBuildTime set buildTime
 func SetBuildTime(param string) {
 	buildTime = strings.Replace(param, "--", " ", 1)
 }
@@ -135,12 +135,12 @@ func HostName() string {
 	return hostName
 }
 
-//StartTime get start time
+// StartTime get start time
 func StartTime() string {
 	return startTime
 }
 
-//GoVersion get go version
+// GoVersion get go version
 func GoVersion() string {
 	return goVersion
 }

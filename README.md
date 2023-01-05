@@ -18,7 +18,7 @@ See the [中文文档](http://jupiter.douyu.com/) for the Chinese documentation.
 
 ## Requirements
 
-- Go version >= 1.18
+- Go version >= 1.19
 - Docker
 
 ## Quick Start
