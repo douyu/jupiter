@@ -94,7 +94,7 @@ func consumerMetricInterceptor() primitive.Interceptor {
 					xlog.Any("err", err))
 
 			} else {
-				xlog.Jupiter().Info("push consumer",
+				xlog.Jupiter().Debug("push consumer",
 					xlog.String("topic", topic),
 					xlog.String("host", host),
 					xlog.String("result", result),
