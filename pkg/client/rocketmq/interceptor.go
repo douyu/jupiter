@@ -237,7 +237,7 @@ func producerDefaultInterceptor(producer *Producer) primitive.Interceptor {
 			metric.ClientHandleCounter.Inc(metric.TypeRocketMQ, topic, "produce", "unknown", err.Error())
 			metric.ClientHandleHistogram.Observe(time.Since(beg).Seconds(), metric.TypeRocketMQ, topic, "produce", "unknown")
 		} else {
-			xlog.Jupiter().Info("produce",
+			xlog.Jupiter().Debug("produce",
 				xlog.String("topic", topic),
 				xlog.Any("queue", realReply.MessageQueue),
 				xlog.String("result", produceResultStr(realReply.Status)),
