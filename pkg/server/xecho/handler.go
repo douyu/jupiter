@@ -16,10 +16,10 @@ package xecho
 
 import (
 	"bytes"
-	"context"
 	"net/http"
 	"reflect"
 	"strings"
+	"sync"
 
 	"github.com/codegangsta/inject"
 	"github.com/labstack/echo/v4"
@@ -62,7 +62,11 @@ func ProtoJSON(c echo.Context, code int, i interface{}) error {
 	c.Response().Header().Set(HeaderContentType, MIMEApplicationJSONCharsetUTF8)
 	c.Response().WriteHeader(code)
 
-	body, err := protojson.Marshal(m)
+	body, err := protojson.MarshalOptions{
+		Multiline:       false,
+		UseEnumNumbers:  true,
+		EmitUnpopulated: true,
+	}.Marshal(m)
 	if err != nil {
 		return err
 	}
@@ -77,11 +81,19 @@ func GRPCProxyWrapper(h interface{}) echo.HandlerFunc {
 	if t.Kind() != reflect.Func {
 		panic("reflect error: handler must be func")
 	}
+
+	once := sync.Once{}
+
 	return func(c echo.Context) error {
+		once.Do(func() {
+			c.Echo().Binder = &ProtoBinder{}
+		})
+
 		var req = reflect.New(t.In(1).Elem()).Interface()
 		if err := c.Bind(req); err != nil {
 			return ProtoError(c, http.StatusBadRequest, errBadRequest)
 		}
+
 		var md = metadata.MD{}
 		for k, vs := range c.Request().Header {
 			for _, v := range vs {
@@ -91,7 +103,8 @@ func GRPCProxyWrapper(h interface{}) echo.HandlerFunc {
 				md.Append(k, string(bs))
 			}
 		}
-		ctx := metadata.NewOutgoingContext(context.TODO(), md)
+
+		ctx := metadata.NewIncomingContext(c.Request().Context(), md)
 		var inj = inject.New()
 		inj.Map(ctx)
 		inj.Map(req)
