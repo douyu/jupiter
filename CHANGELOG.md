@@ -2,7 +2,22 @@
 
 <!-- Release notes generated using configuration in .github/release.yml at master -->
 
-## What's Changed
+## v0.10.1
+
+### Other Changes
+
+* chore: change rocketmq consumer log level by @hnlq715 in https://github.com/douyu/jupiter/pull/649
+* build(deps): bump github.com/hnlq715/struct2interface from 0.1.3 to 0.1.4 by @dependabot in https://github.com/douyu/jupiter/pull/651
+* build(deps): bump actions/checkout from 3.2.0 to 3.3.0 by @dependabot in https://github.com/douyu/jupiter/pull/650
+* build(deps): bump github.com/valyala/fasthttp from 1.43.0 to 1.44.0 by @dependabot in https://github.com/douyu/jupiter/pull/653
+* build(deps): bump github.com/onsi/ginkgo/v2 from 2.6.1 to 2.7.0 by @dependabot in https://github.com/douyu/jupiter/pull/654
+* build(deps): bump github.com/valyala/fasthttp from 1.43.0 to 1.44.0 in /test/e2e by @dependabot in https://github.com/douyu/jupiter/pull/656
+* build(deps): bump github.com/onsi/ginkgo/v2 from 2.6.1 to 2.7.0 in /test/e2e by @dependabot in https://github.com/douyu/jupiter/pull/655
+
+**Full Changelog**: https://github.com/douyu/jupiter/compare/v0.10.0...v0.10.1
+<!-- Release notes generated using configuration in .github/release.yml at master -->
+
+## v0.10.0
 
 ### Other Changes
 
