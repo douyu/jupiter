@@ -22,34 +22,40 @@ import (
 	"sync"
 
 	"github.com/codegangsta/inject"
+	"github.com/douyu/jupiter/pkg/util/xerror"
 	"github.com/labstack/echo/v4"
 	"google.golang.org/grpc/metadata"
-	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )
 
+// pbjson is a protojson.MarshalOptions with some default options.
+var pbjson = protojson.MarshalOptions{
+	Multiline:       false,
+	UseEnumNumbers:  true,
+	EmitUnpopulated: true,
+}
+
 // ProtoError ...
 func ProtoError(c echo.Context, code int, e error) error {
-	s, ok := status.FromError(e)
-	c.Response().Header().Set(HeaderHRPCErr, "true")
-	if ok {
-		if de, ok := statusFromString(s.Message()); ok {
-			return ProtoJSON(c, code, de.Proto())
-		}
-	}
-	return ProtoJSON(c, code, e)
+	return ProtoJSON(c, code, xerror.Convert(e))
 }
 
 // ProtoJSON sends a Protobuf JSON response with status code and data.
 func ProtoJSON(c echo.Context, code int, i interface{}) error {
 	var acceptEncoding = c.Request().Header.Get(HeaderAcceptEncoding)
-	var ok bool
+
 	var m proto.Message
-	if m, ok = i.(proto.Message); !ok {
+	switch msg := i.(type) {
+	case proto.Message:
+		m = msg
+	case error:
 		c.Response().Header().Set(HeaderHRPCErr, "true")
-		m = statusMSDefault
+		c.Response().Header().Set(HeaderContentType, MIMEApplicationJSONCharsetUTF8)
+
+		return c.JSON(http.StatusOK, xerror.Convert(i.(error)))
 	}
+
 	// protobuf output
 	if strings.Contains(acceptEncoding, MIMEApplicationProtobuf) {
 		c.Response().Header().Set(HeaderContentType, MIMEApplicationProtobuf)
@@ -62,11 +68,7 @@ func ProtoJSON(c echo.Context, code int, i interface{}) error {
 	c.Response().Header().Set(HeaderContentType, MIMEApplicationJSONCharsetUTF8)
 	c.Response().WriteHeader(code)
 
-	body, err := protojson.MarshalOptions{
-		Multiline:       false,
-		UseEnumNumbers:  true,
-		EmitUnpopulated: true,
-	}.Marshal(m)
+	body, err := pbjson.Marshal(m)
 	if err != nil {
 		return err
 	}

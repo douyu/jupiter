@@ -17,6 +17,7 @@ package xecho
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -32,6 +33,7 @@ func hander(ctx context.Context, req *testproto.SayHelloRequest) (*testproto.Say
 		return &testproto.SayHelloResponse{
 			Error: uint32(xerror.InvalidArgument.GetEcode()),
 			Msg:   "invalid name",
+			Data:  &testproto.SayHelloResponse_Data{},
 		}, nil
 	}
 
@@ -67,7 +69,7 @@ func TestGRPCProxyWrapper(t *testing.T) {
 			wantHeader: http.Header{
 				"Content-Type": []string{"application/json; charset=utf-8"},
 			},
-			wantBody: "{\"error\":0,\"msg\":\"\",\"data\":{\"name\":\"hello bob\"}}",
+			wantBody: "{\"error\":0,\"msg\":\"\",\"data\":{\"name\":\"hello bob\",\"ageNumber\":\"0\"}}",
 		},
 		{
 			name: "case 2: get with query",
@@ -75,7 +77,7 @@ func TestGRPCProxyWrapper(t *testing.T) {
 				req: httptest.NewRequest(http.MethodGet, "/?name=bob", nil),
 			},
 			wantErr:  nil,
-			wantBody: "{\"error\":0,\"msg\":\"\",\"data\":{\"name\":\"hello bob\"}}",
+			wantBody: "{\"error\":0,\"msg\":\"\",\"data\":{\"name\":\"hello bob\",\"ageNumber\":\"0\"}}",
 		},
 		{
 			name: "case 3: post with form",
@@ -89,7 +91,43 @@ func TestGRPCProxyWrapper(t *testing.T) {
 			wantHeader: http.Header{
 				"Content-Type": []string{"application/json; charset=utf-8"},
 			},
-			wantBody: "{\"error\":0,\"msg\":\"\",\"data\":{\"name\":\"hello bob\"}}",
+			wantBody: "{\"error\":0,\"msg\":\"\",\"data\":{\"name\":\"hello bob\",\"ageNumber\":\"0\"}}",
+		},
+		{
+			name: "case 4: post with query",
+			args: args{
+				req: httptest.NewRequest(http.MethodPost, "/?name=bob", nil),
+				header: map[string]string{
+					"Content-Type": "application/x-www-form-urlencoded",
+				},
+			},
+			wantErr: nil,
+			wantHeader: http.Header{
+				"Content-Type": []string{"application/json; charset=utf-8"},
+			},
+			wantBody: "{\"error\":3,\"msg\":\"invalid name\",\"data\":{\"name\":\"\",\"ageNumber\":\"0\"}}",
+		},
+		{
+			name: "case 5: json without content-type",
+			args: args{
+				req: httptest.NewRequest(http.MethodPost, "/?name=query", bytes.NewBufferString("{\"name\":\"json\"}")),
+				header: map[string]string{
+					"Content-Type": "application/x-www-form-urlencoded",
+				},
+			},
+			wantErr:  nil,
+			wantBody: "{\"error\":3,\"msg\":\"invalid name\",\"data\":{\"name\":\"\",\"ageNumber\":\"0\"}}",
+		},
+		{
+			name: "case 6: form without content-type",
+			args: args{
+				req: httptest.NewRequest(http.MethodPost, "/?name=query", bytes.NewBufferString("name=form")),
+				header: map[string]string{
+					"Content-Type": "application/json",
+				},
+			},
+			wantErr:  nil,
+			wantBody: "{\"error\":3,\"msg\":\"bad request\",\"data\":{}}",
 		},
 	}
 
@@ -107,7 +145,13 @@ func TestGRPCProxyWrapper(t *testing.T) {
 			if tt.wantHeader != nil {
 				assert.Equal(t, tt.wantHeader, rec.HeaderMap)
 			}
-			assert.Equal(t, tt.wantBody, rec.Body.String())
+
+			// protojson does not generate frozen json, so
+			var rm json.RawMessage = rec.Body.Bytes()
+			data2, err := json.Marshal(rm)
+
+			assert.Nil(t, err)
+			assert.Equal(t, tt.wantBody, string(data2))
 		})
 	}
 }
