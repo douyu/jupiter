@@ -15,7 +15,7 @@ require (
 	github.com/onsi/gomega v1.24.2
 	github.com/stretchr/testify v1.8.1
 	github.com/valyala/fasthttp v1.44.0
-	google.golang.org/grpc v1.51.0
+	google.golang.org/grpc v1.52.0
 )
 
 require (
