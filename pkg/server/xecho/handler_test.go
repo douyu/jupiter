@@ -16,34 +16,14 @@ package xecho
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/douyu/jupiter/pkg/util/xerror"
-	"github.com/douyu/jupiter/proto/testproto/v1"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 )
-
-func hander(ctx context.Context, req *testproto.SayHelloRequest) (*testproto.SayHelloResponse, error) {
-	if req.Name != "bob" {
-		return &testproto.SayHelloResponse{
-			Error: uint32(xerror.InvalidArgument.GetEcode()),
-			Msg:   "invalid name",
-			Data:  &testproto.SayHelloResponse_Data{},
-		}, nil
-	}
-
-	return &testproto.SayHelloResponse{
-		Msg: "",
-		Data: &testproto.SayHelloResponse_Data{
-			Name: "hello bob",
-		},
-	}, nil
-}
 
 func TestGRPCProxyWrapper(t *testing.T) {
 	type args struct {
@@ -141,7 +121,7 @@ func TestGRPCProxyWrapper(t *testing.T) {
 			rec := httptest.NewRecorder()
 			c := e.NewContext(tt.args.req, rec)
 
-			assert.Equal(t, tt.wantErr, GRPCProxyWrapper(hander)(c))
+			assert.Equal(t, tt.wantErr, GRPCProxyWrapper(grpcHandler)(c))
 			if tt.wantHeader != nil {
 				assert.Equal(t, tt.wantHeader, rec.HeaderMap)
 			}
@@ -154,4 +134,34 @@ func TestGRPCProxyWrapper(t *testing.T) {
 			assert.Equal(t, tt.wantBody, string(data2))
 		})
 	}
+}
+
+func BenchmarkGRPCWrapper(b *testing.B) {
+	b.Run("GRPCWrapper", func(b *testing.B) {
+		server := echo.New()
+		server.Binder = new(ProtoBinder)
+
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString("{\"name\":\"bob\"}"))
+			req.Header.Add("Content-Type", "application/json")
+			rec := httptest.NewRecorder()
+			c := server.NewContext(req, rec)
+			GRPCProxyWrapper(grpcHandler)(c)
+		}
+	})
+
+	b.Run("Echo", func(b *testing.B) {
+		server := echo.New()
+		server.Binder = new(ProtoBinder)
+
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString("{\"name\":\"bob\"}"))
+			req.Header.Add("Content-Type", "application/json")
+			rec := httptest.NewRecorder()
+			c := server.NewContext(req, rec)
+			echoHandler(c)
+		}
+	})
 }
