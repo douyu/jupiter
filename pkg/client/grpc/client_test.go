@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/douyu/jupiter/proto/testproto/v1"
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -41,7 +42,7 @@ func TestAsyncConnect(t *testing.T) {
 	t.Run("test async connect", func(t *testing.T) {
 		cfg := DefaultConfig()
 		cfg.Addr = "127.0.0.1:9530"
-		conn, _ := cfg.Build()
+		conn := lo.Must(cfg.Build())
 
 		ctx := context.Background()
 		ctx, cancel := context.WithTimeout(ctx, time.Second)

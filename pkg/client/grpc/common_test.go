@@ -13,6 +13,7 @@ import (
 	"github.com/douyu/jupiter/pkg/util/xtest/server/yell"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/douyu/jupiter/proto/testproto/v1"
+	"github.com/samber/lo"
 	"google.golang.org/grpc"
 )
 
@@ -43,7 +44,7 @@ func init() {
 	cfg := DefaultConfig()
 	cfg.Addr = l.Addr().String()
 
-	conn, _ := cfg.Build()
+	conn := lo.Must(cfg.Build())
 	directClient = testproto.NewGreeterServiceClient(conn)
 }
 
