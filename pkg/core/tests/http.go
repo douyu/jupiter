@@ -57,6 +57,7 @@ func RunHTTPTestCase(htc HTTPTestCase) {
 	req := htc.Conf.MustBuild().R()
 	req.SetQueryString(htc.Query)
 	req.SetBody(htc.Body)
+	req.SetHeaders(htc.Header)
 	req.SetContext(ctx)
 
 	res, err := req.Execute(htc.Method, htc.Path)

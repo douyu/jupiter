@@ -47,6 +47,8 @@ message SayHelloResponse {
   message Data {
     // name of the user
     string name = 1;
+    // age_number is the age number.
+    uint64 age_number = 2;
   }
   // error is the error code.
   uint32 error = 1;
