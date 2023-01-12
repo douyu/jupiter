@@ -101,7 +101,7 @@ func (config *Config) WithDialOption(opts ...grpc.DialOption) *Config {
 }
 
 // Build ...
-func (config *Config) Build() *grpc.ClientConn {
+func (config *Config) Build() (*grpc.ClientConn, error) {
 	config.logger = xlog.Jupiter().Named(ecode.ModClientGrpc)
 
 	if config.Debug {
@@ -155,7 +155,11 @@ func (config *Config) Singleton() (*grpc.ClientConn, error) {
 		return val.(*grpc.ClientConn), nil
 	}
 
-	cc := config.Build()
+	cc, err := config.Build()
+	if err != nil {
+		return nil, err
+	}
+
 	singleton.Store(constant.ModuleClientGrpc, config.Name, cc)
 
 	return cc, nil

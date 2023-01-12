@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/douyu/jupiter/proto/testproto/v1"
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -29,17 +30,11 @@ func TestConfigBlockTrue(t *testing.T) {
 		cfg := DefaultConfig()
 		cfg.DialTimeout = time.Second
 		cfg.Debug = true
-		conn := cfg.MustSingleton()
+		conn, err := cfg.Build()
 
-		ctx := context.Background()
-		ctx, cancel := context.WithTimeout(ctx, time.Second)
-		defer cancel()
-		res, err := testproto.NewGreeterServiceClient(conn).SayHello(ctx, &testproto.SayHelloRequest{
-			Name: "hello",
-		})
-
-		assert.ErrorContains(t, err, "code = Unavailable desc = last connection error")
-		assert.Nil(t, res)
+		assert.NotNil(t, err)
+		assert.Nil(t, conn)
+		assert.Equal(t, "failed to build resolver: passthrough: received empty target in Build()", err.Error())
 	})
 }
 
@@ -47,7 +42,7 @@ func TestAsyncConnect(t *testing.T) {
 	t.Run("test async connect", func(t *testing.T) {
 		cfg := DefaultConfig()
 		cfg.Addr = "127.0.0.1:9530"
-		conn := cfg.Build()
+		conn := lo.Must(cfg.Build())
 
 		ctx := context.Background()
 		ctx, cancel := context.WithTimeout(ctx, time.Second)

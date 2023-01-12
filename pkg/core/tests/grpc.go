@@ -44,7 +44,8 @@ func RunGRPCTestCase(gtc GRPCTestCase) {
 	err := mergo.Merge(gtc.Conf, grpc.DefaultConfig())
 	assert.Nil(ginkgoT, err)
 
-	clientConn := gtc.Conf.Build()
+	clientConn, err := gtc.Conf.Build()
+	assert.Nil(ginkgoT, err)
 
 	reply := reflect.New(reflect.TypeOf(gtc.ExpectReply).Elem())
 	metadata := metadata.New(nil)

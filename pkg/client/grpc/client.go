@@ -28,7 +28,7 @@ import (
 
 type ClientConn = grpc.ClientConn
 
-func newGRPCClient(config *Config) *grpc.ClientConn {
+func newGRPCClient(config *Config) (*grpc.ClientConn, error) {
 	var ctx = context.Background()
 
 	dialOptions := getDialOptions(config)
@@ -50,12 +50,13 @@ func newGRPCClient(config *Config) *grpc.ClientConn {
 		if err != nil {
 			config.logger.Error("connect without block failed",
 				xlog.FieldErrKind(ecode.ErrKindRequestErr), xlog.FieldErr(err))
+			return nil, err
 		}
 	}
 
 	config.logger.Info("start grpc client")
 
-	return conn
+	return conn, nil
 }
 
 func getDialOptions(config *Config) []grpc.DialOption {

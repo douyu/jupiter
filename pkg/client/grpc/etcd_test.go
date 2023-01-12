@@ -8,6 +8,7 @@ import (
 	"github.com/douyu/jupiter/pkg/registry/etcdv3"
 	"github.com/douyu/jupiter/pkg/server"
 	"github.com/douyu/jupiter/proto/testproto/v1"
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/peer"
@@ -16,7 +17,7 @@ import (
 func TestETCD(t *testing.T) {
 	config := DefaultConfig()
 	config.Addr = "etcd:///grpc:srv1:v1:unkown-mode"
-	cc := testproto.NewGreeterServiceClient(config.Build())
+	cc := testproto.NewGreeterServiceClient(lo.Must(config.Build()))
 
 	results := make(map[string]int)
 
