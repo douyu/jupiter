@@ -17,7 +17,7 @@ package xecho
 import (
 	"net/http"
 
-	"git.dz11.com/vega/minerva-contrib/pkg/xerror"
+	"github.com/douyu/jupiter/pkg/util/xerror"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
