@@ -139,7 +139,6 @@ func TestGRPCProxyWrapper(t *testing.T) {
 func BenchmarkGRPCWrapper(b *testing.B) {
 	b.Run("GRPCWrapper", func(b *testing.B) {
 		server := echo.New()
-		server.Binder = new(ProtoBinder)
 
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
@@ -153,7 +152,6 @@ func BenchmarkGRPCWrapper(b *testing.B) {
 
 	b.Run("Echo", func(b *testing.B) {
 		server := echo.New()
-		server.Binder = new(ProtoBinder)
 
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
