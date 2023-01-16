@@ -16,7 +16,6 @@ package xgrpc
 
 import (
 	"context"
-	"fmt"
 	"net"
 	"testing"
 	"time"
@@ -33,9 +32,6 @@ import (
 
 func Test_Server(t *testing.T) {
 	s := DefaultConfig().MustBuild()
-
-	fmt.Println(s.unaryInterceptors)
-	t.Fail()
 	// add server impl
 	impl := struct {
 		testproto.GreeterServiceServer
