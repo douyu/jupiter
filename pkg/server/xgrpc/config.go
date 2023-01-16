@@ -145,19 +145,6 @@ func (config *Config) MustBuild() *Server {
 
 // Build ...
 func (config *Config) Build() (*Server, error) {
-	if !config.DisableTrace {
-		config.unaryInterceptors = append(config.unaryInterceptors, NewTraceUnaryServerInterceptor())
-		config.streamInterceptors = append(config.streamInterceptors, NewTraceStreamServerInterceptor())
-	}
-
-	if !config.DisableMetric {
-		config.unaryInterceptors = append(config.unaryInterceptors, prometheusUnaryServerInterceptor)
-		config.streamInterceptors = append(config.streamInterceptors, prometheusStreamServerInterceptor)
-	}
-
-	if !config.DisableSentinel {
-		config.unaryInterceptors = append(config.unaryInterceptors, NewSentinelUnaryServerInterceptor())
-	}
 
 	return newServer(config)
 }
