@@ -12,25 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package xlog_test
+package xlog
 
 import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
-	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap/zapcore"
+	"go.uber.org/zap/zaptest/observer"
 )
 
 func Test_log(t *testing.T) {
 
-	stdlog := xlog.Default()
-	stdlog.Debug("debug", xlog.Any("a", "b"))
-	stdlog.Info("info", xlog.Any("a", "b"))
-	stdlog.Warn("warn", xlog.Any("a", "b"))
-	stdlog.Error("error", xlog.Any("a", "b"))
+	stdlog := Default()
+	stdlog.Debug("debug", Any("a", "b"))
+	stdlog.Info("info", Any("a", "b"))
+	stdlog.Warn("warn", Any("a", "b"))
+	stdlog.Error("error", Any("a", "b"))
 
 	data, err := prometheus.DefaultGatherer.Gather()
 	assert.Nil(t, err)
@@ -59,14 +61,14 @@ func Test_log(t *testing.T) {
 
 func Test_trace(t *testing.T) {
 
-	log := xlog.Jupiter()
-	ctx := xlog.NewContext(context.TODO(), log, "a:b:c:1")
+	log := Jupiter()
+	ctx := NewContext(context.TODO(), log, "a:b:c:1")
 
-	stdlog := xlog.FromContext(ctx)
-	stdlog.Debug("debug", xlog.Any("a", "b"))
-	stdlog.Info("info", xlog.Any("a", "b"))
-	stdlog.Warn("warn", xlog.Any("a", "b"))
-	stdlog.Error("error", xlog.Any("a", "b"))
+	stdlog := FromContext(ctx)
+	stdlog.Debug("debug", Any("a", "b"))
+	stdlog.Info("info", Any("a", "b"))
+	stdlog.Warn("warn", Any("a", "b"))
+	stdlog.Error("error", Any("a", "b"))
 
 	data, err := prometheus.DefaultGatherer.Gather()
 	assert.Nil(t, err)
@@ -91,4 +93,25 @@ func Test_trace(t *testing.T) {
 	if !found {
 		assert.FailNow(t, "should never reach here")
 	}
+}
+
+func TestXlog(t *testing.T) {
+	defaultConfig := DefaultConfig()
+	core, olog := observer.New(zapcore.InfoLevel)
+	defaultConfig.Core = core
+	log := defaultConfig.Build()
+
+	log.Debug("debug", Any("a", "b"))
+	log.Info("info", Any("a", "b"), FieldCost(time.Second))
+	log.Warn("warn", Any("a", "b"))
+	log.Error("error", Any("a", "b"))
+
+	assert.Equal(t, 3, len(olog.All()))
+	assert.Equal(t, "info", olog.All()[0].Message)
+	assert.Equal(t, map[string]interface{}{
+		"a":    "b",
+		"aid":  "1234567890",
+		"cost": "1000.000",
+		"iid":  "31d09853ad5e8b3488694015e8408f56"},
+		olog.All()[0].ContextMap())
 }
