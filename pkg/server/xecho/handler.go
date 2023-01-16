@@ -23,6 +23,7 @@ import (
 
 	"github.com/codegangsta/inject"
 	"github.com/douyu/jupiter/pkg/util/xerror"
+	"github.com/douyu/jupiter/pkg/util/xhttp"
 	"github.com/douyu/jupiter/proto/testproto/v1"
 	"github.com/labstack/echo/v4"
 	"google.golang.org/grpc/metadata"
@@ -30,7 +31,11 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func grpcHandler(ctx context.Context, req *testproto.SayHelloRequest) (*testproto.SayHelloResponse, error) {
+type impl struct {
+	testproto.UnimplementedGreeterServiceServer
+}
+
+func (*impl) SayHello(ctx context.Context, req *testproto.SayHelloRequest) (*testproto.SayHelloResponse, error) {
 	if req.Name != "bob" {
 		return &testproto.SayHelloResponse{
 			Error: uint32(xerror.InvalidArgument.GetEcode()),
@@ -47,7 +52,7 @@ func grpcHandler(ctx context.Context, req *testproto.SayHelloRequest) (*testprot
 	}, nil
 }
 
-func echoHandler(c echo.Context) error {
+func echoJsonHandler(c echo.Context) error {
 	req := new(testproto.SayHelloRequest)
 	err := c.Bind(req)
 	if err != nil {
@@ -62,6 +67,28 @@ func echoHandler(c echo.Context) error {
 		})
 	}
 	return c.JSON(http.StatusOK, &testproto.SayHelloResponse{
+		Msg: "",
+		Data: &testproto.SayHelloResponse_Data{
+			Name: "hello bob",
+		},
+	})
+}
+
+func echoHandler(c echo.Context) error {
+	req := new(testproto.SayHelloRequest)
+	err := c.Bind(req)
+	if err != nil {
+		return err
+	}
+
+	if req.Name != "bob" {
+		return c.JSON(http.StatusOK, &testproto.SayHelloResponse{
+			Error: uint32(xerror.InvalidArgument.GetEcode()),
+			Msg:   "invalid name",
+			Data:  &testproto.SayHelloResponse_Data{},
+		})
+	}
+	return ProtoJSON(c, http.StatusOK, &testproto.SayHelloResponse{
 		Msg: "",
 		Data: &testproto.SayHelloResponse_Data{
 			Name: "hello bob",
@@ -124,7 +151,7 @@ func GRPCProxyWrapper(h interface{}) echo.HandlerFunc {
 		panic("reflect error: handler must be func")
 	}
 
-	bind := &ProtoBinder{}
+	bind := &xhttp.ProtoBinder{}
 
 	return func(c echo.Context) error {
 		var req = reflect.New(t.In(1).Elem()).Interface()
