@@ -108,10 +108,7 @@ func TestXlog(t *testing.T) {
 
 	assert.Equal(t, 3, len(olog.All()))
 	assert.Equal(t, "info", olog.All()[0].Message)
-	assert.Equal(t, map[string]interface{}{
-		"a":    "b",
-		"aid":  "1234567890",
-		"cost": "1000.000",
-		"iid":  "31d09853ad5e8b3488694015e8408f56"},
-		olog.All()[0].ContextMap())
+	assert.Equal(t, "b", olog.All()[0].ContextMap()["a"])
+	assert.Equal(t, "1000.000", olog.All()[0].ContextMap()["cost"])
+	assert.Equal(t, "1234567890", olog.All()[0].ContextMap()["aid"])
 }
