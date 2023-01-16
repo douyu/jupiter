@@ -47,6 +47,37 @@ func newServer(config *Config) (*Server, error) {
 		config.unaryInterceptors...,
 	)
 
+	if !config.DisableTrace {
+		unaryInterceptors = append(
+			[]grpc.UnaryServerInterceptor{NewTraceUnaryServerInterceptor()},
+			unaryInterceptors...,
+		)
+
+		streamInterceptors = append(
+			[]grpc.StreamServerInterceptor{NewTraceStreamServerInterceptor()},
+			streamInterceptors...,
+		)
+	}
+
+	if !config.DisableMetric {
+		unaryInterceptors = append(
+			[]grpc.UnaryServerInterceptor{prometheusUnaryServerInterceptor},
+			unaryInterceptors...,
+		)
+
+		streamInterceptors = append(
+			[]grpc.StreamServerInterceptor{prometheusStreamServerInterceptor},
+			streamInterceptors...,
+		)
+	}
+
+	if !config.DisableSentinel {
+		unaryInterceptors = append(
+			[]grpc.UnaryServerInterceptor{NewSentinelUnaryServerInterceptor()},
+			unaryInterceptors...,
+		)
+	}
+
 	if config.EnableTLS {
 		cert, err := tls.LoadX509KeyPair(config.CertFile, config.PrivateFile)
 		if err != nil {

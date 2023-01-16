@@ -16,10 +16,12 @@ package xgrpc
 
 import (
 	"context"
-	"github.com/douyu/jupiter/proto/testproto/v1"
+	"fmt"
 	"net"
 	"testing"
 	"time"
+
+	"github.com/douyu/jupiter/proto/testproto/v1"
 
 	"github.com/douyu/jupiter/pkg/core/constant"
 	"github.com/douyu/jupiter/pkg/xlog"
@@ -31,6 +33,9 @@ import (
 
 func Test_Server(t *testing.T) {
 	s := DefaultConfig().MustBuild()
+
+	fmt.Println(s.unaryInterceptors)
+	t.Fail()
 	// add server impl
 	impl := struct {
 		testproto.GreeterServiceServer
