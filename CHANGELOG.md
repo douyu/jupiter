@@ -2,6 +2,22 @@
 
 <!-- Release notes generated using configuration in .github/release.yml at master -->
 
+## v0.10.2
+
+### Other Changes
+
+* build(deps): bump google.golang.org/grpc from 1.51.0 to 1.52.0 by @dependabot in https://github.com/douyu/jupiter/pull/659
+* fix: grpc test case for grpc-go v1.52.0 by @hnlq715 in https://github.com/douyu/jupiter/pull/661
+* feat: add proto binder for GRPCProxyWrapper by @hnlq715 in https://github.com/douyu/jupiter/pull/652
+* fix: cost uint for echo's access log by @hnlq715 in https://github.com/douyu/jupiter/pull/662
+* fix: grpc intercept order by @hnlq715 in https://github.com/douyu/jupiter/pull/663
+* fix: grpc keepalive time by @hnlq715 in https://github.com/douyu/jupiter/pull/666
+* build(deps): bump github.com/urfave/cli from 1.22.10 to 1.22.11 by @dependabot in https://github.com/douyu/jupiter/pull/664
+* build(deps): bump github.com/cosmtrek/air from 1.40.4 to 1.41.0 by @dependabot in https://github.com/douyu/jupiter/pull/665
+
+**Full Changelog**: https://github.com/douyu/jupiter/compare/v0.10.1...v0.10.2
+<!-- Release notes generated using configuration in .github/release.yml at master -->
+
 ## v0.10.1
 
 ### Other Changes
