@@ -54,7 +54,7 @@ run:
   allow-parallel-runners: false
 linters:
   enable:
-    - goimports
+    - gofmt
     - loggercheck
     - misspell
     - dupl
