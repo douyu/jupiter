@@ -26,7 +26,7 @@ import (
 	"go.uber.org/zap"
 )
 
-//Config HTTP config
+// Config HTTP config
 type Config struct {
 	Host            string
 	Port            int

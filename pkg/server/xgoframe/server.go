@@ -18,16 +18,13 @@ import (
 	"context"
 
 	"github.com/douyu/jupiter/pkg/core/constant"
-	"github.com/douyu/jupiter/pkg/xlog"
-
-	//"github.com/douyu/jupiter/pkg/core/ecode"
-	//"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/douyu/jupiter/pkg/server"
+	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/gogf/gf/frame/g"
 	"github.com/gogf/gf/net/ghttp"
 )
 
-//Server is server core struct
+// Server is server core struct
 type Server struct {
 	*ghttp.Server
 	config *Config
@@ -44,7 +41,7 @@ func newServer(config *Config) *Server {
 	return s
 }
 
-//Serve ..
+// Serve ..
 func (s *Server) Serve() error {
 	routes := s.GetRouterArray()
 
@@ -56,17 +53,17 @@ func (s *Server) Serve() error {
 	return nil
 }
 
-//Stop ..
+// Stop ..
 func (s *Server) Stop() error {
 	return s.Shutdown()
 }
 
-//GracefulStop ..
+// GracefulStop ..
 func (s *Server) GracefulStop(ctx context.Context) error {
 	return s.Stop()
 }
 
-//Info ..
+// Info ..
 func (s *Server) Info() *server.ServiceInfo {
 	serviceAddr := s.config.Address()
 	if s.config.ServiceAddress != "" {

@@ -1,6 +1,6 @@
 package constant
 
-//ServiceKind service kind
+// ServiceKind service kind
 type ServiceKind uint8
 
 const (

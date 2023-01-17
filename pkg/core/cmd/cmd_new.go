@@ -360,10 +360,11 @@ func checkGitCorrectness(path, branch string) {
 }
 
 // checkDays
-// 	存在文件，首先判断时间是否需要进行更新
-// 	不存在文件肯定是需要创建文件，并确定需要更新
-//  存在文件但是时间不是同一天，那么也需要进行更新
-//  需要更新的同时，更新文件的修改时间
+//
+//		存在文件，首先判断时间是否需要进行更新
+//		不存在文件肯定是需要创建文件，并确定需要更新
+//	 存在文件但是时间不是同一天，那么也需要进行更新
+//	 需要更新的同时，更新文件的修改时间
 func checkDays(path string) bool {
 	fileInfo, err := os.Stat(getGlobalLayoutLockPath(path))
 	if err == nil && fileInfo.ModTime().Unix()/oneDayUnix == time.Now().Unix()/oneDayUnix {

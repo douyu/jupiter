@@ -26,10 +26,10 @@ import (
 	"go.uber.org/zap"
 )
 
-//ModName named a mod
+// ModName named a mod
 const ModName = "server.fasthttp"
 
-//Config HTTP config
+// Config HTTP config
 type Config struct {
 	Host              string
 	Port              int

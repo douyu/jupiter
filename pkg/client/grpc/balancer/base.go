@@ -138,8 +138,8 @@ func (b *baseBalancer) UpdateClientConnState(s balancer.ClientConnState) error {
 
 // regeneratePicker takes a snapshot of the balancer, and generates a picker
 // from it. The picker is
-//  - errPicker with ErrTransientFailure if the balancer is in TransientFailure,
-//  - built by the pickerBuilder with all READY SubConns otherwise.
+//   - errPicker with ErrTransientFailure if the balancer is in TransientFailure,
+//   - built by the pickerBuilder with all READY SubConns otherwise.
 func (b *baseBalancer) regeneratePicker(err error) {
 	if b.state == connectivity.TransientFailure {
 		if err != nil {

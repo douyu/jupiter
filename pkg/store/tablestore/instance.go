@@ -16,8 +16,6 @@ package tstore
 
 import (
 	"fmt"
-	"github.com/douyu/jupiter/pkg/xlog"
-	"github.com/fatih/color"
 	"net"
 	"net/http"
 	"strings"
@@ -27,6 +25,8 @@ import (
 	prome "github.com/douyu/jupiter/pkg/core/metric"
 	"github.com/douyu/jupiter/pkg/util/xdebug"
 	"github.com/douyu/jupiter/pkg/util/xstring"
+	"github.com/douyu/jupiter/pkg/xlog"
+	"github.com/fatih/color"
 )
 
 func newTs(config *Config) *tablestore.TableStoreClient {
