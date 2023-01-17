@@ -62,9 +62,8 @@ func DefaultConfig() *Config {
 		SlowThreshold:          cast.ToDuration("600ms"),
 		AccessInterceptorLevel: "info",
 		KeepAlive: &keepalive.ClientParameters{
-			Time:                5 * time.Minute,
-			Timeout:             20 * time.Second,
-			PermitWithoutStream: true,
+			Time:    5 * time.Minute,
+			Timeout: 20 * time.Second,
 		},
 		RegistryConfig: constant.ConfigKey("registry.default"),
 	}

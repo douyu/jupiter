@@ -56,8 +56,8 @@ func newClient(config *Config) (*Client, error) {
 	conf := clientv3.Config{
 		Endpoints:            config.Endpoints,
 		DialTimeout:          config.ConnectTimeout,
-		DialKeepAliveTime:    10 * time.Second,
-		DialKeepAliveTimeout: 3 * time.Second,
+		DialKeepAliveTime:    5 * time.Minute,
+		DialKeepAliveTimeout: 20 * time.Second,
 		DialOptions:          dialOptions,
 		AutoSyncInterval:     config.AutoSyncInterval,
 		Logger:               xlog.Jupiter().With(xlog.FieldMod("etcdv3")),
@@ -225,7 +225,7 @@ func (client *Client) GetValues(ctx context.Context, keys ...string) (map[string
 	return vars, nil
 }
 
-//GetLeaseSession 创建租约会话
+// GetLeaseSession 创建租约会话
 func (client *Client) GetLeaseSession(ctx context.Context, opts ...concurrency.SessionOption) (leaseSession *concurrency.Session, err error) {
 	return concurrency.NewSession(client.Client, opts...)
 }
