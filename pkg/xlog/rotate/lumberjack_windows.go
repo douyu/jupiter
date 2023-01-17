@@ -34,6 +34,9 @@
 // Using the same rotate configuration from multiple processes on the same
 // machine will result in improper behavior.
 
+//go:build windows
+// +build windows
+
 package rotate
 
 import (
