@@ -1,6 +1,7 @@
 package xhttp
 
 import (
+	"encoding/json"
 	"net/http"
 	"strings"
 
@@ -49,7 +50,7 @@ func ProtoJSON(c echo.Context, code int, i interface{}) error {
 	c.Response().Header().Set(HeaderContentType, MIMEApplicationJSONCharsetUTF8)
 	c.Response().WriteHeader(code)
 
-	body, err := pbjson.Marshal(msg)
+	body, err := json.Marshal(msg)
 	if err != nil {
 		return err
 	}

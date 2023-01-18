@@ -37,6 +37,8 @@ type (
 	BindUnmarshaler = echo.BindUnmarshaler
 )
 
+var DefaultProtoBinder = &ProtoBinder{}
+
 // BindPathParams binds path params to bindable object
 func (b *ProtoBinder) BindPathParams(c echo.Context, i interface{}) error {
 	names := c.ParamNames()
