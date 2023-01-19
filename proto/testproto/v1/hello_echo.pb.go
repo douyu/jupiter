@@ -5,7 +5,7 @@ package testproto
 import (
 	context "context"
 	xhttp "github.com/douyu/jupiter/pkg/util/xhttp"
-	v4 "github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4"
 	metadata "google.golang.org/grpc/metadata"
 	http "net/http"
 )
