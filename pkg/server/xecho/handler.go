@@ -16,7 +16,6 @@ package xecho
 
 import (
 	"bytes"
-	"context"
 	"net/http"
 	"reflect"
 	"strings"
@@ -24,77 +23,11 @@ import (
 	"github.com/codegangsta/inject"
 	"github.com/douyu/jupiter/pkg/util/xerror"
 	"github.com/douyu/jupiter/pkg/util/xhttp"
-	"github.com/douyu/jupiter/proto/testproto/v1"
 	"github.com/labstack/echo/v4"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )
-
-type impl struct {
-	testproto.UnimplementedGreeterServiceServer
-}
-
-func (*impl) SayHello(ctx context.Context, req *testproto.SayHelloRequest) (*testproto.SayHelloResponse, error) {
-	if req.Name != "bob" {
-		return &testproto.SayHelloResponse{
-			Error: uint32(xerror.InvalidArgument.GetEcode()),
-			Msg:   "invalid name",
-			Data:  &testproto.SayHelloResponse_Data{},
-		}, nil
-	}
-
-	return &testproto.SayHelloResponse{
-		Msg: "",
-		Data: &testproto.SayHelloResponse_Data{
-			Name: "hello bob",
-		},
-	}, nil
-}
-
-func echoJsonHandler(c echo.Context) error {
-	req := new(testproto.SayHelloRequest)
-	err := c.Bind(req)
-	if err != nil {
-		return err
-	}
-
-	if req.Name != "bob" {
-		return c.JSON(http.StatusOK, &testproto.SayHelloResponse{
-			Error: uint32(xerror.InvalidArgument.GetEcode()),
-			Msg:   "invalid name",
-			Data:  &testproto.SayHelloResponse_Data{},
-		})
-	}
-	return c.JSON(http.StatusOK, &testproto.SayHelloResponse{
-		Msg: "",
-		Data: &testproto.SayHelloResponse_Data{
-			Name: "hello bob",
-		},
-	})
-}
-
-func echoHandler(c echo.Context) error {
-	req := new(testproto.SayHelloRequest)
-	err := c.Bind(req)
-	if err != nil {
-		return err
-	}
-
-	if req.Name != "bob" {
-		return c.JSON(http.StatusOK, &testproto.SayHelloResponse{
-			Error: uint32(xerror.InvalidArgument.GetEcode()),
-			Msg:   "invalid name",
-			Data:  &testproto.SayHelloResponse_Data{},
-		})
-	}
-	return ProtoJSON(c, http.StatusOK, &testproto.SayHelloResponse{
-		Msg: "",
-		Data: &testproto.SayHelloResponse_Data{
-			Name: "hello bob",
-		},
-	})
-}
 
 // pbjson is a protojson.MarshalOptions with some default options.
 var pbjson = protojson.MarshalOptions{

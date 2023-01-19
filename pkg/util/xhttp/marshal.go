@@ -1,7 +1,6 @@
 package xhttp
 
 import (
-	"encoding/json"
 	"net/http"
 	"strings"
 
@@ -13,7 +12,6 @@ import (
 
 // pbjson is a protojson.MarshalOptions with some default options.
 var pbjson = protojson.MarshalOptions{
-	Multiline:       false,
 	UseEnumNumbers:  true,
 	EmitUnpopulated: true,
 }
@@ -50,7 +48,7 @@ func ProtoJSON(c echo.Context, code int, i interface{}) error {
 	c.Response().Header().Set(HeaderContentType, MIMEApplicationJSONCharsetUTF8)
 	c.Response().WriteHeader(code)
 
-	body, err := json.Marshal(msg)
+	body, err := pbjson.Marshal(msg)
 	if err != nil {
 		return err
 	}
