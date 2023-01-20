@@ -50,8 +50,8 @@ require (
 	github.com/urfave/cli v1.22.11
 	github.com/valyala/fasthttp v1.44.0
 	github.com/xlab/treeprint v1.1.0
-	go.etcd.io/etcd/api/v3 v3.5.6
-	go.etcd.io/etcd/client/v3 v3.5.6
+	go.etcd.io/etcd/api/v3 v3.5.7
+	go.etcd.io/etcd/client/v3 v3.5.7
 	go.mongodb.org/mongo-driver v1.11.1
 	go.opentelemetry.io/otel v1.11.2
 	go.opentelemetry.io/otel/exporters/jaeger v1.11.2
@@ -142,7 +142,7 @@ require (
 	github.com/xdg-go/scram v1.1.1 // indirect
 	github.com/xdg-go/stringprep v1.0.3 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d // indirect
-	go.etcd.io/etcd/client/pkg/v3 v3.5.6 // indirect
+	go.etcd.io/etcd/client/pkg/v3 v3.5.7 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/internal/retry v1.11.2 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.11.2 // indirect
 	go.opentelemetry.io/proto/otlp v0.19.0 // indirect
