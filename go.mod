@@ -50,7 +50,7 @@ require (
 	github.com/urfave/cli v1.22.12
 	github.com/valyala/fasthttp v1.44.0
 	github.com/xlab/treeprint v1.1.0
-	go.etcd.io/etcd/api/v3 v3.5.6
+	go.etcd.io/etcd/api/v3 v3.5.7
 	go.etcd.io/etcd/client/v3 v3.5.6
 	go.mongodb.org/mongo-driver v1.11.1
 	go.opentelemetry.io/otel v1.11.2
