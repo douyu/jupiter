@@ -47,7 +47,7 @@ require (
 	github.com/spf13/cast v1.5.0
 	github.com/stretchr/testify v1.8.1
 	github.com/tidwall/pretty v1.2.1
-	github.com/urfave/cli v1.22.11
+	github.com/urfave/cli v1.22.12
 	github.com/valyala/fasthttp v1.44.0
 	github.com/xlab/treeprint v1.1.0
 	go.etcd.io/etcd/api/v3 v3.5.6
@@ -81,7 +81,7 @@ require (
 	github.com/common-nighthawk/go-figure v0.0.0-20200609044655-c4b36f998cf2 // indirect
 	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/coreos/go-systemd/v22 v22.3.2 // indirect
-	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
+	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/creack/pty v1.1.18 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/emirpasic/gods v1.12.0 // indirect
