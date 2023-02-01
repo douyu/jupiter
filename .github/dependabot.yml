@@ -9,6 +9,13 @@ updates:
       interval: daily
 
   - package-ecosystem: gomod
+    directory: /cmd/protoc-gen-go-echo
+    labels:
+      - dependencies
+    schedule:
+      interval: daily
+
+  - package-ecosystem: gomod
     directory: /test/e2e
     labels:
       - dependencies
