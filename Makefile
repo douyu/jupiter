@@ -11,34 +11,91 @@ REVIVE := $(shell command -v revive 2 > /dev/null)
 ERRCHECK := $(shell command -v errcheck 2 > /dev/null)
 all: fmt errcheck lint build
 
-fmt: ## Format the files
-	@gofmt -l -w $(GO_FILES)
-
-fmtcheck: ## Check and format the files
-	@gofmt -l -s $(GO_FILES) | read; if [ $$? == 0 ]; then echo "gofmt check failed for:"; gofmt -l -s $(GO_FILES); fi
-
-help: ## Display this help screen
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
-
 default: help
 
-lint: ## Lint the go files
+# Lint the go files
+golint:
 	golangci-lint run -v
 
-lintmd: ## Lint markdown files
+# Lint markdown files
+lintmd:
 	markdownlint -c .github/markdown_lint_config.json website/docs README.md pkg
 
-e2e-test: ## Run e2e test
+# Run e2e test
+e2e-test:
 	cd test/e2e \
 		&& go mod tidy \
 		&& ginkgo -r -race -cover -covermode=atomic -coverprofile=coverage.txt --randomize-suites --trace -coverpkg=github.com/douyu/jupiter/... .\
 		&& cd -
 
-covsh-e2e: ## Get the coverage of e2e test
+# Get the coverage of e2e test
+covsh-e2e:
 	gocovsh --profile test/e2e/coverage.txt
 
-unit-test: ## Run unit test
+# Run unit test
+unit-test:
 	go test -race -coverprofile=coverage.txt -covermode=atomic ./...
 
-covsh-unit: ## Get the coverage of unit test
+# Get the coverage of unit test
+covsh-unit:
 	gocovsh --profile coverage.txt
+
+# install tools
+init:
+	go install github.com/bufbuild/buf/cmd/buf
+	go install github.com/srikrsna/protoc-gen-gotag
+	go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2
+	go install google.golang.org/protobuf/cmd/protoc-gen-go
+	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc
+	go install github.com/go-swagger/go-swagger/cmd/swagger
+	go install ./cmd/protoc-gen-go-echo
+
+# update buf mod
+update:
+	cd api && buf mod update
+
+.PHONY: generate
+# generate code
+generate:
+	buf generate
+	cd proto && buf generate --template buf.gen.tag.yaml
+
+.PHONY: lint
+# lint
+lint:
+	buf lint
+
+# breaking
+breaking:
+	buf breaking --against https://github.com/douyu/proto/.git#branch=main,ref=HEAD~1,subdir=api
+
+# test
+test:
+	go test -v -cover ./...
+
+# validate openapi docs
+validate:
+	swagger validate proto/helloworld/v1/helloworld.swagger.json
+
+# serve openapi docs
+serve:
+	swagger serve proto/helloworld/v1/helloworld.swagger.json
+
+# show help
+help:
+	@echo ''
+	@echo 'Usage:'
+	@echo ' make [target]'
+	@echo ''
+	@echo 'Targets:'
+	@awk '/^[a-zA-Z\-\0-9]+:/ { \
+	helpMessage = match(lastLine, /^# (.*)/); \
+		if (helpMessage) { \
+			helpCommand = substr($$1, 0, index($$1, ":")-1); \
+			helpMessage = substr(lastLine, RSTART + 2, RLENGTH); \
+			printf "\033[36m%-22s\033[0m %s\n", helpCommand,helpMessage; \
+		} \
+	} \
+	{ lastLine = $$0 }' $(MAKEFILE_LIST)
+
+.DEFAULT_GOAL := help

@@ -1,0 +1,121 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.douyu.helloworld.v1";
+option java_outer_classname = "HelloWorldProtoV1";
+option go_package = "github.com/douyu/jupiter/proto/helloworld/v1;helloworldv1";
+
+package helloworld.v1;
+
+import "google/api/annotations.proto";
+import "tagger/tagger.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  info: {
+    title: "helloworld demo api definition"
+    version: "1.0"
+    contact: {
+      name: "douyu"
+      url: "https://github.com/douyu/proto"
+    };
+  };
+  tags: [
+    {
+      name: "Project 001"
+      description: "This is how we do it."
+      external_docs: {
+        description: "Find out more"
+        url: "https://github.com/douyu/proto"
+      }
+    }
+  ];
+  consumes: "application/x-www-form-urlencoded"
+};
+
+// The greeting service definition.
+service GreeterService {
+  // Sends a hello greeting
+  rpc SayHello (SayHelloRequest) returns (SayHelloResponse) {
+    option (google.api.http) = {
+      post: "/v1/helloworld.Greeter/SayHello"
+      body: "*"
+      additional_bindings {
+        get: "/v1/helloworld.Greeter/SayHello/{name}"
+      }
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      tags: ["Project 001"]
+      parameters: {
+        headers: {
+          name: "token";
+          description: "Token Header";
+          type: STRING,
+          required: true;
+        }
+      }
+    };
+  }
+  // Sends a hi greeting
+  rpc SayHi (SayHiRequest) returns (SayHiResponse) {}
+}
+
+// The request message containing the user's name.
+message SayHelloRequest {
+  // name ...
+  string name = 1 [(tagger.tags) = "form:\"name\" param:\"name\""];
+}
+
+// The response message containing the greetings
+message SayHelloResponse {
+  // Data is the data to be sent.
+  message Data {
+    // name of the user
+    string name = 1 [(tagger.tags) = "json:\"name\""];
+    // age_number is the age number.
+    uint64 age_number = 2;
+    // sex is the user's sex
+    Sex sex = 3;
+    // metadata is the user's metadata
+    map<string,string> metadata = 4;
+  }
+  // error
+  uint32 error = 1;
+  // msg
+  string msg = 2;
+  // data ...
+  Data data = 3;
+}
+
+// The request message containing the user's name.
+message SayHiRequest {
+  // name ...
+  string name = 1 [(tagger.tags) = "form:\"name\""] ;
+}
+
+// The response message containing the greetings
+message SayHiResponse {
+  // Data is the data to be sent.
+  message Data {
+    // name of the user
+    string name = 1;
+    // age_number is the age number.
+    uint64 age_number = 2;
+  }
+  // error
+  uint32 error = 1;
+  // msg
+  string msg = 2;
+  // data ...
+  Data data = 3;
+}
+
+// Sex
+enum Sex {
+  // SEX_UNSPECIFIED ...
+  SEX_UNSPECIFIED = 0;
+  // SEX_MALE ...
+  SEX_MALE = 1;
+  // SEX_FEMALE ...
+  SEX_FEMALE = 2;
+}
