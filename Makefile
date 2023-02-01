@@ -48,7 +48,7 @@ init:
 	go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.28.1
 	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2.0
 	go install github.com/go-swagger/go-swagger/cmd/swagger@v0.30.4
-	go install ./cmd/protoc-gen-go-echo
+	cd ./cmd/protoc-gen-go-echo && go install .
 
 # update buf mod
 update:
