@@ -10,6 +10,7 @@ import (
 	"github.com/douyu/jupiter/pkg/server/xecho"
 	"github.com/douyu/jupiter/pkg/util/xerror"
 	helloworldv1 "github.com/douyu/jupiter/proto/helloworld/v1"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/labstack/echo/v4"
 )
 
@@ -42,6 +43,23 @@ func BenchmarkHTTP(b *testing.B) {
 
 			rec := httptest.NewRecorder()
 			server.ServeHTTP(rec, req)
+
+			// fmt.Println(rec)
+			// b.Fail()
+		}
+	})
+
+	b.Run("HTTP with grpc gateway", func(b *testing.B) {
+
+		mux := runtime.NewServeMux()
+		helloworldv1.RegisterGreeterServiceHandlerServer(context.TODO(), mux, new(impl))
+
+		for i := 0; i < b.N; i++ {
+			req := httptest.NewRequest(http.MethodPost, "/v1/helloworld.Greeter/SayHello", bytes.NewBufferString("{\"name\":\"bob\"}"))
+			req.Header.Add("Content-Type", "application/json")
+
+			rec := httptest.NewRecorder()
+			mux.ServeHTTP(rec, req)
 
 			// fmt.Println(rec)
 			// b.Fail()
