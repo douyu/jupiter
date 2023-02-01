@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-//go:embed proto2echo.go.tpl
+//go:embed echo.go.tpl
 var tpl string
 
 type service struct {

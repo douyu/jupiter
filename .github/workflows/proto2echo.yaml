@@ -38,5 +38,5 @@ jobs:
           make init
           make lint
           make generate
-          make test
+          make test-proto2echo
           make validate

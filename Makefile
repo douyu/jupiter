@@ -70,8 +70,8 @@ breaking:
 	buf breaking --against https://github.com/douyu/proto/.git#branch=main,ref=HEAD~1,subdir=api
 
 # test
-test:
-	go test -v -cover ./...
+test-proto2echo:
+	go test -v -cover ./proto/...
 
 # validate openapi docs
 validate:
