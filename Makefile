@@ -42,12 +42,12 @@ covsh-unit:
 
 # install tools
 init:
-	go install github.com/bufbuild/buf/cmd/buf
-	go install github.com/srikrsna/protoc-gen-gotag
-	go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2
-	go install google.golang.org/protobuf/cmd/protoc-gen-go
-	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc
-	go install github.com/go-swagger/go-swagger/cmd/swagger
+	go install github.com/bufbuild/buf/cmd/buf@v1.13.1
+	go install github.com/srikrsna/protoc-gen-gotag@v0.6.2
+	go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@v2.15.0
+	go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.28.1
+	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2.0
+	go install github.com/go-swagger/go-swagger/cmd/swagger@v0.30.4
 	go install ./cmd/protoc-gen-go-echo
 
 # update buf mod
