@@ -226,13 +226,14 @@
       "description": "Data is the data to be sent."
     },
     "v1Sex": {
-      "type": "integer",
-      "format": "int32",
+      "type": "string",
       "enum": [
-        1,
-        2
+        "SEX_UNSPECIFIED",
+        "SEX_MALE",
+        "SEX_FEMALE"
       ],
-      "description": "- 0: SEX_UNSPECIFIED ...\n - 1: SEX_MALE ...\n - 2: SEX_FEMALE ...",
+      "default": "SEX_UNSPECIFIED",
+      "description": "- SEX_UNSPECIFIED: SEX_UNSPECIFIED ...\n - SEX_MALE: SEX_MALE ...\n - SEX_FEMALE: SEX_FEMALE ...",
       "title": "Sex"
     }
   }

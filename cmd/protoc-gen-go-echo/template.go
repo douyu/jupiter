@@ -54,6 +54,7 @@ type method struct {
 	Method       string // HTTP Method
 	Body         string
 	ResponseBody string
+	Comment      string
 }
 
 // HandlerName for gin handler name

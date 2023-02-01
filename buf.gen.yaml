@@ -21,7 +21,7 @@ plugins:
     out: proto
     opt: 
       - disable_default_errors=true
-      - enums_as_ints=true
-      - omit_enum_default_value=true
+      # - enums_as_ints=true
+      # - omit_enum_default_value=true
       - generate_unbound_methods=true
       - include_package_in_tags=true
