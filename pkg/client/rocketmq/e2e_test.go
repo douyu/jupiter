@@ -132,6 +132,8 @@ var _ = Describe("consume", func() {
 			return nil
 		})
 		err = consumerClient.Start()
+		Expect(err).Should(BeNil())
+
 		Eventually(func() int {
 			return int(atomic.LoadInt32(&count))
 		}, 10*time.Second, 50*time.Millisecond).Should(Equal(20))
