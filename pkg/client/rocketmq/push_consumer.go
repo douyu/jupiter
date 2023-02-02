@@ -45,7 +45,7 @@ type PushConsumer struct {
 	started      bool
 }
 
-func (conf *PushConsumerConfig) Build() (*PushConsumer, error) {
+func (conf *PushConsumerConfig) Build() *PushConsumer {
 	name := conf.Name
 
 	xlog.Jupiter().Debug("rocketmq's config: ", xlog.String("name", name), xlog.Any("conf", conf))
@@ -70,7 +70,7 @@ func (conf *PushConsumerConfig) Build() (*PushConsumer, error) {
 		}
 	})
 
-	return cc, nil
+	return cc
 }
 
 // Singleton returns a singleton client conn.
@@ -79,20 +79,11 @@ func (conf *PushConsumerConfig) Singleton() (*PushConsumer, error) {
 		return cc.(*PushConsumer), nil
 	}
 
-	cc, err := conf.Build()
-	if err != nil {
-		xlog.Jupiter().Error("build romcketmq pushConsumer client failed", zap.Error(err))
-		return nil, err
-	}
+	cc := conf.Build()
 
 	singleton.Store(constant.ModuleClientRocketMQ, conf.Name, cc)
 
 	return cc, nil
-}
-
-// MustBuild panics when error found.
-func (conf *PushConsumerConfig) MustBuild() *PushConsumer {
-	return lo.Must(conf.Build())
 }
 
 // MustSingleton panics when error found.
@@ -288,4 +279,9 @@ func (cc *PushConsumer) Start() error {
 	cc.started = true
 
 	return nil
+}
+
+// MustStart panics when error found.
+func (cc *PushConsumer) MustStart() {
+	lo.Must0(cc.Start())
 }

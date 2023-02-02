@@ -33,7 +33,7 @@ type PullConsumer struct {
 	done         chan struct{}
 }
 
-func (conf *PullConsumerConfig) Build() (*PullConsumer, error) {
+func (conf *PullConsumerConfig) Build() *PullConsumer {
 	name := conf.Name
 
 	xlog.Jupiter().Debug("rocketmq's config: ", xlog.String("name", name), xlog.Any("conf", conf))
@@ -59,7 +59,7 @@ func (conf *PullConsumerConfig) Build() (*PullConsumer, error) {
 		}
 	})
 
-	return cc, nil
+	return cc
 }
 
 // Singleton returns a singleton client conn.
@@ -68,20 +68,11 @@ func (conf *PullConsumerConfig) Singleton() (*PullConsumer, error) {
 		return cc.(*PullConsumer), nil
 	}
 
-	cc, err := conf.Build()
-	if err != nil {
-		xlog.Jupiter().Error("build rocketmq pullConsumer client failed", zap.Error(err))
-		return nil, err
-	}
+	cc := conf.Build()
 
 	singleton.Store(constant.ModuleClientRocketMQ, conf.Name, cc)
 
 	return cc, nil
-}
-
-// MustBuild panics when error found.
-func (conf *PullConsumerConfig) MustBuild() *PullConsumer {
-	return lo.Must(conf.Build())
 }
 
 // MustSingleton panics when error found.
@@ -165,6 +156,11 @@ func (cc *PullConsumer) Start() error {
 
 	cc.started.Store(true)
 	return nil
+}
+
+// MustStart panics when error found.
+func (cc *PullConsumer) MustStart() {
+	lo.Must0(cc.Start())
 }
 
 func (cc *PullConsumer) Poll(ctx context.Context, f func(context.Context, []*primitive.MessageExt) error) {

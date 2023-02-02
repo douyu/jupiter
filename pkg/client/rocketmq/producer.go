@@ -26,7 +26,6 @@ import (
 	"github.com/douyu/jupiter/pkg/util/xdebug"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/samber/lo"
-	"go.uber.org/zap"
 )
 
 type Producer struct {
@@ -39,11 +38,10 @@ type Producer struct {
 }
 
 func StdNewProducer(name string) *Producer {
-	cc, _ := StdProducerConfig(name).Build()
-	return cc
+	return StdProducerConfig(name).Build()
 }
 
-func (conf *ProducerConfig) Build() (*Producer, error) {
+func (conf *ProducerConfig) Build() *Producer {
 	name := conf.Name
 
 	if xdebug.IsDevelopmentMode() {
@@ -67,7 +65,7 @@ func (conf *ProducerConfig) Build() (*Producer, error) {
 		_ = cc.Start()
 	})
 
-	return cc, nil
+	return cc
 }
 
 // Singleton returns a singleton client conn.
@@ -76,20 +74,11 @@ func (conf *ProducerConfig) Singleton() (*Producer, error) {
 		return cc.(*Producer), nil
 	}
 
-	cc, err := conf.Build()
-	if err != nil {
-		xlog.Jupiter().Error("build romcketmq producer client failed", zap.Error(err))
-		return nil, err
-	}
+	cc := conf.Build()
 
 	singleton.Store(constant.ModuleClientRocketMQ, conf.Name, cc)
 
 	return cc, nil
-}
-
-// MustBuild panics when error found.
-func (conf *ProducerConfig) MustBuild() *Producer {
-	return lo.Must(conf.Build())
 }
 
 // MustSingleton panics when error found.
@@ -134,6 +123,11 @@ func (pc *Producer) Start() error {
 	// 进程退出时，producer不Close，避免消息发失败
 	// defers.Register(pc.Close)
 	return nil
+}
+
+// MustStart panics when error found.
+func (pc *Producer) MustStart() {
+	lo.Must0(pc.Start())
 }
 
 func (pc *Producer) WithInterceptor(fs ...primitive.Interceptor) *Producer {

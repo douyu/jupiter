@@ -49,10 +49,9 @@ var _ = Describe("consume", func() {
 
 		rlog.SetLogLevel("error")
 
-		producerClient, err := rocketmq.StdProducerConfig("example").Build()
-		Expect(err).Should(BeNil())
+		producerClient := rocketmq.StdProducerConfig("example").Build()
 
-		err = producerClient.Start()
+		err := producerClient.Start()
 		Expect(err).Should(BeNil())
 
 		for i := 0; i < 20; i++ {
@@ -61,8 +60,7 @@ var _ = Describe("consume", func() {
 			Expect(err).Should(BeNil())
 		}
 
-		consumerClient, err := rocketmq.StdPushConsumerConfig("example").Build()
-		Expect(err).Should(BeNil())
+		consumerClient := rocketmq.StdPushConsumerConfig("example").Build()
 
 		count := int32(0)
 		consumerClient.RegisterSingleMessage(func(ctx context.Context, ext *primitive.MessageExt) error {
@@ -109,10 +107,9 @@ var _ = Describe("consume", func() {
 
 		rlog.SetLogLevel("error")
 
-		producerClient, err := rocketmq.StdProducerConfig("example").Build()
-		Expect(err).Should(BeNil())
+		producerClient := rocketmq.StdProducerConfig("example").Build()
 
-		err = producerClient.Start()
+		err := producerClient.Start()
 		Expect(err).Should(BeNil())
 
 		for i := 0; i < 20; i++ {
@@ -121,8 +118,7 @@ var _ = Describe("consume", func() {
 			Expect(err).Should(BeNil())
 		}
 
-		consumerClient, err := rocketmq.StdPullConsumerConfig("example").Build()
-		Expect(err).Should(BeNil())
+		consumerClient := rocketmq.StdPullConsumerConfig("example").Build()
 		count := int32(0)
 		consumerClient.Poll(context.TODO(), func(ctx context.Context, exts []*primitive.MessageExt) error {
 			for _, ext := range exts {
