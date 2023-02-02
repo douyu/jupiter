@@ -20,9 +20,7 @@ import (
 	"github.com/apache/rocketmq-client-go/v2"
 	"github.com/apache/rocketmq-client-go/v2/primitive"
 	"github.com/apache/rocketmq-client-go/v2/producer"
-	"github.com/douyu/jupiter/pkg/core/constant"
 	"github.com/douyu/jupiter/pkg/core/hooks"
-	"github.com/douyu/jupiter/pkg/core/singleton"
 	"github.com/douyu/jupiter/pkg/util/xdebug"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/samber/lo"
@@ -66,24 +64,6 @@ func (conf *ProducerConfig) Build() *Producer {
 	})
 
 	return cc
-}
-
-// Singleton returns a singleton client conn.
-func (conf *ProducerConfig) Singleton() (*Producer, error) {
-	if cc, ok := singleton.Load(constant.ModuleClientRocketMQ, conf.Name); ok && cc != nil {
-		return cc.(*Producer), nil
-	}
-
-	cc := conf.Build()
-
-	singleton.Store(constant.ModuleClientRocketMQ, conf.Name, cc)
-
-	return cc, nil
-}
-
-// MustSingleton panics when error found.
-func (conf *ProducerConfig) MustSingleton() *Producer {
-	return lo.Must(conf.Singleton())
 }
 
 func (pc *Producer) Start() error {

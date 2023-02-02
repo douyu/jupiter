@@ -20,9 +20,7 @@ import (
 	"github.com/apache/rocketmq-client-go/v2"
 	"github.com/apache/rocketmq-client-go/v2/consumer"
 	"github.com/apache/rocketmq-client-go/v2/primitive"
-	"github.com/douyu/jupiter/pkg/core/constant"
 	"github.com/douyu/jupiter/pkg/core/hooks"
-	"github.com/douyu/jupiter/pkg/core/singleton"
 	"github.com/douyu/jupiter/pkg/core/xtrace"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/juju/ratelimit"
@@ -71,24 +69,6 @@ func (conf *PushConsumerConfig) Build() *PushConsumer {
 	})
 
 	return cc
-}
-
-// Singleton returns a singleton client conn.
-func (conf *PushConsumerConfig) Singleton() (*PushConsumer, error) {
-	if cc, ok := singleton.Load(constant.ModuleClientRocketMQ, conf.Name); ok && cc != nil {
-		return cc.(*PushConsumer), nil
-	}
-
-	cc := conf.Build()
-
-	singleton.Store(constant.ModuleClientRocketMQ, conf.Name, cc)
-
-	return cc, nil
-}
-
-// MustSingleton panics when error found.
-func (conf *PushConsumerConfig) MustSingleton() *PushConsumer {
-	return lo.Must(conf.Singleton())
 }
 
 func (cc *PushConsumer) Close() {

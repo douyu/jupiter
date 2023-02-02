@@ -8,9 +8,7 @@ import (
 	"github.com/apache/rocketmq-client-go/v2/consumer"
 	"github.com/apache/rocketmq-client-go/v2/primitive"
 	"github.com/apache/rocketmq-client-go/v2/rlog"
-	"github.com/douyu/jupiter/pkg/core/constant"
 	"github.com/douyu/jupiter/pkg/core/hooks"
-	"github.com/douyu/jupiter/pkg/core/singleton"
 	"github.com/douyu/jupiter/pkg/core/xtrace"
 	"github.com/douyu/jupiter/pkg/util/xgo"
 	"github.com/douyu/jupiter/pkg/xlog"
@@ -60,24 +58,6 @@ func (conf *PullConsumerConfig) Build() *PullConsumer {
 	})
 
 	return cc
-}
-
-// Singleton returns a singleton client conn.
-func (conf *PullConsumerConfig) Singleton() (*PullConsumer, error) {
-	if cc, ok := singleton.Load(constant.ModuleClientRocketMQ, conf.Name); ok && cc != nil {
-		return cc.(*PullConsumer), nil
-	}
-
-	cc := conf.Build()
-
-	singleton.Store(constant.ModuleClientRocketMQ, conf.Name, cc)
-
-	return cc, nil
-}
-
-// MustSingleton panics when error found.
-func (conf *PullConsumerConfig) MustSingleton() *PullConsumer {
-	return lo.Must(conf.Singleton())
 }
 
 func (cc *PullConsumer) Start() error {
