@@ -16,7 +16,7 @@ func Test_Stub(t *testing.T) {
 		var client *Client
 		defer func() {
 			if r := recover(); r != nil {
-				assert.Equal(t, r.(string), "redis:no master or slaves for default")
+				assert.Equal(t, "no master or slaves for default", r.(string))
 				assert.Nil(t, client)
 			}
 		}()
