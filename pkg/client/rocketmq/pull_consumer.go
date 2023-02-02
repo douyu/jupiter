@@ -2,20 +2,24 @@ package rocketmq
 
 import (
 	"context"
+	"sync/atomic"
+
 	"github.com/apache/rocketmq-client-go/v2"
 	"github.com/apache/rocketmq-client-go/v2/consumer"
 	"github.com/apache/rocketmq-client-go/v2/primitive"
 	"github.com/apache/rocketmq-client-go/v2/rlog"
+	"github.com/douyu/jupiter/pkg/core/constant"
 	"github.com/douyu/jupiter/pkg/core/hooks"
+	"github.com/douyu/jupiter/pkg/core/singleton"
 	"github.com/douyu/jupiter/pkg/core/xtrace"
 	"github.com/douyu/jupiter/pkg/util/xgo"
 	"github.com/douyu/jupiter/pkg/xlog"
+	"github.com/samber/lo"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/propagation"
 	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
-	"sync/atomic"
 )
 
 type PullConsumer struct {
@@ -29,7 +33,7 @@ type PullConsumer struct {
 	done         chan struct{}
 }
 
-func (conf *PullConsumerConfig) Build() *PullConsumer {
+func (conf *PullConsumerConfig) Build() (*PullConsumer, error) {
 	name := conf.Name
 
 	xlog.Jupiter().Debug("rocketmq's config: ", xlog.String("name", name), xlog.Any("conf", conf))
@@ -55,7 +59,34 @@ func (conf *PullConsumerConfig) Build() *PullConsumer {
 		}
 	})
 
-	return cc
+	return cc, nil
+}
+
+// Singleton returns a singleton client conn.
+func (conf *PullConsumerConfig) Singleton() (*PullConsumer, error) {
+	if cc, ok := singleton.Load(constant.ModuleClientRocketMQ, conf.Name); ok && cc != nil {
+		return cc.(*PullConsumer), nil
+	}
+
+	cc, err := conf.Build()
+	if err != nil {
+		xlog.Jupiter().Error("build rocketmq pullConsumer client failed", zap.Error(err))
+		return nil, err
+	}
+
+	singleton.Store(constant.ModuleClientRocketMQ, conf.Name, cc)
+
+	return cc, nil
+}
+
+// MustBuild panics when error found.
+func (conf *PullConsumerConfig) MustBuild() *PullConsumer {
+	return lo.Must(conf.Build())
+}
+
+// MustSingleton panics when error found.
+func (conf *PullConsumerConfig) MustSingleton() *PullConsumer {
+	return lo.Must(conf.Singleton())
 }
 
 func (cc *PullConsumer) Start() error {

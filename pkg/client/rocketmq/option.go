@@ -97,6 +97,7 @@ func DefaultConfig() *Config {
 	return &Config{
 		Addresses: make([]string, 0),
 		Producer: &ProducerConfig{
+			Name:        "defaultProducer",
 			Retry:       5,
 			DialTimeout: time.Second * 3,
 			RwTimeout:   0,
@@ -104,6 +105,7 @@ func DefaultConfig() *Config {
 		},
 		PushConsumer: &PushConsumerConfig{
 			ConsumerDefaultConfig: ConsumerDefaultConfig{
+				Name:         "defaultPushConsumer",
 				DialTimeout:  time.Second * 3,
 				Reconsume:    16,
 				EnableTrace:  true,
@@ -114,6 +116,7 @@ func DefaultConfig() *Config {
 		},
 		PullConsumer: &PullConsumerConfig{
 			ConsumerDefaultConfig: ConsumerDefaultConfig{
+				Name:         "defaultPullConsumer",
 				DialTimeout:  time.Second * 3,
 				Reconsume:    16,
 				EnableTrace:  true,

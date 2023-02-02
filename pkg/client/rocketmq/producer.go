@@ -20,9 +20,13 @@ import (
 	"github.com/apache/rocketmq-client-go/v2"
 	"github.com/apache/rocketmq-client-go/v2/primitive"
 	"github.com/apache/rocketmq-client-go/v2/producer"
+	"github.com/douyu/jupiter/pkg/core/constant"
 	"github.com/douyu/jupiter/pkg/core/hooks"
+	"github.com/douyu/jupiter/pkg/core/singleton"
 	"github.com/douyu/jupiter/pkg/util/xdebug"
 	"github.com/douyu/jupiter/pkg/xlog"
+	"github.com/samber/lo"
+	"go.uber.org/zap"
 )
 
 type Producer struct {
@@ -35,10 +39,11 @@ type Producer struct {
 }
 
 func StdNewProducer(name string) *Producer {
-	return StdProducerConfig(name).Build()
+	cc, _ := StdProducerConfig(name).Build()
+	return cc
 }
 
-func (conf *ProducerConfig) Build() *Producer {
+func (conf *ProducerConfig) Build() (*Producer, error) {
 	name := conf.Name
 
 	if xdebug.IsDevelopmentMode() {
@@ -62,7 +67,34 @@ func (conf *ProducerConfig) Build() *Producer {
 		_ = cc.Start()
 	})
 
-	return cc
+	return cc, nil
+}
+
+// Singleton returns a singleton client conn.
+func (conf *ProducerConfig) Singleton() (*Producer, error) {
+	if cc, ok := singleton.Load(constant.ModuleClientRocketMQ, conf.Name); ok && cc != nil {
+		return cc.(*Producer), nil
+	}
+
+	cc, err := conf.Build()
+	if err != nil {
+		xlog.Jupiter().Error("build romcketmq producer client failed", zap.Error(err))
+		return nil, err
+	}
+
+	singleton.Store(constant.ModuleClientRocketMQ, conf.Name, cc)
+
+	return cc, nil
+}
+
+// MustBuild panics when error found.
+func (conf *ProducerConfig) MustBuild() *Producer {
+	return lo.Must(conf.Build())
+}
+
+// MustSingleton panics when error found.
+func (conf *ProducerConfig) MustSingleton() *Producer {
+	return lo.Must(conf.Singleton())
 }
 
 func (pc *Producer) Start() error {

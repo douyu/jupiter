@@ -23,6 +23,7 @@ import (
 	"github.com/douyu/jupiter/pkg/core/singleton"
 	"github.com/douyu/jupiter/pkg/flag"
 	"github.com/douyu/jupiter/pkg/xlog"
+	"github.com/samber/lo"
 	"github.com/spf13/cast"
 	"go.uber.org/zap"
 )
@@ -94,6 +95,7 @@ func (config *Config) Build() (*Client, error) {
 	return newClient(config)
 }
 
+// Singleton returns a singleton client conn.
 func (config *Config) Singleton() (*Client, error) {
 	if client, ok := singleton.Load(constant.ModuleRegistryEtcd, config.Name); ok && client != nil {
 		return client.(*Client), nil
@@ -110,18 +112,12 @@ func (config *Config) Singleton() (*Client, error) {
 	return client, nil
 }
 
+// MustBuild panics when error found.
 func (config *Config) MustBuild() *Client {
-	client, err := config.Build()
-	if err != nil {
-		xlog.Jupiter().Panic("build etcd client failed", zap.Error(err))
-	}
-	return client
+	return lo.Must(config.Build())
 }
 
+// MustSingleton panics when error found.
 func (config *Config) MustSingleton() *Client {
-	client, err := config.Singleton()
-	if err != nil {
-		xlog.Jupiter().Panic("build etcd client failed", zap.Error(err))
-	}
-	return client
+	return lo.Must(config.Singleton())
 }

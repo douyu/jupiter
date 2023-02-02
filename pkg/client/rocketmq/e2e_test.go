@@ -17,6 +17,11 @@ package rocketmq_test
 import (
 	"context"
 	"fmt"
+	"strconv"
+	"sync/atomic"
+	"testing"
+	"time"
+
 	"github.com/BurntSushi/toml"
 	"github.com/apache/rocketmq-client-go/v2/primitive"
 	"github.com/apache/rocketmq-client-go/v2/rlog"
@@ -25,10 +30,6 @@ import (
 	"github.com/douyu/jupiter/pkg/conf/datasource/file"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"strconv"
-	"sync/atomic"
-	"testing"
-	"time"
 )
 
 func TestE2ESuites(t *testing.T) {
@@ -48,9 +49,10 @@ var _ = Describe("consume", func() {
 
 		rlog.SetLogLevel("error")
 
-		producerClient := rocketmq.StdProducerConfig("example").Build()
+		producerClient, err := rocketmq.StdProducerConfig("example").Build()
+		Expect(err).Should(BeNil())
 
-		err := producerClient.Start()
+		err = producerClient.Start()
 		Expect(err).Should(BeNil())
 
 		for i := 0; i < 20; i++ {
@@ -59,7 +61,9 @@ var _ = Describe("consume", func() {
 			Expect(err).Should(BeNil())
 		}
 
-		consumerClient := rocketmq.StdPushConsumerConfig("example").Build()
+		consumerClient, err := rocketmq.StdPushConsumerConfig("example").Build()
+		Expect(err).Should(BeNil())
+
 		count := int32(0)
 		consumerClient.RegisterSingleMessage(func(ctx context.Context, ext *primitive.MessageExt) error {
 			atomic.AddInt32(&count, 1)
@@ -105,9 +109,10 @@ var _ = Describe("consume", func() {
 
 		rlog.SetLogLevel("error")
 
-		producerClient := rocketmq.StdProducerConfig("example").Build()
+		producerClient, err := rocketmq.StdProducerConfig("example").Build()
+		Expect(err).Should(BeNil())
 
-		err := producerClient.Start()
+		err = producerClient.Start()
 		Expect(err).Should(BeNil())
 
 		for i := 0; i < 20; i++ {
@@ -116,8 +121,7 @@ var _ = Describe("consume", func() {
 			Expect(err).Should(BeNil())
 		}
 
-		consumerClient := rocketmq.StdPullConsumerConfig("example").Build()
-
+		consumerClient, err := rocketmq.StdPullConsumerConfig("example").Build()
 		Expect(err).Should(BeNil())
 		count := int32(0)
 		consumerClient.Poll(context.TODO(), func(ctx context.Context, exts []*primitive.MessageExt) error {

@@ -20,10 +20,13 @@ import (
 	"github.com/apache/rocketmq-client-go/v2"
 	"github.com/apache/rocketmq-client-go/v2/consumer"
 	"github.com/apache/rocketmq-client-go/v2/primitive"
+	"github.com/douyu/jupiter/pkg/core/constant"
 	"github.com/douyu/jupiter/pkg/core/hooks"
+	"github.com/douyu/jupiter/pkg/core/singleton"
 	"github.com/douyu/jupiter/pkg/core/xtrace"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/juju/ratelimit"
+	"github.com/samber/lo"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/propagation"
 	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
@@ -42,7 +45,7 @@ type PushConsumer struct {
 	started      bool
 }
 
-func (conf *PushConsumerConfig) Build() *PushConsumer {
+func (conf *PushConsumerConfig) Build() (*PushConsumer, error) {
 	name := conf.Name
 
 	xlog.Jupiter().Debug("rocketmq's config: ", xlog.String("name", name), xlog.Any("conf", conf))
@@ -67,7 +70,34 @@ func (conf *PushConsumerConfig) Build() *PushConsumer {
 		}
 	})
 
-	return cc
+	return cc, nil
+}
+
+// Singleton returns a singleton client conn.
+func (conf *PushConsumerConfig) Singleton() (*PushConsumer, error) {
+	if cc, ok := singleton.Load(constant.ModuleClientRocketMQ, conf.Name); ok && cc != nil {
+		return cc.(*PushConsumer), nil
+	}
+
+	cc, err := conf.Build()
+	if err != nil {
+		xlog.Jupiter().Error("build romcketmq pushConsumer client failed", zap.Error(err))
+		return nil, err
+	}
+
+	singleton.Store(constant.ModuleClientRocketMQ, conf.Name, cc)
+
+	return cc, nil
+}
+
+// MustBuild panics when error found.
+func (conf *PushConsumerConfig) MustBuild() *PushConsumer {
+	return lo.Must(conf.Build())
+}
+
+// MustSingleton panics when error found.
+func (conf *PushConsumerConfig) MustSingleton() *PushConsumer {
+	return lo.Must(conf.Singleton())
 }
 
 func (cc *PushConsumer) Close() {
