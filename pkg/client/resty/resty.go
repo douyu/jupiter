@@ -26,10 +26,12 @@ import (
 	"github.com/douyu/jupiter/pkg/core/ecode"
 	"github.com/douyu/jupiter/pkg/core/metric"
 	"github.com/douyu/jupiter/pkg/core/sentinel"
+	"github.com/douyu/jupiter/pkg/core/singleton"
 	"github.com/douyu/jupiter/pkg/core/xtrace"
 	"github.com/douyu/jupiter/pkg/util/xdebug"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/go-resty/resty/v2"
+	"github.com/samber/lo"
 	"github.com/spf13/cast"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
@@ -76,6 +78,8 @@ type (
 		RetryCondition resty.RetryConditionFunc `json:"-" toml:"-"`
 		// 日志
 		logger *zap.Logger
+		// 配置名称
+		Name string `json:"name"`
 	}
 )
 
@@ -87,6 +91,8 @@ func StdConfig(name string) *Config {
 // RawConfig 返回配置
 func RawConfig(key string) *Config {
 	var config = DefaultConfig()
+	config.Name = key
+
 	if err := conf.UnmarshalKey(key, &config, conf.TagName("toml")); err != nil {
 		xlog.Jupiter().Panic("unmarshal config", xlog.FieldName(key), xlog.FieldExtMessage(config))
 	}
@@ -112,6 +118,7 @@ func DefaultConfig() *Config {
 		EnableAccessLog:  false,
 		EnableSentinel:   true,
 		logger:           xlog.Jupiter().Named(ecode.ModeClientResty),
+		Name:             "default",
 	}
 }
 
@@ -232,11 +239,29 @@ func (config *Config) Build() (*resty.Client, error) {
 	return client, nil
 }
 
-func (c *Config) MustBuild() *resty.Client {
-	cc, err := c.Build()
-	if err != nil {
-		c.logger.Panic("resty build failed", zap.Error(err), zap.Any("config", c))
+// Singleton returns a singleton client conn.
+func (config *Config) Singleton() (*Client, error) {
+	if client, ok := singleton.Load(constant.ModuleClientResty, config.Name); ok && client != nil {
+		return client.(*Client), nil
 	}
 
-	return cc
+	client, err := config.Build()
+	if err != nil {
+		xlog.Jupiter().Error("build resty client failed", zap.Error(err))
+		return nil, err
+	}
+
+	singleton.Store(constant.ModuleClientResty, config.Name, client)
+
+	return client, nil
+}
+
+// MustBuild panics when error found.
+func (c *Config) MustBuild() *resty.Client {
+	return lo.Must(c.Build())
+}
+
+// MustSingleton panics when error found.
+func (config *Config) MustSingleton() *Client {
+	return lo.Must(config.Singleton())
 }

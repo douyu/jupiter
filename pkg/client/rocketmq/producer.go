@@ -23,6 +23,7 @@ import (
 	"github.com/douyu/jupiter/pkg/core/hooks"
 	"github.com/douyu/jupiter/pkg/util/xdebug"
 	"github.com/douyu/jupiter/pkg/xlog"
+	"github.com/samber/lo"
 )
 
 type Producer struct {
@@ -102,6 +103,11 @@ func (pc *Producer) Start() error {
 	// 进程退出时，producer不Close，避免消息发失败
 	// defers.Register(pc.Close)
 	return nil
+}
+
+// MustStart panics when error found.
+func (pc *Producer) MustStart() {
+	lo.Must0(pc.Start())
 }
 
 func (pc *Producer) WithInterceptor(fs ...primitive.Interceptor) *Producer {
