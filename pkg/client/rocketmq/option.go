@@ -154,14 +154,7 @@ func RawPushConsumerConfig(name string) *PushConsumerConfig {
 	}
 
 	pushConsumerConfig.Name = name
-
-	for ind, addr := range pushConsumerConfig.Addr {
-		if strings.HasPrefix(addr, "http") {
-			pushConsumerConfig.Addr[ind] = addr
-		} else {
-			pushConsumerConfig.Addr[ind] = "http://" + addr
-		}
-	}
+	pushConsumerConfig.Addr = compatible(pushConsumerConfig.Addr)
 
 	// 这里根据mq集群地址的md5，生成默认InstanceName
 	// 实现自动支持多集群，解决官方库默认不支持多集群消费的问题
@@ -189,14 +182,7 @@ func RawPullConsumerConfig(name string) *PullConsumerConfig {
 	}
 
 	pullConsumerConfig.Name = name
-
-	for ind, addr := range pullConsumerConfig.Addr {
-		if strings.HasPrefix(addr, "http") {
-			pullConsumerConfig.Addr[ind] = addr
-		} else {
-			pullConsumerConfig.Addr[ind] = "http://" + addr
-		}
-	}
+	pullConsumerConfig.Addr = compatible(pullConsumerConfig.Addr)
 
 	// 这里根据mq集群地址的md5，生成默认InstanceName
 	// 实现自动支持多集群，解决官方库默认不支持多集群消费的问题
@@ -223,13 +209,7 @@ func RawProducerConfig(name string) *ProducerConfig {
 		producerConfig.Addr = defaultConfig.Addresses
 	}
 	producerConfig.Name = name
-	for ind, addr := range producerConfig.Addr {
-		if strings.HasPrefix(addr, "http") {
-			producerConfig.Addr[ind] = addr
-		} else {
-			producerConfig.Addr[ind] = "http://" + addr
-		}
-	}
+	producerConfig.Addr = compatible(producerConfig.Addr)
 
 	// 这里根据mq集群地址的md5，生成默认InstanceName
 	// 实现自动支持多集群，解决官方库默认不支持多集群消费的问题
@@ -241,4 +221,13 @@ func RawProducerConfig(name string) *ProducerConfig {
 		xdebug.PrettyJsonPrint(name, producerConfig)
 	}
 	return producerConfig
+}
+
+func compatible(addr []string) []string {
+	for ind, a := range addr {
+		if !strings.HasPrefix(a, "http") {
+			addr[ind] = "http://" + a
+		}
+	}
+	return addr
 }

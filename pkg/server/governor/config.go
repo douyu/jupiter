@@ -9,7 +9,7 @@ import (
 	"github.com/douyu/jupiter/pkg/xlog"
 )
 
-//ModName ..
+// ModName ..
 const ModName = "govern"
 
 // Config ...

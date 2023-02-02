@@ -18,7 +18,7 @@ func PKCS7UnPadding(origData []byte) []byte {
 	return origData[:(length - unpadding)]
 }
 
-//AesEncrypt 加密函数
+// AesEncrypt 加密函数
 func AesEncrypt(plaintext []byte, key, iv []byte) ([]byte, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {

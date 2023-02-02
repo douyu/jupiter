@@ -9,7 +9,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-//WebSocketConn websocket conn, see websocket.Conn
+// WebSocketConn websocket conn, see websocket.Conn
 type WebSocketConn interface {
 	Subprotocol() string
 	Close() error
@@ -35,10 +35,10 @@ type WebSocketConn interface {
 	SetCompressionLevel(level int) error
 }
 
-//WebSocketFunc ..
+// WebSocketFunc ..
 type WebSocketFunc func(WebSocketConn, error)
 
-//WebSocket ..
+// WebSocket ..
 type WebSocket struct {
 	Pattern string
 	Handler WebSocketFunc
@@ -46,7 +46,7 @@ type WebSocket struct {
 	Header http.Header
 }
 
-//Upgrade get upgrage request
+// Upgrade get upgrage request
 func (ws *WebSocket) Upgrade(w http.ResponseWriter, r *http.Request) {
 	conn, err := ws.Upgrader.Upgrade(w, r, ws.Header)
 	if err == nil {
@@ -55,10 +55,10 @@ func (ws *WebSocket) Upgrade(w http.ResponseWriter, r *http.Request) {
 	ws.Handler(conn, err)
 }
 
-//WebSocketOption ..
+// WebSocketOption ..
 type WebSocketOption func(*WebSocket)
 
-//WebSocketOptions ..
+// WebSocketOptions ..
 func WebSocketOptions(pattern string, handler WebSocketFunc, opts ...WebSocketOption) *WebSocket {
 	ws := &WebSocket{
 		Pattern:  pattern,

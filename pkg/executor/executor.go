@@ -9,7 +9,7 @@ import (
 	"github.com/douyu/jupiter/pkg/xlog"
 )
 
-//全局执行器存储
+// 全局执行器存储
 var _instances = sync.Map{}
 
 // 执行器接口

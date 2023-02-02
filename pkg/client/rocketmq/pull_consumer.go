@@ -2,6 +2,8 @@ package rocketmq
 
 import (
 	"context"
+	"sync/atomic"
+
 	"github.com/apache/rocketmq-client-go/v2"
 	"github.com/apache/rocketmq-client-go/v2/consumer"
 	"github.com/apache/rocketmq-client-go/v2/primitive"
@@ -15,7 +17,6 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
-	"sync/atomic"
 )
 
 type PullConsumer struct {

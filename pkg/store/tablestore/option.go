@@ -15,13 +15,14 @@
 package tstore
 
 import (
+	"time"
+
 	"github.com/aliyun/aliyun-tablestore-go-sdk/tablestore"
 	cfg "github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/core/constant"
 	"github.com/douyu/jupiter/pkg/core/singleton"
 	"github.com/douyu/jupiter/pkg/util/xdebug"
 	"github.com/douyu/jupiter/pkg/xlog"
-	"time"
 )
 
 // Config ...
