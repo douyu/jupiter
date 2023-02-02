@@ -19,14 +19,14 @@ func (s *ProtoJsonSerializer) Serialize(c v4.Context, i interface{}, indent stri
 		err  error
 		data []byte
 	)
-	switch i.(type) {
+	switch obj := i.(type) {
 	case proto.Message:
 		data, err = protojson.MarshalOptions{
 			EmitUnpopulated: true,
 			UseEnumNumbers:  true,
-		}.Marshal(i.(proto.Message))
+		}.Marshal(obj)
 	default:
-		data, err = json.Marshal(i)
+		data, err = json.Marshal(obj)
 	}
 
 	if err != nil {
