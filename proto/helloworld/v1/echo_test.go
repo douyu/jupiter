@@ -3,15 +3,13 @@ package helloworldv1
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	"github.com/douyu/jupiter/pkg/core/encoding"
 	v4 "github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
-	"google.golang.org/protobuf/encoding/protojson"
-	"google.golang.org/protobuf/proto"
 )
 
 func TestGreeterService_SayHello_0(t *testing.T) {
@@ -37,7 +35,7 @@ func TestGreeterService_SayHello_0(t *testing.T) {
 				createRouter: func() *v4.Echo {
 					echo := v4.New()
 					echo.HTTPErrorHandler = defaultErrorHandler
-					echo.JSONSerializer = new(protoJsonSerializer)
+					echo.JSONSerializer = new(encoding.ProtoJsonSerializer)
 					return echo
 				},
 			},
@@ -167,42 +165,6 @@ func TestGreeterService_SayHello_0(t *testing.T) {
 			}
 		})
 	}
-}
-
-type protoJsonSerializer struct {
-	v4.JSONSerializer
-}
-
-func (s *protoJsonSerializer) Serialize(c v4.Context, i interface{}, indent string) error {
-	var (
-		err  error
-		data []byte
-	)
-	switch i.(type) {
-	case proto.Message:
-		data, err = protojson.MarshalOptions{
-			EmitUnpopulated: true,
-			UseEnumNumbers:  true,
-		}.Marshal(i.(proto.Message))
-	default:
-		data, err = json.Marshal(i)
-	}
-
-	if err != nil {
-		return err
-	}
-
-	return c.JSONBlob(http.StatusOK, data)
-}
-
-func (s *protoJsonSerializer) Deserialize(c v4.Context, i interface{}) error {
-	err := json.NewDecoder(c.Request().Body).Decode(i)
-	if ute, ok := err.(*json.UnmarshalTypeError); ok {
-		return v4.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Unmarshal type error: expected=%v, got=%v, field=%v, offset=%v", ute.Type, ute.Value, ute.Field, ute.Offset)).SetInternal(err)
-	} else if se, ok := err.(*json.SyntaxError); ok {
-		return v4.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Syntax error: offset=%v, error=%v", se.Offset, se.Error())).SetInternal(err)
-	}
-	return err
 }
 
 var defaultErrorHandler = func(err error, c v4.Context) {

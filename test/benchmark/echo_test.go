@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/douyu/jupiter/pkg/core/encoding"
 	"github.com/douyu/jupiter/pkg/server/xecho"
 	"github.com/douyu/jupiter/pkg/util/xerror"
 	helloworldv1 "github.com/douyu/jupiter/proto/helloworld/v1"
@@ -66,8 +67,26 @@ func BenchmarkHTTP(b *testing.B) {
 		}
 	})
 
-	b.Run("HTTP with echo gateway", func(b *testing.B) {
+	b.Run("HTTP echo with stdjson", func(b *testing.B) {
 		server := echo.New()
+
+		helloworldv1.RegisterGreeterServiceEchoServer(server, new(impl))
+
+		for i := 0; i < b.N; i++ {
+			req := httptest.NewRequest(http.MethodPost, "/v1/helloworld.Greeter/SayHello", bytes.NewBufferString("{\"name\":\"bob\"}"))
+			req.Header.Add("Content-Type", "application/json")
+
+			rec := httptest.NewRecorder()
+			server.ServeHTTP(rec, req)
+
+			// fmt.Println(rec)
+			// b.Fail()
+		}
+	})
+
+	b.Run("HTTP echo with protojson", func(b *testing.B) {
+		server := echo.New()
+		server.JSONSerializer = new(encoding.ProtoJsonSerializer)
 
 		helloworldv1.RegisterGreeterServiceEchoServer(server, new(impl))
 
