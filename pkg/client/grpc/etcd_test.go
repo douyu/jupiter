@@ -16,7 +16,7 @@ import (
 
 func TestETCD(t *testing.T) {
 	config := DefaultConfig()
-	config.Addr = "etcd:///grpc:srv1:v1:unkown-mode"
+	config.Addr = "etcd:///grpc:srv1:v1:unknown-mode"
 	cc := testproto.NewGreeterServiceClient(lo.Must(config.Build()))
 
 	results := make(map[string]int)
