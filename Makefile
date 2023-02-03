@@ -50,6 +50,7 @@ init:
 	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2.0
 	go install github.com/go-swagger/go-swagger/cmd/swagger@v0.30.4
 	cd ./cmd/protoc-gen-go-echo && go install .
+	cd ./cmd/protoc-gen-go-gin && go install .
 
 # update buf mod
 update:

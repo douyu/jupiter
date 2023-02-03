@@ -4,20 +4,20 @@ type {{ $.InterfaceName }} interface {
 {{end}}
 }
 func Register{{ $.InterfaceName }}(r *v4.Echo, srv {{ $.InterfaceName }}) {
-	s := _{{$.Name}}{
+	s := _echo_{{$.Name}}{
 		server: srv,
 		router:     r,
 	}
 	s.registerService()
 }
 
-type _{{$.Name}} struct{
+type _echo_{{$.Name}} struct{
 	server {{ $.InterfaceName }}
 	router *v4.Echo
 }
 
 {{range .Methods}}
-{{.Comment}}func (s *_{{$.Name}}) _handler_{{ .HandlerName }} (ctx v4.Context) error {
+{{.Comment}}func (s *_echo_{{$.Name}}) _handler_{{ .HandlerName }} (ctx v4.Context) error {
 	var in {{.Request}}
 	if err := ctx.Bind(&in); err != nil {
 		ctx.Error(err)
@@ -38,7 +38,7 @@ type _{{$.Name}} struct{
 }
 {{end}}
 
-func (s *_{{$.Name}}) registerService() {
+func (s *_echo_{{$.Name}}) registerService() {
 {{range .Methods}}
 	{{.Comment}}s.router.Add("{{.Method}}", "{{.Path}}", s._handler_{{ .HandlerName }})
 {{end}}

@@ -17,6 +17,11 @@ plugins:
     opt: 
       - paths=source_relative
 
+  - name: go-gin
+    out: proto
+    opt: 
+      - paths=source_relative
+
   - name: grpc-gateway
     out: proto
     opt: 

@@ -29,20 +29,20 @@ type GreeterServiceEchoServer interface {
 }
 
 func RegisterGreeterServiceEchoServer(r *v4.Echo, srv GreeterServiceEchoServer) {
-	s := _GreeterService{
+	s := _echo_GreeterService{
 		server: srv,
 		router: r,
 	}
 	s.registerService()
 }
 
-type _GreeterService struct {
+type _echo_GreeterService struct {
 	server GreeterServiceEchoServer
 	router *v4.Echo
 }
 
 // Sends a hello greeting
-func (s *_GreeterService) _handler_SayHello_0(ctx v4.Context) error {
+func (s *_echo_GreeterService) _handler_SayHello_0(ctx v4.Context) error {
 	var in SayHelloRequest
 	if err := ctx.Bind(&in); err != nil {
 		ctx.Error(err)
@@ -63,7 +63,7 @@ func (s *_GreeterService) _handler_SayHello_0(ctx v4.Context) error {
 }
 
 // Sends a hello greeting
-func (s *_GreeterService) _handler_SayHello_1(ctx v4.Context) error {
+func (s *_echo_GreeterService) _handler_SayHello_1(ctx v4.Context) error {
 	var in SayHelloRequest
 	if err := ctx.Bind(&in); err != nil {
 		ctx.Error(err)
@@ -84,7 +84,7 @@ func (s *_GreeterService) _handler_SayHello_1(ctx v4.Context) error {
 }
 
 // Sends a hi greeting
-func (s *_GreeterService) _handler_SayHi_0(ctx v4.Context) error {
+func (s *_echo_GreeterService) _handler_SayHi_0(ctx v4.Context) error {
 	var in SayHiRequest
 	if err := ctx.Bind(&in); err != nil {
 		ctx.Error(err)
@@ -104,7 +104,7 @@ func (s *_GreeterService) _handler_SayHi_0(ctx v4.Context) error {
 	return ctx.JSON(http.StatusOK, out)
 }
 
-func (s *_GreeterService) registerService() {
+func (s *_echo_GreeterService) registerService() {
 
 	// Sends a hello greeting
 	s.router.Add("GET", "/v1/helloworld.Greeter/SayHello/:name", s._handler_SayHello_0)
