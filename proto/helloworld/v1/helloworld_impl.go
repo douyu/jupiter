@@ -1,26 +1,20 @@
-package yell
+package helloworldv1
 
 import (
 	"context"
 	"errors"
 	"time"
 
-	"github.com/douyu/jupiter/proto/testproto/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 // FooServer ...
 type FooServer struct {
-	testproto.UnimplementedGreeterServiceServer
+	UnimplementedGreeterServiceServer
 
 	name string
 	hook func(context.Context)
-}
-
-// SetName ...
-func (s *FooServer) SetName(f string) {
-	s.name = f
 }
 
 // SetHook ...
@@ -35,7 +29,7 @@ var ErrFoo = errors.New("error foo")
 var StatusFoo = status.Errorf(codes.DataLoss, ErrFoo.Error())
 
 // SayHello ...
-func (s *FooServer) SayHello(ctx context.Context, in *testproto.SayHelloRequest) (out *testproto.SayHelloResponse, err error) {
+func (s *FooServer) SayHello(ctx context.Context, in *SayHelloRequest) (out *SayHelloResponse, err error) {
 	// sleep to test cost time
 	time.Sleep(20 * time.Millisecond)
 	switch in.Name {
@@ -46,11 +40,11 @@ func (s *FooServer) SayHello(ctx context.Context, in *testproto.SayHelloRequest)
 		err = StatusFoo
 	case "slow":
 		time.Sleep(500 * time.Millisecond)
-		out = &testproto.SayHelloResponse{Data: &testproto.SayHelloResponse_Data{Name: in.Name}}
+		out = &SayHelloResponse{Data: &SayHelloResponse_Data{Name: in.Name}}
 	case "needPanic":
 		panic("go dead!")
 	default:
-		out = &testproto.SayHelloResponse{Data: &testproto.SayHelloResponse_Data{Name: in.Name}}
+		out = &SayHelloResponse{Data: &SayHelloResponse_Data{Name: in.Name}}
 	}
 	return
 }

@@ -22,7 +22,7 @@ import (
 
 	"github.com/douyu/jupiter/pkg/core/constant"
 	"github.com/douyu/jupiter/pkg/xlog"
-	"github.com/douyu/jupiter/proto/testproto/v1"
+	helloworldv1 "github.com/douyu/jupiter/proto/helloworld/v1"
 	"github.com/smartystreets/goconvey/convey"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
@@ -33,10 +33,10 @@ func Test_Server(t *testing.T) {
 	s := DefaultConfig().MustBuild()
 	// add server impl
 	impl := struct {
-		testproto.GreeterServiceServer
+		helloworldv1.GreeterServiceServer
 	}{}
 	// register
-	testproto.RegisterGreeterServiceServer(s.Server, impl)
+	helloworldv1.RegisterGreeterServiceServer(s.Server, impl)
 	go func() {
 		s.Serve()
 	}()
