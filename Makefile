@@ -69,7 +69,7 @@ lint:
 
 # breaking
 breaking:
-	buf breaking --against https://github.com/douyu/proto/.git#branch=main,ref=HEAD~1,subdir=api
+	buf breaking --against https://github.com/douyu/jupiter/.git#branch=main,ref=HEAD~1,subdir=proto
 
 # test
 test-proto2echo:

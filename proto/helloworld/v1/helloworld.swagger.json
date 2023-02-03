@@ -5,7 +5,7 @@
     "version": "1.0",
     "contact": {
       "name": "douyu",
-      "url": "https://github.com/douyu/proto"
+      "url": "https://github.com/douyu/jupiter"
     }
   },
   "tags": [
@@ -17,7 +17,7 @@
       "description": "This is how we do it.",
       "externalDocs": {
         "description": "Find out more",
-        "url": "https://github.com/douyu/proto"
+        "url": "https://github.com/douyu/jupiter"
       }
     }
   ],

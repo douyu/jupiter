@@ -17,7 +17,7 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
     version: "1.0"
     contact: {
       name: "douyu"
-      url: "https://github.com/douyu/proto"
+      url: "https://github.com/douyu/jupiter"
     };
   };
   tags: [
@@ -26,7 +26,7 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
       description: "This is how we do it."
       external_docs: {
         description: "Find out more"
-        url: "https://github.com/douyu/proto"
+        url: "https://github.com/douyu/jupiter"
       }
     }
   ];
