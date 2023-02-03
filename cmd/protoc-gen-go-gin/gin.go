@@ -23,7 +23,7 @@ const (
 
 var methodSets = make(map[string]int)
 
-// generateFile generates a _echo.pb.go file.
+// generateFile generates a _gin.pb.go file.
 func generateFile(gen *protogen.Plugin, file *protogen.File) *protogen.GeneratedFile {
 	if len(file.Services) == 0 {
 		return nil
