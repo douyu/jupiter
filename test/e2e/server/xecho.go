@@ -21,7 +21,7 @@ import (
 	"github.com/douyu/jupiter/pkg/client/resty"
 	"github.com/douyu/jupiter/pkg/core/tests"
 	"github.com/douyu/jupiter/pkg/server/xecho"
-	"github.com/douyu/jupiter/pkg/util/xtest/server/yell"
+	helloworldv1 "github.com/douyu/jupiter/proto/helloworld/v1"
 	"github.com/labstack/echo/v4"
 	"github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
@@ -36,7 +36,7 @@ var _ = ginkgo.Describe("[xecho] e2e test", func() {
 			return c.String(http.StatusOK, "hello")
 		})
 
-		s := &yell.FooServer{}
+		s := &helloworldv1.FooServer{}
 		server.GET("/sayhello/get", xecho.GRPCProxyWrapper(s.SayHello))
 		server.POST("/sayhello/post", xecho.GRPCProxyWrapper(s.SayHello))
 
@@ -72,7 +72,7 @@ var _ = ginkgo.Describe("[xecho] e2e test", func() {
 			Query:        "name=bob",
 			Path:         "/sayhello/get",
 			ExpectStatus: http.StatusOK,
-			ExpectBody:   `{"error":0,"msg":"","data":{"name":"bob","ageNumber":"0"}}`,
+			ExpectBody:   `{"error":0,"msg":"","data":{"name":"bob","ageNumber":"0","sex":0,"metadata":{}}}`,
 		}),
 
 		ginkgo.Entry("grpc proxy post", tests.HTTPTestCase{
@@ -86,7 +86,7 @@ var _ = ginkgo.Describe("[xecho] e2e test", func() {
 				"Content-Type": "application/json",
 			},
 			ExpectStatus: http.StatusOK,
-			ExpectBody:   `{"error":0,"msg":"","data":{"name":"bob","ageNumber":"0"}}`,
+			ExpectBody:   `{"error":0,"msg":"","data":{"name":"bob","ageNumber":"0","sex":0,"metadata":{}}}`,
 		}),
 	)
 })
