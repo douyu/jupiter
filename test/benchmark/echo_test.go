@@ -3,6 +3,7 @@ package benchmark
 import (
 	"bytes"
 	"context"
+	"encoding/binary"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -14,11 +15,35 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/labstack/echo/v4"
+	"google.golang.org/grpc"
+	"google.golang.org/protobuf/proto"
 )
 
 func BenchmarkHTTP(b *testing.B) {
 
-	b.Run("HTTP with reflect", func(b *testing.B) {
+	b.Run("gRPC with protobuf", func(b *testing.B) {
+		server := grpc.NewServer()
+		impl := new(impl)
+		helloworldv1.RegisterGreeterServiceServer(server, impl)
+		body, _ := proto.Marshal(&helloworldv1.SayHelloRequest{Name: "bob"})
+		hdr, body := msgHeader(body, nil)
+		data := bytes.NewBuffer(hdr)
+		data.Write(body)
+
+		for i := 0; i < b.N; i++ {
+			req := httptest.NewRequest(
+				"POST", "http://localhost/helloworld.v1.GreeterService/SayHello",
+				data,
+			)
+			rec := httptest.NewRecorder()
+			server.ServeHTTP(rec, req)
+
+			// fmt.Println(rec)
+			// b.Fail()
+		}
+	})
+
+	b.Run("HTTP with reflect gRPC", func(b *testing.B) {
 		server := echo.New()
 		impl := new(impl)
 		server.POST("/v1/helloworld.Greeter/SayHello", xecho.GRPCProxyWrapper(impl.SayHello))
@@ -163,4 +188,20 @@ func (*impl) SayHello(ctx context.Context, req *helloworldv1.SayHelloRequest) (*
 			Name: "hello bob",
 		},
 	}, nil
+}
+
+// msgHeader returns a 5-byte header for the message being transmitted and the
+// payload, which is compData if non-nil or data otherwise.
+func msgHeader(data, compData []byte) (hdr []byte, payload []byte) {
+	hdr = make([]byte, 5)
+	if compData != nil {
+		hdr[0] = byte(1)
+		data = compData
+	} else {
+		hdr[0] = byte(0)
+	}
+
+	// Write length of payload into buf
+	binary.BigEndian.PutUint32(hdr[1:], uint32(len(data)))
+	return hdr, data
 }
