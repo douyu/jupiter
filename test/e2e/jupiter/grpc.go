@@ -63,7 +63,7 @@ var _ = ginkgo.Describe("[jupiter] e2e test", ginkgo.Ordered, func() {
 	ginkgo.DescribeTable("jupiter grpc sayhello", func(gtc tests.GRPCTestCase) {
 		tests.RunGRPCTestCase(gtc)
 	},
-		ginkgo.FEntry("normal case", tests.GRPCTestCase{
+		ginkgo.Entry("normal case", tests.GRPCTestCase{
 			Conf: &grpc.Config{
 				Addr: "localhost:9527",
 			},
