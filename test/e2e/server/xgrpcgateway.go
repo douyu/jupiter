@@ -59,10 +59,10 @@ var _ = ginkgo.Describe("[xgrpcgateway] e2e test", func() {
 				Addr: "http://localhost:9091",
 			},
 			Method:       "POST",
-			Path:         "/helloworld.v1.GreeterService/SayHello",
+			Path:         "/v1/helloworld.Greeter/SayHello",
 			Body:         `{"name":"jupiter"}`,
 			ExpectStatus: http.StatusOK,
-			ExpectBody:   `{"error":0,"msg":"","data":{"name":"jupiter","ageNumber":"0"}}`,
+			ExpectBody:   `{"error":0,"msg":"","data":{"name":"jupiter","ageNumber":"0","sex":"SEX_UNSPECIFIED","metadata":{}}}`,
 		}),
 		ginkgo.Entry("404", tests.HTTPTestCase{
 			Conf: &resty.Config{
