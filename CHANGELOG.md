@@ -2,6 +2,34 @@
 
 <!-- Release notes generated using configuration in .github/release.yml at master -->
 
+## v0.11.0
+
+### Other Changes
+
+* build(deps): bump github.com/onsi/gomega from 1.24.2 to 1.25.0 by @dependabot in https://github.com/douyu/jupiter/pull/670
+* build(deps): bump github.com/onsi/gomega from 1.24.2 to 1.25.0 in /test/e2e by @dependabot in https://github.com/douyu/jupiter/pull/671
+* build(deps): bump google.golang.org/grpc from 1.52.0 to 1.52.3 in /test/e2e by @dependabot in https://github.com/douyu/jupiter/pull/684
+* build(deps): bump github.com/fatih/color from 1.13.0 to 1.14.1 by @dependabot in https://github.com/douyu/jupiter/pull/681
+* build(deps): bump github.com/onsi/gomega from 1.25.0 to 1.26.0 by @dependabot in https://github.com/douyu/jupiter/pull/680
+* build(deps): bump github.com/onsi/gomega from 1.25.0 to 1.26.0 in /test/e2e by @dependabot in https://github.com/douyu/jupiter/pull/682
+* build(deps): bump google.golang.org/grpc from 1.52.0 to 1.52.3 by @dependabot in https://github.com/douyu/jupiter/pull/685
+* build(deps): bump github.com/urfave/cli from 1.22.11 to 1.22.12 by @dependabot in https://github.com/douyu/jupiter/pull/679
+* build(deps): bump golangci/golangci-lint-action from 3.3.1 to 3.4.0 by @dependabot in https://github.com/douyu/jupiter/pull/677
+* build(deps): bump go.etcd.io/etcd/api/v3 from 3.5.6 to 3.5.7 by @dependabot in https://github.com/douyu/jupiter/pull/675
+* build(deps): bump github.com/onsi/ginkgo/v2 from 2.7.0 to 2.7.1 in /test/e2e by @dependabot in https://github.com/douyu/jupiter/pull/691
+* build(deps): bump github.com/onsi/ginkgo/v2 from 2.7.0 to 2.8.0 by @dependabot in https://github.com/douyu/jupiter/pull/692
+* build(deps): bump go.opentelemetry.io/otel from 1.11.2 to 1.12.0 by @dependabot in https://github.com/douyu/jupiter/pull/687
+* build(deps): bump github.com/onsi/ginkgo/v2 from 2.7.1 to 2.8.0 in /test/e2e by @dependabot in https://github.com/douyu/jupiter/pull/694
+* feat: add more linter by @hnlq715 in https://github.com/douyu/jupiter/pull/669
+* feat: add Must(Bulid,Singleton) Pattern to Client component by @B15030328 in https://github.com/douyu/jupiter/pull/697
+* build(deps): bump gorm.io/gorm from 1.24.3 to 1.24.4 by @dependabot in https://github.com/douyu/jupiter/pull/698
+* feat: support generate echo and gin server with protobuf by @hnlq715 in https://github.com/douyu/jupiter/pull/696
+* chore: remove testproto by @hnlq715 in https://github.com/douyu/jupiter/pull/699
+
+**Full Changelog**: https://github.com/douyu/jupiter/compare/v0.10.2...v0.11.0
+
+<!-- Release notes generated using configuration in .github/release.yml at master -->
+
 ## v0.10.2
 
 ### Other Changes
