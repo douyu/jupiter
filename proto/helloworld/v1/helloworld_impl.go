@@ -13,7 +13,6 @@ import (
 type FooServer struct {
 	UnimplementedGreeterServiceServer
 
-	name string
 	hook func(context.Context)
 }
 
