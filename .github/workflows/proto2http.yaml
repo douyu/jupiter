@@ -1,4 +1,4 @@
-name: proto2echo
+name: proto2http
 
 on:
   push:
@@ -38,5 +38,5 @@ jobs:
           make init
           make lint
           make generate
-          make test-proto2echo
+          make test-proto2http
           make validate

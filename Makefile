@@ -72,7 +72,7 @@ breaking:
 	buf breaking --against https://github.com/douyu/jupiter/.git#branch=main,ref=HEAD~1,subdir=proto
 
 # test
-test-proto2echo:
+test-proto2http:
 	go test -v -cover ./proto/...
 
 # validate openapi docs
