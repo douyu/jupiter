@@ -15,7 +15,7 @@ func main() {
 	flag.Parse()
 
 	if *showVersion {
-		fmt.Printf("protoc-gen-go-errors %v\n", pkg.JupiterVersion())
+		fmt.Printf("protoc-gen-go-xerror %v\n", pkg.JupiterVersion())
 		return
 	}
 
