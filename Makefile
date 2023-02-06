@@ -51,6 +51,7 @@ init:
 	go install github.com/go-swagger/go-swagger/cmd/swagger@v0.30.4
 	cd ./cmd/protoc-gen-go-echo && go install .
 	cd ./cmd/protoc-gen-go-gin && go install .
+	cd ./cmd/protoc-gen-go-xerror && go install .
 
 # update buf mod
 update:
