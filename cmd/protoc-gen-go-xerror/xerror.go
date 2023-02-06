@@ -3,19 +3,18 @@ package main
 import (
 	"fmt"
 
+	"github.com/douyu/jupiter/pkg"
 	errorv1 "github.com/douyu/jupiter/proto/error/v1"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/proto"
 )
 
-const (
-	version = "v0.0.1"
+var version = pkg.JupiterVersion()
 
+const (
 	xerrorPkg          = protogen.GoImportPath("github.com/douyu/jupiter/pkg/util/xerror")
 	deprecationComment = "// Deprecated: Do not use."
 )
-
-var methodSets = make(map[string]int)
 
 // generateFile generates a _error.pb.go file.
 func generateFile(gen *protogen.Plugin, file *protogen.File) *protogen.GeneratedFile {
