@@ -25,12 +25,12 @@ import (
 	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/conf/datasource/file"
 	"github.com/douyu/jupiter/pkg/core/application"
-	"github.com/douyu/jupiter/pkg/core/tests"
 	"github.com/douyu/jupiter/pkg/registry"
 	"github.com/douyu/jupiter/pkg/registry/etcdv3"
 	"github.com/douyu/jupiter/pkg/server"
 	"github.com/douyu/jupiter/pkg/server/xgrpc"
 	helloworldv1 "github.com/douyu/jupiter/proto/helloworld/v1"
+	"github.com/douyu/jupiter/test/e2e/framework"
 	"github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/metadata"
@@ -60,10 +60,10 @@ var _ = ginkgo.Describe("[jupiter] e2e test", ginkgo.Ordered, func() {
 		conf.Reset()
 	})
 
-	ginkgo.DescribeTable("jupiter grpc sayhello", func(gtc tests.GRPCTestCase) {
-		tests.RunGRPCTestCase(gtc)
+	ginkgo.DescribeTable("jupiter grpc sayhello", func(gtc framework.GRPCTestCase) {
+		framework.RunGRPCTestCase(gtc)
 	},
-		ginkgo.Entry("normal case", tests.GRPCTestCase{
+		ginkgo.Entry("normal case", framework.GRPCTestCase{
 			Conf: &grpc.Config{
 				Addr: "localhost:9527",
 			},
@@ -77,10 +77,10 @@ var _ = ginkgo.Describe("[jupiter] e2e test", ginkgo.Ordered, func() {
 		}),
 	)
 
-	ginkgo.DescribeTable("jupiter registry", func(tc tests.ETCDTestCase) {
-		tests.RunETCDTestCase(tc)
+	ginkgo.DescribeTable("jupiter registry", func(tc framework.ETCDTestCase) {
+		framework.RunETCDTestCase(tc)
 	},
-		ginkgo.Entry("normal case", tests.ETCDTestCase{
+		ginkgo.Entry("normal case", framework.ETCDTestCase{
 			Conf: &etcdv3.Config{
 				Config: &cetcdv3.Config{
 					Endpoints: []string{"http://localhost:2379"},

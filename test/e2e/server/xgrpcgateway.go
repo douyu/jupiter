@@ -19,9 +19,9 @@ import (
 	"time"
 
 	"github.com/douyu/jupiter/pkg/client/resty"
-	"github.com/douyu/jupiter/pkg/core/tests"
 	"github.com/douyu/jupiter/pkg/server/xecho"
 	helloworldv1 "github.com/douyu/jupiter/proto/helloworld/v1"
+	"github.com/douyu/jupiter/test/e2e/framework"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/labstack/echo/v4"
 	"github.com/onsi/ginkgo/v2"
@@ -51,10 +51,10 @@ var _ = ginkgo.Describe("[xgrpcgateway] e2e test", func() {
 		_ = server.Stop()
 	})
 
-	ginkgo.DescribeTable("xgrpcgateway", func(htc tests.HTTPTestCase) {
-		tests.RunHTTPTestCase(htc)
+	ginkgo.DescribeTable("xgrpcgateway", func(htc framework.HTTPTestCase) {
+		framework.RunHTTPTestCase(htc)
 	},
-		ginkgo.Entry("normal case", tests.HTTPTestCase{
+		ginkgo.Entry("normal case", framework.HTTPTestCase{
 			Conf: &resty.Config{
 				Addr: "http://localhost:9091",
 			},
@@ -64,7 +64,7 @@ var _ = ginkgo.Describe("[xgrpcgateway] e2e test", func() {
 			ExpectStatus: http.StatusOK,
 			ExpectBody:   `{"error":0,"msg":"","data":{"name":"jupiter","ageNumber":"0","sex":"SEX_UNSPECIFIED","metadata":{}}}`,
 		}),
-		ginkgo.Entry("404", tests.HTTPTestCase{
+		ginkgo.Entry("404", framework.HTTPTestCase{
 			Conf: &resty.Config{
 				Addr: "http://localhost:9091",
 			},

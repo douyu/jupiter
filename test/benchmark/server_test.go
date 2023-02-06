@@ -19,7 +19,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func BenchmarkHTTP(b *testing.B) {
+func BenchmarkServer(b *testing.B) {
 
 	b.Run("gRPC with protobuf", func(b *testing.B) {
 		server := grpc.NewServer()

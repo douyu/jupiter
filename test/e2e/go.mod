@@ -10,12 +10,14 @@ require (
 	github.com/gin-gonic/gin v1.8.2
 	github.com/gogf/gf v1.16.9
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.15.0
+	github.com/imdario/mergo v0.3.13
 	github.com/labstack/echo/v4 v4.10.0
 	github.com/onsi/ginkgo/v2 v2.8.0
 	github.com/onsi/gomega v1.26.0
 	github.com/stretchr/testify v1.8.1
 	github.com/valyala/fasthttp v1.44.0
 	google.golang.org/grpc v1.52.3
+	google.golang.org/protobuf v1.28.1
 )
 
 require (
@@ -53,7 +55,6 @@ require (
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/grokify/html-strip-tags-go v0.0.1 // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 // indirect
-	github.com/imdario/mergo v0.3.13 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.15.9 // indirect
 	github.com/labstack/gommon v0.4.0 // indirect
@@ -107,7 +108,6 @@ require (
 	golang.org/x/sys v0.4.0 // indirect
 	golang.org/x/text v0.6.0 // indirect
 	google.golang.org/genproto v0.0.0-20221207170731-23e4bf6bdc37 // indirect
-	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
