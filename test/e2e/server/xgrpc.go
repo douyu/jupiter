@@ -18,9 +18,9 @@ import (
 	"time"
 
 	"github.com/douyu/jupiter/pkg/client/grpc"
-	"github.com/douyu/jupiter/pkg/core/tests"
 	"github.com/douyu/jupiter/pkg/server/xgrpc"
 	helloworldv1 "github.com/douyu/jupiter/proto/helloworld/v1"
+	"github.com/douyu/jupiter/test/e2e/framework"
 	"github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/metadata"
@@ -43,10 +43,10 @@ var _ = ginkgo.Describe("[grpc] e2e test", func() {
 		_ = server.Stop()
 	})
 
-	ginkgo.DescribeTable("xgrpc sayhello", func(gtc tests.GRPCTestCase) {
-		tests.RunGRPCTestCase(gtc)
+	ginkgo.DescribeTable("xgrpc sayhello", func(gtc framework.GRPCTestCase) {
+		framework.RunGRPCTestCase(gtc)
 	},
-		ginkgo.Entry("normal case", tests.GRPCTestCase{
+		ginkgo.Entry("normal case", framework.GRPCTestCase{
 			Conf: &grpc.Config{
 				Addr: "localhost:9092",
 			},
