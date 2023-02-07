@@ -25,13 +25,12 @@ import (
 	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/conf/datasource/file"
 	"github.com/douyu/jupiter/pkg/core/application"
-	"github.com/douyu/jupiter/pkg/core/tests"
 	"github.com/douyu/jupiter/pkg/registry"
 	"github.com/douyu/jupiter/pkg/registry/etcdv3"
 	"github.com/douyu/jupiter/pkg/server"
 	"github.com/douyu/jupiter/pkg/server/xgrpc"
-	"github.com/douyu/jupiter/pkg/util/xtest/server/yell"
-	"github.com/douyu/jupiter/proto/testproto/v1"
+	helloworldv1 "github.com/douyu/jupiter/proto/helloworld/v1"
+	"github.com/douyu/jupiter/test/e2e/framework"
 	"github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/metadata"
@@ -46,7 +45,7 @@ var _ = ginkgo.Describe("[jupiter] e2e test", ginkgo.Ordered, func() {
 
 		app = jupiter.DefaultApp()
 		server := xgrpc.StdConfig("grpc").MustBuild()
-		testproto.RegisterGreeterServiceServer(server.Server, new(yell.FooServer))
+		helloworldv1.RegisterGreeterServiceServer(server.Server, new(helloworldv1.FooServer))
 		app.Serve(server)
 		// app.SetRegistry(etcdv3.DefaultConfig().MustBuild())
 		go func(a *application.Application) {
@@ -61,27 +60,27 @@ var _ = ginkgo.Describe("[jupiter] e2e test", ginkgo.Ordered, func() {
 		conf.Reset()
 	})
 
-	ginkgo.DescribeTable("jupiter grpc sayhello", func(gtc tests.GRPCTestCase) {
-		tests.RunGRPCTestCase(gtc)
+	ginkgo.DescribeTable("jupiter grpc sayhello", func(gtc framework.GRPCTestCase) {
+		framework.RunGRPCTestCase(gtc)
 	},
-		ginkgo.Entry("normal case", tests.GRPCTestCase{
+		ginkgo.Entry("normal case", framework.GRPCTestCase{
 			Conf: &grpc.Config{
 				Addr: "localhost:9527",
 			},
-			Method: "/testproto.v1.GreeterService/SayHello",
-			Args: &testproto.SayHelloRequest{
+			Method: "/helloworld.v1.GreeterService/SayHello",
+			Args: &helloworldv1.SayHelloRequest{
 				Name: "jupiter",
 			},
 			ExpectError:    nil,
 			ExpectMetadata: metadata.MD{"content-type": []string{"application/grpc"}},
-			ExpectReply:    &testproto.SayHelloResponse{Data: &testproto.SayHelloResponse_Data{Name: "jupiter"}},
+			ExpectReply:    &helloworldv1.SayHelloResponse{Data: &helloworldv1.SayHelloResponse_Data{Name: "jupiter"}},
 		}),
 	)
 
-	ginkgo.DescribeTable("jupiter registry", func(tc tests.ETCDTestCase) {
-		tests.RunETCDTestCase(tc)
+	ginkgo.DescribeTable("jupiter registry", func(tc framework.ETCDTestCase) {
+		framework.RunETCDTestCase(tc)
 	},
-		ginkgo.Entry("normal case", tests.ETCDTestCase{
+		ginkgo.Entry("normal case", framework.ETCDTestCase{
 			Conf: &etcdv3.Config{
 				Config: &cetcdv3.Config{
 					Endpoints: []string{"http://localhost:2379"},

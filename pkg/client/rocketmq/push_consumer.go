@@ -24,6 +24,7 @@ import (
 	"github.com/douyu/jupiter/pkg/core/xtrace"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/juju/ratelimit"
+	"github.com/samber/lo"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/propagation"
 	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
@@ -258,4 +259,9 @@ func (cc *PushConsumer) Start() error {
 	cc.started = true
 
 	return nil
+}
+
+// MustStart panics when error found.
+func (cc *PushConsumer) MustStart() {
+	lo.Must0(cc.Start())
 }

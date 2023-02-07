@@ -1,20 +1,42 @@
 version: v1
-managed:
-  enabled: true
 
-  # Go
-  # go_package_prefix:
-  #   default: github.com/douyu/jupiter
 plugins:
-  - remote: buf.build/protocolbuffers/plugins/go:v1.27.1-1
+  - name: go
     out: proto
     opt:
       - paths=source_relative
-  - remote: buf.build/library/plugins/go-grpc:v1.1.0-2
+
+  - name: go-xerror
+    out: proto
+    opt:
+      - paths=source_relative
+
+  - name: go-grpc
     out: proto
     opt:
       - require_unimplemented_servers=false
       - paths=source_relative
-  - remote: buf.build/grpc-ecosystem/plugins/grpc-gateway:v2.11.3-1
+
+  - name: go-echo
     out: proto
-    opt: paths=source_relative
+    opt: 
+      - paths=source_relative
+
+  - name: go-gin
+    out: proto
+    opt: 
+      - paths=source_relative
+
+  - name: grpc-gateway
+    out: proto
+    opt: 
+      - paths=source_relative
+
+  - name: openapiv2
+    out: proto
+    opt: 
+      - disable_default_errors=true
+      # - enums_as_ints=true
+      # - omit_enum_default_value=true
+      - generate_unbound_methods=true
+      - include_package_in_tags=true

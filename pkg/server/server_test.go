@@ -148,7 +148,7 @@ func TestServer(t *testing.T) {
 		WithMetaData("zone", "wh"),
 	)
 
-	assert.Equal(t, "grpc:server.test:v1:unkown-mode/127.0.0.1", server.RegistryName())
-	assert.Equal(t, "grpc:server.test:v1:unkown-mode/", server.ServicePrefix())
+	assert.Equal(t, "grpc:server.test:v1:unknown-mode/127.0.0.1", server.RegistryName())
+	assert.Equal(t, "grpc:server.test:v1:unknown-mode/", server.ServicePrefix())
 	assert.Equal(t, "grpc://127.0.0.1", server.Label())
 }

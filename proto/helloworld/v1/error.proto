@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package helloworld.v1;
+
+import "error/v1/error.proto";
+
+option go_package = "github.com/douyu/jupiter/proto/helloworld/v1;helloworldv1";
+option java_multiple_files = true;
+option java_outer_classname = "HelloWorldProtoV1";
+option java_package = "com.douyu.helloworld.v1";
+
+// Error codes for the helloworld.v1 package.
+enum Error {
+  // ERROR_UNSPECIFIED is the invalid code.
+  ERROR_UNSPECIFIED = 0;
+  // ERROR_NAME_INVALID is the error code for invalid name.
+  ERROR_NAME_INVALID = 1000 [(error.v1.msg) = "name is invalid"];
+}

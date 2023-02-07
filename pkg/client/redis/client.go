@@ -6,6 +6,8 @@ import (
 	"math/rand"
 
 	"github.com/go-redis/redis/v8"
+	"github.com/samber/lo"
+	"go.uber.org/zap"
 
 	"github.com/douyu/jupiter/pkg/core/constant"
 	"github.com/douyu/jupiter/pkg/core/singleton"
@@ -32,7 +34,7 @@ func (ins *Client) CmdOnSlave() *redis.Client {
 	return ins.slave[rand.Intn(len(ins.slave))]
 }
 
-// Singleton 单例模式
+// Singleton returns a singleton client conn.
 func (config *Config) Singleton() (*Client, error) {
 	if val, ok := singleton.Load(constant.ModuleClientRedis, config.name); ok && val != nil {
 		return val.(*Client), nil
@@ -40,29 +42,21 @@ func (config *Config) Singleton() (*Client, error) {
 
 	cc, err := config.Build()
 	if err != nil {
-		return cc, err
+		xlog.Jupiter().Error("build redis client failed", zap.Error(err))
+		return nil, err
 	}
 	singleton.Store(constant.ModuleClientRedis, config.name, cc)
 	return cc, nil
 }
 
-// MustSingleton 单例模式
+// MustSingleton panics when error found.
 func (config *Config) MustSingleton() *Client {
-	if val, ok := singleton.Load(constant.ModuleClientRedis, config.name); ok && val != nil {
-		return val.(*Client)
-	}
-	cc := config.MustBuild()
-	singleton.Store(constant.ModuleClientRedis, config.name, cc)
-	return cc
+	return lo.Must(config.Singleton())
 }
 
-// MustBuild ..
+// MustBuild panics when error found.
 func (config *Config) MustBuild() *Client {
-	cc, err := config.Build()
-	if err != nil {
-		config.logger.Panic("redis:"+err.Error(), xlog.FieldExtMessage(config))
-	}
-	return cc
+	return lo.Must(config.Build())
 }
 
 // Build ..

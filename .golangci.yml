@@ -53,7 +53,12 @@ run:
   # If false (default) - golangci-lint acquires file lock on start.
   allow-parallel-runners: false
 linters:
-  disable:
+  enable:
+    - gofmt
+    - loggercheck
+    - misspell
+    - dupl
+
 linters-settings:
   staticcheck:
     checks: ["all", "-SA1019", "-SA6002"]

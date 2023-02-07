@@ -19,8 +19,8 @@ import (
 	"time"
 
 	"github.com/douyu/jupiter/pkg/client/resty"
-	"github.com/douyu/jupiter/pkg/core/tests"
 	"github.com/douyu/jupiter/pkg/server/xfasthttp"
+	"github.com/douyu/jupiter/test/e2e/framework"
 	"github.com/onsi/ginkgo/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/valyala/fasthttp"
@@ -45,9 +45,9 @@ var _ = ginkgo.Describe("[xfasthttp] e2e test", func() {
 		_ = server.Stop()
 	})
 
-	ginkgo.DescribeTable("xfasthttp", func(htc tests.HTTPTestCase) {
-		tests.RunHTTPTestCase(htc)
-	}, ginkgo.Entry("normal case", tests.HTTPTestCase{
+	ginkgo.DescribeTable("xfasthttp", func(htc framework.HTTPTestCase) {
+		framework.RunHTTPTestCase(htc)
+	}, ginkgo.Entry("normal case", framework.HTTPTestCase{
 		Conf: &resty.Config{
 			Addr: "http://localhost:9091",
 		},

@@ -211,7 +211,7 @@ func (e *JobExecutor) killTaskHandler(writer http.ResponseWriter, request *http.
 	_, _ = writer.Write(returnGeneral())
 }
 
-//任务日志
+// 任务日志
 func (e *JobExecutor) taskLogHandler(writer http.ResponseWriter, request *http.Request) {
 	data, _ := ioutil.ReadAll(request.Body)
 	defer request.Body.Close()
@@ -250,7 +250,7 @@ func (e *JobExecutor) heartBeatHandler(writer http.ResponseWriter, request *http
 	_, _ = writer.Write(returnHeatBeat(e.address))
 }
 
-//注册执行器到调度中心
+// 注册执行器到调度中心
 func (e *JobExecutor) registry() {
 	t := time.NewTimer(time.Second * 0) //初始立即执行
 	defer t.Stop()
@@ -292,7 +292,7 @@ func (e *JobExecutor) registry() {
 	}
 }
 
-//执行器注册摘除
+// 执行器注册摘除
 func (e *JobExecutor) registryRemove() {
 	t := time.NewTimer(time.Second * 0) //初始立即执行
 	defer t.Stop()
@@ -330,7 +330,7 @@ func (e *JobExecutor) Stop() {
 	e.registryRemove()
 }
 
-//回调任务列表
+// 回调任务列表
 func (e *JobExecutor) callback(task *Task, code int, msg string, delete bool) {
 	if delete {
 		e.runList.Del(Int64ToStr(task.Id))

@@ -48,7 +48,7 @@ func AppMode() string {
 	confMode := conf.GetString(constant.ConfigKey("mode"))
 	if appMode == "" {
 		if confMode == "" {
-			return "unkown-mode"
+			return "unknown-mode"
 		}
 
 		return confMode
