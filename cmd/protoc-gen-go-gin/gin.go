@@ -2,8 +2,6 @@ package main
 
 import (
 	"fmt"
-	"regexp"
-	"strings"
 
 	"github.com/douyu/jupiter/pkg"
 	"google.golang.org/genproto/googleapis/api/annotations"
@@ -142,16 +140,6 @@ func buildMethodDesc(m *protogen.Method, httpMethod, path string) *method {
 	}
 	md.initPathParams()
 	return md
-}
-
-var matchFirstCap = regexp.MustCompile("([A-Z])([A-Z][a-z])")
-var matchAllCap = regexp.MustCompile("([a-z0-9])([A-Z])")
-
-func toSnakeCase(input string) string {
-	output := matchFirstCap.ReplaceAllString(input, "${1}_${2}")
-	output = matchAllCap.ReplaceAllString(output, "${1}_${2}")
-	output = strings.ReplaceAll(output, "-", "_")
-	return strings.ToLower(output)
 }
 
 func protocVersion(gen *protogen.Plugin) string {
