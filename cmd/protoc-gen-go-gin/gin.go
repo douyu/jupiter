@@ -2,18 +2,17 @@ package main
 
 import (
 	"fmt"
-	"regexp"
-	"strings"
 
+	"github.com/douyu/jupiter/pkg"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
 )
 
-const (
-	version = "v0.0.1"
+var version = pkg.JupiterVersion()
 
+const (
 	httpPkg            = protogen.GoImportPath("net/http")
 	contextPkg         = protogen.GoImportPath("context")
 	ginPkg             = protogen.GoImportPath("github.com/gin-gonic/gin")
@@ -141,16 +140,6 @@ func buildMethodDesc(m *protogen.Method, httpMethod, path string) *method {
 	}
 	md.initPathParams()
 	return md
-}
-
-var matchFirstCap = regexp.MustCompile("([A-Z])([A-Z][a-z])")
-var matchAllCap = regexp.MustCompile("([a-z0-9])([A-Z])")
-
-func toSnakeCase(input string) string {
-	output := matchFirstCap.ReplaceAllString(input, "${1}_${2}")
-	output = matchAllCap.ReplaceAllString(output, "${1}_${2}")
-	output = strings.ReplaceAll(output, "-", "_")
-	return strings.ToLower(output)
 }
 
 func protocVersion(gen *protogen.Plugin) string {

@@ -2,12 +2,22 @@ package main
 
 import (
 	"flag"
+	"fmt"
 
+	"github.com/douyu/jupiter/pkg"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/types/pluginpb"
 )
 
+var showVersion = flag.Bool("version", false, "print the version and exit")
+
 func main() {
+	flag.Parse()
+
+	if *showVersion {
+		fmt.Printf("protoc-gen-go-xerror %v\n", pkg.JupiterVersion())
+		return
+	}
 
 	var flags flag.FlagSet
 

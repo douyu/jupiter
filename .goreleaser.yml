@@ -10,6 +10,33 @@ builds:
     - windows
   goarch: [amd64]
 
+- main: ./cmd/protoc-gen-go-echo
+  id: "protoc-gen-go-echo"
+  binary: protoc-gen-go-echo
+  goos:
+    - linux
+    - darwin
+    - windows
+  goarch: [amd64]
+
+- main: ./cmd/protoc-gen-go-gin
+  id: "protoc-gen-go-gin"
+  binary: protoc-gen-go-gin
+  goos:
+    - linux
+    - darwin
+    - windows
+  goarch: [amd64]
+
+- main: ./cmd/protoc-gen-go-xerror
+  id: "protoc-gen-go-xerror"
+  binary: protoc-gen-go-xerror
+  goos:
+    - linux
+    - darwin
+    - windows
+  goarch: [amd64]
+
 changelog:
   sort: asc
   filters:
