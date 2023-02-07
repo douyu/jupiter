@@ -55,7 +55,12 @@ func init() {
 			appName = filepath.Base(os.Args[0])
 		}
 	}
-
+	if appID == "" {
+		appID = os.Getenv(constant.EnvAppID)
+		if appID == "" {
+			appID = "1234567890"
+		}
+	}
 	name, err := os.Hostname()
 	if err != nil {
 		name = "unknown"
@@ -79,9 +84,6 @@ func SetName(s string) {
 
 // AppID get appID
 func AppID() string {
-	if appID == "" {
-		return "1234567890" //default appid when APP_ID Env var not set
-	}
 	return appID
 }
 
