@@ -5,15 +5,16 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/douyu/jupiter/pkg"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
 )
 
-const (
-	version = "v0.0.1"
+var version = pkg.JupiterVersion()
 
+const (
 	httpPkg            = protogen.GoImportPath("net/http")
 	contextPkg         = protogen.GoImportPath("context")
 	ginPkg             = protogen.GoImportPath("github.com/gin-gonic/gin")
