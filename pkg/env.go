@@ -21,7 +21,6 @@ var (
 )
 
 func InitEnv() {
-	appID = os.Getenv(constant.EnvAppID)
 	appLogDir = os.Getenv(constant.EnvAppLogDir)
 	appMode = os.Getenv(constant.EnvAppMode)
 	appRegion = os.Getenv(constant.EnvAppRegion)
