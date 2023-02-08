@@ -12,17 +12,17 @@ type LocalCache[K comparable, V any] struct {
 }
 
 type localStorage struct {
-	req Config
+	config *Config
 }
 
 func (l *localStorage) SetCacheData(key string, data []byte) (err error) {
-	err = l.req.Cache.Set([]byte(key), data, int(l.req.Expire.Seconds()))
+	err = l.config.Cache.Set([]byte(key), data, int(l.config.Expire.Seconds()))
 	// metric report
-	if !l.req.DisableMetric {
+	if !l.config.DisableMetric {
 		if err != nil {
-			prome.CacheHandleCounter.WithLabelValues(prome.TypeLocalCache, l.req.Name, "SetFail", err.Error()).Inc()
+			prome.CacheHandleCounter.WithLabelValues(prome.TypeLocalCache, l.config.Name, "SetFail", err.Error()).Inc()
 		} else {
-			prome.CacheHandleCounter.WithLabelValues(prome.TypeLocalCache, l.req.Name, "SetSuccess", "").Inc()
+			prome.CacheHandleCounter.WithLabelValues(prome.TypeLocalCache, l.config.Name, "SetSuccess", "").Inc()
 		}
 	}
 	if err != nil {
@@ -36,13 +36,13 @@ func (l *localStorage) SetCacheData(key string, data []byte) (err error) {
 }
 
 func (l *localStorage) GetCacheData(key string) (data []byte, err error) {
-	data, err = l.req.Cache.Get([]byte(key))
+	data, err = l.config.Cache.Get([]byte(key))
 	// metric report
-	if !l.req.DisableMetric {
+	if !l.config.DisableMetric {
 		if err != nil {
-			prome.CacheHandleCounter.WithLabelValues(prome.TypeLocalCache, l.req.Name, "MissCount", err.Error()).Inc()
+			prome.CacheHandleCounter.WithLabelValues(prome.TypeLocalCache, l.config.Name, "MissCount", err.Error()).Inc()
 		} else {
-			prome.CacheHandleCounter.WithLabelValues(prome.TypeLocalCache, l.req.Name, "HitCount", "").Inc()
+			prome.CacheHandleCounter.WithLabelValues(prome.TypeLocalCache, l.config.Name, "HitCount", "").Inc()
 		}
 	}
 	if err == freecache.ErrNotFound || data == nil {

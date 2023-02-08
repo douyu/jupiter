@@ -6,7 +6,7 @@ import (
 )
 
 func BenchmarkLocalCache_GetCacheData(b *testing.B) {
-	localCache := NewLocalCache[string, Student](DefaultConfig())
+	localCache := New[string, Student](DefaultConfig(0))
 
 	b.Run("read", func(b *testing.B) {
 		student := Student{10, "student1"}
@@ -31,7 +31,7 @@ func BenchmarkLocalCache_GetCacheData(b *testing.B) {
 
 func BenchmarkLocalCache_GetCacheMap(b *testing.B) {
 
-	localCache := NewLocalCache[int64, int64](DefaultConfig())
+	localCache := New[int64, int64](DefaultConfig(0))
 
 	b.Run("read", func(b *testing.B) {
 		uidList := []int64{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}

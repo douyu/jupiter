@@ -1,7 +1,10 @@
 package xfreecache
 
 import (
+	"bytes"
 	"fmt"
+	"github.com/BurntSushi/toml"
+	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
@@ -13,8 +16,14 @@ type Student struct {
 }
 
 func Test_cache_GetAndSetCacheData(t *testing.T) {
-	oneCache := NewLocalCache[string, Student](DefaultConfig().
-		SetExpire(60 * time.Second).SetName("local"))
+	var configStr = `
+		[jupiter.cache]
+			[jupiter.cache.test]
+				expire = "60s"
+				
+	`
+	assert.Nil(t, conf.LoadFromReader(bytes.NewBufferString(configStr), toml.Unmarshal))
+	oneCache := StdNew[string, Student]("test")
 	missCount := 0
 
 	tests := []struct {
@@ -101,7 +110,7 @@ func Test_cache_GetAndSetCacheMap(t *testing.T) {
 
 	missCount := 0
 	for _, tt := range tests {
-		c := NewLocalCache[int64, int64](DefaultConfig())
+		c := New[int64, int64](DefaultConfig(0))
 		gotV, err := c.GetAndSetCacheMap("mytest2", tt.args.ids, func(in []int64) (map[int64]int64, error) {
 			missCount++
 			res := make(map[int64]int64)
@@ -118,4 +127,25 @@ func Test_cache_GetAndSetCacheMap(t *testing.T) {
 		assert.Equalf(t, tt.wantV, gotV, "GetAndSetCacheMap(%v)", tt.args.ids)
 	}
 	assert.Equalf(t, missCount, 3, "GetAndSetCacheMap miss count error")
+}
+
+func TestStdConfig(t *testing.T) {
+	var configStr = `
+		[jupiter.cache]
+			size = "100MB"
+			[jupiter.cache.test]
+				expire = "1m"
+				disableMetric = true
+	`
+	assert.Nil(t, conf.LoadFromReader(bytes.NewBufferString(configStr), toml.Unmarshal))
+	t.Run("std config on addr nil", func(t *testing.T) {
+		var config *Config
+		name := "test"
+		config = StdConfig(name)
+		assert.NotNil(t, config)
+		assert.Equalf(t, config.Name, name, "StdConfig Name")
+		assert.Equalf(t, config.Expire, 1*time.Minute, "StdConfig Expire")
+		assert.Equalf(t, config.DisableMetric, true, "StdConfig DisableMetric")
+	})
+
 }
