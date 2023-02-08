@@ -24,7 +24,7 @@ var unitMap = map[string]uint64{
 	"tb":   uint64(TB),
 }
 
-//ParseSize parses a size string.
+// ParseSize parses a size string.
 // Valid time units are "b" (or "byte"), "kb", "mb", "gb", "tb".
 func ParseSize(s string) (Size, error) {
 	orig := s
