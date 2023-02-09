@@ -2,23 +2,21 @@ package xfreecache
 
 import (
 	"encoding/json"
+	helloworldv1 "github.com/douyu/jupiter/proto/helloworld/v1"
 	"reflect"
 	"testing"
 
 	jsoniter "github.com/json-iterator/go"
 	"google.golang.org/protobuf/proto"
-
-	"github.com/douyu/jupiter/proto/testproto"
 )
 
-var helloReply = &testproto.HelloReply{
-	Message: "benchmarkTest",
-	Id64:    -123456,
-	Id32:    -12345678,
-	Idu64:   123456,
-	Idu32:   123456780,
-	Name:    []byte("newName"),
-	Done:    true,
+var helloReply = &helloworldv1.SayHiResponse{
+	Error: 0,
+	Msg:   "success",
+	Data: &helloworldv1.SayHiResponse_Data{
+		Name:      "testName",
+		AgeNumber: 18,
+	},
 }
 
 /*
@@ -27,7 +25,7 @@ var helloReply = &testproto.HelloReply{
 func BenchmarkDecodeStdStructMedium(b *testing.B) {
 	res, _ := json.Marshal(helloReply)
 	b.ReportAllocs()
-	var data testproto.HelloReply
+	var data helloworldv1.SayHiResponse
 	for i := 0; i < b.N; i++ {
 		_ = json.Unmarshal(res, &data)
 	}
@@ -43,7 +41,7 @@ func BenchmarkEncodeStdStructMedium(b *testing.B) {
 func BenchmarkDecodeJsoniterStructMedium(b *testing.B) {
 	res, _ := jsoniter.Marshal(helloReply)
 	b.ReportAllocs()
-	var data testproto.HelloReply
+	var data helloworldv1.SayHiResponse
 	for i := 0; i < b.N; i++ {
 		_ = jsoniter.Unmarshal(res, &data)
 	}
@@ -59,7 +57,7 @@ func BenchmarkEncodeJsoniterStructMedium(b *testing.B) {
 func BenchmarkDecodeProto(b *testing.B) {
 	res, _ := proto.Marshal(helloReply)
 	b.ReportAllocs()
-	var data testproto.HelloReply
+	var data helloworldv1.SayHiResponse
 	for i := 0; i < b.N; i++ {
 		_ = proto.Unmarshal(res, &data)
 	}
@@ -76,7 +74,7 @@ func BenchmarkDecodeProtoWithReflect(b *testing.B) {
 	res, _ := proto.Marshal(helloReply)
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
-		_ = protoUnmarshal[*testproto.HelloReply](res)
+		_ = protoUnmarshal[*helloworldv1.SayHiResponse](res)
 	}
 }
 

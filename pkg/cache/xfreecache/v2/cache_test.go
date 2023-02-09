@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/BurntSushi/toml"
 	"github.com/douyu/jupiter/pkg/conf"
-	"github.com/douyu/jupiter/proto/testproto"
+	helloworldv1 "github.com/douyu/jupiter/proto/helloworld/v1"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
@@ -83,34 +83,34 @@ func Test_cache_GetAndSetCacheData_proto(t *testing.T) {
 				
 	`
 	assert.Nil(t, conf.LoadFromReader(bytes.NewBufferString(configStr), toml.Unmarshal))
-	oneCache := StdNew[string, *testproto.HelloRequest]("test")
+	oneCache := StdNew[string, *helloworldv1.SayHiRequest]("test")
 	missCount := 0
 
 	tests := []struct {
-		stu *testproto.HelloRequest
+		stu *helloworldv1.SayHiRequest
 	}{
 		{
-			stu: &testproto.HelloRequest{
+			stu: &helloworldv1.SayHiRequest{
 				Name: "Student 1",
 			},
 		},
 		{
-			stu: &testproto.HelloRequest{
+			stu: &helloworldv1.SayHiRequest{
 				Name: "Student 2",
 			},
 		},
 		{
-			stu: &testproto.HelloRequest{
+			stu: &helloworldv1.SayHiRequest{
 				Name: "Student 1",
 			},
 		},
 		{
-			stu: &testproto.HelloRequest{
+			stu: &helloworldv1.SayHiRequest{
 				Name: "Student 3",
 			},
 		},
 		{
-			stu: &testproto.HelloRequest{
+			stu: &helloworldv1.SayHiRequest{
 				Name: "Student 2",
 			},
 		},
@@ -118,7 +118,7 @@ func Test_cache_GetAndSetCacheData_proto(t *testing.T) {
 
 	for _, tt := range tests {
 		key := tt.stu.Name
-		result, _ := oneCache.GetAndSetCacheData(key, tt.stu.Name, func() (*testproto.HelloRequest, error) {
+		result, _ := oneCache.GetAndSetCacheData(key, tt.stu.Name, func() (*helloworldv1.SayHiRequest, error) {
 			missCount++
 			fmt.Println("local cache miss hit")
 			return tt.stu, nil
