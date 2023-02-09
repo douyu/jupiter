@@ -23,10 +23,10 @@ var (
 	once       sync.Once
 )
 
-// DefaultConfig 返回默认配置 缓存容量256MB
+// DefaultConfig 返回默认配置 缓存容量256MB 最小512KB 最大8GB
 func DefaultConfig(size Size) *Config {
 	once.Do(func() {
-		if size < 512*KB {
+		if size < 512*KB || size > 8*GB {
 			size = 256 * MB
 		}
 		innerCache = freecache.NewCache(int(size))

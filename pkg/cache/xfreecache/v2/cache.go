@@ -6,6 +6,8 @@ import (
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/samber/lo"
 	"go.uber.org/zap"
+	"google.golang.org/protobuf/proto"
+	"reflect"
 )
 
 type storage interface {
@@ -42,7 +44,17 @@ func (c *cache[K, V]) GetAndSetCacheMap(key string, ids []K, fn func([]K) (map[K
 		cacheKey := c.getKey(key, id)
 		if resT, innerErr := c.GetCacheData(cacheKey); innerErr == nil && resT != nil {
 			var value V
-			err = json.Unmarshal(resT, &value)
+			if msg, ok := any(value).(proto.Message); ok { // Constrained to proto.Message
+				// Peek the type inside T (as T= *SomeProtoMsgType)
+				msgType := reflect.TypeOf(msg).Elem()
+				// Make a new one, and throw it back into T
+				msg = reflect.New(msgType).Interface().(proto.Message)
+
+				err = proto.Unmarshal(resT, msg)
+				value = msg.(V)
+			} else {
+				err = json.Unmarshal(resT, &value)
+			}
 			if err != nil {
 				return
 			}
@@ -64,19 +76,27 @@ func (c *cache[K, V]) GetAndSetCacheMap(key string, ids []K, fn func([]K) (map[K
 	}
 
 	// 填入返回中
-	for key, value := range resMap {
-		v[key] = value
+	for k, value := range resMap {
+		v[k] = value
 	}
 
 	// 写入缓存
 	for _, id := range idsNone {
-		var cacheData V
+		var (
+			cacheData V
+			data      []byte
+		)
+
 		if val, ok := v[id]; ok {
 			cacheData = val
 		}
-		data, innerErr := json.Marshal(cacheData)
-		if innerErr != nil {
-			err = innerErr
+		if msg, ok := any(cacheData).(proto.Message); ok {
+			data, err = proto.Marshal(msg)
+		} else {
+			data, err = json.Marshal(cacheData)
+		}
+
+		if err != nil {
 			xlog.Jupiter().Error("GetAndSetCacheMap Marshal", append(args, zap.Error(err))...)
 			return
 		}

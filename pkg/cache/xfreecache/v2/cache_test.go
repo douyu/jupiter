@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/BurntSushi/toml"
 	"github.com/douyu/jupiter/pkg/conf"
+	"github.com/douyu/jupiter/proto/testproto"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
@@ -70,6 +71,60 @@ func Test_cache_GetAndSetCacheData(t *testing.T) {
 		})
 		fmt.Println(result)
 		assert.Equalf(t, tt.stu, result, "GetAndSetCacheData(%v) cache value error", key)
+	}
+	assert.Equalf(t, missCount, 3, "GetAndSetCacheData miss count error")
+}
+
+func Test_cache_GetAndSetCacheData_proto(t *testing.T) {
+	var configStr = `
+		[jupiter.cache]
+			[jupiter.cache.test]
+				expire = "60s"
+				
+	`
+	assert.Nil(t, conf.LoadFromReader(bytes.NewBufferString(configStr), toml.Unmarshal))
+	oneCache := StdNew[string, *testproto.HelloRequest]("test")
+	missCount := 0
+
+	tests := []struct {
+		stu *testproto.HelloRequest
+	}{
+		{
+			stu: &testproto.HelloRequest{
+				Name: "Student 1",
+			},
+		},
+		{
+			stu: &testproto.HelloRequest{
+				Name: "Student 2",
+			},
+		},
+		{
+			stu: &testproto.HelloRequest{
+				Name: "Student 1",
+			},
+		},
+		{
+			stu: &testproto.HelloRequest{
+				Name: "Student 3",
+			},
+		},
+		{
+			stu: &testproto.HelloRequest{
+				Name: "Student 2",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		key := tt.stu.Name
+		result, _ := oneCache.GetAndSetCacheData(key, tt.stu.Name, func() (*testproto.HelloRequest, error) {
+			missCount++
+			fmt.Println("local cache miss hit")
+			return tt.stu, nil
+		})
+		fmt.Println(result)
+		assert.Equalf(t, tt.stu.GetName(), result.GetName(), "GetAndSetCacheData(%v) cache value error", key)
 	}
 	assert.Equalf(t, missCount, 3, "GetAndSetCacheData miss count error")
 }
