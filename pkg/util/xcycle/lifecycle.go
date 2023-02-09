@@ -19,7 +19,7 @@ import (
 	"sync/atomic"
 )
 
-//Cycle ..
+// Cycle ..
 type Cycle struct {
 	mu      *sync.Mutex
 	wg      *sync.WaitGroup
@@ -30,7 +30,7 @@ type Cycle struct {
 	// works []func() error
 }
 
-//NewCycle new a cycle life
+// NewCycle new a cycle life
 func NewCycle() *Cycle {
 	return &Cycle{
 		mu:      &sync.Mutex{},
@@ -67,7 +67,7 @@ func (c *Cycle) RunWait() <-chan error {
 }
 */
 
-//Run a new goroutine
+// Run a new goroutine
 func (c *Cycle) Run(fn func() error) {
 	c.mu.Lock()
 	//todo add check options panic before waiting
@@ -81,7 +81,7 @@ func (c *Cycle) Run(fn func() error) {
 	}(c)
 }
 
-//Done block and return a chan error
+// Done block and return a chan error
 func (c *Cycle) Done() <-chan struct{} {
 	if atomic.CompareAndSwapUint32(&c.waiting, 0, 1) {
 		go func(c *Cycle) {
@@ -94,13 +94,13 @@ func (c *Cycle) Done() <-chan struct{} {
 	return c.done
 }
 
-//DoneAndClose ..
+// DoneAndClose ..
 func (c *Cycle) DoneAndClose() {
 	<-c.Done()
 	c.Close()
 }
 
-//Close ..
+// Close ..
 func (c *Cycle) Close() {
 	c.mu.Lock()
 	defer c.mu.Unlock()

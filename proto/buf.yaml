@@ -1,0 +1,24 @@
+version: v1
+
+deps:
+  - buf.build/googleapis/googleapis
+  - buf.build/srikrsna/protoc-gen-gotag
+  - buf.build/grpc-ecosystem/grpc-gateway
+
+lint:
+  allow_comment_ignores: true
+
+  ignore:
+    - vendor
+  use:
+    - DEFAULT
+    - COMMENTS
+    - UNARY_RPC
+    - PACKAGE_NO_IMPORT_CYCLE
+
+breaking:
+  use:
+    - FILE
+
+  except:
+    - RPC_NO_DELETE

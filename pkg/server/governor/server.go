@@ -33,7 +33,7 @@ func newServer(config *Config) *Server {
 	}
 }
 
-//Serve ..
+// Serve ..
 func (s *Server) Serve() error {
 	err := s.Server.Serve(s.listener)
 	if err == http.ErrServerClosed {
@@ -43,12 +43,12 @@ func (s *Server) Serve() error {
 
 }
 
-//Stop ..
+// Stop ..
 func (s *Server) Stop() error {
 	return s.Server.Close()
 }
 
-//GracefulStop ..
+// GracefulStop ..
 func (s *Server) GracefulStop(ctx context.Context) error {
 	return s.Server.Shutdown(ctx)
 }
@@ -59,7 +59,7 @@ func (s *Server) Healthz() bool {
 	return true
 }
 
-//Info ..
+// Info ..
 func (s *Server) Info() *server.ServiceInfo {
 	serviceAddr := s.listener.Addr().String()
 	if s.Config.ServiceAddress != "" {

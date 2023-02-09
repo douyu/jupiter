@@ -28,14 +28,11 @@ import (
 
 type ClientConn = grpc.ClientConn
 
-func newGRPCClient(config *Config) *grpc.ClientConn {
+func newGRPCClient(config *Config) (*grpc.ClientConn, error) {
 	var ctx = context.Background()
 
 	dialOptions := getDialOptions(config)
 
-	logger := config.logger.With(
-		xlog.FieldAddr(config.Addr),
-	)
 	// 默认使用block连接，失败后fallback到异步连接
 	if config.DialTimeout > time.Duration(0) {
 		var cancel context.CancelFunc
@@ -46,19 +43,20 @@ func newGRPCClient(config *Config) *grpc.ClientConn {
 
 	conn, err := grpc.DialContext(ctx, config.Addr, append(dialOptions, grpc.WithBlock())...)
 	if err != nil {
-		logger.Error("dial grpc server failed, connect without block",
+		config.logger.Error("dial grpc server failed, connect without block",
 			xlog.FieldErrKind(ecode.ErrKindRequestErr), xlog.FieldErr(err))
 
 		conn, err = grpc.DialContext(context.Background(), config.Addr, dialOptions...)
 		if err != nil {
-			logger.Error("connect without block failed",
+			config.logger.Error("connect without block failed",
 				xlog.FieldErrKind(ecode.ErrKindRequestErr), xlog.FieldErr(err))
+			return nil, err
 		}
 	}
 
-	logger.Info("start grpc client")
+	config.logger.Info("start grpc client")
 
-	return conn
+	return conn, nil
 }
 
 func getDialOptions(config *Config) []grpc.DialOption {
@@ -69,6 +67,7 @@ func getDialOptions(config *Config) []grpc.DialOption {
 	}
 
 	dialOptions = append(dialOptions,
+		grpc.WithInsecure(),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithResolvers(resolver.NewEtcdBuilder("etcd", config.RegistryConfig)),
 		grpc.WithDisableServiceConfig(),

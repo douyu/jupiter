@@ -39,7 +39,7 @@ func Register(scheme string, creator DataSourceCreatorFunc) {
 // 	return creatorFunc(), nil
 // }
 
-//NewDataSource ..
+// NewDataSource ..
 func NewDataSource(configAddr string) (DataSource, error) {
 	if configAddr == "" {
 		return nil, ErrConfigAddr

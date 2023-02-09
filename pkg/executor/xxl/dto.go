@@ -24,7 +24,7 @@ type callElement struct {
 	ExecuteResult *ExecuteResult `json:"executeResult"`
 }
 
-//任务执行结果 200 表示任务执行正常，500表示失败
+// 任务执行结果 200 表示任务执行正常，500表示失败
 type ExecuteResult struct {
 	Error int64       `json:"error"`
 	Msg   interface{} `json:"msg"`

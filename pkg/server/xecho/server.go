@@ -17,6 +17,7 @@ package xecho
 import (
 	"context"
 	"crypto/tls"
+	"fmt"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -79,27 +80,18 @@ func newServer(config *Config) (*Server, error) {
 }
 
 func (s *Server) Healthz() bool {
-	if s.Echo.Listener == nil {
-		return false
-	}
-
-	conn, err := s.Echo.Listener.Accept()
-	if err != nil {
-		return false
-	}
-
-	conn.Close()
 	return true
 }
 
-// Server implements server.Server interface.
+// Serve implements server.Server interface.
 func (s *Server) Serve() error {
 	s.Echo.Logger.SetOutput(os.Stdout)
 	s.Echo.Debug = s.config.Debug
 	s.Echo.HideBanner = true
 	s.Echo.StdLogger = zap.NewStdLog(xlog.Jupiter())
+	// display echo api list
 	for _, route := range s.Echo.Routes() {
-		s.config.logger.Info("add route", xlog.FieldMethod(route.Method), xlog.String("path", route.Path))
+		fmt.Printf("[ECHO] \x1b[34m%8s\x1b[0m %s\n", route.Method, route.Path)
 	}
 
 	var err error

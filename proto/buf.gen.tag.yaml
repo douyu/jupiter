@@ -1,0 +1,8 @@
+version: v1
+
+plugins:
+  - name: gotag
+    out: .
+    opt:
+      - paths=source_relative
+      - auto=json-as-camel

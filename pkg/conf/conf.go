@@ -293,7 +293,7 @@ func GetInt64Slice(key string) []int64 {
 
 // GetInt64Slice returns the value associated with the key as an integer slice.
 func (c *Configuration) GetInt64Slice(key string) []int64 {
-	return xcast.ToInt64Slice(key)
+	return xcast.ToInt64Slice(c.Get(key))
 }
 
 // GetFloat64 returns the value associated with the key as a float64 with default defaultConfiguration.
@@ -409,6 +409,7 @@ func (c *Configuration) UnmarshalKey(key string, rawVal interface{}, opts ...Get
 		DecodeHook: mapstructure.StringToTimeDurationHookFunc(),
 		Result:     rawVal,
 		TagName:    options.TagName,
+		Squash:     true,
 	}
 	decoder, err := mapstructure.NewDecoder(&config)
 	if err != nil {

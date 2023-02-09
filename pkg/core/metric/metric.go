@@ -50,6 +50,8 @@ var (
 	// TypeLocalCache ...
 	TypeLocalCache = "localCache"
 
+	// TypeTableStore
+	TypeTableStore = "tstore"
 	// CodeJob
 	CodeJobSuccess = "ok"
 	// CodeJobFail ...

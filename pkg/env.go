@@ -21,7 +21,6 @@ var (
 )
 
 func InitEnv() {
-	appID = os.Getenv(constant.EnvAppID)
 	appLogDir = os.Getenv(constant.EnvAppLogDir)
 	appMode = os.Getenv(constant.EnvAppMode)
 	appRegion = os.Getenv(constant.EnvAppRegion)
@@ -48,7 +47,7 @@ func AppMode() string {
 	confMode := conf.GetString(constant.ConfigKey("mode"))
 	if appMode == "" {
 		if confMode == "" {
-			return "unkown-mode"
+			return "unknown-mode"
 		}
 
 		return confMode

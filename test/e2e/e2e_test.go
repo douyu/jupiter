@@ -17,6 +17,8 @@ package e2e
 import (
 	"testing"
 
+	_ "github.com/douyu/jupiter/test/e2e/client"
+	_ "github.com/douyu/jupiter/test/e2e/jupiter"
 	_ "github.com/douyu/jupiter/test/e2e/server"
 	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"

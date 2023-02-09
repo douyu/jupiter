@@ -15,45 +15,49 @@
 package server
 
 import (
-	"github.com/douyu/jupiter/pkg/core/tests"
+	"time"
+
+	"github.com/douyu/jupiter/pkg/client/grpc"
 	"github.com/douyu/jupiter/pkg/server/xgrpc"
-	"github.com/douyu/jupiter/proto/testproto"
+	helloworldv1 "github.com/douyu/jupiter/proto/helloworld/v1"
+	"github.com/douyu/jupiter/test/e2e/framework"
 	"github.com/onsi/ginkgo/v2"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
+	"github.com/stretchr/testify/assert"
+	"google.golang.org/grpc/metadata"
 )
 
-type TestProjectImp struct {
-	testproto.UnimplementedGreeterServer
-}
+var server *xgrpc.Server
 
 var _ = ginkgo.Describe("[grpc] e2e test", func() {
-	var server *xgrpc.Server
-
-	ginkgo.BeforeEach(func() {
+	var _ = ginkgo.BeforeEach(func() {
 		server = xgrpc.DefaultConfig().MustBuild()
-		testproto.RegisterGreeterServer(server.Server, new(TestProjectImp))
+		helloworldv1.RegisterGreeterServiceServer(server.Server, new(helloworldv1.FooServer))
 		go func() {
 			err := server.Serve()
-			if err != nil {
-				panic(err)
-			}
+			assert.Nil(ginkgo.GinkgoT(), err)
 		}()
+		time.Sleep(time.Second)
 	})
 
-	ginkgo.AfterEach(func() {
+	var _ = ginkgo.AfterEach(func() {
 		_ = server.Stop()
 	})
 
-	ginkgo.DescribeTable("xgrpc ", func(gtc tests.GRPCTestCase) {
-		tests.RunGRPCTestCase(gtc)
-	}, ginkgo.Entry("normal case", tests.GRPCTestCase{
-		Addr:   "localhost:9092",
-		Method: "/testproto.Greeter/SayHello",
-		Args: &testproto.HelloRequest{
-			Name: "jupiter",
-		},
-		ExpectError: status.Errorf(codes.Unimplemented, "method SayHello not implemented"),
-		ExpectReply: (*testproto.HelloReply)(nil),
-	}))
+	ginkgo.DescribeTable("xgrpc sayhello", func(gtc framework.GRPCTestCase) {
+		framework.RunGRPCTestCase(gtc)
+	},
+		ginkgo.Entry("normal case", framework.GRPCTestCase{
+			Conf: &grpc.Config{
+				Addr: "localhost:9092",
+			},
+			Method: "/helloworld.v1.GreeterService/SayHello",
+			Args: &helloworldv1.SayHelloRequest{
+				Name: "jupiter",
+			},
+			ExpectError:    nil,
+			ExpectMetadata: metadata.MD{"content-type": []string{"application/grpc"}},
+			ExpectReply:    &helloworldv1.SayHelloResponse{Data: &helloworldv1.SayHelloResponse_Data{Name: "jupiter"}},
+		}),
+	)
+
 })

@@ -18,6 +18,7 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"fmt"
 	"io/ioutil"
 	"net"
 
@@ -45,6 +46,37 @@ func newServer(config *Config) (*Server, error) {
 		[]grpc.UnaryServerInterceptor{defaultUnaryServerInterceptor(config.logger, config)},
 		config.unaryInterceptors...,
 	)
+
+	if !config.DisableTrace {
+		unaryInterceptors = append(
+			[]grpc.UnaryServerInterceptor{NewTraceUnaryServerInterceptor()},
+			unaryInterceptors...,
+		)
+
+		streamInterceptors = append(
+			[]grpc.StreamServerInterceptor{NewTraceStreamServerInterceptor()},
+			streamInterceptors...,
+		)
+	}
+
+	if !config.DisableMetric {
+		unaryInterceptors = append(
+			[]grpc.UnaryServerInterceptor{prometheusUnaryServerInterceptor},
+			unaryInterceptors...,
+		)
+
+		streamInterceptors = append(
+			[]grpc.StreamServerInterceptor{prometheusStreamServerInterceptor},
+			streamInterceptors...,
+		)
+	}
+
+	if !config.DisableSentinel {
+		unaryInterceptors = append(
+			[]grpc.UnaryServerInterceptor{NewSentinelUnaryServerInterceptor()},
+			unaryInterceptors...,
+		)
+	}
 
 	if config.EnableTLS {
 		cert, err := tls.LoadX509KeyPair(config.CertFile, config.PrivateFile)
@@ -92,17 +124,19 @@ func newServer(config *Config) (*Server, error) {
 }
 
 func (s *Server) Healthz() bool {
-	conn, err := s.listener.Accept()
-	if err != nil {
-		return false
-	}
-
-	conn.Close()
 	return true
 }
 
 // Server implements server.Server interface.
 func (s *Server) Serve() error {
+	// display grpc server method list
+	for fm, info := range s.GetServiceInfo() {
+		for _, method := range info.Methods {
+			fmt.Printf("[GRPC] \x1b[34m%8s\x1b[0m.%s\n", fm, method.Name)
+		}
+	}
+	// display grpc server addr
+	fmt.Printf("[GRPC] \x1b[33m%8s\x1b[0m %s\n", "Listen On", s.listener.Addr().String())
 	err := s.Server.Serve(s.listener)
 	return err
 }

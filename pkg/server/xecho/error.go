@@ -17,17 +17,17 @@ package xecho
 import (
 	"net/http"
 
+	"github.com/douyu/jupiter/pkg/util/xerror"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 var (
-	errBadRequest         = status.Errorf(codes.InvalidArgument, createStatusErr(codeMSInvalidParam, "bad request"))
-	errMicroDefault       = status.Errorf(codes.Internal, createStatusErr(codeMS, "micro default"))
-	errMicroInvoke        = status.Errorf(codes.Internal, createStatusErr(codeMSInvoke, "invoke failed"))
-	errMicroInvokeLen     = status.Errorf(codes.Internal, createStatusErr(codeMSInvokeLen, "invoke result not 2 item"))
-	errMicroInvokeInvalid = status.Errorf(codes.Internal, createStatusErr(codeMSSecondItemNotError, "second invoke res not a error"))
-	errMicroResInvalid    = status.Errorf(codes.Internal, createStatusErr(codeMSResErr, "response is not valid"))
+	errBadRequest         = xerror.InvalidArgument.WithMsg("bad request")
+	errMicroInvoke        = xerror.Internal.WithMsg("invoke failed")
+	errMicroInvokeLen     = xerror.Internal.WithMsg("invoke result not 2 item")
+	errMicroInvokeInvalid = xerror.Internal.WithMsg("second invoke res not a error")
+	errMicroResInvalid    = xerror.Internal.WithMsg("response is not valid")
 )
 
 // HTTPError wraps handler error.

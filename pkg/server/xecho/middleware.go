@@ -20,19 +20,17 @@ import (
 	"runtime"
 	"time"
 
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/propagation"
-
 	"github.com/alibaba/sentinel-golang/core/base"
 	"github.com/douyu/jupiter/pkg"
 	"github.com/douyu/jupiter/pkg/core/metric"
 	"github.com/douyu/jupiter/pkg/core/sentinel"
 	"github.com/douyu/jupiter/pkg/core/xtrace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
-	"go.opentelemetry.io/otel/trace"
-
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/labstack/echo/v4"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/propagation"
+	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
@@ -48,7 +46,7 @@ func recoverMiddleware(logger *xlog.Logger, slowQueryThresholdInMilli int64) ech
 			var fields = make([]xlog.Field, 0, 8)
 
 			defer func() {
-				fields = append(fields, zap.Float64("cost", time.Since(beg).Seconds()))
+				fields = append(fields, xlog.FieldCost(time.Since(beg)))
 				if rec := recover(); rec != nil {
 					switch rec := rec.(type) {
 					case error:

@@ -26,7 +26,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-//ModName ..
+// ModName ..
 const ModName = "server.gin"
 
 // Config HTTP config
@@ -90,7 +90,7 @@ func (config *Config) WithPort(port int) *Config {
 }
 
 // Build create server instance, then initialize it with necessary interceptor
-func (config *Config) Build() *Server {
+func (config *Config) MustBuild() *Server {
 	server := newServer(config)
 	server.Use(recoverMiddleware(config.logger, config.SlowQueryThresholdInMilli))
 

@@ -25,10 +25,10 @@ import (
 	"github.com/pkg/errors"
 )
 
-//ModName mod name
+// ModName mod name
 const ModName = "server.goframe"
 
-//Config  HTTP config
+// Config  HTTP config
 type Config struct {
 	Host          string
 	Port          int
@@ -54,7 +54,7 @@ func DefaultConfig() *Config {
 	}
 }
 
-//StdConfig Jupiter Standard HTTP Server config
+// StdConfig Jupiter Standard HTTP Server config
 func StdConfig(name string) *Config {
 	return RawConfig(constant.ConfigKey("server." + name))
 }
@@ -88,7 +88,7 @@ func (config *Config) WithPort(port int) *Config {
 }
 
 // Build create server instance, then initialize it with necessary interceptor
-func (config *Config) Build() *Server {
+func (config *Config) MustBuild() *Server {
 	serve := newServer(config)
 
 	serve.Use(recoverMiddleware(config.logger, config.SlowQueryThresholdInMilli))

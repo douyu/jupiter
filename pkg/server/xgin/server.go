@@ -48,7 +48,7 @@ func newServer(config *Config) *Server {
 	}
 }
 
-//Upgrade protocol to WebSocket
+// Upgrade protocol to WebSocket
 func (s *Server) Upgrade(ws *WebSocket) gin.IRoutes {
 	return s.GET(ws.Pattern, func(c *gin.Context) {
 		ws.Upgrade(c.Writer, c.Request)
@@ -103,15 +103,5 @@ func (s *Server) Info() *server.ServiceInfo {
 }
 
 func (s *Server) Healthz() bool {
-	if s.listener == nil {
-		return false
-	}
-
-	conn, err := s.listener.Accept()
-	if err != nil {
-		return false
-	}
-
-	conn.Close()
 	return true
 }

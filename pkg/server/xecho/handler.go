@@ -16,40 +16,46 @@ package xecho
 
 import (
 	"bytes"
-	"context"
 	"net/http"
 	"reflect"
 	"strings"
+	"sync"
 
 	"github.com/codegangsta/inject"
+	"github.com/douyu/jupiter/pkg/util/xerror"
 	"github.com/labstack/echo/v4"
 	"google.golang.org/grpc/metadata"
-	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )
 
+// pbjson is a protojson.MarshalOptions with some default options.
+var pbjson = protojson.MarshalOptions{
+	Multiline:       false,
+	UseEnumNumbers:  true,
+	EmitUnpopulated: true,
+}
+
 // ProtoError ...
 func ProtoError(c echo.Context, code int, e error) error {
-	s, ok := status.FromError(e)
-	c.Response().Header().Set(HeaderHRPCErr, "true")
-	if ok {
-		if de, ok := statusFromString(s.Message()); ok {
-			return ProtoJSON(c, code, de.Proto())
-		}
-	}
-	return ProtoJSON(c, code, e)
+	return ProtoJSON(c, code, xerror.Convert(e))
 }
 
 // ProtoJSON sends a Protobuf JSON response with status code and data.
 func ProtoJSON(c echo.Context, code int, i interface{}) error {
 	var acceptEncoding = c.Request().Header.Get(HeaderAcceptEncoding)
-	var ok bool
+
 	var m proto.Message
-	if m, ok = i.(proto.Message); !ok {
+	switch msg := i.(type) {
+	case proto.Message:
+		m = msg
+	case error:
 		c.Response().Header().Set(HeaderHRPCErr, "true")
-		m = statusMSDefault
+		c.Response().Header().Set(HeaderContentType, MIMEApplicationJSONCharsetUTF8)
+
+		return c.JSON(http.StatusOK, xerror.Convert(i.(error)))
 	}
+
 	// protobuf output
 	if strings.Contains(acceptEncoding, MIMEApplicationProtobuf) {
 		c.Response().Header().Set(HeaderContentType, MIMEApplicationProtobuf)
@@ -62,7 +68,7 @@ func ProtoJSON(c echo.Context, code int, i interface{}) error {
 	c.Response().Header().Set(HeaderContentType, MIMEApplicationJSONCharsetUTF8)
 	c.Response().WriteHeader(code)
 
-	body, err := protojson.Marshal(m)
+	body, err := pbjson.Marshal(m)
 	if err != nil {
 		return err
 	}
@@ -77,11 +83,19 @@ func GRPCProxyWrapper(h interface{}) echo.HandlerFunc {
 	if t.Kind() != reflect.Func {
 		panic("reflect error: handler must be func")
 	}
+
+	once := sync.Once{}
+
 	return func(c echo.Context) error {
+		once.Do(func() {
+			c.Echo().Binder = &ProtoBinder{}
+		})
+
 		var req = reflect.New(t.In(1).Elem()).Interface()
 		if err := c.Bind(req); err != nil {
 			return ProtoError(c, http.StatusBadRequest, errBadRequest)
 		}
+
 		var md = metadata.MD{}
 		for k, vs := range c.Request().Header {
 			for _, v := range vs {
@@ -91,7 +105,8 @@ func GRPCProxyWrapper(h interface{}) echo.HandlerFunc {
 				md.Append(k, string(bs))
 			}
 		}
-		ctx := metadata.NewOutgoingContext(context.TODO(), md)
+
+		ctx := metadata.NewIncomingContext(c.Request().Context(), md)
 		var inj = inject.New()
 		inj.Map(ctx)
 		inj.Map(req)
