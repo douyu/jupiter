@@ -24,15 +24,8 @@ var (
 )
 
 // DefaultConfig 返回默认配置 缓存容量256MB 最小512KB 最大8GB
-func DefaultConfig(size Size) *Config {
-	once.Do(func() {
-		if size < 512*KB || size > 8*GB {
-			size = 256 * MB
-		}
-		innerCache = freecache.NewCache(int(size))
-	})
+func DefaultConfig() *Config {
 	return &Config{
-		Cache:         innerCache,
 		Expire:        2 * time.Minute,
 		DisableMetric: false,
 		Name:          "default",
@@ -41,14 +34,9 @@ func DefaultConfig(size Size) *Config {
 
 // StdConfig 返回标准配置
 func StdConfig(name string) *Config {
-	size, err := ParseSize(cfg.GetString("jupiter.cache.size"))
-	if err != nil {
-		xlog.Jupiter().Error("localCache StdConfig ParseSize err", zap.Error(err))
-	}
-
-	config := DefaultConfig(size)
+	config := DefaultConfig()
 	key := "jupiter.cache." + name
-	if err = cfg.UnmarshalKey(key, &config, cfg.TagName("toml")); err != nil {
+	if err := cfg.UnmarshalKey(key, &config, cfg.TagName("toml")); err != nil {
 		xlog.Jupiter().Warn("localCache StdConfig unmarshal config",
 			zap.Error(err), zap.Any("key", key))
 	}
@@ -63,14 +51,26 @@ func StdNew[K comparable, V any](name string) (localCache *LocalCache[K, V]) {
 }
 
 func New[K comparable, V any](c *Config) (localCache *LocalCache[K, V]) {
-	if c.Cache == nil {
-		xlog.Jupiter().Panic("localCache New Cache nil", zap.Any("config", c))
-	}
+	// 校验参数
 	if c.Expire == 0 {
 		xlog.Jupiter().Panic("localCache New expire err", zap.Any("config", c))
 	}
 	if len(c.Name) == 0 {
 		c.Name = fmt.Sprintf("cache-%d", time.Now().UnixNano())
+	}
+	if c.Cache == nil {
+		// 初始化缓存实例
+		once.Do(func() {
+			size, err := ParseSize(cfg.GetString("jupiter.cache.size"))
+			if err != nil {
+				xlog.Jupiter().Error("localCache StdConfig ParseSize err", zap.Error(err))
+			}
+			if size < 512*KB || size > 8*GB {
+				size = 256 * MB
+			}
+			innerCache = freecache.NewCache(int(size))
+		})
+		c.Cache = innerCache
 	}
 
 	localCache = &LocalCache[K, V]{

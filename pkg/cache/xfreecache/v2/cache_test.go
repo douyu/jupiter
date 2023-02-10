@@ -165,7 +165,7 @@ func Test_cache_GetAndSetCacheMap(t *testing.T) {
 
 	missCount := 0
 	for _, tt := range tests {
-		c := New[int64, int64](DefaultConfig(0))
+		c := New[int64, int64](DefaultConfig())
 		gotV, err := c.GetAndSetCacheMap("mytest2", tt.args.ids, func(in []int64) (map[int64]int64, error) {
 			missCount++
 			res := make(map[int64]int64)
