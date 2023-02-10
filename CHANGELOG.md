@@ -2,6 +2,25 @@
 
 <!-- Release notes generated using configuration in .github/release.yml at master -->
 
+## v0.11.1
+
+### Other Changes
+
+* feat: remove unused code and refact test by @hnlq715 in https://github.com/douyu/jupiter/pull/701
+* fix: remove unused code and use jupiter version by @hnlq715 in https://github.com/douyu/jupiter/pull/703
+* fix: do not generate xerror when no enum found by @hnlq715 in https://github.com/douyu/jupiter/pull/704
+* build(deps): bump gorm.io/gorm from 1.24.4 to 1.24.5 by @dependabot in https://github.com/douyu/jupiter/pull/705
+* feat: add proto-gen-go-xxx binary for release by @hnlq715 in https://github.com/douyu/jupiter/pull/707
+* feat: adjust application variable init by @B15030328 in https://github.com/douyu/jupiter/pull/708
+* build(deps): bump google.golang.org/grpc from 1.52.3 to 1.53.0 by @dependabot in https://github.com/douyu/jupiter/pull/712
+* build(deps): bump go.opentelemetry.io/otel/sdk from 1.12.0 to 1.13.0 by @dependabot in https://github.com/douyu/jupiter/pull/713
+* build(deps): bump google.golang.org/grpc from 1.52.3 to 1.53.0 in /test/e2e by @dependabot in https://github.com/douyu/jupiter/pull/714
+* build(deps): bump go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc from 1.12.0 to 1.13.0 by @dependabot in https://github.com/douyu/jupiter/pull/711
+* build(deps): bump go.opentelemetry.io/otel/exporters/jaeger from 1.12.0 to 1.13.0 by @dependabot in https://github.com/douyu/jupiter/pull/716
+
+**Full Changelog**: https://github.com/douyu/jupiter/compare/v0.11.0...v0.11.1
+<!-- Release notes generated using configuration in .github/release.yml at master -->
+
 ## v0.11.0
 
 ### Other Changes
