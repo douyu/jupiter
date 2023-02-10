@@ -23,7 +23,7 @@ var (
 	once       sync.Once
 )
 
-// DefaultConfig 返回默认配置 缓存容量256MB 最小512KB 最大8GB
+// DefaultConfig 返回默认配置
 func DefaultConfig() *Config {
 	return &Config{
 		Expire:        2 * time.Minute,
@@ -50,6 +50,7 @@ func StdNew[K comparable, V any](name string) (localCache *LocalCache[K, V]) {
 	return New[K, V](c)
 }
 
+// New 构建本地缓存实例 缓存容量默认256MB 最小512KB 最大8GB
 func New[K comparable, V any](c *Config) (localCache *LocalCache[K, V]) {
 	// 校验参数
 	if c.Expire == 0 {
