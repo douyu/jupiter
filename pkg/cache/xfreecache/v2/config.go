@@ -2,11 +2,11 @@ package xfreecache
 
 import (
 	"fmt"
-	cfg "github.com/douyu/jupiter/pkg/conf"
 	"sync"
 	"time"
 
 	"github.com/coocood/freecache"
+	cfg "github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"go.uber.org/zap"
 )

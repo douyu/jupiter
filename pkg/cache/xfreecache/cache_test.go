@@ -1,9 +1,8 @@
 package xfreecache
 
 import (
-	"fmt"
-
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"

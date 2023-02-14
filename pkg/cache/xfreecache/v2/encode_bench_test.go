@@ -2,10 +2,9 @@ package xfreecache
 
 import (
 	"encoding/json"
-	helloworldv1 "github.com/douyu/jupiter/proto/helloworld/v1"
-	"reflect"
 	"testing"
 
+	helloworldv1 "github.com/douyu/jupiter/proto/helloworld/v1"
 	jsoniter "github.com/json-iterator/go"
 	"google.golang.org/protobuf/proto"
 )
@@ -66,7 +65,7 @@ func BenchmarkDecodeProto(b *testing.B) {
 func BenchmarkEncodeProto(b *testing.B) {
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
-		_, _ = proto.Marshal(helloReply)
+		_, _ = marshal[*helloworldv1.SayHiResponse](helloReply)
 	}
 }
 
@@ -74,23 +73,6 @@ func BenchmarkDecodeProtoWithReflect(b *testing.B) {
 	res, _ := proto.Marshal(helloReply)
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
-		_ = protoUnmarshal[*helloworldv1.SayHiResponse](res)
+		_, _ = unmarshal[*helloworldv1.SayHiResponse](res)
 	}
-}
-
-func protoUnmarshal[T any](body []byte) T {
-	var value T
-
-	if msg, ok := any(value).(proto.Message); ok { // Constrained to proto.Message
-		// Peek the type inside T (as T= *SomeProtoMsgType)
-		msgType := reflect.TypeOf(msg).Elem()
-
-		// Make a new one, and throw it back into T
-		msg = reflect.New(msgType).Interface().(proto.Message)
-
-		_ = proto.Unmarshal(body, msg)
-		value = msg.(T)
-	}
-
-	return value
 }

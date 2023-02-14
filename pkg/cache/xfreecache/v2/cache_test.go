@@ -3,12 +3,13 @@ package xfreecache
 import (
 	"bytes"
 	"fmt"
+	"testing"
+	"time"
+
 	"github.com/BurntSushi/toml"
 	"github.com/douyu/jupiter/pkg/conf"
 	helloworldv1 "github.com/douyu/jupiter/proto/helloworld/v1"
 	"github.com/stretchr/testify/assert"
-	"testing"
-	"time"
 )
 
 type Student struct {

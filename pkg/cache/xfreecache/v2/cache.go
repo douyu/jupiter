@@ -1,13 +1,10 @@
 package xfreecache
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/samber/lo"
 	"go.uber.org/zap"
-	"google.golang.org/protobuf/proto"
-	"reflect"
 )
 
 type storage interface {
@@ -39,22 +36,13 @@ func (c *cache[K, V]) GetAndSetCacheMap(key string, ids []K, fn func([]K) (map[K
 
 	// id去重
 	ids = lo.Uniq(ids)
-	idsNone := make([]K, 0)
+	idsNone := make([]K, 0, len(ids))
 	for _, id := range ids {
 		cacheKey := c.getKey(key, id)
 		if resT, innerErr := c.GetCacheData(cacheKey); innerErr == nil && resT != nil {
 			var value V
-			if msg, ok := any(value).(proto.Message); ok { // Constrained to proto.Message
-				// Peek the type inside T (as T= *SomeProtoMsgType)
-				msgType := reflect.TypeOf(msg).Elem()
-				// Make a new one, and throw it back into T
-				msg = reflect.New(msgType).Interface().(proto.Message)
-
-				err = proto.Unmarshal(resT, msg)
-				value = msg.(V)
-			} else {
-				err = json.Unmarshal(resT, &value)
-			}
+			// 反序列化
+			value, err = unmarshal[V](resT)
 			if err != nil {
 				return
 			}
@@ -90,11 +78,8 @@ func (c *cache[K, V]) GetAndSetCacheMap(key string, ids []K, fn func([]K) (map[K
 		if val, ok := v[id]; ok {
 			cacheData = val
 		}
-		if msg, ok := any(cacheData).(proto.Message); ok {
-			data, err = proto.Marshal(msg)
-		} else {
-			data, err = json.Marshal(cacheData)
-		}
+		// 序列化
+		data, err = marshal(cacheData)
 
 		if err != nil {
 			xlog.Jupiter().Error("GetAndSetCacheMap Marshal", append(args, zap.Error(err))...)
