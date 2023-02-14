@@ -35,7 +35,10 @@ jupiter new example-go
 cd example-go
 go mod tidy
 docker-compose -f tests/e2e/docker-compose.yml up -d
+# Run and watch file changes to rebuild
 jupiter run -c cmd/exampleserver/.jupiter.toml
+# run by build.sh
+make build -C build BINS="cmd/exampleserver:jupiter-example" APP_NAME="jupiter-example" APP_ID="12345" && ./bin/jupiter-example -config=config/exampleserver/local-live.toml --host=127.0.0.1
 ```
 
 More Example:
