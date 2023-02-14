@@ -13,6 +13,12 @@ all: fmt errcheck lint build
 
 default: help
 
+.PHONY: init
+# init tools
+init:
+	@echo "Installing tools from tools/tools.go"
+	@cd tools && cat tools.go |grep _|awk -F '"' '{print $$2}' | xargs -tI % go install %
+
 # Lint the go files
 golint:
 	golangci-lint run -v
@@ -39,19 +45,6 @@ unit-test:
 # Get the coverage of unit test
 covsh-unit:
 	gocovsh --profile coverage.txt
-
-# install tools
-init:
-	go install github.com/bufbuild/buf/cmd/buf@v1.13.1
-	go install github.com/srikrsna/protoc-gen-gotag@v0.6.2
-	go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@v2.15.0
-	go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@v2.15.0
-	go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.28.1
-	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2.0
-	go install github.com/go-swagger/go-swagger/cmd/swagger@v0.30.4
-	cd ./cmd/protoc-gen-go-echo && go install .
-	cd ./cmd/protoc-gen-go-gin && go install .
-	cd ./cmd/protoc-gen-go-xerror && go install .
 
 # update buf mod
 update:

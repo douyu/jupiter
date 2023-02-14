@@ -14,8 +14,6 @@ require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/dimiro1/banner v1.1.0
 	github.com/fatih/color v1.14.1
-	github.com/fatih/structtag v1.2.0
-	github.com/flosch/pongo2 v0.0.0-20200518135938-dfb43dbdc22a
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/gin-gonic/gin v1.8.2
 	github.com/go-basic/ipv4 v1.0.0
@@ -108,7 +106,6 @@ require (
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/jtolds/gls v4.20.0+incompatible // indirect
-	github.com/juju/errors v0.0.0-20181118221551-089d3ea4e4d5 // indirect
 	github.com/klauspost/compress v1.15.9 // indirect
 	github.com/labstack/gommon v0.4.0 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
