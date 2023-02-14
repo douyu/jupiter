@@ -111,3 +111,80 @@ func TestMergeStringMap(t *testing.T) {
 		})
 	}
 }
+
+func TestDeepSearchInMap(t *testing.T) {
+	type args struct {
+		m     map[string]interface{}
+		paths []string
+	}
+	tests := []struct {
+		name string
+		args args
+		want map[string]interface{}
+	}{
+		{
+			name: "case 1: 二维测试",
+			args: args{
+				m: map[string]interface{}{
+					"2w": map[string]interface{}{
+						"test":  "2wtd",
+						"test1": "2wtd1",
+					},
+					"2wa": map[string]interface{}{
+						"test":  "2wtd",
+						"test1": "2wtd1",
+					},
+				},
+				paths: []string{"2w"},
+			},
+			want: map[string]interface{}{
+				"test":  "2wtd",
+				"test1": "2wtd1",
+			},
+		},
+		{
+			name: "case 2: 二维测试",
+			args: args{
+				m: map[string]interface{}{
+					"2w": map[string]interface{}{
+						"test":  "2wtd",
+						"test1": "2wtd1",
+					},
+					"2wa": map[string]interface{}{
+						"testa":  "2wtd",
+						"testa1": "2wtd1",
+					},
+				},
+				paths: []string{"2wa"},
+			},
+			want: map[string]interface{}{
+				"testa":  "2wtd",
+				"testa1": "2wtd1",
+			},
+		},
+		{
+			name: "case 2: not found",
+			args: args{
+				m: map[string]interface{}{
+					"2w": map[string]interface{}{
+						"test":  "2wtd",
+						"test1": "2wtd1",
+					},
+					"2wa": map[string]interface{}{
+						"testa":  "2wtd",
+						"testa1": "2wtd1",
+					},
+				},
+				paths: []string{"not found"},
+			},
+			want: map[string]interface{}{},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := DeepSearchInMap(tt.args.m, tt.args.paths...); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("DeepSearchInMap() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

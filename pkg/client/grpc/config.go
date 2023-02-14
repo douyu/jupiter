@@ -22,7 +22,9 @@ import (
 	"github.com/douyu/jupiter/pkg/core/ecode"
 	"github.com/douyu/jupiter/pkg/core/singleton"
 	"github.com/douyu/jupiter/pkg/xlog"
+	"github.com/samber/lo"
 	"github.com/spf13/cast"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/balancer/roundrobin"
 	"google.golang.org/grpc/keepalive"
@@ -156,6 +158,7 @@ func (config *Config) Singleton() (*grpc.ClientConn, error) {
 
 	cc, err := config.Build()
 	if err != nil {
+		xlog.Jupiter().Error("build grpc client failed", zap.Error(err))
 		return nil, err
 	}
 
@@ -164,12 +167,12 @@ func (config *Config) Singleton() (*grpc.ClientConn, error) {
 	return cc, nil
 }
 
+// MustBuild panics when error found.
+func (config *Config) MustBuild() *grpc.ClientConn {
+	return lo.Must(config.Build())
+}
+
 // MustSingleton panics when error found.
 func (config *Config) MustSingleton() *grpc.ClientConn {
-	cc, err := config.Singleton()
-	if err != nil {
-		config.logger.Panic("client grpc build client conn panic")
-	}
-
-	return cc
+	return lo.Must(config.Singleton())
 }

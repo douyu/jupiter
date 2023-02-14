@@ -26,7 +26,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-//ModName ..
+// ModName ..
 const ModName = "server.gin"
 
 // Config HTTP config

@@ -10,12 +10,14 @@ require (
 	github.com/gin-gonic/gin v1.8.2
 	github.com/gogf/gf v1.16.9
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.15.0
+	github.com/imdario/mergo v0.3.13
 	github.com/labstack/echo/v4 v4.10.0
 	github.com/onsi/ginkgo/v2 v2.8.0
 	github.com/onsi/gomega v1.26.0
 	github.com/stretchr/testify v1.8.1
 	github.com/valyala/fasthttp v1.44.0
-	google.golang.org/grpc v1.52.3
+	google.golang.org/grpc v1.53.0
+	google.golang.org/protobuf v1.28.1
 )
 
 require (
@@ -25,7 +27,7 @@ require (
 	github.com/apache/rocketmq-client-go/v2 v2.1.2-0.20221202035048-f56a2dba2af8 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.2.0 // indirect
-	github.com/cespare/xxhash/v2 v2.1.2 // indirect
+	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/clbanning/mxj v1.8.5-0.20200714211355-ff02cfb8ea28 // indirect
 	github.com/codegangsta/inject v0.0.0-20150114235600-33e0aa1cb7c0 // indirect
 	github.com/coreos/go-semver v0.3.0 // indirect
@@ -53,7 +55,6 @@ require (
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/grokify/html-strip-tags-go v0.0.1 // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 // indirect
-	github.com/imdario/mergo v0.3.13 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.15.9 // indirect
 	github.com/labstack/gommon v0.4.0 // indirect
@@ -73,9 +74,11 @@ require (
 	github.com/prometheus/client_model v0.3.0 // indirect
 	github.com/prometheus/common v0.37.0 // indirect
 	github.com/prometheus/procfs v0.8.0 // indirect
+	github.com/samber/lo v1.37.0 // indirect
 	github.com/shirou/gopsutil/v3 v3.21.7 // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
+	github.com/srikrsna/protoc-gen-gotag v0.6.2 // indirect
 	github.com/stretchr/objx v0.5.0 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/tklauser/go-sysconf v0.3.7 // indirect
@@ -99,12 +102,12 @@ require (
 	go.uber.org/multierr v1.9.0 // indirect
 	go.uber.org/zap v1.24.0 // indirect
 	golang.org/x/crypto v0.2.0 // indirect
+	golang.org/x/exp v0.0.0-20220303212507-bbda1eaf7a17 // indirect
 	golang.org/x/net v0.5.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/sys v0.4.0 // indirect
 	golang.org/x/text v0.6.0 // indirect
-	google.golang.org/genproto v0.0.0-20221207170731-23e4bf6bdc37 // indirect
-	google.golang.org/protobuf v1.28.1 // indirect
+	google.golang.org/genproto v0.0.0-20230110181048-76db0878b65f // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

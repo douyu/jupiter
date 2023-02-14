@@ -17,7 +17,6 @@ package xmap
 import (
 	"fmt"
 	"reflect"
-	"strings"
 
 	xcast "github.com/spf13/cast"
 )
@@ -62,24 +61,6 @@ func ToMapStringInterface(src map[interface{}]interface{}) map[string]interface{
 		tgt[fmt.Sprintf("%v", k)] = v
 	}
 	return tgt
-}
-
-// InsensitiviseMap insensitivise map
-func InsensitiviseMap(m map[string]interface{}) {
-	for key, val := range m {
-		switch val := val.(type) {
-		case map[interface{}]interface{}:
-			InsensitiviseMap(xcast.ToStringMap(val))
-		case map[string]interface{}:
-			InsensitiviseMap(val)
-		}
-
-		lower := strings.ToLower(key)
-		if key != lower {
-			delete(m, key)
-		}
-		m[lower] = val
-	}
 }
 
 // DeepSearchInMap deep search in map

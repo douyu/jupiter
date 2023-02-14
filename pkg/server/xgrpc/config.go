@@ -36,7 +36,7 @@ type Config struct {
 	Network string `json:"network" toml:"network"`
 	// EnableAccessLog enable Access Interceptor, true by default
 	EnableAccessLog bool
-	// DisableTrace disbale Trace Interceptor, false by default
+	// DisableTrace disable Trace Interceptor, false by default
 	DisableTrace bool
 	// DisableMetric disable Metric Interceptor, false by default
 	DisableMetric bool

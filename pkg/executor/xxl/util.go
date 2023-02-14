@@ -9,18 +9,18 @@ import (
 	"github.com/douyu/jupiter/pkg/executor/xxl/logger"
 )
 
-//int64 to str
+// int64 to str
 func Int64ToStr(i int64) string {
 	return strconv.FormatInt(i, 10)
 }
 
-//str to int64
+// str to int64
 func StrToInt64(str string) int64 {
 	i, _ := strconv.ParseInt(str, 10, 64)
 	return i
 }
 
-//执行任务回调
+// 执行任务回调
 func returnCall(req *executor.RunReq, code int64, msg string) []byte {
 	data := call{
 		&callElement{
@@ -36,7 +36,7 @@ func returnCall(req *executor.RunReq, code int64, msg string) []byte {
 	return str
 }
 
-//杀死任务返回
+// 杀死任务返回
 func returnKill(req *killReq, code int64) []byte {
 	msg := ""
 	if code != http.StatusOK {
@@ -50,7 +50,7 @@ func returnKill(req *killReq, code int64) []byte {
 	return str
 }
 
-//日志返回
+// 日志返回
 func returnLog(req *logReq, code int64) []byte {
 	msg := "success"
 	if code != http.StatusOK {
@@ -68,7 +68,7 @@ func returnLog(req *logReq, code int64) []byte {
 	return str
 }
 
-//通用返回
+// 通用返回
 func returnGeneral() []byte {
 	data := &res{
 		Error: http.StatusOK,
@@ -78,7 +78,7 @@ func returnGeneral() []byte {
 	return str
 }
 
-//心跳返回
+// 心跳返回
 func returnHeatBeat(ip string) []byte {
 	str, _ := json.Marshal(beatData{
 		Ip: ip,
@@ -92,7 +92,7 @@ func returnHeatBeat(ip string) []byte {
 	return body
 }
 
-//idle返回
+// idle返回
 func returnIdle(ip string, idle bool) []byte {
 	if !idle {
 		data := &heatBeatRes{
@@ -115,7 +115,7 @@ func returnIdle(ip string, idle bool) []byte {
 	return body
 }
 
-//通用返回
+// 通用返回
 func returnAuthError() []byte {
 	data := &res{
 		Error: http.StatusInternalServerError,

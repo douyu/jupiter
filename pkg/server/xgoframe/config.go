@@ -25,10 +25,10 @@ import (
 	"github.com/pkg/errors"
 )
 
-//ModName mod name
+// ModName mod name
 const ModName = "server.goframe"
 
-//Config  HTTP config
+// Config  HTTP config
 type Config struct {
 	Host          string
 	Port          int
@@ -54,7 +54,7 @@ func DefaultConfig() *Config {
 	}
 }
 
-//StdConfig Jupiter Standard HTTP Server config
+// StdConfig Jupiter Standard HTTP Server config
 func StdConfig(name string) *Config {
 	return RawConfig(constant.ConfigKey("server." + name))
 }

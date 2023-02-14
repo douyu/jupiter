@@ -1,0 +1,240 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "helloworld demo api definition",
+    "version": "1.0",
+    "contact": {
+      "name": "douyu",
+      "url": "https://github.com/douyu/jupiter"
+    }
+  },
+  "tags": [
+    {
+      "name": "helloworld.v1.GreeterService"
+    },
+    {
+      "name": "Project 001",
+      "description": "This is how we do it.",
+      "externalDocs": {
+        "description": "Find out more",
+        "url": "https://github.com/douyu/jupiter"
+      }
+    }
+  ],
+  "consumes": [
+    "application/x-www-form-urlencoded"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/helloworld.v1.GreeterService/SayHi": {
+      "post": {
+        "summary": "Sends a hi greeting",
+        "operationId": "GreeterService_SayHi",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1SayHiResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "The request message containing the user's name.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1SayHiRequest"
+            }
+          }
+        ],
+        "tags": [
+          "helloworld.v1.GreeterService"
+        ]
+      }
+    },
+    "/v1/helloworld.Greeter/SayHello": {
+      "post": {
+        "summary": "Sends a hello greeting",
+        "operationId": "GreeterService_SayHello",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1SayHelloResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "The request message containing the user's name.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1SayHelloRequest"
+            }
+          },
+          {
+            "name": "token",
+            "description": "Token Header",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Project 001"
+        ]
+      }
+    },
+    "/v1/helloworld.Greeter/SayHello/{name}": {
+      "get": {
+        "summary": "Sends a hello greeting",
+        "operationId": "GreeterService_SayHello2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1SayHelloResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "description": "name ...",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "token",
+            "description": "Token Header",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Project 001"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "v1SayHelloRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "name ..."
+        }
+      },
+      "description": "The request message containing the user's name."
+    },
+    "v1SayHelloResponse": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "integer",
+          "format": "int64",
+          "title": "error"
+        },
+        "msg": {
+          "type": "string",
+          "title": "msg"
+        },
+        "data": {
+          "$ref": "#/definitions/v1SayHelloResponseData",
+          "description": "data ..."
+        }
+      },
+      "title": "The response message containing the greetings"
+    },
+    "v1SayHelloResponseData": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "name of the user"
+        },
+        "ageNumber": {
+          "type": "string",
+          "format": "uint64",
+          "description": "age_number is the age number."
+        },
+        "sex": {
+          "$ref": "#/definitions/v1Sex",
+          "title": "sex is the user's sex"
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "metadata is the user's metadata"
+        }
+      },
+      "description": "Data is the data to be sent."
+    },
+    "v1SayHiRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "name ..."
+        }
+      },
+      "description": "The request message containing the user's name."
+    },
+    "v1SayHiResponse": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "integer",
+          "format": "int64",
+          "title": "error"
+        },
+        "msg": {
+          "type": "string",
+          "title": "msg"
+        },
+        "data": {
+          "$ref": "#/definitions/v1SayHiResponseData",
+          "description": "data ..."
+        }
+      },
+      "title": "The response message containing the greetings"
+    },
+    "v1SayHiResponseData": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "name of the user"
+        },
+        "ageNumber": {
+          "type": "string",
+          "format": "uint64",
+          "description": "age_number is the age number."
+        }
+      },
+      "description": "Data is the data to be sent."
+    },
+    "v1Sex": {
+      "type": "string",
+      "enum": [
+        "SEX_UNSPECIFIED",
+        "SEX_MALE",
+        "SEX_FEMALE"
+      ],
+      "default": "SEX_UNSPECIFIED",
+      "description": "- SEX_UNSPECIFIED: SEX_UNSPECIFIED ...\n - SEX_MALE: SEX_MALE ...\n - SEX_FEMALE: SEX_FEMALE ...",
+      "title": "Sex"
+    }
+  }
+}

@@ -2,6 +2,8 @@ package rocketmq
 
 import (
 	"context"
+	"sync/atomic"
+
 	"github.com/apache/rocketmq-client-go/v2"
 	"github.com/apache/rocketmq-client-go/v2/consumer"
 	"github.com/apache/rocketmq-client-go/v2/primitive"
@@ -10,12 +12,12 @@ import (
 	"github.com/douyu/jupiter/pkg/core/xtrace"
 	"github.com/douyu/jupiter/pkg/util/xgo"
 	"github.com/douyu/jupiter/pkg/xlog"
+	"github.com/samber/lo"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/propagation"
 	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
-	"sync/atomic"
 )
 
 type PullConsumer struct {
@@ -134,6 +136,11 @@ func (cc *PullConsumer) Start() error {
 
 	cc.started.Store(true)
 	return nil
+}
+
+// MustStart panics when error found.
+func (cc *PullConsumer) MustStart() {
+	lo.Must0(cc.Start())
 }
 
 func (cc *PullConsumer) Poll(ctx context.Context, f func(context.Context, []*primitive.MessageExt) error) {

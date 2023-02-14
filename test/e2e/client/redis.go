@@ -16,7 +16,7 @@ package client
 
 import (
 	"github.com/douyu/jupiter/pkg/client/redis"
-	"github.com/douyu/jupiter/pkg/core/tests"
+	tests "github.com/douyu/jupiter/test/e2e/framework"
 	"github.com/onsi/ginkgo/v2"
 )
 

@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package error.v1;
+
+import "google/protobuf/descriptor.proto";
+
+option go_package = "github.com/douyu/jupiter/proto/error/v1;errorv1";
+option java_multiple_files = true;
+option java_outer_classname = "ErrorProtoV1";
+option java_package = "com.douyu.error.v1";
+
+// Extend the google.protobuf.EnumValueOptions to add a custom option
+extend google.protobuf.EnumValueOptions {
+  // msg is the error message for enum value
+  string msg = 9527;
+}

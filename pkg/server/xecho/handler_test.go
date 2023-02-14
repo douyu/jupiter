@@ -23,23 +23,23 @@ import (
 	"testing"
 
 	"github.com/douyu/jupiter/pkg/util/xerror"
-	"github.com/douyu/jupiter/proto/testproto/v1"
+	helloworldv1 "github.com/douyu/jupiter/proto/helloworld/v1"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 )
 
-func hander(ctx context.Context, req *testproto.SayHelloRequest) (*testproto.SayHelloResponse, error) {
+func hander(ctx context.Context, req *helloworldv1.SayHelloRequest) (*helloworldv1.SayHelloResponse, error) {
 	if req.Name != "bob" {
-		return &testproto.SayHelloResponse{
+		return &helloworldv1.SayHelloResponse{
 			Error: uint32(xerror.InvalidArgument.GetEcode()),
 			Msg:   "invalid name",
-			Data:  &testproto.SayHelloResponse_Data{},
+			Data:  &helloworldv1.SayHelloResponse_Data{},
 		}, nil
 	}
 
-	return &testproto.SayHelloResponse{
+	return &helloworldv1.SayHelloResponse{
 		Msg: "",
-		Data: &testproto.SayHelloResponse_Data{
+		Data: &helloworldv1.SayHelloResponse_Data{
 			Name: "hello bob",
 		},
 	}, nil
@@ -69,7 +69,7 @@ func TestGRPCProxyWrapper(t *testing.T) {
 			wantHeader: http.Header{
 				"Content-Type": []string{"application/json; charset=utf-8"},
 			},
-			wantBody: "{\"error\":0,\"msg\":\"\",\"data\":{\"name\":\"hello bob\",\"ageNumber\":\"0\"}}",
+			wantBody: `{"error":0,"msg":"","data":{"name":"hello bob","ageNumber":"0","sex":0,"metadata":{}}}`,
 		},
 		{
 			name: "case 2: get with query",
@@ -77,7 +77,7 @@ func TestGRPCProxyWrapper(t *testing.T) {
 				req: httptest.NewRequest(http.MethodGet, "/?name=bob", nil),
 			},
 			wantErr:  nil,
-			wantBody: "{\"error\":0,\"msg\":\"\",\"data\":{\"name\":\"hello bob\",\"ageNumber\":\"0\"}}",
+			wantBody: `{"error":0,"msg":"","data":{"name":"hello bob","ageNumber":"0","sex":0,"metadata":{}}}`,
 		},
 		{
 			name: "case 3: post with form",
@@ -91,7 +91,7 @@ func TestGRPCProxyWrapper(t *testing.T) {
 			wantHeader: http.Header{
 				"Content-Type": []string{"application/json; charset=utf-8"},
 			},
-			wantBody: "{\"error\":0,\"msg\":\"\",\"data\":{\"name\":\"hello bob\",\"ageNumber\":\"0\"}}",
+			wantBody: `{"error":0,"msg":"","data":{"name":"hello bob","ageNumber":"0","sex":0,"metadata":{}}}`,
 		},
 		{
 			name: "case 4: post with query",
@@ -105,7 +105,7 @@ func TestGRPCProxyWrapper(t *testing.T) {
 			wantHeader: http.Header{
 				"Content-Type": []string{"application/json; charset=utf-8"},
 			},
-			wantBody: "{\"error\":3,\"msg\":\"invalid name\",\"data\":{\"name\":\"\",\"ageNumber\":\"0\"}}",
+			wantBody: `{"error":3,"msg":"invalid name","data":{"name":"","ageNumber":"0","sex":0,"metadata":{}}}`,
 		},
 		{
 			name: "case 5: json without content-type",
@@ -116,7 +116,7 @@ func TestGRPCProxyWrapper(t *testing.T) {
 				},
 			},
 			wantErr:  nil,
-			wantBody: "{\"error\":3,\"msg\":\"invalid name\",\"data\":{\"name\":\"\",\"ageNumber\":\"0\"}}",
+			wantBody: `{"error":3,"msg":"invalid name","data":{"name":"","ageNumber":"0","sex":0,"metadata":{}}}`,
 		},
 		{
 			name: "case 6: form without content-type",

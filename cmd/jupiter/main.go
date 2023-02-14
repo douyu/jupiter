@@ -15,10 +15,12 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"sort"
 
+	"github.com/douyu/jupiter/pkg"
 	"github.com/douyu/jupiter/pkg/core/cmd"
 	"github.com/urfave/cli"
 )
@@ -109,6 +111,15 @@ var Commands = []cli.Command{
 				Usage: "please specify the code path",
 				Value: ".",
 			},
+		},
+	},
+	{
+		Name:    "version",
+		Aliases: []string{"v"},
+		Usage:   "show version",
+		Action: func(c *cli.Context) error {
+			fmt.Printf("jupiter %v\n", pkg.JupiterVersion())
+			return nil
 		},
 	},
 }
