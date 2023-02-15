@@ -65,7 +65,7 @@ func BenchmarkDecodeProto(b *testing.B) {
 func BenchmarkEncodeProto(b *testing.B) {
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
-		_, _ = marshal[*helloworldv1.SayHiResponse](helloReply)
+		_, _ = proto.Marshal(helloReply)
 	}
 }
 
@@ -74,5 +74,12 @@ func BenchmarkDecodeProtoWithReflect(b *testing.B) {
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
 		_, _ = unmarshal[*helloworldv1.SayHiResponse](res)
+	}
+}
+
+func BenchmarkEncodeProtoWithReflect(b *testing.B) {
+	b.ReportAllocs()
+	for i := 0; i < b.N; i++ {
+		_, _ = marshal[*helloworldv1.SayHiResponse](helloReply)
 	}
 }
