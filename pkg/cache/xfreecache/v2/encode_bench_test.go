@@ -83,3 +83,12 @@ func BenchmarkEncodeProtoWithReflect(b *testing.B) {
 		_, _ = marshal[*helloworldv1.SayHiResponse](helloReply)
 	}
 }
+
+func BenchmarkDecodeProtoWithReflectAndPool(b *testing.B) {
+	pool := getPool[*helloworldv1.SayHiResponse]()
+	res, _ := proto.Marshal(helloReply)
+	b.ReportAllocs()
+	for i := 0; i < b.N; i++ {
+		_, _ = unmarshalWithPool[*helloworldv1.SayHiResponse](res, pool)
+	}
+}

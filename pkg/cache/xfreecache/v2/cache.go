@@ -38,12 +38,13 @@ func (c *cache[K, V]) GetAndSetCacheMap(key string, ids []K, fn func([]K) (map[K
 	// id去重
 	ids = lo.Uniq(ids)
 	idsNone := make([]K, 0, len(ids))
+	pool := getPool[V]()
 	for _, id := range ids {
 		cacheKey := c.getKey(key, id)
 		if resT, innerErr := c.GetCacheData(cacheKey); innerErr == nil && resT != nil {
 			var value V
 			// 反序列化
-			value, err = unmarshal[V](resT)
+			value, err = unmarshalWithPool[V](resT, pool)
 			if err != nil {
 				return
 			}

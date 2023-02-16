@@ -64,7 +64,7 @@ func New[K comparable, V any](c *Config) (localCache *LocalCache[K, V]) {
 		once.Do(func() {
 			size, err := ParseSize(cfg.GetString("jupiter.cache.size"))
 			if err != nil {
-				xlog.Jupiter().Error("localCache StdConfig ParseSize err", zap.Error(err))
+				xlog.Jupiter().Warn("localCache StdConfig ParseSize err", zap.Error(err))
 			}
 			if size < 512*KB || size > 8*GB {
 				size = 256 * MB
