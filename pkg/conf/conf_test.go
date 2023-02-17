@@ -58,6 +58,28 @@ func TestConf(t *testing.T) {
 		if addr.Addr != "localhost" {
 			t.Fatal("unmarshal failed")
 		}
+
+		type Cfg struct {
+			Server struct {
+				HTTP struct {
+					Addr Addr
+				}
+			}
+		}
+
+		cfg := Cfg{}
+		err = UnmarshalKey("", &cfg)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if cfg.Server.HTTP.Addr.Port != 8080 {
+			t.Fatal("unmarshal failed")
+		}
+
+		if cfg.Server.HTTP.Addr.Addr != "localhost" {
+			t.Fatal("unmarshal failed")
+		}
 	})
 }
 
