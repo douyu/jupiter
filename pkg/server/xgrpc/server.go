@@ -27,6 +27,7 @@ import (
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/reflection"
 )
 
 // Server ...
@@ -115,6 +116,8 @@ func newServer(config *Config) (*Server, error) {
 		return nil, errors.Wrap(err, "net.Listen failed")
 	}
 	config.Port = listener.Addr().(*net.TCPAddr).Port
+
+	reflection.Register(newServer)
 
 	return &Server{
 		Server:   newServer,
