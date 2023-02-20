@@ -18,13 +18,19 @@ import (
 	"log"
 
 	"github.com/douyu/jupiter/pkg/flag"
+	"github.com/douyu/jupiter/pkg/util/xnet"
 )
 
 func init() {
+	defaultHost, _, err := xnet.GetLocalMainIP()
+	if err != nil {
+		defaultHost = "127.0.0.1"
+	}
+
 	flag.Register(&flag.StringFlag{
 		Name:    "host",
 		Usage:   "--host, print host",
-		Default: "127.0.0.1",
+		Default: defaultHost,
 		Action: func(name string, fs *flag.FlagSet) {
 			log.Printf("host flag: %v", fs.String(name))
 		},
