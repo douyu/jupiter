@@ -26,7 +26,7 @@ import (
 	"github.com/fatih/color"
 )
 
-const jupiterVersion = "v0.11.1"
+const jupiterVersion = "v0.11.2"
 
 var (
 	startTime string

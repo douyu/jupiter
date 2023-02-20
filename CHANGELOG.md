@@ -2,6 +2,27 @@
 
 <!-- Release notes generated using configuration in .github/release.yml at master -->
 
+## v0.11.2
+
+### New Changes
+
+* build(deps): bump gorm.io/driver/mysql from 1.4.5 to 1.4.6 by @dependabot in https://github.com/douyu/jupiter/pull/717
+* build(deps): bump golang.org/x/mod from 0.7.0 to 0.8.0 by @dependabot in https://github.com/douyu/jupiter/pull/715
+* feat: separate tools dependency from jupiter by @hnlq715 in https://github.com/douyu/jupiter/pull/719
+* build(deps): bump github.com/onsi/ginkgo/v2 from 2.8.0 to 2.8.1 by @dependabot in https://github.com/douyu/jupiter/pull/723
+* build(deps): bump go.mongodb.org/mongo-driver from 1.11.1 to 1.11.2 by @dependabot in https://github.com/douyu/jupiter/pull/722
+* build(deps): bump github.com/onsi/ginkgo/v2 from 2.8.0 to 2.8.1 in /test/e2e by @dependabot in https://github.com/douyu/jupiter/pull/721
+* feat: support reflection for grpc by @hnlq715 in https://github.com/douyu/jupiter/pull/724
+* feat(freecache): v2 finish by @PengYechang in https://github.com/douyu/jupiter/pull/702
+* build(deps): bump github.com/onsi/gomega from 1.26.0 to 1.27.0 by @dependabot in https://github.com/douyu/jupiter/pull/725
+* build(deps): bump github.com/onsi/gomega from 1.26.0 to 1.27.1 in /test/e2e by @dependabot in https://github.com/douyu/jupiter/pull/730
+* build(deps): bump golang.org/x/net from 0.6.0 to 0.7.0 by @dependabot in https://github.com/douyu/jupiter/pull/727
+* build(deps): bump golang.org/x/net from 0.5.0 to 0.7.0 in /tools by @dependabot in https://github.com/douyu/jupiter/pull/728
+* feat: get default host instead of 127.0.0.1 by @hnlq715 in https://github.com/douyu/jupiter/pull/731
+
+**Full Changelog**: https://github.com/douyu/jupiter/compare/v0.11.1...v0.11.2
+<!-- Release notes generated using configuration in .github/release.yml at master -->
+
 ## v0.11.1
 
 ### Other Changes
