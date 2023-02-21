@@ -35,11 +35,9 @@ type Config struct {
 	DisableMetric   bool
 	DisableTrace    bool
 	DisableSentinel bool
-	// ServiceAddress service address in registry info, default to 'Host:Port'
-	ServiceAddress string
-	CertFile       string
-	PrivateFile    string
-	EnableTLS      bool
+	CertFile        string
+	PrivateFile     string
+	EnableTLS       bool
 
 	SlowQueryThresholdInMilli int64
 

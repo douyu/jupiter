@@ -24,6 +24,7 @@ import (
 
 	"github.com/douyu/jupiter/pkg/core/constant"
 	"github.com/douyu/jupiter/pkg/server"
+	"github.com/douyu/jupiter/pkg/util/xnet"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -160,14 +161,9 @@ func (s *Server) GracefulStop(ctx context.Context) error {
 
 // Info returns server info, used by governor and consumer balancer
 func (s *Server) Info() *server.ServiceInfo {
-	serviceAddress := s.listener.Addr().String()
-	if s.Config.ServiceAddress != "" {
-		serviceAddress = s.Config.ServiceAddress
-	}
-
 	info := server.ApplyOptions(
 		server.WithScheme("grpc"),
-		server.WithAddress(serviceAddress),
+		server.WithAddress(xnet.Address(s.listener)),
 		server.WithKind(constant.ServiceProvider),
 	)
 	return &info

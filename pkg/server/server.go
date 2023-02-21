@@ -52,6 +52,7 @@ type ServiceInfo struct {
 	Group string `json:"group"`
 }
 
+// RegistryName returns the registry name of the service
 func (s *ServiceInfo) RegistryName() string {
 	return fmt.Sprintf("%s:%s:%s:%s/%s", s.Scheme, s.Name, "v1", pkg.AppMode(), s.Address)
 }
