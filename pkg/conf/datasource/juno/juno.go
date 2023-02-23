@@ -10,15 +10,24 @@ import (
 	"github.com/go-resty/resty/v2"
 )
 
+type client interface {
+	Get(url string) (*resty.Response, error)
+}
+
 // dataSource file provider.
 type dataSource struct {
 	path string
+
+	cc client
 }
 
 // NewDataSource returns new dataSource.
 // path: juno://ip:port/{configPath}
 func NewDataSource(path string, watch bool) *dataSource {
-	return &dataSource{path: path}
+	return &dataSource{
+		path: path,
+		cc:   resty.New().R(),
+	}
 }
 
 func (ds *dataSource) ReadConfig() (content []byte, err error) {
@@ -27,7 +36,7 @@ func (ds *dataSource) ReadConfig() (content []byte, err error) {
 		return nil, err
 	}
 
-	res, err := resty.New().R().Get(url)
+	res, err := ds.cc.Get(url)
 	if err != nil {
 		return nil, err
 	}
