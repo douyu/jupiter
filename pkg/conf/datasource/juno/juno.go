@@ -21,16 +21,6 @@ func NewDataSource(path string, watch bool) *dataSource {
 	return &dataSource{path: path}
 }
 
-type configData struct {
-	Content  string `json:"content"`
-	Metadata struct {
-		Timestamp int      `json:"timestamp"`
-		Version   string   `json:"version"`
-		Format    string   `json:"format"`
-		Paths     []string `json:"paths"`
-	} `json:"metadata"`
-}
-
 func (ds *dataSource) ReadConfig() (content []byte, err error) {
 	url, err := ds.genURL()
 	if err != nil {
@@ -53,7 +43,7 @@ func (ds *dataSource) genURL() (string, error) {
 
 	agent := urlParse.Host
 	if agent == "" {
-		return "", errors.New("juno agent adress is empty")
+		return "", errors.New("juno agent address is empty")
 	}
 	env := urlParse.Query().Get("env")
 	if env == "" {
