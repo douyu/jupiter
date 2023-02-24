@@ -21,6 +21,7 @@ import (
 	"time"
 
 	//go-lint
+	_ "github.com/douyu/jupiter/pkg/conf/datasource/etcdv3"
 	_ "github.com/douyu/jupiter/pkg/conf/datasource/file"
 	_ "github.com/douyu/jupiter/pkg/conf/datasource/http"
 	_ "github.com/douyu/jupiter/pkg/core/autoproc"

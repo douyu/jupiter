@@ -17,6 +17,7 @@ package conf
 import (
 	"encoding/json"
 	"log"
+	"net/url"
 	"path/filepath"
 
 	"github.com/BurntSushi/toml"
@@ -43,8 +44,13 @@ func init() {
 			log.Fatalf("build datasource[%s] failed: %v", configAddr, err)
 		}
 
+		path := configAddr
+		if uri, err := url.ParseRequestURI(configAddr); err == nil {
+			path = uri.Path
+		}
+
 		unmarshaler := toml.Unmarshal
-		switch filepath.Ext(configAddr) {
+		switch filepath.Ext(path) {
 		case ".toml":
 			// default config type
 		case ".yaml", ".yml":
