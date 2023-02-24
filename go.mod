@@ -24,7 +24,7 @@ require (
 	github.com/gorilla/websocket v1.5.0
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.15.0
-	github.com/hnlq715/struct2interface v0.1.4
+	github.com/hnlq715/struct2interface v0.1.5
 	github.com/iancoleman/strcase v0.2.0
 	github.com/json-iterator/go v1.1.12
 	github.com/juju/ratelimit v1.0.2
