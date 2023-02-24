@@ -17,11 +17,11 @@ package etcdv3
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/douyu/jupiter/pkg/client/etcdv3"
 	"github.com/douyu/jupiter/pkg/conf"
+	"github.com/douyu/jupiter/pkg/util/xgo"
 	"github.com/pkg/errors"
 	"go.etcd.io/etcd/api/v3/mvccpb"
 	clientv3 "go.etcd.io/etcd/client/v3"
@@ -51,7 +51,7 @@ func NewDataSource(client *etcdv3.Client, key string, watch bool) conf.DataSourc
 
 	if watch {
 		ds.changed = make(chan struct{}, 1)
-		go ds.watch()
+		xgo.Go(ds.watch)
 	}
 
 	return ds
@@ -69,7 +69,6 @@ type config struct {
 
 // ReadConfig ...
 func (s *etcdv3DataSource) ReadConfig() ([]byte, error) {
-	fmt.Println("!!!!!!!!!!!!!!!~~")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	resp, err := s.client.Get(ctx, s.propertyKey)
@@ -87,7 +86,6 @@ func (s *etcdv3DataSource) ReadConfig() ([]byte, error) {
 		return nil, err
 	}
 
-	fmt.Println(v)
 	return []byte(v.Content), nil
 }
 
