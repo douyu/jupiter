@@ -16,11 +16,12 @@ package etcdv3
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/douyu/jupiter/pkg/client/etcdv3"
 	"github.com/douyu/jupiter/pkg/conf"
-	"github.com/douyu/jupiter/pkg/util/xgo"
 	"github.com/pkg/errors"
 	"go.etcd.io/etcd/api/v3/mvccpb"
 	clientv3 "go.etcd.io/etcd/client/v3"
@@ -42,17 +43,33 @@ type etcdv3DataSource struct {
 
 // NewDataSource new a etcdv3DataSource instance.
 // client is the etcdv3 client, it must be useful and should be release by User.
-func NewDataSource(client *etcdv3.Client, key string) conf.DataSource {
+func NewDataSource(client *etcdv3.Client, key string, watch bool) conf.DataSource {
 	ds := &etcdv3DataSource{
 		client:      client,
 		propertyKey: key,
 	}
-	xgo.Go(ds.watch)
+
+	if watch {
+		ds.changed = make(chan struct{}, 1)
+		go ds.watch()
+	}
+
 	return ds
+}
+
+type config struct {
+	Content  string `json:"content"`
+	Metadata struct {
+		Timestamp int      `json:"timestamp"`
+		Version   string   `json:"version"`
+		Format    string   `json:"format"`
+		Paths     []string `json:"paths"`
+	} `json:"metadata"`
 }
 
 // ReadConfig ...
 func (s *etcdv3DataSource) ReadConfig() ([]byte, error) {
+	fmt.Println("!!!!!!!!!!!!!!!~~")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	resp, err := s.client.Get(ctx, s.propertyKey)
@@ -63,7 +80,15 @@ func (s *etcdv3DataSource) ReadConfig() ([]byte, error) {
 		return nil, errors.New("empty response")
 	}
 	s.lastUpdatedRevision = resp.Header.GetRevision()
-	return resp.Kvs[0].Value, nil
+
+	var v config
+	err = json.Unmarshal(resp.Kvs[0].Value, &v)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Println(v)
+	return []byte(v.Content), nil
 }
 
 // IsConfigChanged ...

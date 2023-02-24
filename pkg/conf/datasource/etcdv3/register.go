@@ -15,19 +15,21 @@ func init() {
 	conf.Register(DataSourceEtcdv3, func() conf.DataSource {
 		var (
 			configAddr = flag.String("config")
+			watch      = flag.Bool("watch")
 		)
 		if configAddr == "" {
 			xlog.Jupiter().Panic("new apollo dataSource, configAddr is empty")
 			return nil
 		}
 		// configAddr is a string in this format:
-		// etcdv3://ip:port?basicAuth=true&username=XXX&password=XXX&key=XXX&certFile=XXX&keyFile=XXX&caCert=XXX&secure=XXX
+		// etcdv3://ip:port/key?basicAuth=true&username=XXX&password=XXX&certFile=XXX&keyFile=XXX&caCert=XXX&secure=XXX
 
 		urlObj, err := xnet.ParseURL(configAddr)
 		if err != nil {
 			xlog.Jupiter().Panic("parse configAddr error", xlog.FieldErr(err))
 			return nil
 		}
+
 		etcdConf := etcdv3.DefaultConfig()
 		etcdConf.Endpoints = []string{urlObj.Host}
 		etcdConf.BasicAuth = urlObj.QueryBool("basicAuth", false)
@@ -37,6 +39,7 @@ func init() {
 		etcdConf.CaCert = urlObj.Query().Get("caCert")
 		etcdConf.UserName = urlObj.Query().Get("username")
 		etcdConf.Password = urlObj.Query().Get("password")
-		return NewDataSource(etcdConf.MustBuild(), urlObj.Query().Get("key"))
+
+		return NewDataSource(etcdConf.MustBuild(), urlObj.Path, watch)
 	})
 }
