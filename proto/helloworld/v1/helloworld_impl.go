@@ -2,9 +2,7 @@ package helloworldv1
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
-	"fmt"
 	"time"
 
 	"google.golang.org/grpc/codes"
@@ -76,10 +74,6 @@ func (s *FooServer) SayGoodBye(ctx context.Context, in *SayGoodByeRequest) (out 
 	if fm.MaskedInAge() {
 		out.Data.Age = in.GetAge()
 	}
-	out1, _ := json.Marshal(out)
-	fmt.Println("out1:", string(out1))
 	_ = fm.Mask(out)
-	out2, _ := json.Marshal(out)
-	fmt.Println("out2:", string(out2))
 	return
 }
