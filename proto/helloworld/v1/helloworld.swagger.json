@@ -158,10 +158,10 @@
       "enum": [
         "TYPE_UNSPECIFIED",
         "TYPE_FILTER",
-        "TYPE_Prune"
+        "TYPE_PRUNE"
       ],
       "default": "TYPE_UNSPECIFIED",
-      "description": "- TYPE_UNSPECIFIED: TYPE_UNSPECIFIED ...\n - TYPE_FILTER: TYPE_Filter ...\n - TYPE_Prune: TYPE_PRUNE ...",
+      "description": "- TYPE_UNSPECIFIED: TYPE_UNSPECIFIED ...\n - TYPE_FILTER: TYPE_FILTER ...\n - TYPE_PRUNE: TYPE_PRUNE ...",
       "title": "Type"
     },
     "v1OtherHelloMessage": {

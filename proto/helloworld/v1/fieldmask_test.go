@@ -86,7 +86,7 @@ func TestGreeterServiceGRPC_SayGoodBye_0(t *testing.T) {
 				createReq: func() *http.Request {
 					protoreq := &SayGoodByeRequest{
 						Name: "foo",
-						Type: Type_TYPE_Prune,
+						Type: Type_TYPE_PRUNE,
 					}
 					protoreq.MaskInName().MaskOutDataName().MaskOutDataOther()
 
