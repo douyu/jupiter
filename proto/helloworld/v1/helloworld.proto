@@ -126,7 +126,7 @@ message SayGoodByeRequest{
   google.protobuf.FieldMask update_mask = 4[
         // Whether to mask the request field
         (fieldmask.v1.Option).in = true,
-        // Whether to mask the request field
+        // Whether to mask the response field
         (fieldmask.v1.Option).out = true
     ];
 }
@@ -163,8 +163,8 @@ enum Type {
   // TYPE_UNSPECIFIED ...
   TYPE_UNSPECIFIED = 0;
   // TYPE_Filter ...
-  TYPE_Filter = 1;
-  // TYPE_Prune ...
+  TYPE_FILTER = 1;
+  // TYPE_PRUNE ...
   TYPE_Prune = 2;
 }
 

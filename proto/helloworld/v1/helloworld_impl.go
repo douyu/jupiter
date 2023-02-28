@@ -52,7 +52,7 @@ func (s *FooServer) SayHello(ctx context.Context, in *SayHelloRequest) (out *Say
 
 func (s *FooServer) SayGoodBye(ctx context.Context, in *SayGoodByeRequest) (out *SayGoodByeResponse, err error) {
 	var fm = new(SayGoodByeRequest_FieldMask)
-	if in.Type == Type_TYPE_Filter {
+	if in.Type == Type_TYPE_FILTER {
 		fm = in.FieldMaskFilter()
 	} else {
 		fm = in.FieldMaskPrune()

@@ -157,11 +157,11 @@
       "type": "string",
       "enum": [
         "TYPE_UNSPECIFIED",
-        "TYPE_Filter",
+        "TYPE_FILTER",
         "TYPE_Prune"
       ],
       "default": "TYPE_UNSPECIFIED",
-      "description": "- TYPE_UNSPECIFIED: TYPE_UNSPECIFIED ...\n - TYPE_Filter: TYPE_Filter ...\n - TYPE_Prune: TYPE_Prune ...",
+      "description": "- TYPE_UNSPECIFIED: TYPE_UNSPECIFIED ...\n - TYPE_FILTER: TYPE_Filter ...\n - TYPE_Prune: TYPE_PRUNE ...",
       "title": "Type"
     },
     "v1OtherHelloMessage": {
@@ -174,7 +174,7 @@
         },
         "address": {
           "type": "string",
-          "title": "address///"
+          "description": "address..."
         }
       },
       "title": "The response OtherHelloMessage containing the greetings"

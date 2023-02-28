@@ -27,7 +27,9 @@ type FieldMask struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	In  bool `protobuf:"varint,1,opt,name=in,proto3" json:"in"`
+	// Whether to mask the request field
+	In bool `protobuf:"varint,1,opt,name=in,proto3" json:"in"`
+	// Whether to mask the response field
 	Out bool `protobuf:"varint,2,opt,name=out,proto3" json:"out"`
 }
 
@@ -90,6 +92,8 @@ var file_fieldmask_v1_option_proto_extTypes = []protoimpl.ExtensionInfo{
 
 // Extension fields to descriptorpb.FieldOptions.
 var (
+	// Option...
+	//
 	// optional fieldmask.v1.FieldMask Option = 9528;
 	E_Option = &file_fieldmask_v1_option_proto_extTypes[0]
 )
