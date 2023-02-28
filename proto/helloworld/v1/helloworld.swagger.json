@@ -169,30 +169,38 @@
       "properties": {
         "id": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "id..."
         },
         "address": {
-          "type": "string"
+          "type": "string",
+          "title": "address///"
         }
-      }
+      },
+      "title": "The response OtherHelloMessage containing the greetings"
     },
     "v1SayGoodByeRequest": {
       "type": "object",
       "properties": {
         "name": {
-          "type": "string"
+          "type": "string",
+          "title": "name of the user"
         },
         "age": {
           "type": "string",
-          "format": "uint64"
+          "format": "uint64",
+          "title": "age of the user"
         },
         "type": {
-          "$ref": "#/definitions/helloworldv1Type"
+          "$ref": "#/definitions/helloworldv1Type",
+          "title": "type filter mode"
         },
         "updateMask": {
-          "type": "string"
+          "type": "string",
+          "title": "update_mask FieldMask"
         }
-      }
+      },
+      "title": "The request message containing the greetings"
     },
     "v1SayGoodByeResponse": {
       "type": "object",
@@ -200,30 +208,34 @@
         "error": {
           "type": "integer",
           "format": "int64",
-          "title": "error 错误代码"
+          "description": "error..."
         },
         "msg": {
           "type": "string",
-          "title": "msg 错误信息"
+          "description": "msg..."
         },
         "data": {
           "$ref": "#/definitions/v1SayGoodByeResponseData",
-          "title": "data 响应数据"
+          "description": "data..."
         }
-      }
+      },
+      "title": "The response message containing the greetings"
     },
     "v1SayGoodByeResponseData": {
       "type": "object",
       "properties": {
         "age": {
           "type": "string",
-          "format": "uint64"
+          "format": "uint64",
+          "title": "name of the user"
         },
         "name": {
-          "type": "string"
+          "type": "string",
+          "title": "age of the user"
         },
         "other": {
-          "$ref": "#/definitions/v1OtherHelloMessage"
+          "$ref": "#/definitions/v1OtherHelloMessage",
+          "title": "other info of the user"
         }
       },
       "title": "Data 响应数据"

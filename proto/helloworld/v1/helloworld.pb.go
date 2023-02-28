@@ -363,14 +363,19 @@ func (x *SayHiResponse) GetData() *SayHiResponse_Data {
 	return nil
 }
 
+// The request message containing the greetings
 type SayGoodByeRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Name       string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name"`
-	Age        uint64                 `protobuf:"varint,2,opt,name=age,proto3" json:"age"`
-	Type       Type                   `protobuf:"varint,3,opt,name=type,proto3,enum=helloworld.v1.Type" json:"type"`
+	// name of the user
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name"`
+	// age of the user
+	Age uint64 `protobuf:"varint,2,opt,name=age,proto3" json:"age"`
+	// type filter mode
+	Type Type `protobuf:"varint,3,opt,name=type,proto3,enum=helloworld.v1.Type" json:"type"`
+	// update_mask FieldMask
 	UpdateMask *fieldmaskpb.FieldMask `protobuf:"bytes,4,opt,name=update_mask,json=updateMask,proto3" json:"updateMask"`
 }
 
@@ -434,16 +439,17 @@ func (x *SayGoodByeRequest) GetUpdateMask() *fieldmaskpb.FieldMask {
 	return nil
 }
 
+// The response message containing the greetings
 type SayGoodByeResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// error 错误代码
+	// error...
 	Error uint32 `protobuf:"varint,1,opt,name=error,proto3" json:"error"`
-	// msg 错误信息
+	// msg...
 	Msg string `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg"`
-	// data 响应数据
+	// data...
 	Data *SayGoodByeResponse_Data `protobuf:"bytes,3,opt,name=data,proto3" json:"data"`
 }
 
@@ -500,12 +506,15 @@ func (x *SayGoodByeResponse) GetData() *SayGoodByeResponse_Data {
 	return nil
 }
 
+// The response OtherHelloMessage containing the greetings
 type OtherHelloMessage struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Id      uint32 `protobuf:"varint,1,opt,name=id,proto3" json:"id"`
+	// id...
+	Id uint32 `protobuf:"varint,1,opt,name=id,proto3" json:"id"`
+	// address///
 	Address string `protobuf:"bytes,2,opt,name=address,proto3" json:"address"`
 }
 
@@ -695,8 +704,11 @@ type SayGoodByeResponse_Data struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Age   uint64             `protobuf:"varint,1,opt,name=age,proto3" json:"age"`
-	Name  string             `protobuf:"bytes,2,opt,name=name,proto3" json:"name"`
+	// name of the user
+	Age uint64 `protobuf:"varint,1,opt,name=age,proto3" json:"age"`
+	// age of the user
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name"`
+	// other info of the user
 	Other *OtherHelloMessage `protobuf:"bytes,3,opt,name=other,proto3" json:"other"`
 }
 

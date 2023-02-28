@@ -18,41 +18,51 @@ import "fieldmask/v1/option.proto";
 
 // The greeting service definition.
 service GreeterService {
-  rpc SayGoodBye (SayGoodByeRequest) returns (SayGoodByeResponse);
+    //  Sends a goodbye greeting
+    rpc SayGoodBye (SayGoodByeRequest) returns (SayGoodByeResponse);
 }
 
+// The request message containing the greetings
 message SayGoodByeRequest{
+    // name of the user
     string name = 1;
+    // age of the user
     uint64 age = 2;
-    // Mask类型，支持过滤模式和剔除模式
+    // type filter mode
     Type type = 3;
-    // update_mask FieldMask字段
+    // update_mask FieldMask
     google.protobuf.FieldMask update_mask = 4[
-        // 表示要生成对输入字段的Mask方法
+        // Whether to mask the request field
         (fieldmask.v1.Option).in = true,
-        // 表示要生成对输出字段的Mask方法
+        // Whether to mask the request field
         (fieldmask.v1.Option).out = true
     ];
 }
 
-
+// The response message containing the greetings
 message SayGoodByeResponse{
     // Data 响应数据
     message Data {
+        // name of the user
         uint64 age = 1;
+        // age of the user
         string name = 2;
+        // other info of the user
         OtherHelloMessage other = 3;
     }
-    // error 错误代码
+    // error...
     uint32 error = 1;
-    // msg 错误信息
+    // msg...
     string msg = 2;
-    // data 响应数据
+    // data...
     Data data = 3;
 }
 
+// The response OtherHelloMessage containing the greetings
 message OtherHelloMessage{
+    // id...
     uint32 id = 1;
+    // address...
     string address = 2;
 }
 
@@ -60,9 +70,9 @@ message OtherHelloMessage{
 enum Type {
     // TYPE_UNSPECIFIED ...
     TYPE_UNSPECIFIED = 0;
-    // TYPE_Filter ...
+    // TYPE_Filter ... filter模式 表示mask的字段被保留
     TYPE_Filter = 1;
-    // TYPE_Prune ...
+    // TYPE_Prune ...  prune模式 表示mask的字段被剔除
     TYPE_Prune = 2;
 }
 ```
@@ -71,7 +81,7 @@ enum Type {
 ```
 protoreq := &SayGoodByeRequest{
 	Name: "foo",
-	Type: Type_TYPE_Filter,
+	Type: Type_TYPE_Filter, // 表示采用过滤模式
 }
 // MaskInName:表示需要服务端处理name字段；
 // MaskOutDataName：表示需要服务端返回data.name字段；
