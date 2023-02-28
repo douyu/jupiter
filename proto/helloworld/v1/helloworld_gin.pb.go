@@ -21,6 +21,9 @@ var _ = gin.Engine{}
 
 type GreeterServiceGinServer interface {
 
+	//  Sends a goodbye greeting
+	SayGoodBye(context.Context, *SayGoodByeRequest) (*SayGoodByeResponse, error)
+
 	// Sends a hello greeting
 	SayHello(context.Context, *SayHelloRequest) (*SayHelloResponse, error)
 
@@ -116,6 +119,31 @@ func (s *_gin_GreeterService) _gin_handler_SayHi_0(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, out)
 }
 
+//  Sends a goodbye greeting
+func (s *_gin_GreeterService) _gin_handler_SayGoodBye_0(ctx *gin.Context) {
+	var in SayGoodByeRequest
+	if err := ctx.ShouldBindUri(&in); err != nil {
+		ctx.Error(err)
+		return
+	}
+	if err := ctx.ShouldBind(&in); err != nil {
+		ctx.Error(err)
+		return
+	}
+	md := metadata.New(nil)
+	for k, v := range ctx.Request.Header {
+		md.Set(k, v...)
+	}
+	newCtx := metadata.NewIncomingContext(ctx.Request.Context(), md)
+	out, err := s.server.(GreeterServiceGinServer).SayGoodBye(newCtx, &in)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, out)
+}
+
 func (s *_gin_GreeterService) registerService() {
 
 	// Sends a hello greeting
@@ -126,5 +154,8 @@ func (s *_gin_GreeterService) registerService() {
 
 	// Sends a hi greeting
 	s.router.Handle("POST", "/helloworld.v1.GreeterService/SayHi", s._gin_handler_SayHi_0)
+
+	//  Sends a goodbye greeting
+	s.router.Handle("POST", "/helloworld.v1.GreeterService/SayGoodBye", s._gin_handler_SayGoodBye_0)
 
 }

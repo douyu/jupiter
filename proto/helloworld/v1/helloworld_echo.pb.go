@@ -21,6 +21,9 @@ var _ = v4.DefaultBinder{}
 
 type GreeterServiceEchoServer interface {
 
+	//  Sends a goodbye greeting
+	SayGoodBye(context.Context, *SayGoodByeRequest) (*SayGoodByeResponse, error)
+
 	// Sends a hello greeting
 	SayHello(context.Context, *SayHelloRequest) (*SayHelloResponse, error)
 
@@ -104,6 +107,27 @@ func (s *_echo_GreeterService) _handler_SayHi_0(ctx v4.Context) error {
 	return ctx.JSON(http.StatusOK, out)
 }
 
+//  Sends a goodbye greeting
+func (s *_echo_GreeterService) _handler_SayGoodBye_0(ctx v4.Context) error {
+	var in SayGoodByeRequest
+	if err := ctx.Bind(&in); err != nil {
+		ctx.Error(err)
+		return nil
+	}
+	md := metadata.New(nil)
+	for k, v := range ctx.Request().Header {
+		md.Set(k, v...)
+	}
+	newCtx := metadata.NewIncomingContext(ctx.Request().Context(), md)
+	out, err := s.server.(GreeterServiceEchoServer).SayGoodBye(newCtx, &in)
+	if err != nil {
+		ctx.Error(err)
+		return nil
+	}
+
+	return ctx.JSON(http.StatusOK, out)
+}
+
 func (s *_echo_GreeterService) registerService() {
 
 	// Sends a hello greeting
@@ -114,5 +138,8 @@ func (s *_echo_GreeterService) registerService() {
 
 	// Sends a hi greeting
 	s.router.Add("POST", "/helloworld.v1.GreeterService/SayHi", s._handler_SayHi_0)
+
+	//  Sends a goodbye greeting
+	s.router.Add("POST", "/helloworld.v1.GreeterService/SayGoodBye", s._handler_SayGoodBye_0)
 
 }

@@ -28,6 +28,33 @@
     "application/json"
   ],
   "paths": {
+    "/helloworld.v1.GreeterService/SayGoodBye": {
+      "post": {
+        "summary": "Sends a goodbye greeting",
+        "operationId": "GreeterService_SayGoodBye",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1SayGoodByeResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1SayGoodByeRequest"
+            }
+          }
+        ],
+        "tags": [
+          "helloworld.v1.GreeterService"
+        ]
+      }
+    },
     "/helloworld.v1.GreeterService/SayHi": {
       "post": {
         "summary": "Sends a hi greeting",
@@ -126,6 +153,81 @@
     }
   },
   "definitions": {
+    "helloworldv1Type": {
+      "type": "string",
+      "enum": [
+        "TYPE_UNSPECIFIED",
+        "TYPE_Filter",
+        "TYPE_Prune"
+      ],
+      "default": "TYPE_UNSPECIFIED",
+      "description": "- TYPE_UNSPECIFIED: TYPE_UNSPECIFIED ...\n - TYPE_Filter: TYPE_Filter ...\n - TYPE_Prune: TYPE_Prune ...",
+      "title": "Type"
+    },
+    "v1OtherHelloMessage": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "address": {
+          "type": "string"
+        }
+      }
+    },
+    "v1SayGoodByeRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "age": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "type": {
+          "$ref": "#/definitions/helloworldv1Type"
+        },
+        "updateMask": {
+          "type": "string"
+        }
+      }
+    },
+    "v1SayGoodByeResponse": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "integer",
+          "format": "int64",
+          "title": "error 错误代码"
+        },
+        "msg": {
+          "type": "string",
+          "title": "msg 错误信息"
+        },
+        "data": {
+          "$ref": "#/definitions/v1SayGoodByeResponseData",
+          "title": "data 响应数据"
+        }
+      }
+    },
+    "v1SayGoodByeResponseData": {
+      "type": "object",
+      "properties": {
+        "age": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "name": {
+          "type": "string"
+        },
+        "other": {
+          "$ref": "#/definitions/v1OtherHelloMessage"
+        }
+      },
+      "title": "Data 响应数据"
+    },
     "v1SayHelloRequest": {
       "type": "object",
       "properties": {

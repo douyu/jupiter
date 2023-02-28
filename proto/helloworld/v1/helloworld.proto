@@ -10,6 +10,8 @@ package helloworld.v1;
 import "google/api/annotations.proto";
 import "tagger/tagger.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
+import "google/protobuf/field_mask.proto";
+import "fieldmask/v1/option.proto";
 
 option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
   info: {
@@ -58,6 +60,8 @@ service GreeterService {
   }
   // Sends a hi greeting
   rpc SayHi (SayHiRequest) returns (SayHiResponse) {}
+  //  Sends a goodbye greeting
+  rpc SayGoodBye (SayGoodByeRequest) returns (SayGoodByeResponse);
 }
 
 // The request message containing the user's name.
@@ -108,6 +112,47 @@ message SayHiResponse {
   string msg = 2;
   // data ...
   Data data = 3;
+}
+
+message SayGoodByeRequest{
+  string name = 1;
+    uint64 age = 2;
+    Type type = 3;
+    google.protobuf.FieldMask update_mask = 4[
+        (fieldmask.v1.Option).in = true,
+        (fieldmask.v1.Option).out = true
+    ];
+}
+
+
+message SayGoodByeResponse{
+  // Data 响应数据
+  message Data {
+      uint64 age = 1;
+      string name = 2;
+      OtherHelloMessage other = 3;
+  }
+  // error 错误代码
+  uint32 error = 1;
+  // msg 错误信息
+  string msg = 2;
+  // data 响应数据
+  Data data = 3;
+}
+
+message OtherHelloMessage{
+  uint32 id = 1;
+  string address = 2;
+}
+
+// Type
+enum Type {
+  // TYPE_UNSPECIFIED ...
+  TYPE_UNSPECIFIED = 0;
+  // TYPE_Filter ...
+  TYPE_Filter = 1;
+  // TYPE_Prune ...
+  TYPE_Prune = 2;
 }
 
 // Sex

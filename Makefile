@@ -54,7 +54,7 @@ update:
 # generate code
 generate:
 	buf generate
-	cd proto && buf generate --template buf.gen.tag.yaml
+	cd proto && buf generate --template buf.gen.yaml
 
 .PHONY: lint
 # lint

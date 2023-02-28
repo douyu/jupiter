@@ -2,7 +2,9 @@ package helloworldv1
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"time"
 
 	"google.golang.org/grpc/codes"
@@ -45,5 +47,39 @@ func (s *FooServer) SayHello(ctx context.Context, in *SayHelloRequest) (out *Say
 	default:
 		out = &SayHelloResponse{Data: &SayHelloResponse_Data{Name: in.Name}}
 	}
+	return
+}
+
+func (s *FooServer) SayGoodBye(ctx context.Context, in *SayGoodByeRequest) (out *SayGoodByeResponse, err error) {
+	var fm = new(SayGoodByeRequest_FieldMask)
+	if in.Type == Type_TYPE_Filter {
+		fm = in.FieldMaskFilter()
+	} else {
+		fm = in.FieldMaskPrune()
+	}
+	out = &SayGoodByeResponse{
+		Error: 0,
+		Msg:   "请求正常",
+		Data: &SayGoodByeResponse_Data{
+			Age:  1,
+			Name: "",
+			Other: &OtherHelloMessage{
+				Id:      1,
+				Address: "bar",
+			},
+		},
+	}
+	if fm.MaskedInName() {
+		out.Data.Name = in.GetName()
+	}
+
+	if fm.MaskedInAge() {
+		out.Data.Age = in.GetAge()
+	}
+	out1, _ := json.Marshal(out)
+	fmt.Println("out1:", string(out1))
+	_ = fm.Mask(out)
+	out2, _ := json.Marshal(out)
+	fmt.Println("out2:", string(out2))
 	return
 }
