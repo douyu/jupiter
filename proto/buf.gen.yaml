@@ -6,8 +6,3 @@ plugins:
     opt:
       - paths=source_relative
       - auto=json-as-camel
-
-  - name: go-xfieldmask
-    out: .
-    opt:
-      - paths=source_relative

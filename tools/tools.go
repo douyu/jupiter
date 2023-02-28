@@ -9,7 +9,6 @@ import (
 	_ "github.com/douyu/jupiter/cmd/protoc-gen-go-echo"
 	_ "github.com/douyu/jupiter/cmd/protoc-gen-go-gin"
 	_ "github.com/douyu/jupiter/cmd/protoc-gen-go-xerror"
-	_ "github.com/douyu/jupiter/cmd/protoc-gen-go-xfieldmask"
 	_ "github.com/envoyproxy/protoc-gen-validate"
 	_ "github.com/go-swagger/go-swagger/cmd/swagger"
 	_ "github.com/google/wire/cmd/wire"

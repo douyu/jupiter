@@ -40,8 +40,3 @@ plugins:
       # - omit_enum_default_value=true
       - generate_unbound_methods=true
       - include_package_in_tags=true
-
-  - name: go-xfieldmask
-    out: proto
-    opt:
-      - paths=source_relative
