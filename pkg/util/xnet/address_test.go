@@ -24,16 +24,16 @@ func TestAddress(t *testing.T) {
 		{
 			name: "ipv4",
 			args: args{
-				listener: lo.Must(net.Listen("tcp", "127.0.0.1:8080")),
+				listener: lo.Must(net.Listen("tcp", "127.0.0.1:48080")),
 			},
-			want: "127.0.0.1:8080",
+			want: "127.0.0.1:48080",
 		},
 		{
 			name: "0.0.0.0",
 			args: args{
-				listener: lo.Must(net.Listen("tcp", "0.0.0.0:8080")),
+				listener: lo.Must(net.Listen("tcp", "0.0.0.0:48081")),
 			},
-			want: host + ":8080",
+			want: host + ":48081",
 		},
 	}
 	for _, tt := range tests {
