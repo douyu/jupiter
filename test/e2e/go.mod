@@ -12,8 +12,8 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.15.1
 	github.com/imdario/mergo v0.3.13
 	github.com/labstack/echo/v4 v4.10.2
-	github.com/onsi/ginkgo/v2 v2.8.3
-	github.com/onsi/gomega v1.27.1
+	github.com/onsi/ginkgo/v2 v2.8.4
+	github.com/onsi/gomega v1.27.2
 	github.com/stretchr/testify v1.8.2
 	github.com/valyala/fasthttp v1.44.0
 	google.golang.org/grpc v1.53.0
