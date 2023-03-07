@@ -7,6 +7,7 @@ import (
 
 	"github.com/douyu/jupiter/pkg/core/constant"
 	"github.com/douyu/jupiter/pkg/server"
+	"github.com/douyu/jupiter/pkg/util/xnet"
 	"github.com/douyu/jupiter/pkg/xlog"
 )
 
@@ -61,14 +62,10 @@ func (s *Server) Healthz() bool {
 
 // Info ..
 func (s *Server) Info() *server.ServiceInfo {
-	serviceAddr := s.listener.Addr().String()
-	if s.Config.ServiceAddress != "" {
-		serviceAddr = s.Config.ServiceAddress
-	}
 
 	info := server.ApplyOptions(
 		server.WithScheme("govern"),
-		server.WithAddress(serviceAddr),
+		server.WithAddress(xnet.Address(s.listener)),
 		server.WithKind(constant.ServiceGovernor),
 	)
 	// info.Name = info.Name + "." + ModName
