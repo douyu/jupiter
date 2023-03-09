@@ -47,7 +47,7 @@ require (
 	github.com/tidwall/pretty v1.2.1
 	github.com/urfave/cli v1.22.12
 	github.com/valyala/fasthttp v1.44.0
-	github.com/xlab/treeprint v1.1.0
+	github.com/xlab/treeprint v1.2.0
 	go.etcd.io/etcd/api/v3 v3.5.7
 	go.etcd.io/etcd/client/v3 v3.5.7
 	go.mongodb.org/mongo-driver v1.11.2
