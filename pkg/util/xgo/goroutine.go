@@ -53,11 +53,13 @@ func RestrictParallel(restrict int, fns ...func()) func() {
 		var wg sync.WaitGroup
 		for _, fn := range fns {
 			wg.Add(1)
+			channel <- struct{}{}
 			go func(fn func()) {
-				defer wg.Done()
-				channel <- struct{}{}
+				defer func() {
+					wg.Done()
+					<-channel
+				}()
 				_ = try2(fn, nil)
-				<-channel
 			}(fn)
 		}
 		wg.Wait()
