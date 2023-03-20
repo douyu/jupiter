@@ -2,6 +2,46 @@
 
 <!-- Release notes generated using configuration in .github/release.yml at master -->
 
+## v0.11.3
+
+### New Changes
+
+* build(deps): bump gorm.io/driver/mysql from 1.4.6 to 1.4.7 by @dependabot in https://github.com/douyu/jupiter/pull/734
+* build(deps): bump github.com/onsi/ginkgo/v2 from 2.8.1 to 2.8.3 by @dependabot in https://github.com/douyu/jupiter/pull/733
+* build(deps): bump github.com/onsi/gomega from 1.27.0 to 1.27.1 by @dependabot in https://github.com/douyu/jupiter/pull/735
+* build(deps): bump github.com/labstack/echo/v4 from 4.10.0 to 4.10.1 by @dependabot in https://github.com/douyu/jupiter/pull/736
+* build(deps): bump github.com/onsi/ginkgo/v2 from 2.8.1 to 2.8.3 in /test/e2e by @dependabot in https://github.com/douyu/jupiter/pull/737
+* build(deps): bump github.com/labstack/echo/v4 from 4.10.0 to 4.10.2 in /test/e2e by @dependabot in https://github.com/douyu/jupiter/pull/742
+* build(deps): bump github.com/gin-gonic/gin from 1.8.2 to 1.9.0 by @dependabot in https://github.com/douyu/jupiter/pull/741
+* build(deps): bump cirello.io/pglock from 1.10.0 to 1.11.0 by @dependabot in https://github.com/douyu/jupiter/pull/740
+* docs: improve README by @hnlq715 in https://github.com/douyu/jupiter/pull/743
+* build(deps): bump github.com/labstack/echo/v4 from 4.10.1 to 4.10.2 by @dependabot in https://github.com/douyu/jupiter/pull/744
+* feat: support get/watch config from etcd by @hnlq715 in https://github.com/douyu/jupiter/pull/745
+* build(deps): bump github.com/hnlq715/struct2interface from 0.1.4 to 0.1.5 by @dependabot in https://github.com/douyu/jupiter/pull/746
+* build(deps): bump github.com/gin-gonic/gin from 1.8.2 to 1.9.0 in /test/e2e by @dependabot in https://github.com/douyu/jupiter/pull/749
+* build(deps): bump github.com/grpc-ecosystem/grpc-gateway/v2 from 2.15.0 to 2.15.1 in /test/e2e by @dependabot in https://github.com/douyu/jupiter/pull/748
+* build(deps): bump github.com/grpc-ecosystem/grpc-gateway/v2 from 2.15.0 to 2.15.1 by @dependabot in https://github.com/douyu/jupiter/pull/747
+* build(deps): bump github.com/stretchr/testify from 1.8.1 to 1.8.2 by @dependabot in https://github.com/douyu/jupiter/pull/750
+* build(deps): bump github.com/cosmtrek/air from 1.41.0 to 1.42.0 by @dependabot in https://github.com/douyu/jupiter/pull/751
+* build(deps): bump github.com/onsi/ginkgo/v2 from 2.8.3 to 2.8.4 by @dependabot in https://github.com/douyu/jupiter/pull/752
+* build(deps): bump github.com/stretchr/testify from 1.8.1 to 1.8.2 in /test/e2e by @dependabot in https://github.com/douyu/jupiter/pull/754
+* build(deps): bump github.com/onsi/gomega from 1.27.1 to 1.27.2 by @dependabot in https://github.com/douyu/jupiter/pull/758
+* build(deps): bump github.com/grpc-ecosystem/grpc-gateway/v2 from 2.15.1 to 2.15.2 by @dependabot in https://github.com/douyu/jupiter/pull/763
+* build(deps): bump github.com/grpc-ecosystem/grpc-gateway/v2 from 2.15.1 to 2.15.2 in /test/e2e by @dependabot in https://github.com/douyu/jupiter/pull/761
+* build(deps): bump go.opentelemetry.io/otel from 1.13.0 to 1.14.0 by @dependabot in https://github.com/douyu/jupiter/pull/756
+* build(deps): bump go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc from 1.13.0 to 1.14.0 by @dependabot in https://github.com/douyu/jupiter/pull/757
+* build(deps): bump go.opentelemetry.io/otel/exporters/jaeger from 1.13.0 to 1.14.0 by @dependabot in https://github.com/douyu/jupiter/pull/765
+* build(deps): bump gorm.io/gorm from 1.24.5 to 1.24.6 by @dependabot in https://github.com/douyu/jupiter/pull/764
+* feat: get register address from listener by @hnlq715 in https://github.com/douyu/jupiter/pull/739
+* build(deps): bump golang.org/x/mod from 0.8.0 to 0.9.0 by @dependabot in https://github.com/douyu/jupiter/pull/766
+* build(deps): bump github.com/onsi/ginkgo/v2 from 2.8.4 to 2.9.0 in /test/e2e by @dependabot in https://github.com/douyu/jupiter/pull/768
+* build(deps): bump github.com/onsi/ginkgo/v2 from 2.8.4 to 2.9.0 by @dependabot in https://github.com/douyu/jupiter/pull/767
+
+
+**Full Changelog**: https://github.com/douyu/jupiter/compare/v0.11.2...v0.11.3
+
+<!-- Release notes generated using configuration in .github/release.yml at master -->
+
 ## v0.11.2
 
 ### New Changes

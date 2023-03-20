@@ -73,6 +73,7 @@ func (pc *Producer) Start() error {
 
 	// 兼容配置
 	client, err := rocketmq.NewProducer(
+		producer.WithGroupName(pc.Group),
 		producer.WithNameServer(pc.Addr),
 		producer.WithRetry(pc.Retry),
 		producer.WithInterceptor(pc.interceptors...),

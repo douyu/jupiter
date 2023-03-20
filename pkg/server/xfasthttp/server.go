@@ -23,6 +23,7 @@ import (
 
 	"github.com/douyu/jupiter/pkg/core/constant"
 	"github.com/douyu/jupiter/pkg/server"
+	"github.com/douyu/jupiter/pkg/util/xnet"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/pkg/errors"
 	"github.com/valyala/fasthttp"
@@ -119,14 +120,9 @@ func (s *Server) GracefulStop(ctx context.Context) error {
 
 // Info returns server info, used by governor and consumer balancer
 func (s *Server) Info() *server.ServiceInfo {
-	serviceAddr := s.listener.Addr().String()
-	if s.config.ServiceAddress != "" {
-		serviceAddr = s.config.ServiceAddress
-	}
-
 	info := server.ApplyOptions(
 		server.WithScheme("http"),
-		server.WithAddress(serviceAddr),
+		server.WithAddress(xnet.Address(s.listener)),
 		server.WithKind(constant.ServiceProvider),
 	)
 	// info.Name = info.Name + "." + ModName
