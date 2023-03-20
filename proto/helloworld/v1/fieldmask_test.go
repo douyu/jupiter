@@ -13,7 +13,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func TestGreeterServiceGRPC_SayGoodBye_0(t *testing.T) {
+func TestGreeterServiceGRPCFieldMask_SayHello_0(t *testing.T) {
 	type fields struct {
 		server       GreeterServiceServer
 		createRouter func() *grpc.Server
@@ -40,11 +40,11 @@ func TestGreeterServiceGRPC_SayGoodBye_0(t *testing.T) {
 			},
 			args: args{
 				createReq: func() *http.Request {
-					protoreq := &SayGoodByeRequest{
+					protoreq := &SayHelloRequest{
 						Name: "foo",
 						Type: Type_TYPE_FILTER,
 					}
-					protoreq.MaskInName().MaskOutDataName().MaskOutDataOther()
+					protoreq.MaskInName().MaskOutDataName().MaskOutDataSex()
 
 					fmt.Printf("request: %+v\n", protoreq.String())
 					body, _ := proto.Marshal(protoreq)
@@ -52,7 +52,7 @@ func TestGreeterServiceGRPC_SayGoodBye_0(t *testing.T) {
 					data := bytes.NewBuffer(hdr)
 					data.Write(body)
 					req := httptest.NewRequest(
-						"POST", "http://localhost/helloworld.v1.GreeterService/SayGoodBye",
+						"POST", "http://localhost/helloworld.v1.GreeterService/SayHello",
 						data,
 					)
 					req.ProtoMajor = 2
@@ -61,15 +61,14 @@ func TestGreeterServiceGRPC_SayGoodBye_0(t *testing.T) {
 				},
 			},
 			wantErr: false,
-			wantRes: &SayGoodByeResponse{
+			wantRes: &SayHelloResponse{
 				Error: 0,
 				Msg:   "请求正常",
-				Data: &SayGoodByeResponse_Data{
-					Name: "foo",
-					Other: &OtherHelloMessage{
-						Id:      1,
-						Address: "bar",
-					},
+				Data: &SayHelloResponse_Data{
+					Name:      "foo",
+					AgeNumber: 0,
+					Sex:       Sex_SEX_MALE,
+					Metadata:  map[string]string{},
 				},
 			},
 		},
@@ -84,11 +83,11 @@ func TestGreeterServiceGRPC_SayGoodBye_0(t *testing.T) {
 			},
 			args: args{
 				createReq: func() *http.Request {
-					protoreq := &SayGoodByeRequest{
+					protoreq := &SayHelloRequest{
 						Name: "foo",
 						Type: Type_TYPE_PRUNE,
 					}
-					protoreq.MaskInName().MaskOutDataName().MaskOutDataOther()
+					protoreq.MaskInName().MaskOutDataName().MaskOutDataSex()
 
 					fmt.Printf("request: %+v\n", protoreq.String())
 					body, _ := proto.Marshal(protoreq)
@@ -96,7 +95,7 @@ func TestGreeterServiceGRPC_SayGoodBye_0(t *testing.T) {
 					data := bytes.NewBuffer(hdr)
 					data.Write(body)
 					req := httptest.NewRequest(
-						"POST", "http://localhost/helloworld.v1.GreeterService/SayGoodBye",
+						"POST", "http://localhost/helloworld.v1.GreeterService/SayHello",
 						data,
 					)
 					req.ProtoMajor = 2
@@ -105,11 +104,14 @@ func TestGreeterServiceGRPC_SayGoodBye_0(t *testing.T) {
 				},
 			},
 			wantErr: false,
-			wantRes: &SayGoodByeResponse{
+			wantRes: &SayHelloResponse{
 				Error: 0,
 				Msg:   "请求正常",
-				Data: &SayGoodByeResponse_Data{
-					Age: 1,
+				Data: &SayHelloResponse_Data{
+					Name:      "",
+					AgeNumber: 18,
+					Sex:       Sex_SEX_UNSPECIFIED,
+					Metadata:  map[string]string{"Bar": "bar"},
 				},
 			},
 		},

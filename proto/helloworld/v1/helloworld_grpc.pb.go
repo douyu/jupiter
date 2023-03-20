@@ -26,8 +26,6 @@ type GreeterServiceClient interface {
 	SayHello(ctx context.Context, in *SayHelloRequest, opts ...grpc.CallOption) (*SayHelloResponse, error)
 	// Sends a hi greeting
 	SayHi(ctx context.Context, in *SayHiRequest, opts ...grpc.CallOption) (*SayHiResponse, error)
-	//  Sends a goodbye greeting
-	SayGoodBye(ctx context.Context, in *SayGoodByeRequest, opts ...grpc.CallOption) (*SayGoodByeResponse, error)
 }
 
 type greeterServiceClient struct {
@@ -56,15 +54,6 @@ func (c *greeterServiceClient) SayHi(ctx context.Context, in *SayHiRequest, opts
 	return out, nil
 }
 
-func (c *greeterServiceClient) SayGoodBye(ctx context.Context, in *SayGoodByeRequest, opts ...grpc.CallOption) (*SayGoodByeResponse, error) {
-	out := new(SayGoodByeResponse)
-	err := c.cc.Invoke(ctx, "/helloworld.v1.GreeterService/SayGoodBye", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // GreeterServiceServer is the server API for GreeterService service.
 // All implementations should embed UnimplementedGreeterServiceServer
 // for forward compatibility
@@ -73,8 +62,6 @@ type GreeterServiceServer interface {
 	SayHello(context.Context, *SayHelloRequest) (*SayHelloResponse, error)
 	// Sends a hi greeting
 	SayHi(context.Context, *SayHiRequest) (*SayHiResponse, error)
-	//  Sends a goodbye greeting
-	SayGoodBye(context.Context, *SayGoodByeRequest) (*SayGoodByeResponse, error)
 }
 
 // UnimplementedGreeterServiceServer should be embedded to have forward compatible implementations.
@@ -86,9 +73,6 @@ func (UnimplementedGreeterServiceServer) SayHello(context.Context, *SayHelloRequ
 }
 func (UnimplementedGreeterServiceServer) SayHi(context.Context, *SayHiRequest) (*SayHiResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SayHi not implemented")
-}
-func (UnimplementedGreeterServiceServer) SayGoodBye(context.Context, *SayGoodByeRequest) (*SayGoodByeResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SayGoodBye not implemented")
 }
 
 // UnsafeGreeterServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -138,24 +122,6 @@ func _GreeterService_SayHi_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
-func _GreeterService_SayGoodBye_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SayGoodByeRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GreeterServiceServer).SayGoodBye(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/helloworld.v1.GreeterService/SayGoodBye",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GreeterServiceServer).SayGoodBye(ctx, req.(*SayGoodByeRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // GreeterService_ServiceDesc is the grpc.ServiceDesc for GreeterService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -170,10 +136,6 @@ var GreeterService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SayHi",
 			Handler:    _GreeterService_SayHi_Handler,
-		},
-		{
-			MethodName: "SayGoodBye",
-			Handler:    _GreeterService_SayGoodBye_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

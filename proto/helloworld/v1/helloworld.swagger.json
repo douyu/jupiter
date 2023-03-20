@@ -28,33 +28,6 @@
     "application/json"
   ],
   "paths": {
-    "/helloworld.v1.GreeterService/SayGoodBye": {
-      "post": {
-        "summary": "Sends a goodbye greeting",
-        "operationId": "GreeterService_SayGoodBye",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1SayGoodByeResponse"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1SayGoodByeRequest"
-            }
-          }
-        ],
-        "tags": [
-          "helloworld.v1.GreeterService"
-        ]
-      }
-    },
     "/helloworld.v1.GreeterService/SayHi": {
       "post": {
         "summary": "Sends a hi greeting",
@@ -139,6 +112,26 @@
             "type": "string"
           },
           {
+            "name": "type",
+            "description": "type filter mode\n\n - TYPE_UNSPECIFIED: TYPE_UNSPECIFIED ...\n - TYPE_FILTER: TYPE_FILTER ...\n - TYPE_PRUNE: TYPE_PRUNE ...",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "TYPE_UNSPECIFIED",
+              "TYPE_FILTER",
+              "TYPE_PRUNE"
+            ],
+            "default": "TYPE_UNSPECIFIED"
+          },
+          {
+            "name": "updateMask",
+            "description": "update_mask FieldMask",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
             "name": "token",
             "description": "Token Header",
             "in": "header",
@@ -164,32 +157,12 @@
       "description": "- TYPE_UNSPECIFIED: TYPE_UNSPECIFIED ...\n - TYPE_FILTER: TYPE_FILTER ...\n - TYPE_PRUNE: TYPE_PRUNE ...",
       "title": "Type"
     },
-    "v1OtherHelloMessage": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "integer",
-          "format": "int64",
-          "description": "id..."
-        },
-        "address": {
-          "type": "string",
-          "description": "address..."
-        }
-      },
-      "title": "The response OtherHelloMessage containing the greetings"
-    },
-    "v1SayGoodByeRequest": {
+    "v1SayHelloRequest": {
       "type": "object",
       "properties": {
         "name": {
           "type": "string",
-          "title": "name of the user"
-        },
-        "age": {
-          "type": "string",
-          "format": "uint64",
-          "title": "age of the user"
+          "description": "name ..."
         },
         "type": {
           "$ref": "#/definitions/helloworldv1Type",
@@ -198,54 +171,6 @@
         "updateMask": {
           "type": "string",
           "title": "update_mask FieldMask"
-        }
-      },
-      "title": "The request message containing the greetings"
-    },
-    "v1SayGoodByeResponse": {
-      "type": "object",
-      "properties": {
-        "error": {
-          "type": "integer",
-          "format": "int64",
-          "description": "error..."
-        },
-        "msg": {
-          "type": "string",
-          "description": "msg..."
-        },
-        "data": {
-          "$ref": "#/definitions/v1SayGoodByeResponseData",
-          "description": "data..."
-        }
-      },
-      "title": "The response message containing the greetings"
-    },
-    "v1SayGoodByeResponseData": {
-      "type": "object",
-      "properties": {
-        "age": {
-          "type": "string",
-          "format": "uint64",
-          "title": "name of the user"
-        },
-        "name": {
-          "type": "string",
-          "title": "age of the user"
-        },
-        "other": {
-          "$ref": "#/definitions/v1OtherHelloMessage",
-          "title": "other info of the user"
-        }
-      },
-      "title": "Data 响应数据"
-    },
-    "v1SayHelloRequest": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string",
-          "description": "name ..."
         }
       },
       "description": "The request message containing the user's name."

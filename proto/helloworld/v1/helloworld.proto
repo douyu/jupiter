@@ -60,14 +60,21 @@ service GreeterService {
   }
   // Sends a hi greeting
   rpc SayHi (SayHiRequest) returns (SayHiResponse) {}
-  //  Sends a goodbye greeting
-  rpc SayGoodBye (SayGoodByeRequest) returns (SayGoodByeResponse);
 }
 
 // The request message containing the user's name.
 message SayHelloRequest {
   // name ...
   string name = 1 [(tagger.tags) = "form:\"name\" param:\"name\" uri:\"name\""];
+  // type filter mode
+  Type type = 2;
+  // update_mask FieldMask
+  google.protobuf.FieldMask update_mask = 3[
+        // Whether to mask the request field
+        (fieldmask.v1.Option).in = true,
+        // Whether to mask the response field
+        (fieldmask.v1.Option).out = true
+    ];
 }
 
 // The response message containing the greetings
@@ -112,50 +119,6 @@ message SayHiResponse {
   string msg = 2;
   // data ...
   Data data = 3;
-}
-
-// The request message containing the greetings
-message SayGoodByeRequest{
-  // name of the user
-  string name = 1;
-  // age of the user
-  uint64 age = 2;
-  // type filter mode
-  Type type = 3;
-  // update_mask FieldMask
-  google.protobuf.FieldMask update_mask = 4[
-        // Whether to mask the request field
-        (fieldmask.v1.Option).in = true,
-        // Whether to mask the response field
-        (fieldmask.v1.Option).out = true
-    ];
-}
-
-// The response message containing the greetings
-message SayGoodByeResponse{
-  // Data 响应数据
-  message Data {
-    // name of the user
-    uint64 age = 1;
-    // age of the user
-    string name = 2;
-    // other info of the user
-    OtherHelloMessage other = 3;
-  }
-  // error...
-  uint32 error = 1;
-  // msg...
-  string msg = 2;
-  // data...
-  Data data = 3;
-}
-
-// The response OtherHelloMessage containing the greetings
-message OtherHelloMessage{
-  // id...
-  uint32 id = 1;
-  // address...
-  string address = 2;
 }
 
 // Type

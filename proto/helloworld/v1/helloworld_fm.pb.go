@@ -15,56 +15,56 @@ import (
 var _ = fieldmaskpb.New
 var _ = xfieldmask.New
 
-func (x *SayGoodByeRequest) fieldMaskWithMode(mode xfieldmask.MaskMode) *SayGoodByeRequest_FieldMask {
-	fm := &SayGoodByeRequest_FieldMask{
+func (x *SayHelloRequest) fieldMaskWithMode(mode xfieldmask.MaskMode) *SayHelloRequest_FieldMask {
+	fm := &SayHelloRequest_FieldMask{
 		maskMode: mode,
-		maskIn:   xfieldmask.New(_fm_SayGoodByeRequestMaskIn),
-		maskOut:  xfieldmask.New(_fm_SayGoodByeRequestMaskOut),
+		maskIn:   xfieldmask.New(_fm_SayHelloRequestMaskIn),
+		maskOut:  xfieldmask.New(_fm_SayHelloRequestMaskOut),
 	}
 
 	return fm
 }
 
-// FieldMask_Filter generates *SayGoodByeRequest FieldMask with filter mode, so that
-// only the fields in the SayGoodByeRequest.UpdateMask will be
-// appended into the SayGoodByeRequest.
-func (x *SayGoodByeRequest) FieldMaskFilter() *SayGoodByeRequest_FieldMask {
+// FieldMask_Filter generates *SayHelloRequest FieldMask with filter mode, so that
+// only the fields in the SayHelloRequest.UpdateMask will be
+// appended into the SayHelloRequest.
+func (x *SayHelloRequest) FieldMaskFilter() *SayHelloRequest_FieldMask {
 	return x.fieldMaskWithMode(xfieldmask.MaskMode_Filter)
 }
 
-// FieldMask_Prune generates *SayGoodByeRequest FieldMask with prune mode, so that
-// only the fields NOT in the SayGoodByeRequest.UpdateMask will be
-// appended into the SayGoodByeRequest.
-func (x *SayGoodByeRequest) FieldMaskPrune() *SayGoodByeRequest_FieldMask {
+// FieldMask_Prune generates *SayHelloRequest FieldMask with prune mode, so that
+// only the fields NOT in the SayHelloRequest.UpdateMask will be
+// appended into the SayHelloRequest.
+func (x *SayHelloRequest) FieldMaskPrune() *SayHelloRequest_FieldMask {
 	return x.fieldMaskWithMode(xfieldmask.MaskMode_Prune)
 }
 
-// SayGoodByeRequest_FieldMask provide helper functions to deal with FieldMask.
-type SayGoodByeRequest_FieldMask struct {
+// SayHelloRequest_FieldMask provide helper functions to deal with FieldMask.
+type SayHelloRequest_FieldMask struct {
 	maskMode xfieldmask.MaskMode
 	maskIn   xfieldmask.NestedFieldMask
 	maskOut  xfieldmask.NestedFieldMask
 }
 
-// _fm_SayGoodByeRequest is built in variable for SayGoodByeRequest to call FieldMask.Append
-var _fm_SayGoodByeRequest = new(SayGoodByeRequest)
-var _fm_SayGoodByeRequestMaskIn = make([]string, 0)
+// _fm_SayHelloRequest is built in variable for SayHelloRequest to call FieldMask.Append
+var _fm_SayHelloRequest = new(SayHelloRequest)
+var _fm_SayHelloRequestMaskIn = make([]string, 0)
 
-// MaskInName append Name into SayGoodByeRequest.UpdateMask.
-func (x *SayGoodByeRequest) MaskInName() *SayGoodByeRequest {
+// MaskInName append Name into SayHelloRequest.UpdateMask.
+func (x *SayHelloRequest) MaskInName() *SayHelloRequest {
 	if x.UpdateMask == nil {
 		x.UpdateMask = new(fieldmaskpb.FieldMask)
 	}
-	err := x.UpdateMask.Append(_fm_SayGoodByeRequest, "name")
+	err := x.UpdateMask.Append(_fm_SayHelloRequest, "name")
 	if err == nil {
-		_fm_SayGoodByeRequestMaskIn = append(_fm_SayGoodByeRequestMaskIn, "name")
+		_fm_SayHelloRequestMaskIn = append(_fm_SayHelloRequestMaskIn, "name")
 	}
 
 	return x
 }
 
-// MaskedInName indicates the field Name exists in the SayGoodByeRequest.UpdateMask or not.
-func (x *SayGoodByeRequest_FieldMask) MaskedInName() bool {
+// MaskedInName indicates the field Name exists in the SayHelloRequest.UpdateMask or not.
+func (x *SayHelloRequest_FieldMask) MaskedInName() bool {
 	if x.maskIn == nil {
 		return true
 	}
@@ -72,43 +72,21 @@ func (x *SayGoodByeRequest_FieldMask) MaskedInName() bool {
 	return x.maskIn.Masked("name")
 }
 
-// MaskInAge append Age into SayGoodByeRequest.UpdateMask.
-func (x *SayGoodByeRequest) MaskInAge() *SayGoodByeRequest {
+// MaskInType append Type into SayHelloRequest.UpdateMask.
+func (x *SayHelloRequest) MaskInType() *SayHelloRequest {
 	if x.UpdateMask == nil {
 		x.UpdateMask = new(fieldmaskpb.FieldMask)
 	}
-	err := x.UpdateMask.Append(_fm_SayGoodByeRequest, "age")
+	err := x.UpdateMask.Append(_fm_SayHelloRequest, "type")
 	if err == nil {
-		_fm_SayGoodByeRequestMaskIn = append(_fm_SayGoodByeRequestMaskIn, "age")
+		_fm_SayHelloRequestMaskIn = append(_fm_SayHelloRequestMaskIn, "type")
 	}
 
 	return x
 }
 
-// MaskedInAge indicates the field Age exists in the SayGoodByeRequest.UpdateMask or not.
-func (x *SayGoodByeRequest_FieldMask) MaskedInAge() bool {
-	if x.maskIn == nil {
-		return true
-	}
-
-	return x.maskIn.Masked("age")
-}
-
-// MaskInType append Type into SayGoodByeRequest.UpdateMask.
-func (x *SayGoodByeRequest) MaskInType() *SayGoodByeRequest {
-	if x.UpdateMask == nil {
-		x.UpdateMask = new(fieldmaskpb.FieldMask)
-	}
-	err := x.UpdateMask.Append(_fm_SayGoodByeRequest, "type")
-	if err == nil {
-		_fm_SayGoodByeRequestMaskIn = append(_fm_SayGoodByeRequestMaskIn, "type")
-	}
-
-	return x
-}
-
-// MaskedInType indicates the field Type exists in the SayGoodByeRequest.UpdateMask or not.
-func (x *SayGoodByeRequest_FieldMask) MaskedInType() bool {
+// MaskedInType indicates the field Type exists in the SayHelloRequest.UpdateMask or not.
+func (x *SayHelloRequest_FieldMask) MaskedInType() bool {
 	if x.maskIn == nil {
 		return true
 	}
@@ -116,25 +94,25 @@ func (x *SayGoodByeRequest_FieldMask) MaskedInType() bool {
 	return x.maskIn.Masked("type")
 }
 
-// _fm_SayGoodByeResponse is built in variable for SayGoodByeResponse to call FieldMask.Append
-var _fm_SayGoodByeResponse = new(SayGoodByeResponse)
-var _fm_SayGoodByeRequestMaskOut = make([]string, 0)
+// _fm_SayHelloResponse is built in variable for SayHelloResponse to call FieldMask.Append
+var _fm_SayHelloResponse = new(SayHelloResponse)
+var _fm_SayHelloRequestMaskOut = make([]string, 0)
 
-// MaskOutError append Error into SayGoodByeRequest.UpdateMask.
-func (x *SayGoodByeRequest) MaskOutError() *SayGoodByeRequest {
+// MaskOutError append Error into SayHelloRequest.UpdateMask.
+func (x *SayHelloRequest) MaskOutError() *SayHelloRequest {
 	if x.UpdateMask == nil {
 		x.UpdateMask = new(fieldmaskpb.FieldMask)
 	}
-	err := x.UpdateMask.Append(_fm_SayGoodByeResponse, "error")
+	err := x.UpdateMask.Append(_fm_SayHelloResponse, "error")
 	if err == nil {
-		_fm_SayGoodByeRequestMaskOut = append(_fm_SayGoodByeRequestMaskOut, "error")
+		_fm_SayHelloRequestMaskOut = append(_fm_SayHelloRequestMaskOut, "error")
 	}
 
 	return x
 }
 
-// MaskedOutError indicates the field Error exists in the SayGoodByeRequest.UpdateMask or not.
-func (x *SayGoodByeRequest_FieldMask) MaskedOutError() bool {
+// MaskedOutError indicates the field Error exists in the SayHelloRequest.UpdateMask or not.
+func (x *SayHelloRequest_FieldMask) MaskedOutError() bool {
 	if x.maskOut == nil {
 		return true
 	}
@@ -142,21 +120,21 @@ func (x *SayGoodByeRequest_FieldMask) MaskedOutError() bool {
 	return x.maskOut.Masked("error")
 }
 
-// MaskOutMsg append Msg into SayGoodByeRequest.UpdateMask.
-func (x *SayGoodByeRequest) MaskOutMsg() *SayGoodByeRequest {
+// MaskOutMsg append Msg into SayHelloRequest.UpdateMask.
+func (x *SayHelloRequest) MaskOutMsg() *SayHelloRequest {
 	if x.UpdateMask == nil {
 		x.UpdateMask = new(fieldmaskpb.FieldMask)
 	}
-	err := x.UpdateMask.Append(_fm_SayGoodByeResponse, "msg")
+	err := x.UpdateMask.Append(_fm_SayHelloResponse, "msg")
 	if err == nil {
-		_fm_SayGoodByeRequestMaskOut = append(_fm_SayGoodByeRequestMaskOut, "msg")
+		_fm_SayHelloRequestMaskOut = append(_fm_SayHelloRequestMaskOut, "msg")
 	}
 
 	return x
 }
 
-// MaskedOutMsg indicates the field Msg exists in the SayGoodByeRequest.UpdateMask or not.
-func (x *SayGoodByeRequest_FieldMask) MaskedOutMsg() bool {
+// MaskedOutMsg indicates the field Msg exists in the SayHelloRequest.UpdateMask or not.
+func (x *SayHelloRequest_FieldMask) MaskedOutMsg() bool {
 	if x.maskOut == nil {
 		return true
 	}
@@ -164,21 +142,21 @@ func (x *SayGoodByeRequest_FieldMask) MaskedOutMsg() bool {
 	return x.maskOut.Masked("msg")
 }
 
-// MaskOutData append Data into SayGoodByeRequest.UpdateMask.
-func (x *SayGoodByeRequest) MaskOutData() *SayGoodByeRequest {
+// MaskOutData append Data into SayHelloRequest.UpdateMask.
+func (x *SayHelloRequest) MaskOutData() *SayHelloRequest {
 	if x.UpdateMask == nil {
 		x.UpdateMask = new(fieldmaskpb.FieldMask)
 	}
-	err := x.UpdateMask.Append(_fm_SayGoodByeResponse, "data")
+	err := x.UpdateMask.Append(_fm_SayHelloResponse, "data")
 	if err == nil {
-		_fm_SayGoodByeRequestMaskOut = append(_fm_SayGoodByeRequestMaskOut, "data")
+		_fm_SayHelloRequestMaskOut = append(_fm_SayHelloRequestMaskOut, "data")
 	}
 
 	return x
 }
 
-// MaskedOutData indicates the field Data exists in the SayGoodByeRequest.UpdateMask or not.
-func (x *SayGoodByeRequest_FieldMask) MaskedOutData() bool {
+// MaskedOutData indicates the field Data exists in the SayHelloRequest.UpdateMask or not.
+func (x *SayHelloRequest_FieldMask) MaskedOutData() bool {
 	if x.maskOut == nil {
 		return true
 	}
@@ -186,43 +164,21 @@ func (x *SayGoodByeRequest_FieldMask) MaskedOutData() bool {
 	return x.maskOut.Masked("data")
 }
 
-// MaskOutDataAge append DataAge into SayGoodByeRequest.UpdateMask.
-func (x *SayGoodByeRequest) MaskOutDataAge() *SayGoodByeRequest {
+// MaskOutDataName append DataName into SayHelloRequest.UpdateMask.
+func (x *SayHelloRequest) MaskOutDataName() *SayHelloRequest {
 	if x.UpdateMask == nil {
 		x.UpdateMask = new(fieldmaskpb.FieldMask)
 	}
-	err := x.UpdateMask.Append(_fm_SayGoodByeResponse, "data.age")
+	err := x.UpdateMask.Append(_fm_SayHelloResponse, "data.name")
 	if err == nil {
-		_fm_SayGoodByeRequestMaskOut = append(_fm_SayGoodByeRequestMaskOut, "data.age")
+		_fm_SayHelloRequestMaskOut = append(_fm_SayHelloRequestMaskOut, "data.name")
 	}
 
 	return x
 }
 
-// MaskedOutDataAge indicates the field DataAge exists in the SayGoodByeRequest.UpdateMask or not.
-func (x *SayGoodByeRequest_FieldMask) MaskedOutDataAge() bool {
-	if x.maskOut == nil {
-		return true
-	}
-
-	return x.maskOut.Masked("data.age")
-}
-
-// MaskOutDataName append DataName into SayGoodByeRequest.UpdateMask.
-func (x *SayGoodByeRequest) MaskOutDataName() *SayGoodByeRequest {
-	if x.UpdateMask == nil {
-		x.UpdateMask = new(fieldmaskpb.FieldMask)
-	}
-	err := x.UpdateMask.Append(_fm_SayGoodByeResponse, "data.name")
-	if err == nil {
-		_fm_SayGoodByeRequestMaskOut = append(_fm_SayGoodByeRequestMaskOut, "data.name")
-	}
-
-	return x
-}
-
-// MaskedOutDataName indicates the field DataName exists in the SayGoodByeRequest.UpdateMask or not.
-func (x *SayGoodByeRequest_FieldMask) MaskedOutDataName() bool {
+// MaskedOutDataName indicates the field DataName exists in the SayHelloRequest.UpdateMask or not.
+func (x *SayHelloRequest_FieldMask) MaskedOutDataName() bool {
 	if x.maskOut == nil {
 		return true
 	}
@@ -230,30 +186,118 @@ func (x *SayGoodByeRequest_FieldMask) MaskedOutDataName() bool {
 	return x.maskOut.Masked("data.name")
 }
 
-// MaskOutDataOther append DataOther into SayGoodByeRequest.UpdateMask.
-func (x *SayGoodByeRequest) MaskOutDataOther() *SayGoodByeRequest {
+// MaskOutDataAgeNumber append DataAgeNumber into SayHelloRequest.UpdateMask.
+func (x *SayHelloRequest) MaskOutDataAgeNumber() *SayHelloRequest {
 	if x.UpdateMask == nil {
 		x.UpdateMask = new(fieldmaskpb.FieldMask)
 	}
-	err := x.UpdateMask.Append(_fm_SayGoodByeResponse, "data.other")
+	err := x.UpdateMask.Append(_fm_SayHelloResponse, "data.age_number")
 	if err == nil {
-		_fm_SayGoodByeRequestMaskOut = append(_fm_SayGoodByeRequestMaskOut, "data.other")
+		_fm_SayHelloRequestMaskOut = append(_fm_SayHelloRequestMaskOut, "data.age_number")
 	}
 
 	return x
 }
 
-// MaskedOutDataOther indicates the field DataOther exists in the SayGoodByeRequest.UpdateMask or not.
-func (x *SayGoodByeRequest_FieldMask) MaskedOutDataOther() bool {
+// MaskedOutDataAgeNumber indicates the field DataAgeNumber exists in the SayHelloRequest.UpdateMask or not.
+func (x *SayHelloRequest_FieldMask) MaskedOutDataAgeNumber() bool {
 	if x.maskOut == nil {
 		return true
 	}
 
-	return x.maskOut.Masked("data.other")
+	return x.maskOut.Masked("data.age_number")
 }
 
-// Mask only affects the fields in the SayGoodByeRequest.
-func (x *SayGoodByeRequest_FieldMask) Mask(m *SayGoodByeResponse) *SayGoodByeResponse {
+// MaskOutDataSex append DataSex into SayHelloRequest.UpdateMask.
+func (x *SayHelloRequest) MaskOutDataSex() *SayHelloRequest {
+	if x.UpdateMask == nil {
+		x.UpdateMask = new(fieldmaskpb.FieldMask)
+	}
+	err := x.UpdateMask.Append(_fm_SayHelloResponse, "data.sex")
+	if err == nil {
+		_fm_SayHelloRequestMaskOut = append(_fm_SayHelloRequestMaskOut, "data.sex")
+	}
+
+	return x
+}
+
+// MaskedOutDataSex indicates the field DataSex exists in the SayHelloRequest.UpdateMask or not.
+func (x *SayHelloRequest_FieldMask) MaskedOutDataSex() bool {
+	if x.maskOut == nil {
+		return true
+	}
+
+	return x.maskOut.Masked("data.sex")
+}
+
+// MaskOutDataMetadata append DataMetadata into SayHelloRequest.UpdateMask.
+func (x *SayHelloRequest) MaskOutDataMetadata() *SayHelloRequest {
+	if x.UpdateMask == nil {
+		x.UpdateMask = new(fieldmaskpb.FieldMask)
+	}
+	err := x.UpdateMask.Append(_fm_SayHelloResponse, "data.metadata")
+	if err == nil {
+		_fm_SayHelloRequestMaskOut = append(_fm_SayHelloRequestMaskOut, "data.metadata")
+	}
+
+	return x
+}
+
+// MaskedOutDataMetadata indicates the field DataMetadata exists in the SayHelloRequest.UpdateMask or not.
+func (x *SayHelloRequest_FieldMask) MaskedOutDataMetadata() bool {
+	if x.maskOut == nil {
+		return true
+	}
+
+	return x.maskOut.Masked("data.metadata")
+}
+
+// MaskOutDataMetadataKey append DataMetadataKey into SayHelloRequest.UpdateMask.
+func (x *SayHelloRequest) MaskOutDataMetadataKey() *SayHelloRequest {
+	if x.UpdateMask == nil {
+		x.UpdateMask = new(fieldmaskpb.FieldMask)
+	}
+	err := x.UpdateMask.Append(_fm_SayHelloResponse, "data.metadata.key")
+	if err == nil {
+		_fm_SayHelloRequestMaskOut = append(_fm_SayHelloRequestMaskOut, "data.metadata.key")
+	}
+
+	return x
+}
+
+// MaskedOutDataMetadataKey indicates the field DataMetadataKey exists in the SayHelloRequest.UpdateMask or not.
+func (x *SayHelloRequest_FieldMask) MaskedOutDataMetadataKey() bool {
+	if x.maskOut == nil {
+		return true
+	}
+
+	return x.maskOut.Masked("data.metadata.key")
+}
+
+// MaskOutDataMetadataValue append DataMetadataValue into SayHelloRequest.UpdateMask.
+func (x *SayHelloRequest) MaskOutDataMetadataValue() *SayHelloRequest {
+	if x.UpdateMask == nil {
+		x.UpdateMask = new(fieldmaskpb.FieldMask)
+	}
+	err := x.UpdateMask.Append(_fm_SayHelloResponse, "data.metadata.value")
+	if err == nil {
+		_fm_SayHelloRequestMaskOut = append(_fm_SayHelloRequestMaskOut, "data.metadata.value")
+	}
+
+	return x
+}
+
+// MaskedOutDataMetadataValue indicates the field DataMetadataValue exists in the SayHelloRequest.UpdateMask or not.
+func (x *SayHelloRequest_FieldMask) MaskedOutDataMetadataValue() bool {
+	if x.maskOut == nil {
+		return true
+	}
+
+	return x.maskOut.Masked("data.metadata.value")
+}
+
+// Mask only affects the fields in the SayHelloRequest.
+func (x *SayHelloRequest_FieldMask) Mask(m *SayHelloResponse) *SayHelloResponse {
 	switch x.maskMode {
 	case xfieldmask.MaskMode_Filter:
 		x.maskOut.Filter(m)
