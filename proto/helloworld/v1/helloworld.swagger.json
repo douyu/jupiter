@@ -112,6 +112,26 @@
             "type": "string"
           },
           {
+            "name": "type",
+            "description": "type filter mode\n\n - TYPE_UNSPECIFIED: TYPE_UNSPECIFIED ...\n - TYPE_FILTER: TYPE_FILTER ...\n - TYPE_PRUNE: TYPE_PRUNE ...",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "TYPE_UNSPECIFIED",
+              "TYPE_FILTER",
+              "TYPE_PRUNE"
+            ],
+            "default": "TYPE_UNSPECIFIED"
+          },
+          {
+            "name": "updateMask",
+            "description": "update_mask FieldMask",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
             "name": "token",
             "description": "Token Header",
             "in": "header",
@@ -126,12 +146,31 @@
     }
   },
   "definitions": {
+    "helloworldv1Type": {
+      "type": "string",
+      "enum": [
+        "TYPE_UNSPECIFIED",
+        "TYPE_FILTER",
+        "TYPE_PRUNE"
+      ],
+      "default": "TYPE_UNSPECIFIED",
+      "description": "- TYPE_UNSPECIFIED: TYPE_UNSPECIFIED ...\n - TYPE_FILTER: TYPE_FILTER ...\n - TYPE_PRUNE: TYPE_PRUNE ...",
+      "title": "Type"
+    },
     "v1SayHelloRequest": {
       "type": "object",
       "properties": {
         "name": {
           "type": "string",
           "description": "name ..."
+        },
+        "type": {
+          "$ref": "#/definitions/helloworldv1Type",
+          "title": "type filter mode"
+        },
+        "updateMask": {
+          "type": "string",
+          "title": "update_mask FieldMask"
         }
       },
       "description": "The request message containing the user's name."

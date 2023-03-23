@@ -29,6 +29,8 @@ var StatusFoo = status.Errorf(codes.DataLoss, ErrFoo.Error())
 
 // SayHello ...
 func (s *FooServer) SayHello(ctx context.Context, in *SayHelloRequest) (out *SayHelloResponse, err error) {
+	var fm = new(SayHelloRequest_FieldMask)
+
 	// sleep to test cost time
 	time.Sleep(20 * time.Millisecond)
 	switch in.Name {
@@ -45,5 +47,30 @@ func (s *FooServer) SayHello(ctx context.Context, in *SayHelloRequest) (out *Say
 	default:
 		out = &SayHelloResponse{Data: &SayHelloResponse_Data{Name: in.Name}}
 	}
+	switch in.GetType() {
+	case Type_TYPE_UNSPECIFIED:
+		return
+	case Type_TYPE_PRUNE:
+		fm = in.FieldMaskPrune()
+	case Type_TYPE_FILTER:
+		fm = in.FieldMaskFilter()
+	default:
+		return
+	}
+
+	out = &SayHelloResponse{
+		Error: 0,
+		Msg:   "请求正常",
+		Data: &SayHelloResponse_Data{
+			Name:      "",
+			AgeNumber: 18,
+			Sex:       Sex_SEX_MALE,
+			Metadata:  map[string]string{"Bar": "bar"},
+		},
+	}
+	if fm.MaskedInName() {
+		out.Data.Name = in.GetName()
+	}
+	_ = fm.Mask(out)
 	return
 }

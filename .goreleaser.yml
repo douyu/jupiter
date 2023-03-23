@@ -37,6 +37,15 @@ builds:
     - windows
   goarch: [amd64]
 
+- main: ./cmd/protoc-gen-go-xfieldmask
+  id: "protoc-gen-go-xfieldmask"
+  binary: protoc-gen-go-xfieldmask
+  goos:
+    - linux
+    - darwin
+    - windows
+  goarch: [amd64]
+
 changelog:
   sort: asc
   filters:

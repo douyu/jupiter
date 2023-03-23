@@ -10,6 +10,8 @@ package helloworld.v1;
 import "google/api/annotations.proto";
 import "tagger/tagger.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
+import "google/protobuf/field_mask.proto";
+import "fieldmask/v1/option.proto";
 
 option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
   info: {
@@ -64,6 +66,15 @@ service GreeterService {
 message SayHelloRequest {
   // name ...
   string name = 1 [(tagger.tags) = "form:\"name\" param:\"name\" uri:\"name\""];
+  // type filter mode
+  Type type = 2;
+  // update_mask FieldMask
+  google.protobuf.FieldMask update_mask = 3[
+        // Whether to mask the request field
+        (fieldmask.v1.Option).in = true,
+        // Whether to mask the response field
+        (fieldmask.v1.Option).out = true
+    ];
 }
 
 // The response message containing the greetings
@@ -108,6 +119,16 @@ message SayHiResponse {
   string msg = 2;
   // data ...
   Data data = 3;
+}
+
+// Type
+enum Type {
+  // TYPE_UNSPECIFIED ...
+  TYPE_UNSPECIFIED = 0;
+  // TYPE_FILTER ...
+  TYPE_FILTER = 1;
+  // TYPE_PRUNE ...
+  TYPE_PRUNE = 2;
 }
 
 // Sex

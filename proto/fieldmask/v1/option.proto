@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+option go_package = "github.com/douyu/jupiter/proto/fieldmask/v1;fieldmaskv1";
+option java_multiple_files = true;
+option java_outer_classname = "FieldMaskProtoV1";
+option java_package = "com.douyu.fieldmask.v1";
+
+package fieldmask.v1;
+
+
+import "google/protobuf/descriptor.proto";
+
+// Extend the google.protobuf.FieldOptions to add a custom option
+extend google.protobuf.FieldOptions {
+  // Option...
+  optional FieldMask Option = 9528;
+}
+
+// FieldMask: field mask rules
+message FieldMask {
+  // Whether to mask the request field
+  bool in = 1;
+  // Whether to mask the response field
+  bool out = 2;
+}
