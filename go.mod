@@ -13,7 +13,7 @@ require (
 	github.com/cosmtrek/air v1.42.0
 	github.com/davecgh/go-spew v1.1.1
 	github.com/dimiro1/banner v1.1.0
-	github.com/fatih/color v1.14.1
+	github.com/fatih/color v1.15.0
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/gin-gonic/gin v1.9.0
 	github.com/go-basic/ipv4 v1.0.0
