@@ -1,0 +1,15 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "fieldmask/v1/option.proto",
+    "version": "version not set"
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {},
+  "definitions": {}
+}
