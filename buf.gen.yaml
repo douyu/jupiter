@@ -41,7 +41,7 @@ plugins:
       - generate_unbound_methods=true
       - include_package_in_tags=true
 
-  # - name: go-xfieldmask
-  #   out: proto
-  #   opt:
-  #     - paths=source_relative
+  - name: go-xfieldmask
+    out: proto
+    opt:
+      - paths=source_relative
