@@ -180,3 +180,5 @@ require (
 	gorm.io/hints v1.1.0 // indirect
 	gorm.io/plugin/dbresolver v1.3.0 // indirect
 )
+
+replace github.com/douyu/jupiter v0.11.4-0.20230323092413-d2c6927995d4 => ../
