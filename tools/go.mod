@@ -5,19 +5,19 @@ go 1.19
 require (
 	github.com/bufbuild/buf v1.14.0
 	github.com/davecgh/go-spew v1.1.1
-	github.com/douyu/jupiter v0.11.1
+	github.com/douyu/jupiter v0.11.4-0.20230323092413-d2c6927995d4
 	github.com/envoyproxy/protoc-gen-validate v0.9.1
 	github.com/fatih/structtag v1.2.0
 	github.com/flosch/pongo2 v0.0.0-20200518135938-dfb43dbdc22a
 	github.com/go-swagger/go-swagger v0.30.4
 	github.com/google/wire v0.5.0
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.15.0
-	github.com/onsi/ginkgo/v2 v2.8.0
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.15.2
+	github.com/onsi/ginkgo/v2 v2.9.1
 	github.com/spf13/cast v1.5.0
 	github.com/srikrsna/protoc-gen-gotag v0.6.2
 	github.com/vektra/mockery/v2 v2.19.0
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.2.0
-	google.golang.org/protobuf v1.28.2-0.20220831092852-f930b1dc76e8
+	google.golang.org/protobuf v1.30.0
 	gorm.io/gen v0.3.21
 )
 
@@ -35,7 +35,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/chigopher/pathlib v0.12.0 // indirect
 	github.com/common-nighthawk/go-figure v0.0.0-20200609044655-c4b36f998cf2 // indirect
-	github.com/cosmtrek/air v1.41.0 // indirect
+	github.com/cosmtrek/air v1.42.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/creack/pty v1.1.18 // indirect
 	github.com/denisenkom/go-mssqldb v0.12.2 // indirect
@@ -46,7 +46,7 @@ require (
 	github.com/docker/docker-credential-helpers v0.7.0 // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
-	github.com/fatih/color v1.14.1 // indirect
+	github.com/fatih/color v1.15.0 // indirect
 	github.com/felixge/fgprof v0.9.3 // indirect
 	github.com/felixge/httpsnoop v1.0.3 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
@@ -72,14 +72,14 @@ require (
 	github.com/golang-sql/civil v0.0.0-20220223132316-b832511892a9 // indirect
 	github.com/golang-sql/sqlexp v0.1.0 // indirect
 	github.com/golang/glog v1.0.0 // indirect
-	github.com/golang/protobuf v1.5.2 // indirect
+	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/go-containerregistry v0.13.0 // indirect
 	github.com/google/pprof v0.0.0-20230131232505-5a9e8f65f08f // indirect
 	github.com/google/subcommands v1.0.1 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/gorilla/handlers v1.5.1 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
-	github.com/hnlq715/struct2interface v0.1.4 // indirect
+	github.com/hnlq715/struct2interface v0.1.5 // indirect
 	github.com/huandu/xstrings v1.3.3 // indirect
 	github.com/iancoleman/strcase v0.2.0 // indirect
 	github.com/imdario/mergo v0.3.13 // indirect
@@ -147,36 +147,38 @@ require (
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/toqueteos/webbrowser v1.2.0 // indirect
 	github.com/urfave/cli v1.22.12 // indirect
-	github.com/xlab/treeprint v1.1.0 // indirect
-	go.mongodb.org/mongo-driver v1.11.1 // indirect
-	go.opentelemetry.io/otel v1.13.0 // indirect
-	go.opentelemetry.io/otel/sdk v1.13.0 // indirect
-	go.opentelemetry.io/otel/trace v1.13.0 // indirect
+	github.com/xlab/treeprint v1.2.0 // indirect
+	go.mongodb.org/mongo-driver v1.11.3 // indirect
+	go.opentelemetry.io/otel v1.14.0 // indirect
+	go.opentelemetry.io/otel/sdk v1.14.0 // indirect
+	go.opentelemetry.io/otel/trace v1.14.0 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/goleak v1.2.0 // indirect
-	go.uber.org/multierr v1.9.0 // indirect
+	go.uber.org/multierr v1.10.0 // indirect
 	go.uber.org/zap v1.24.0 // indirect
-	golang.org/x/crypto v0.5.0 // indirect
+	golang.org/x/crypto v0.6.0 // indirect
 	golang.org/x/exp v0.0.0-20230131160201-f062dba9d201 // indirect
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
-	golang.org/x/mod v0.7.0 // indirect
-	golang.org/x/net v0.7.0 // indirect
+	golang.org/x/mod v0.9.0 // indirect
+	golang.org/x/net v0.8.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
-	golang.org/x/sys v0.5.0 // indirect
-	golang.org/x/term v0.5.0 // indirect
-	golang.org/x/text v0.7.0 // indirect
+	golang.org/x/sys v0.6.0 // indirect
+	golang.org/x/term v0.6.0 // indirect
+	golang.org/x/text v0.8.0 // indirect
 	golang.org/x/time v0.2.0 // indirect
-	golang.org/x/tools v0.5.0 // indirect
-	google.golang.org/genproto v0.0.0-20230131230820-1c016267d619 // indirect
+	golang.org/x/tools v0.7.0 // indirect
+	google.golang.org/genproto v0.0.0-20230223222841-637eb2293923 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gorm.io/datatypes v1.0.7 // indirect
-	gorm.io/driver/mysql v1.4.5 // indirect
+	gorm.io/driver/mysql v1.4.7 // indirect
 	gorm.io/driver/postgres v1.4.1 // indirect
 	gorm.io/driver/sqlite v1.4.1 // indirect
 	gorm.io/driver/sqlserver v1.4.0 // indirect
-	gorm.io/gorm v1.24.5 // indirect
+	gorm.io/gorm v1.24.6 // indirect
 	gorm.io/hints v1.1.0 // indirect
 	gorm.io/plugin/dbresolver v1.3.0 // indirect
 )
+
+replace github.com/douyu/jupiter => ../
