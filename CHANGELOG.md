@@ -2,6 +2,38 @@
 
 <!-- Release notes generated using configuration in .github/release.yml at master -->
 
+### New Changes
+* build(deps): bump google.golang.org/protobuf from 1.28.1 to 1.29.0 in /test/e2e by @dependabot in https://github.com/douyu/jupiter/pull/773
+* build(deps): bump google.golang.org/protobuf from 1.28.1 to 1.29.0 by @dependabot in https://github.com/douyu/jupiter/pull/772
+* build(deps): bump go.uber.org/multierr from 1.9.0 to 1.10.0 by @dependabot in https://github.com/douyu/jupiter/pull/771
+* build(deps): bump github.com/philchia/agollo/v4 from 4.1.4 to 4.1.5 by @dependabot in https://github.com/douyu/jupiter/pull/770
+* build(deps): bump github.com/xlab/treeprint from 1.1.0 to 1.2.0 by @dependabot in https://github.com/douyu/jupiter/pull/775
+* build(deps): bump github.com/golang/protobuf from 1.5.2 to 1.5.3 by @dependabot in https://github.com/douyu/jupiter/pull/774
+* fix: add producer group name for rocketmq by @DenisYin66 in https://github.com/douyu/jupiter/pull/776
+* perf: RestrictParallel exec opti by @zhouxiaohuan in https://github.com/douyu/jupiter/pull/779
+* build(deps): bump google.golang.org/protobuf from 1.29.0 to 1.30.0 in /test/e2e by @dependabot in https://github.com/douyu/jupiter/pull/795
+* build(deps): bump google.golang.org/protobuf from 1.29.0 to 1.30.0 by @dependabot in https://github.com/douyu/jupiter/pull/793
+* build(deps): bump github.com/imdario/mergo from 0.3.13 to 0.3.14 in /test/e2e by @dependabot in https://github.com/douyu/jupiter/pull/794
+* build(deps): bump github.com/onsi/ginkgo/v2 from 2.9.0 to 2.9.1 in /test/e2e by @dependabot in https://github.com/douyu/jupiter/pull/783
+* build(deps): bump go.uber.org/automaxprocs from 1.5.1 to 1.5.2 by @dependabot in https://github.com/douyu/jupiter/pull/797
+* build(deps): bump actions/setup-go from 3 to 4 by @dependabot in https://github.com/douyu/jupiter/pull/788
+* build(deps): bump go.mongodb.org/mongo-driver from 1.11.2 to 1.11.3 by @dependabot in https://github.com/douyu/jupiter/pull/798
+* build(deps): bump github.com/onsi/gomega from 1.27.2 to 1.27.4 by @dependabot in https://github.com/douyu/jupiter/pull/786
+* feat: protoc-gen-go-xfieldmask by @B15030328 in https://github.com/douyu/jupiter/pull/755
+* build(deps): bump github.com/fatih/color from 1.14.1 to 1.15.0 by @dependabot in https://github.com/douyu/jupiter/pull/782
+* build(deps): bump github.com/onsi/gomega from 1.27.2 to 1.27.4 in /test/e2e by @dependabot in https://github.com/douyu/jupiter/pull/790
+* build(deps): bump actions/checkout from 3.3.0 to 3.4.0 by @dependabot in https://github.com/douyu/jupiter/pull/792
+* build(deps): bump github.com/valyala/fasthttp from 1.44.0 to 1.45.0 in /test/e2e by @dependabot in https://github.com/douyu/jupiter/pull/791
+* build(deps): bump actions/checkout from 3.4.0 to 3.5.0 by @dependabot in https://github.com/douyu/jupiter/pull/804
+* feat: update tools & add xfieldmask plugins by @B15030328 in https://github.com/douyu/jupiter/pull/803
+
+## New Contributors
+* @zhouxiaohuan made their first contribution in https://github.com/douyu/jupiter/pull/779
+
+**Full Changelog**: https://github.com/douyu/jupiter/compare/v0.11.3...v0.11.4
+
+<!-- Release notes generated using configuration in .github/release.yml at master -->
+
 ## v0.11.3
 
 ### New Changes
