@@ -106,7 +106,7 @@ func newLogger(config *Config) *zap.Logger {
 		ws = zapcore.AddSync(newRotate(config))
 	}
 
-	if config.Async {
+	if config.Async || xdebug.IsDevelopmentMode() {
 		ws = &zapcore.BufferedWriteSyncer{
 			WS:            zapcore.AddSync(ws),
 			FlushInterval: defaultFlushInterval,
