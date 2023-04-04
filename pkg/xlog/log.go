@@ -100,7 +100,7 @@ func newLogger(config *Config) *zap.Logger {
 	zapOptions = append(zapOptions, zap.Hooks(hook))
 
 	var ws zapcore.WriteSyncer
-	if config.Debug {
+	if config.Debug || xdebug.IsDevelopmentMode() {
 		ws = os.Stdout
 	} else {
 		ws = zapcore.AddSync(newRotate(config))
