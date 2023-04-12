@@ -46,7 +46,7 @@ require (
 	github.com/stretchr/testify v1.8.2
 	github.com/tidwall/pretty v1.2.1
 	github.com/urfave/cli v1.22.12
-	github.com/valyala/fasthttp v1.44.0
+	github.com/valyala/fasthttp v1.45.0
 	github.com/xlab/treeprint v1.2.0
 	go.etcd.io/etcd/api/v3 v3.5.7
 	go.etcd.io/etcd/client/v3 v3.5.7
@@ -72,7 +72,7 @@ require (
 
 require (
 	github.com/StackExchange/wmi v1.2.1 // indirect
-	github.com/andybalholm/brotli v1.0.4 // indirect
+	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bytedance/sonic v1.8.0 // indirect
 	github.com/cenkalti/backoff/v4 v4.2.0 // indirect
@@ -111,7 +111,7 @@ require (
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/jtolds/gls v4.20.0+incompatible // indirect
-	github.com/klauspost/compress v1.15.9 // indirect
+	github.com/klauspost/compress v1.16.3 // indirect
 	github.com/klauspost/cpuid/v2 v2.0.9 // indirect
 	github.com/labstack/gommon v0.4.0 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
@@ -153,7 +153,7 @@ require (
 	go.opentelemetry.io/proto/otlp v0.19.0 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	golang.org/x/arch v0.0.0-20210923205945-b76863e36670 // indirect
-	golang.org/x/crypto v0.6.0 // indirect
+	golang.org/x/crypto v0.7.0 // indirect
 	golang.org/x/exp v0.0.0-20220303212507-bbda1eaf7a17 // indirect
 	golang.org/x/net v0.8.0 // indirect
 	golang.org/x/sys v0.6.0 // indirect
