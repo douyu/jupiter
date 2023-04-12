@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/bufbuild/buf v1.14.0
 	github.com/davecgh/go-spew v1.1.1
-	github.com/douyu/jupiter v0.0.0-00010101000000-000000000000
+	github.com/douyu/jupiter v0.11.4
 	github.com/envoyproxy/protoc-gen-validate v0.9.1
 	github.com/fatih/structtag v1.2.0
 	github.com/flosch/pongo2 v0.0.0-20200518135938-dfb43dbdc22a
@@ -154,7 +154,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.14.0 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/goleak v1.2.1 // indirect
-	go.uber.org/multierr v1.10.0 // indirect
+	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.24.0 // indirect
 	golang.org/x/crypto v0.6.0 // indirect
 	golang.org/x/exp v0.0.0-20230131160201-f062dba9d201 // indirect
@@ -180,5 +180,3 @@ require (
 	gorm.io/hints v1.1.0 // indirect
 	gorm.io/plugin/dbresolver v1.3.0 // indirect
 )
-
-replace github.com/douyu/jupiter => ../
