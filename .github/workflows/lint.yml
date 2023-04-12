@@ -30,7 +30,7 @@ jobs:
         id: go
 
       - name: Check out code into the Go module directory
-        uses: actions/checkout@v3.5.0
+        uses: actions/checkout@v3.5.1
 
       - name: golangci-lint
         if: runner.os != 'Windows'
