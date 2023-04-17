@@ -29,9 +29,11 @@ import (
 	"github.com/douyu/jupiter/pkg/registry/etcdv3"
 	"github.com/douyu/jupiter/pkg/server"
 	"github.com/douyu/jupiter/pkg/server/xgrpc"
+	"github.com/douyu/jupiter/pkg/util/xnet"
 	helloworldv1 "github.com/douyu/jupiter/proto/helloworld/v1"
 	"github.com/douyu/jupiter/test/e2e/framework"
 	"github.com/onsi/ginkgo/v2"
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/metadata"
 )
@@ -91,7 +93,7 @@ var _ = ginkgo.Describe("[jupiter] e2e test", ginkgo.Ordered, func() {
 				return res, err
 			},
 			ExpectError: nil,
-			ExpectReply: []*server.ServiceInfo{{Address: "0.0.0.0:9527"}},
+			ExpectReply: []*server.ServiceInfo{{Address: lo.Must(xnet.GetLocalMainIP()) + ":9527"}},
 		}),
 	)
 })
