@@ -10,7 +10,7 @@ import (
 // Address means the address of the service to be registered
 func Address(listener net.Listener) string {
 	host, port := lo.Must2(net.SplitHostPort(listener.Addr().String()))
-	if host == "::" {
+	if host == "::" || host == "0.0.0.0" {
 		host, _, _ = GetLocalMainIP()
 	}
 
