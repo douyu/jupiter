@@ -38,6 +38,8 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
+var host, _ = lo.Must2(xnet.GetLocalMainIP())
+
 var _ = ginkgo.Describe("[jupiter] e2e test", ginkgo.Ordered, func() {
 	var app *jupiter.Application
 
@@ -93,7 +95,7 @@ var _ = ginkgo.Describe("[jupiter] e2e test", ginkgo.Ordered, func() {
 				return res, err
 			},
 			ExpectError: nil,
-			ExpectReply: []*server.ServiceInfo{{Address: lo.Must(xnet.GetLocalMainIP()) + ":9527"}},
+			ExpectReply: []*server.ServiceInfo{{Address: host + ":9527"}},
 		}),
 	)
 })
