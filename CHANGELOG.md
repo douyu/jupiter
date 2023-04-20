@@ -3,6 +3,40 @@
 <!-- Release notes generated using configuration in .github/release.yml at master -->
 
 ### New Changes
+* build(deps): bump google.golang.org/grpc from 1.53.0 to 1.54.0 by @dependabot in https://github.com/douyu/jupiter/pull/801
+* build(deps): bump google.golang.org/grpc from 1.53.0 to 1.54.0 in /test/e2e by @dependabot in https://github.com/douyu/jupiter/pull/802
+* build(deps): bump github.com/imdario/mergo from 0.3.14 to 0.3.15 in /test/e2e by @dependabot in https://github.com/douyu/jupiter/pull/809
+* build(deps): bump nosborn/github-action-markdown-cli from 3.2.0 to 3.3.0 by @dependabot in https://github.com/douyu/jupiter/pull/811
+* build(deps): bump github.com/onsi/gomega from 1.27.4 to 1.27.6 in /test/e2e by @dependabot in https://github.com/douyu/jupiter/pull/813
+* chore: update gen code by @hnlq715 in https://github.com/douyu/jupiter/pull/815
+* feat: print log to console in dev mode by @hnlq715 in https://github.com/douyu/jupiter/pull/816
+* build(deps): bump actions/stale from 7 to 8 by @dependabot in https://github.com/douyu/jupiter/pull/800
+* build(deps): bump go.uber.org/multierr from 1.10.0 to 1.11.0 by @dependabot in https://github.com/douyu/jupiter/pull/814
+* build(deps): bump github.com/samber/lo from 1.37.0 to 1.38.1 by @dependabot in https://github.com/douyu/jupiter/pull/799
+* build(deps): bump github.com/onsi/gomega from 1.27.4 to 1.27.6 by @dependabot in https://github.com/douyu/jupiter/pull/812
+* build(deps): bump github.com/valyala/fasthttp from 1.44.0 to 1.45.0 by @dependabot in https://github.com/douyu/jupiter/pull/789
+* build(deps): bump github.com/docker/docker from 23.0.0+incompatible to 23.0.3+incompatible in /tools by @dependabot in https://github.com/douyu/jupiter/pull/818
+* build(deps): bump gorm.io/gorm from 1.24.6 to 1.25.0 by @dependabot in https://github.com/douyu/jupiter/pull/824
+* build(deps): bump actions/checkout from 3.5.0 to 3.5.1 by @dependabot in https://github.com/douyu/jupiter/pull/819
+* build(deps): bump golang.org/x/text from 0.8.0 to 0.9.0 by @dependabot in https://github.com/douyu/jupiter/pull/823
+* build(deps): bump github.com/smartystreets/goconvey from 1.7.2 to 1.8.0 by @dependabot in https://github.com/douyu/jupiter/pull/822
+* build(deps): bump go.mongodb.org/mongo-driver from 1.11.3 to 1.11.4 by @dependabot in https://github.com/douyu/jupiter/pull/821
+* Revert "build(deps): bump gorm.io/gorm from 1.24.6 to 1.25.0" by @hnlq715 in https://github.com/douyu/jupiter/pull/825
+* build(deps): bump gorm.io/driver/mysql from 1.4.7 to 1.5.0 by @dependabot in https://github.com/douyu/jupiter/pull/820
+* build(deps): bump golang.org/x/mod from 0.9.0 to 0.10.0 by @dependabot in https://github.com/douyu/jupiter/pull/829
+* build(deps): bump github.com/prometheus/client_golang from 1.14.0 to 1.15.0 by @dependabot in https://github.com/douyu/jupiter/pull/828
+* build(deps): bump actions/checkout from 3.5.1 to 3.5.2 by @dependabot in https://github.com/douyu/jupiter/pull/826
+* build(deps): bump go.etcd.io/etcd/api/v3 from 3.5.7 to 3.5.8 by @dependabot in https://github.com/douyu/jupiter/pull/830
+* fix: grpc listen host by @hnlq715 in https://github.com/douyu/jupiter/pull/832
+* build(deps): bump go.etcd.io/etcd/client/v3 from 3.5.7 to 3.5.8 by @dependabot in https://github.com/douyu/jupiter/pull/831
+* build(deps): bump github.com/cosmtrek/air from 1.42.0 to 1.43.0 by @dependabot in https://github.com/douyu/jupiter/pull/833
+
+
+**Full Changelog**: https://github.com/douyu/jupiter/compare/v0.11.4...v0.11.5
+
+<!-- Release notes generated using configuration in .github/release.yml at master -->
+
+### New Changes
 * build(deps): bump google.golang.org/protobuf from 1.28.1 to 1.29.0 in /test/e2e by @dependabot in https://github.com/douyu/jupiter/pull/773
 * build(deps): bump google.golang.org/protobuf from 1.28.1 to 1.29.0 by @dependabot in https://github.com/douyu/jupiter/pull/772
 * build(deps): bump go.uber.org/multierr from 1.9.0 to 1.10.0 by @dependabot in https://github.com/douyu/jupiter/pull/771
