@@ -37,6 +37,11 @@ func init() {
 }
 
 func registerHandlers() {
+	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(200)
+		_, _ = w.Write([]byte("SUCCESS"))
+	})
+
 	HandleFunc("/configs", func(w http.ResponseWriter, r *http.Request) {
 		encoder := json.NewEncoder(w)
 		if r.URL.Query().Get("pretty") == "true" {
