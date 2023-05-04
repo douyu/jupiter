@@ -45,11 +45,7 @@ func (l *localStorage) GetCacheData(key string) (data []byte, err error) {
 			prome.CacheHandleCounter.WithLabelValues(prome.TypeLocalCache, l.config.Name, "HitCount", "").Inc()
 		}
 	}
-	if err == freecache.ErrNotFound || data == nil {
-		err = nil
-		return
-	}
-	if err != nil {
+	if err != freecache.ErrNotFound {
 		xlog.Jupiter().Error("cache GetCacheData", zap.String("key", key), zap.Error(err))
 		return
 	}

@@ -2,6 +2,7 @@ package xfreecache
 
 import (
 	"fmt"
+	"github.com/coocood/freecache"
 
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/samber/lo"
@@ -41,7 +42,8 @@ func (c *cache[K, V]) GetAndSetCacheMap(key string, ids []K, fn func([]K) (map[K
 	pool := getPool[V]()
 	for _, id := range ids {
 		cacheKey := c.getKey(key, id)
-		if resT, innerErr := c.GetCacheData(cacheKey); innerErr == nil && resT != nil {
+		resT, innerErr := c.GetCacheData(cacheKey)
+		if innerErr == nil && resT != nil {
 			var value V
 			// 反序列化
 			value, err = unmarshalWithPool[V](resT, pool)
@@ -51,7 +53,9 @@ func (c *cache[K, V]) GetAndSetCacheMap(key string, ids []K, fn func([]K) (map[K
 			v[id] = value
 			continue
 		}
-		idsNone = append(idsNone, id)
+		if innerErr == freecache.ErrNotFound {
+			idsNone = append(idsNone, id)
+		}
 	}
 
 	if len(idsNone) == 0 {
