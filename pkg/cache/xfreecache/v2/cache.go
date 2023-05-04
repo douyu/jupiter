@@ -45,8 +45,9 @@ func (c *cache[K, V]) GetAndSetCacheMap(key string, ids []K, fn func([]K) (map[K
 			var value V
 			// 反序列化
 			value, innerErr = unmarshalWithPool[V](resT, pool)
-			if innerErr == nil {
+			if innerErr != nil {
 				xlog.Jupiter().Error("cache unmarshalWithPool", zap.String("key", key), zap.Error(err))
+			} else {
 				v[id] = value
 			}
 		}
