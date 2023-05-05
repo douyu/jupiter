@@ -381,9 +381,9 @@ func (reg *etcdv3Registry) registerKey(info *server.ServiceInfo) string {
 
 func (reg *etcdv3Registry) registerValue(info *server.ServiceInfo) string {
 	update := registry.Update{
-		Op:       registry.Add,
-		Addr:     info.Address,
-		Metadata: info,
+		Op:        registry.Add,
+		Addr:      info.Address,
+		MetadataX: info,
 	}
 
 	val, _ := json.Marshal(update)
