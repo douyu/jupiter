@@ -32,7 +32,7 @@ func TestE2ESuites(t *testing.T) {
 var _ = Describe("normal case", func() {
 	It("httptest", func() {
 		config := DefaultConfig()
-		config.Addr = "https://httpbin.org"
+		config.Addr = "http://localhost:8001"
 		config.EnableTrace = true
 		config.EnableSentinel = true
 		res, err := config.MustBuild().R().Get("/get")
@@ -42,7 +42,7 @@ var _ = Describe("normal case", func() {
 
 	It("slowlog", func() {
 		config := DefaultConfig()
-		config.Addr = "https://httpbin.org"
+		config.Addr = "http://localhost:8001"
 		config.EnableSentinel = true
 		// 测试慢日志
 		config.SlowThreshold = time.Millisecond
@@ -54,12 +54,12 @@ var _ = Describe("normal case", func() {
 
 	It("on error", func() {
 		config := DefaultConfig()
-		config.Addr = "https://httpbin.org"
+		config.Addr = "http://localhost:8001"
 		config.EnableSentinel = true
 
 		res, err := config.MustBuild().R().Get("/status/302")
 		Expect(err.(*url.Error).Err).Should(BeEquivalentTo(errors.New("auto redirect is disabled")))
-		Expect(res.Status()).Should(Equal("302 Found"))
+		Expect(res.Status()).Should(Equal("302 FOUND"))
 		time.Sleep(100 * time.Millisecond)
 	})
 
@@ -72,7 +72,7 @@ var _ = Describe("normal case", func() {
 
 	It("retry", func() {
 		config := DefaultConfig()
-		config.Addr = "https://httpbin.org"
+		config.Addr = "http://localhost:8001"
 		config.RetryCount = 1
 		config.Timeout = time.Millisecond
 		// 测试慢日志
