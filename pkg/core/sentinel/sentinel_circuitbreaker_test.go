@@ -115,7 +115,7 @@ var _ = ginkgo.Describe("sentinel unit test with config", func() {
 
 			a, b := Entry("timeout")
 			if b != nil {
-
+				ginkgo.Fail(b.Error())
 			} else {
 				time.Sleep(100 * time.Millisecond)
 				fmt.Println("pass")
@@ -140,6 +140,15 @@ var _ = ginkgo.Describe("sentinel unit test with config", func() {
 			}
 
 			Expect(pass).Should(Equal(true))
+
+			for i := 0; i < 9; i++ {
+				a, _ := Entry("timeout")
+				time.Sleep(2 * time.Millisecond)
+				a.Exit(base.WithError(nil))
+			}
+
+			a, b = Entry("timeout")
+			Expect(b).ShouldNot(BeNil())
 		})
 
 		ginkgo.It("error case", func() {

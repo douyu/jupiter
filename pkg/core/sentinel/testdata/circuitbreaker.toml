@@ -28,7 +28,7 @@
         retryTimeoutMs = 3000
         minRequestAmount = 10
         statIntervalMs = 5000
-        maxAllowedRtMs = 1000
+        maxAllowedRtMs = 1
         statSlidingWindowBucketCount = 10
         threshold = 0.4
     [[jupiter.sentinel.cbRules]]
