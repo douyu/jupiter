@@ -2,6 +2,23 @@
 
 <!-- Release notes generated using configuration in .github/release.yml at master -->
 
+## v0.11.6
+
+### What's Changed
+* build(deps): bump github.com/valyala/fasthttp from 1.45.0 to 1.46.0 by @dependabot in https://github.com/douyu/jupiter/pull/836
+* build(deps): bump github.com/valyala/fasthttp from 1.45.0 to 1.46.0 in /test/e2e by @dependabot in https://github.com/douyu/jupiter/pull/837
+* build(deps): bump gorm.io/gorm from 1.24.7-0.20230306060331-85eaf9eeda11 to 1.25.0 by @dependabot in https://github.com/douyu/jupiter/pull/827
+* feat: add httpbin in docker-compose by @hnlq715 in https://github.com/douyu/jupiter/pull/853
+* feat(freecache): fix nil not hit by @PengYechang in https://github.com/douyu/jupiter/pull/850
+* build(deps): bump github.com/valyala/fasthttp from 1.46.0 to 1.47.0 in /test/e2e by @dependabot in https://github.com/douyu/jupiter/pull/845
+
+
+**Full Changelog**: https://github.com/douyu/jupiter/compare/v0.11.5...v0.11.6
+
+<!-- Release notes generated using configuration in .github/release.yml at master -->
+
+## v0.11.5
+
 ### New Changes
 * build(deps): bump google.golang.org/grpc from 1.53.0 to 1.54.0 by @dependabot in https://github.com/douyu/jupiter/pull/801
 * build(deps): bump google.golang.org/grpc from 1.53.0 to 1.54.0 in /test/e2e by @dependabot in https://github.com/douyu/jupiter/pull/802
@@ -35,6 +52,8 @@
 **Full Changelog**: https://github.com/douyu/jupiter/compare/v0.11.4...v0.11.5
 
 <!-- Release notes generated using configuration in .github/release.yml at master -->
+
+## v0.11.4
 
 ### New Changes
 * build(deps): bump google.golang.org/protobuf from 1.28.1 to 1.29.0 in /test/e2e by @dependabot in https://github.com/douyu/jupiter/pull/773
