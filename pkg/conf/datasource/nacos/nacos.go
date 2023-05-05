@@ -1,10 +1,21 @@
+// Copyright 2022 Douyu
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package nacos
 
 import (
-	"log"
-
 	"github.com/douyu/jupiter/pkg/conf"
-	"github.com/douyu/jupiter/pkg/util/xgo"
 	"github.com/nacos-group/nacos-sdk-go/v2/clients/config_client"
 	"github.com/nacos-group/nacos-sdk-go/v2/vo"
 )
@@ -20,13 +31,19 @@ type nacosDataSource struct {
 // NewDataSource creates an nacos DataSource
 func NewDataSource(client config_client.IConfigClient, group, dataID string, watch bool) conf.DataSource {
 	ds := &nacosDataSource{
-		client: client,
-		group:  group,
-		dataID: dataID,
+		client:  client,
+		group:   group,
+		dataID:  dataID,
+		changed: make(chan struct{}, 1),
 	}
 	if watch {
-		ds.changed = make(chan struct{}, 1)
-		xgo.Go(ds.watch)
+		_ = ds.client.ListenConfig(vo.ConfigParam{
+			Group:  ds.group,
+			DataId: ds.dataID,
+			OnChange: func(namespace, group, dataId, data string) {
+				ds.changed <- struct{}{}
+			},
+		})
 	}
 	return ds
 }
@@ -44,17 +61,6 @@ func (ds *nacosDataSource) ReadConfig() ([]byte, error) {
 	return []byte(configData), nil
 }
 
-func (ds *nacosDataSource) watch() {
-	ds.client.ListenConfig(vo.ConfigParam{
-		Group:  ds.group,
-		DataId: ds.dataID,
-		OnChange: func(namespace, group, dataId, data string) {
-			log.Println("nacos config changed: ", data)
-			ds.changed <- struct{}{}
-		},
-	})
-}
-
 // IsConfigChanged returns a chanel for notification when the config changed
 func (ds *nacosDataSource) IsConfigChanged() <-chan struct{} {
 	return ds.changed
@@ -62,7 +68,7 @@ func (ds *nacosDataSource) IsConfigChanged() <-chan struct{} {
 
 // Close stops watching the config changed
 func (ds *nacosDataSource) Close() error {
-	ds.client.CancelListenConfig(vo.ConfigParam{
+	_ = ds.client.CancelListenConfig(vo.ConfigParam{
 		Group:  ds.group,
 		DataId: ds.dataID,
 	})
