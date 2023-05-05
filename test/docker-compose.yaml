@@ -77,3 +77,7 @@ services:
       - 6832:6832/udp
     environment:
       COLLECTOR_ZIPKIN_HOST_PORT: :9411
+  httpbin:
+    image: kennethreitz/httpbin
+    ports:
+      - 8001:80
