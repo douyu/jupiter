@@ -2,7 +2,6 @@ package xfreecache
 
 import (
 	"fmt"
-
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/samber/lo"
 	"go.uber.org/zap"
@@ -41,17 +40,20 @@ func (c *cache[K, V]) GetAndSetCacheMap(key string, ids []K, fn func([]K) (map[K
 	pool := getPool[V]()
 	for _, id := range ids {
 		cacheKey := c.getKey(key, id)
-		if resT, innerErr := c.GetCacheData(cacheKey); innerErr == nil && resT != nil {
+		resT, innerErr := c.GetCacheData(cacheKey)
+		if innerErr == nil && resT != nil {
 			var value V
 			// 反序列化
-			value, err = unmarshalWithPool[V](resT, pool)
-			if err != nil {
-				return
+			value, innerErr = unmarshalWithPool[V](resT, pool)
+			if innerErr != nil {
+				xlog.Jupiter().Error("cache unmarshalWithPool", zap.String("key", key), zap.Error(err))
+			} else {
+				v[id] = value
 			}
-			v[id] = value
-			continue
 		}
-		idsNone = append(idsNone, id)
+		if innerErr != nil {
+			idsNone = append(idsNone, id)
+		}
 	}
 
 	if len(idsNone) == 0 {

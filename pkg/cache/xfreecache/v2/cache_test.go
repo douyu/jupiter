@@ -115,11 +115,17 @@ func Test_cache_GetAndSetCacheData_proto(t *testing.T) {
 				Name: "Student 2",
 			},
 		},
+		{
+			stu: nil,
+		},
+		{
+			stu: nil,
+		},
 	}
 
 	for _, tt := range tests {
-		key := tt.stu.Name
-		result, _ := oneCache.GetAndSetCacheData(key, tt.stu.Name, func() (*helloworldv1.SayHiRequest, error) {
+		key := tt.stu.GetName()
+		result, _ := oneCache.GetAndSetCacheData(key, tt.stu.GetName(), func() (*helloworldv1.SayHiRequest, error) {
 			missCount++
 			fmt.Println("local cache miss hit")
 			return tt.stu, nil
@@ -127,7 +133,7 @@ func Test_cache_GetAndSetCacheData_proto(t *testing.T) {
 		fmt.Println(result)
 		assert.Equalf(t, tt.stu.GetName(), result.GetName(), "GetAndSetCacheData(%v) cache value error", key)
 	}
-	assert.Equalf(t, missCount, 3, "GetAndSetCacheData miss count error")
+	assert.Equalf(t, missCount, 4, "GetAndSetCacheData miss count error")
 }
 
 func Test_cache_GetAndSetCacheMap(t *testing.T) {
