@@ -74,9 +74,9 @@ var _ = Describe("normal case", func() {
 		config := DefaultConfig()
 		config.Addr = "http://localhost:8001"
 		config.RetryCount = 1
-		config.Timeout = time.Millisecond
+		config.Timeout = time.Nanosecond
 		// 测试慢日志
-		config.SlowThreshold = time.Millisecond
+		config.SlowThreshold = time.Nanosecond
 		res, err := config.MustBuild().R().Get("/get")
 
 		Expect(err.Error()).Should(ContainSubstring("context deadline exceeded (Client.Timeout exceeded while awaiting headers)"))
