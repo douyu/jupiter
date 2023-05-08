@@ -31,8 +31,8 @@ func getPool[T any]() *sync.Pool {
 		pool := &sync.Pool{
 			New: func() any {
 				// Make a new one, and throw it back into T
-				msg = reflect.New(msgType).Interface().(proto.Message)
-				return msg
+				msgN := reflect.New(msgType).Interface().(proto.Message)
+				return msgN
 			},
 		}
 		pools.Store(msgType.String(), pool)
