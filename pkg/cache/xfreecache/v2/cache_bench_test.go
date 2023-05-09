@@ -1,10 +1,13 @@
 package xfreecache
 
 import (
+	helloworldv1 "github.com/douyu/jupiter/proto/helloworld/v1"
+	"golang.org/x/sync/errgroup"
 	"strconv"
 	"testing"
 )
 
+// BenchmarkLocalCache_GetCacheData race检测
 func BenchmarkLocalCache_GetCacheData(b *testing.B) {
 	localCache := New[string, Student](DefaultConfig())
 
@@ -26,6 +29,63 @@ func BenchmarkLocalCache_GetCacheData(b *testing.B) {
 				return res, nil
 			})
 		}
+	})
+
+	b.Run("read & write & race", func(b *testing.B) {
+		eg := errgroup.Group{}
+		for i := 0; i < b.N; i++ {
+			eg.Go(func() error {
+				student := Student{10, "student" + strconv.Itoa(i)}
+				_, _ = localCache.GetAndSetCacheData("mytest", student.Name, func() (Student, error) {
+					res := student
+					return res, nil
+				})
+				return nil
+			})
+		}
+		_ = eg.Wait()
+	})
+}
+
+// BenchmarkLocalCache_GetCacheData_Proto race检测
+func BenchmarkLocalCache_GetCacheData_Proto(b *testing.B) {
+	localCache := New[int, *helloworldv1.SayHiResponse](DefaultConfig())
+	b.Run("read", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			student := &helloworldv1.SayHiResponse{Error: uint32(i)}
+			_, _ = localCache.GetAndSetCacheData("mytest", i, func() (*helloworldv1.SayHiResponse, error) {
+				res := student
+				return res, nil
+			})
+		}
+	})
+
+	b.Run("read & write & race", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			student := &helloworldv1.SayHiResponse{Error: uint32(1)}
+			data, _ := localCache.GetAndSetCacheData("mytest", 1, func() (*helloworldv1.SayHiResponse, error) {
+				res := student
+				return res, nil
+			})
+			_ = data.Data
+		}
+	})
+
+	b.Run("read & write & race", func(b *testing.B) {
+		eg := errgroup.Group{}
+		for i := 0; i < b.N; i++ {
+			eg.Go(func() error {
+				student := &helloworldv1.SayHiResponse{Error: uint32(1)}
+				data, _ := localCache.GetAndSetCacheData("mytest", 1, func() (*helloworldv1.SayHiResponse, error) {
+					res := student
+					return res, nil
+				})
+				_ = data.Data
+
+				return nil
+			})
+		}
+		_ = eg.Wait()
 	})
 }
 
