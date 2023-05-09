@@ -63,19 +63,13 @@ func TestReadConfig(t *testing.T) {
 		assert.Equal(t, localParam.Content, string(content))
 		t.Logf("read config: %s", content)
 
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			for range ds.IsConfigChanged() {
-				content, err := ds.ReadConfig()
-				assert.Nil(t, err)
-				assert.Equal(t, newContent, string(content))
-				t.Logf("read new config: %s", content)
-				ds.Close()
-			}
-		}()
-
-		wg.Wait()
+		for range ds.IsConfigChanged() {
+			content, err := ds.ReadConfig()
+			assert.Nil(t, err)
+			assert.Equal(t, newContent, string(content))
+			t.Logf("read new config: %s", content)
+			ds.Close()
+		}
 	})
 
 	t.Run("without with", func(t *testing.T) {
