@@ -48,13 +48,8 @@ func TestReadConfig(t *testing.T) {
 		client.EXPECT().CloseClient().Return()
 		client.EXPECT().GetConfig(gomock.Any()).Return(localParam.Content, nil)
 		client.EXPECT().ListenConfig(gomock.Any()).DoAndReturn(func(param vo.ConfigParam) error {
-			go func() {
-				mu.Lock()
-				defer mu.Unlock()
-				time.Sleep(time.Second)
-				param.OnChange("namespace", localParam.Group, localParam.DataId, newContent)
-			}()
-
+			time.Sleep(time.Second)
+			param.OnChange("namespace", localParam.Group, localParam.DataId, newContent)
 			return nil
 		})
 		client.EXPECT().GetConfig(gomock.Any()).Return(newContent, nil)
