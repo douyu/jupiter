@@ -41,7 +41,6 @@ func TestReadConfig(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		mu := sync.Mutex{}
 		client := mock.NewMockIConfigClient(ctrl)
 
 		client.EXPECT().CancelListenConfig(gomock.Any()).Return(nil)
@@ -62,9 +61,6 @@ func TestReadConfig(t *testing.T) {
 		t.Logf("read config: %s", content)
 
 		for range ds.IsConfigChanged() {
-			mu.Lock()
-			defer mu.Unlock()
-
 			content, err := ds.ReadConfig()
 			assert.Nil(t, err)
 			assert.Equal(t, newContent, string(content))
@@ -85,8 +81,8 @@ func TestReadConfig(t *testing.T) {
 		defer ds.Close()
 
 		content, err := ds.ReadConfig()
+		t.Logf("read config: %s", content)
 		assert.Nil(t, err)
 		assert.Equal(t, localParam.Content, string(content))
-		t.Logf("read config: %s", content)
 	})
 }
