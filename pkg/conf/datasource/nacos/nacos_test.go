@@ -37,6 +37,23 @@ var (
 
 func TestReadConfig(t *testing.T) {
 
+	t.Run("without watch", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		client := mock.NewMockIConfigClient(ctrl)
+		client.EXPECT().CancelListenConfig(gomock.Any()).Return(nil)
+		client.EXPECT().CloseClient().Return()
+		client.EXPECT().GetConfig(gomock.Any()).Return(localParam.Content, nil)
+		ds := NewDataSource(client, localParam.Group, localParam.DataId, false)
+		defer ds.Close()
+
+		content, err := ds.ReadConfig()
+		t.Logf("read config: %s", content)
+		assert.Nil(t, err)
+		assert.Equal(t, localParam.Content, string(content))
+	})
+
 	t.Run("with watch", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
@@ -69,20 +86,4 @@ func TestReadConfig(t *testing.T) {
 		}
 	})
 
-	t.Run("without watch", func(t *testing.T) {
-		ctrl := gomock.NewController(t)
-		defer ctrl.Finish()
-
-		client := mock.NewMockIConfigClient(ctrl)
-		client.EXPECT().CancelListenConfig(gomock.Any()).Return(nil)
-		client.EXPECT().CloseClient().Return()
-		client.EXPECT().GetConfig(gomock.Any()).Return(localParam.Content, nil)
-		ds := NewDataSource(client, localParam.Group, localParam.DataId, false)
-		defer ds.Close()
-
-		content, err := ds.ReadConfig()
-		t.Logf("read config: %s", content)
-		assert.Nil(t, err)
-		assert.Equal(t, localParam.Content, string(content))
-	})
 }
