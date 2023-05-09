@@ -47,7 +47,6 @@ func TestReadConfig(t *testing.T) {
 		client.EXPECT().CancelListenConfig(gomock.Any()).Return(nil)
 		client.EXPECT().CloseClient().Return()
 		client.EXPECT().GetConfig(gomock.Any()).Return(localParam.Content, nil)
-		client.EXPECT().GetConfig(gomock.Any()).Return(newContent, nil)
 		client.EXPECT().ListenConfig(gomock.Any()).DoAndReturn(func(param vo.ConfigParam) error {
 			go func() {
 				mu.Lock()
@@ -58,6 +57,7 @@ func TestReadConfig(t *testing.T) {
 
 			return nil
 		})
+		client.EXPECT().GetConfig(gomock.Any()).Return(newContent, nil)
 
 		ds := NewDataSource(client, localParam.Group, localParam.DataId, true)
 
@@ -78,7 +78,7 @@ func TestReadConfig(t *testing.T) {
 		}
 	})
 
-	t.Run("without with", func(t *testing.T) {
+	t.Run("without watch", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
