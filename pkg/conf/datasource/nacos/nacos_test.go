@@ -66,10 +66,10 @@ func TestReadConfig(t *testing.T) {
 		assert.Equal(t, localParam.Content, string(content))
 		t.Logf("read config: %s", content)
 
-		mu.Lock()
-		defer mu.Unlock()
-
 		for range ds.IsConfigChanged() {
+			mu.Lock()
+			defer mu.Unlock()
+
 			content, err := ds.ReadConfig()
 			assert.Nil(t, err)
 			assert.Equal(t, newContent, string(content))
