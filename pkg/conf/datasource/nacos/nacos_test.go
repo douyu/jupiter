@@ -19,7 +19,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/conf/datasource/nacos/mock"
 	"github.com/golang/mock/gomock"
 	"github.com/nacos-group/nacos-sdk-go/v2/vo"
@@ -27,7 +26,6 @@ import (
 )
 
 var (
-	ds         conf.DataSource
 	wg         sync.WaitGroup
 	localParam = vo.ConfigParam{
 		DataId:  "data-id",
@@ -38,28 +36,28 @@ var (
 )
 
 func TestReadConfig(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
 
-	client := mock.NewMockIConfigClient(ctrl)
 	t.Run("with watch", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		client := mock.NewMockIConfigClient(ctrl)
+
 		client.EXPECT().CancelListenConfig(gomock.Any()).Return(nil)
 		client.EXPECT().CloseClient().Return()
 		client.EXPECT().GetConfig(gomock.Any()).Return(localParam.Content, nil)
 		client.EXPECT().ListenConfig(gomock.Any()).DoAndReturn(func(param vo.ConfigParam) error {
 			go func() {
-				defer wg.Done()
-				time.Sleep(4 * time.Second)
-				param.OnChange("namespace", localParam.Group, localParam.DataId, newContent)
+				time.Sleep(time.Second)
 				client.EXPECT().GetConfig(gomock.Any()).Return(newContent, nil)
-				time.Sleep(2 * time.Second)
-				teardown(t)
+				param.OnChange("namespace", localParam.Group, localParam.DataId, newContent)
 			}()
-			wg.Add(1)
+
 			return nil
 		})
 
-		ds = NewDataSource(client, localParam.Group, localParam.DataId, true)
+		ds := NewDataSource(client, localParam.Group, localParam.DataId, true)
+
 		content, err := ds.ReadConfig()
 		assert.Nil(t, err)
 		assert.Equal(t, localParam.Content, string(content))
@@ -73,6 +71,7 @@ func TestReadConfig(t *testing.T) {
 				assert.Nil(t, err)
 				assert.Equal(t, newContent, string(content))
 				t.Logf("read new config: %s", content)
+				ds.Close()
 			}
 		}()
 
@@ -80,19 +79,19 @@ func TestReadConfig(t *testing.T) {
 	})
 
 	t.Run("without with", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		client := mock.NewMockIConfigClient(ctrl)
 		client.EXPECT().CancelListenConfig(gomock.Any()).Return(nil)
 		client.EXPECT().CloseClient().Return()
 		client.EXPECT().GetConfig(gomock.Any()).Return(localParam.Content, nil)
-		ds = NewDataSource(client, localParam.Group, localParam.DataId, false)
-		defer teardown(t)
+		ds := NewDataSource(client, localParam.Group, localParam.DataId, false)
+		defer ds.Close()
+
 		content, err := ds.ReadConfig()
 		assert.Nil(t, err)
 		assert.Equal(t, localParam.Content, string(content))
 		t.Logf("read config: %s", content)
 	})
-}
-
-func teardown(t *testing.T) {
-	t.Helper()
-	ds.Close()
 }
