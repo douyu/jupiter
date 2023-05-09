@@ -134,13 +134,3 @@ func (u *URL) Query() url.Values {
 	v, _ := url.ParseQuery(u.RawQuery)
 	return v
 }
-
-// QueryUint64 returns provided field's value in uint64
-// if value is empty, expect returns
-func (u *URL) QueryUint64(field string, expect uint64) (ret uint64) {
-	ret, err := xcast.ToUint64E(u.Query().Get(field))
-	if err != nil {
-		return expect
-	}
-	return ret
-}
