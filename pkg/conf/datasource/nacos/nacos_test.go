@@ -41,6 +41,7 @@ func TestReadConfig(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
+		mu := sync.Mutex{}
 		client := mock.NewMockIConfigClient(ctrl)
 
 		client.EXPECT().CancelListenConfig(gomock.Any()).Return(nil)
@@ -49,6 +50,8 @@ func TestReadConfig(t *testing.T) {
 		client.EXPECT().GetConfig(gomock.Any()).Return(newContent, nil)
 		client.EXPECT().ListenConfig(gomock.Any()).DoAndReturn(func(param vo.ConfigParam) error {
 			go func() {
+				mu.Lock()
+				defer mu.Unlock()
 				time.Sleep(time.Second)
 				param.OnChange("namespace", localParam.Group, localParam.DataId, newContent)
 			}()
@@ -62,6 +65,9 @@ func TestReadConfig(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, localParam.Content, string(content))
 		t.Logf("read config: %s", content)
+
+		mu.Lock()
+		defer mu.Unlock()
 
 		for range ds.IsConfigChanged() {
 			content, err := ds.ReadConfig()
