@@ -15,7 +15,6 @@
 package nacos
 
 import (
-	"sync"
 	"testing"
 	"time"
 
@@ -26,12 +25,6 @@ import (
 )
 
 var (
-	wg         sync.WaitGroup
-	localParam = vo.ConfigParam{
-		DataId:  "data-id",
-		Group:   "group",
-		Content: "hello world",
-	}
 	newContent = "hello-world-changed"
 )
 
@@ -40,6 +33,12 @@ func TestReadConfig(t *testing.T) {
 	t.Run("without watch", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
+
+		localParam := vo.ConfigParam{
+			DataId:  "data-id",
+			Group:   "group",
+			Content: "hello world",
+		}
 
 		client := mock.NewMockIConfigClient(ctrl)
 		client.EXPECT().CancelListenConfig(gomock.Any()).Return(nil)
@@ -55,6 +54,12 @@ func TestReadConfig(t *testing.T) {
 	})
 
 	t.Run("with watch", func(t *testing.T) {
+
+		localParam := vo.ConfigParam{
+			DataId:  "data-id",
+			Group:   "group",
+			Content: "hello world",
+		}
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
