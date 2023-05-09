@@ -37,14 +37,13 @@ func (c *cache[K, V]) GetAndSetCacheMap(key string, ids []K, fn func([]K) (map[K
 	// id去重
 	ids = lo.Uniq(ids)
 	idsNone := make([]K, 0, len(ids))
-	pool := getPool[V]()
 	for _, id := range ids {
 		cacheKey := c.getKey(key, id)
 		resT, innerErr := c.GetCacheData(cacheKey)
 		if innerErr == nil && resT != nil {
 			var value V
 			// 反序列化
-			value, innerErr = unmarshalWithPool[V](resT, pool)
+			value, innerErr = unmarshal[V](resT)
 			if innerErr != nil {
 				xlog.Jupiter().Error("cache unmarshalWithPool", zap.String("key", key), zap.Error(err))
 			} else {
