@@ -2,6 +2,22 @@
 
 <!-- Release notes generated using configuration in .github/release.yml at master -->
 
+## v0.11.7
+### What's Changed
+* chore: improve timeout test case by @hnlq715 in https://github.com/douyu/jupiter/pull/856
+* build(deps): bump google.golang.org/grpc from 1.54.0 to 1.55.0 in /test/e2e by @dependabot in https://github.com/douyu/jupiter/pull/857
+* fix: be compatible with old grpc client by @hnlq715 in https://github.com/douyu/jupiter/pull/855
+* feat: read config from nacos by @5idu in https://github.com/douyu/jupiter/pull/838
+* feat(freecache): race问题 by @PengYechang in https://github.com/douyu/jupiter/pull/858
+* Revert "feat: read config from nacos" by @hnlq715 in https://github.com/douyu/jupiter/pull/863
+
+## New Contributors
+* @5idu made their first contribution in https://github.com/douyu/jupiter/pull/838
+
+**Full Changelog**: https://github.com/douyu/jupiter/compare/v0.11.6...v0.11.7
+
+<!-- Release notes generated using configuration in .github/release.yml at master -->
+
 ## v0.11.6
 
 ### What's Changed
