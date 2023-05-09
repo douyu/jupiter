@@ -46,10 +46,10 @@ func TestReadConfig(t *testing.T) {
 		client.EXPECT().CancelListenConfig(gomock.Any()).Return(nil)
 		client.EXPECT().CloseClient().Return()
 		client.EXPECT().GetConfig(gomock.Any()).Return(localParam.Content, nil)
+		client.EXPECT().GetConfig(gomock.Any()).Return(newContent, nil)
 		client.EXPECT().ListenConfig(gomock.Any()).DoAndReturn(func(param vo.ConfigParam) error {
 			go func() {
 				time.Sleep(time.Second)
-				client.EXPECT().GetConfig(gomock.Any()).Return(newContent, nil)
 				param.OnChange("namespace", localParam.Group, localParam.DataId, newContent)
 			}()
 
