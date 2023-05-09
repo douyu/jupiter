@@ -36,5 +36,5 @@ type Update struct {
 	Addr string
 	// Metadata is the updated metadata. It is nil if there is no metadata update.
 	// Metadata is not required for a custom naming implementation.
-	Metadata *server.ServiceInfo
+	MetadataX *server.ServiceInfo
 }
