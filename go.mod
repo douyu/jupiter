@@ -45,7 +45,7 @@ require (
 	github.com/srikrsna/protoc-gen-gotag v0.6.2
 	github.com/stretchr/testify v1.8.2
 	github.com/tidwall/pretty v1.2.1
-	github.com/urfave/cli v1.22.12
+	github.com/urfave/cli v1.22.13
 	github.com/valyala/fasthttp v1.46.0
 	github.com/xlab/treeprint v1.2.0
 	go.etcd.io/etcd/api/v3 v3.5.9
