@@ -74,6 +74,26 @@ func Test_cache_GetAndSetCacheData(t *testing.T) {
 		assert.Equalf(t, tt.stu, result, "GetAndSetCacheData(%v) cache value error", key)
 	}
 	assert.Equalf(t, missCount, 3, "GetAndSetCacheData miss count error")
+
+	missCount = 0
+	for _, tt := range tests {
+		key := fmt.Sprintf("%d-%s-new", tt.stu.Age, tt.stu.Name)
+
+		result := oneCache.GetCacheValue(key, tt.stu.Name)
+		fmt.Println(result)
+		if result == (Student{}) {
+			missCount++
+			fmt.Println("local cache miss hit")
+		} else {
+			assert.Equalf(t, tt.stu, result, "split GetAndSetCacheData(%v) cache value error", key)
+		}
+
+		err := oneCache.SetCacheValue(key, tt.stu.Name, func() (Student, error) {
+			return tt.stu, nil
+		})
+		assert.Emptyf(t, err, "split GetAndSetCacheData err not nil")
+	}
+	assert.Equalf(t, missCount, 3, "split GetAndSetCacheData miss count error")
 }
 
 func Test_cache_GetAndSetCacheData_proto(t *testing.T) {
@@ -134,6 +154,26 @@ func Test_cache_GetAndSetCacheData_proto(t *testing.T) {
 		assert.Equalf(t, tt.stu.GetName(), result.GetName(), "GetAndSetCacheData(%v) cache value error", key)
 	}
 	assert.Equalf(t, missCount, 4, "GetAndSetCacheData miss count error")
+
+	missCount = 0
+	for _, tt := range tests {
+		key := tt.stu.GetName() + "-new"
+
+		result := oneCache.GetCacheValue(key, tt.stu.GetName())
+		fmt.Println(result)
+		if result == nil {
+			missCount++
+			fmt.Println("local cache miss hit")
+		} else {
+			assert.Equalf(t, tt.stu.GetName(), result.GetName(), "split GetAndSetCacheData(%v) cache value error", key)
+		}
+
+		err := oneCache.SetCacheValue(key, tt.stu.GetName(), func() (*helloworldv1.SayHiRequest, error) {
+			return tt.stu, nil
+		})
+		assert.Emptyf(t, err, "split GetAndSetCacheData err not nil")
+	}
+	assert.Equalf(t, missCount, 5, "split GetAndSetCacheData miss count error")
 }
 
 func Test_cache_GetAndSetCacheMap(t *testing.T) {

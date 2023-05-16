@@ -28,15 +28,50 @@ func (c *cache[K, V]) GetAndSetCacheData(key string, id K, fn func() (V, error))
 	return
 }
 
+// GetCacheValue 获取缓存数据
+func (c *cache[K, V]) GetCacheValue(key string, id K) (value V) {
+	resMap, _ := c.getCacheMap(key, []K{id})
+	value = resMap[id]
+	return
+}
+
+// SetCacheValue 设置缓存数据
+func (c *cache[K, V]) SetCacheValue(key string, id K, fn func() (V, error)) (err error) {
+	err = c.setCacheMap(key, []K{id}, func([]K) (map[K]V, error) {
+		innerVal, innerErr := fn()
+		return map[K]V{id: innerVal}, innerErr
+	}, nil)
+	return
+}
+
 // GetAndSetCacheMap 获取缓存后数据 map形式
 func (c *cache[K, V]) GetAndSetCacheMap(key string, ids []K, fn func([]K) (map[K]V, error)) (v map[K]V, err error) {
-	args := []zap.Field{zap.Any("key", key), zap.Any("ids", ids)}
+	// 获取缓存数据
+	v, idsNone := c.getCacheMap(key, ids)
 
+	// 设置缓存数据
+	err = c.setCacheMap(key, idsNone, fn, v)
+	return
+}
+
+// GetCacheMap 获取缓存数据 map形式
+func (c *cache[K, V]) GetCacheMap(key string, ids []K) (v map[K]V) {
+	v, _ = c.getCacheMap(key, ids)
+	return
+}
+
+// SetCacheMap 设置缓存数据 map形式
+func (c *cache[K, V]) SetCacheMap(key string, ids []K, fn func([]K) (map[K]V, error)) (err error) {
+	err = c.setCacheMap(key, ids, fn, nil)
+	return
+}
+
+func (c *cache[K, V]) getCacheMap(key string, ids []K) (v map[K]V, idsNone []K) {
 	v = make(map[K]V)
+	idsNone = make([]K, 0, len(ids))
 
 	// id去重
 	ids = lo.Uniq(ids)
-	idsNone := make([]K, 0, len(ids))
 	for _, id := range ids {
 		cacheKey := c.getKey(key, id)
 		resT, innerErr := c.GetCacheData(cacheKey)
@@ -45,7 +80,7 @@ func (c *cache[K, V]) GetAndSetCacheMap(key string, ids []K, fn func([]K) (map[K
 			// 反序列化
 			value, innerErr = unmarshal[V](resT)
 			if innerErr != nil {
-				xlog.Jupiter().Error("cache unmarshalWithPool", zap.String("key", key), zap.Error(err))
+				xlog.Jupiter().Error("cache unmarshalWithPool", zap.String("key", key), zap.Error(innerErr))
 			} else {
 				v[id] = value
 			}
@@ -54,6 +89,11 @@ func (c *cache[K, V]) GetAndSetCacheMap(key string, ids []K, fn func([]K) (map[K
 			idsNone = append(idsNone, id)
 		}
 	}
+	return
+}
+
+func (c *cache[K, V]) setCacheMap(key string, idsNone []K, fn func([]K) (map[K]V, error), v map[K]V) (err error) {
+	args := []zap.Field{zap.Any("key", key), zap.Any("ids", idsNone)}
 
 	if len(idsNone) == 0 {
 		return
@@ -67,8 +107,10 @@ func (c *cache[K, V]) GetAndSetCacheMap(key string, ids []K, fn func([]K) (map[K
 	}
 
 	// 填入返回中
-	for k, value := range resMap {
-		v[k] = value
+	if v != nil {
+		for k, value := range resMap {
+			v[k] = value
+		}
 	}
 
 	// 写入缓存
@@ -78,7 +120,7 @@ func (c *cache[K, V]) GetAndSetCacheMap(key string, ids []K, fn func([]K) (map[K
 			data      []byte
 		)
 
-		if val, ok := v[id]; ok {
+		if val, ok := resMap[id]; ok {
 			cacheData = val
 		}
 		// 序列化
