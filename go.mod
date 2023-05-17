@@ -36,7 +36,7 @@ require (
 	github.com/onsi/gomega v1.27.6
 	github.com/philchia/agollo/v4 v4.1.5
 	github.com/pkg/errors v0.9.1
-	github.com/prometheus/client_golang v1.15.0
+	github.com/prometheus/client_golang v1.15.1
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/samber/lo v1.38.1
 	github.com/smallnest/weighted v0.0.0-20200122032019-adf21c9b8bd1
