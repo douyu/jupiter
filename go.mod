@@ -33,7 +33,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/modern-go/reflect2 v1.0.2
 	github.com/onsi/ginkgo/v2 v2.9.5
-	github.com/onsi/gomega v1.27.6
+	github.com/onsi/gomega v1.27.7
 	github.com/philchia/agollo/v4 v4.1.5
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.15.1
