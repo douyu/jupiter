@@ -7,6 +7,7 @@
         subExpression="*"
         rate=50
         pullBatchSize=10
+        consumeGoroutineNums = 120
     [jupiter.rocketmq.example.pullConsumer]
         enable = true
         topic = "TopicTest02"

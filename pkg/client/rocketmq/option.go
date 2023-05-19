@@ -66,6 +66,8 @@ type PushConsumerConfig struct {
 	Rate            float64       `json:"rate" toml:"rate"`
 	Capacity        int64         `json:"capacity" toml:"capacity"`
 	WaitMaxDuration time.Duration `json:"waitMaxDuration" toml:"waitMaxDuration"`
+	// 消费消息的协程数，默认为20
+	ConsumeGoroutineNums int `json:"consumeGoroutineNums" toml:"consumeGoroutineNums"`
 }
 
 // PullConsumerConfig pull consumer config
@@ -109,8 +111,9 @@ func DefaultConfig() *Config {
 				EnableTrace:  true,
 				MessageModel: "Clustering",
 			},
-			RwTimeout:       time.Second * 10,
-			WaitMaxDuration: 60 * time.Second,
+			RwTimeout:            time.Second * 10,
+			WaitMaxDuration:      60 * time.Second,
+			ConsumeGoroutineNums: 20,
 		},
 		PullConsumer: &PullConsumerConfig{
 			ConsumerDefaultConfig: ConsumerDefaultConfig{
