@@ -3,7 +3,7 @@ module github.com/douyu/jupiter
 go 1.18
 
 require (
-	cirello.io/pglock v1.11.0
+	cirello.io/pglock v1.12.0
 	github.com/BurntSushi/toml v1.2.1
 	github.com/alibaba/sentinel-golang v1.0.4
 	github.com/aliyun/aliyun-tablestore-go-sdk v1.7.7
