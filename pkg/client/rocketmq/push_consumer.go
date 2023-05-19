@@ -204,6 +204,7 @@ func (cc *PushConsumer) Start() error {
 		consumer.WithInterceptor(cc.interceptors...),
 		consumer.WithConsumeMessageBatchMaxSize(cc.ConsumeMessageBatchMaxSize),
 		consumer.WithPullBatchSize(cc.PullBatchSize),
+		consumer.WithConsumeGoroutineNums(cc.ConsumeGoroutineNums),
 		consumer.WithCredentials(primitive.Credentials{
 			AccessKey: cc.AccessKey,
 			SecretKey: cc.SecretKey,
@@ -217,6 +218,15 @@ func (cc *PushConsumer) Start() error {
 	client, err := rocketmq.NewPushConsumer(
 		opts...,
 	)
+
+	if err != nil {
+		xlog.Jupiter().Panic("create push consumer panic",
+			xlog.FieldName(cc.name),
+			xlog.FieldExtMessage(cc.PushConsumerConfig),
+			xlog.FieldErr(err),
+		)
+	}
+
 	cc.PushConsumer = client
 
 	selector := consumer.MessageSelector{
@@ -231,14 +241,6 @@ func (cc *PushConsumer) Start() error {
 		if err := cc.PushConsumer.Subscribe(topic, selector, fn); err != nil {
 			return err
 		}
-	}
-
-	if err != nil {
-		xlog.Jupiter().Panic("create push consumer panic",
-			xlog.FieldName(cc.name),
-			xlog.FieldExtMessage(cc.PushConsumerConfig),
-			xlog.FieldErr(err),
-		)
 	}
 
 	if cc.Enable {
