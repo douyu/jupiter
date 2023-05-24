@@ -5,7 +5,7 @@ import (
 
 	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/core/constant"
-	"github.com/douyu/jupiter/pkg/util/xnet"
+	"github.com/douyu/jupiter/pkg/flag"
 	"github.com/douyu/jupiter/pkg/xlog"
 )
 
@@ -49,16 +49,12 @@ func RawConfig(key string) *Config {
 // DefaultConfig represents default config
 // User should construct config base on DefaultConfig
 func DefaultConfig() *Config {
-	host, port, err := xnet.GetLocalMainIP()
-	if err != nil {
-		host = "localhost"
-	}
 
 	return &Config{
 		Enable:  true,
-		Host:    host,
+		Host:    flag.String("host"),
 		Network: "tcp4",
-		Port:    port,
+		Port:    9093,
 		logger:  xlog.Jupiter().With(xlog.FieldMod(ModName)),
 	}
 }
