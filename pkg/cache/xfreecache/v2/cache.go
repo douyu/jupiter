@@ -5,6 +5,7 @@ import (
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/samber/lo"
 	"go.uber.org/zap"
+	"reflect"
 )
 
 type storage interface {
@@ -67,6 +68,7 @@ func (c *cache[K, V]) SetCacheMap(key string, ids []K, fn func([]K) (map[K]V, er
 }
 
 func (c *cache[K, V]) getCacheMap(key string, ids []K) (v map[K]V, idsNone []K) {
+	var zero V
 	v = make(map[K]V)
 	idsNone = make([]K, 0, len(ids))
 
@@ -82,7 +84,9 @@ func (c *cache[K, V]) getCacheMap(key string, ids []K) (v map[K]V, idsNone []K) 
 			if innerErr != nil {
 				xlog.Jupiter().Error("cache unmarshalWithPool", zap.String("key", key), zap.Error(innerErr))
 			} else {
-				v[id] = value
+				if !reflect.DeepEqual(value, zero) {
+					v[id] = value
+				}
 			}
 		}
 		if innerErr != nil {
