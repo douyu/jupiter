@@ -15,7 +15,7 @@ require (
 	github.com/onsi/ginkgo/v2 v2.9.5
 	github.com/onsi/gomega v1.27.7
 	github.com/samber/lo v1.38.1
-	github.com/stretchr/testify v1.8.3
+	github.com/stretchr/testify v1.8.4
 	github.com/valyala/fasthttp v1.47.0
 	google.golang.org/grpc v1.55.0
 	google.golang.org/protobuf v1.30.0
