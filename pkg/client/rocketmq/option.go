@@ -148,10 +148,11 @@ func StdProducerConfig(name string) *ProducerConfig {
 func RawPushConsumerConfig(name string) *PushConsumerConfig {
 	var defaultConfig = DefaultConfig()
 	var pushConsumerConfig = defaultConfig.PushConsumer
-	if err := conf.UnmarshalKey(name, &defaultConfig, conf.TagName("toml")); err != nil {
-		xlog.Jupiter().Panic("unmarshal config", xlog.FieldErr(err), xlog.String("key", name), xlog.Any("config", pushConsumerConfig))
+	if err := conf.UnmarshalKey(name, &defaultConfig, conf.TagName("toml")); err != nil ||
+		(len(pushConsumerConfig.Addr) == 0 && len(defaultConfig.Addresses) == 0) ||
+		len(pushConsumerConfig.Topic) == 0 {
+		xlog.Jupiter().Panic("pushConsumerConfig fail", xlog.FieldErr(err), xlog.String("key", name), xlog.Any("config", pushConsumerConfig))
 	}
-
 	// 兼容rocket_client_mq变更，addr需要携带shceme
 	if len(pushConsumerConfig.Addr) == 0 {
 		pushConsumerConfig.Addr = defaultConfig.Addresses
@@ -176,8 +177,10 @@ func RawPushConsumerConfig(name string) *PushConsumerConfig {
 func RawPullConsumerConfig(name string) *PullConsumerConfig {
 	var defaultConfig = DefaultConfig()
 	var pullConsumerConfig = defaultConfig.PullConsumer
-	if err := conf.UnmarshalKey(name, &defaultConfig, conf.TagName("toml")); err != nil {
-		xlog.Jupiter().Panic("unmarshal config", xlog.FieldErr(err), xlog.String("key", name), xlog.Any("config", pullConsumerConfig))
+	if err := conf.UnmarshalKey(name, &defaultConfig, conf.TagName("toml")); err != nil ||
+		(len(pullConsumerConfig.Addr) == 0 && len(defaultConfig.Addresses) == 0) ||
+		len(pullConsumerConfig.Topic) == 0 {
+		xlog.Jupiter().Panic("PullConsumerConfig fail", xlog.FieldErr(err), xlog.String("key", name), xlog.Any("config", pullConsumerConfig))
 	}
 
 	// 兼容rocket_client_mq变更，addr需要携带shceme
@@ -204,8 +207,10 @@ func RawPullConsumerConfig(name string) *PullConsumerConfig {
 func RawProducerConfig(name string) *ProducerConfig {
 	var defaultConfig = DefaultConfig()
 	var producerConfig = defaultConfig.Producer
-	if err := conf.UnmarshalKey(name, &defaultConfig, conf.TagName("toml")); err != nil {
-		xlog.Jupiter().Panic("unmarshal config", xlog.FieldErr(err), xlog.String("key", name), xlog.Any("config", defaultConfig))
+	if err := conf.UnmarshalKey(name, &defaultConfig, conf.TagName("toml")); err != nil ||
+		(len(producerConfig.Addr) == 0 && len(defaultConfig.Addresses) == 0) ||
+		len(producerConfig.Topic) == 0 {
+		xlog.Jupiter().Panic("RawProducerConfig fail", xlog.FieldErr(err), xlog.String("key", name), xlog.Any("config", producerConfig))
 	}
 
 	// 兼容rocket_client_mq变更，addr需要携带shceme
