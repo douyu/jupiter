@@ -145,6 +145,7 @@ func StdProducerConfig(name string) *ProducerConfig {
 }
 
 // RawPushConsumerConfig 返push consume回配置
+// nolint:dupl
 func RawPushConsumerConfig(name string) *PushConsumerConfig {
 	var defaultConfig = DefaultConfig()
 	var pushConsumerConfig = defaultConfig.PushConsumer
@@ -174,6 +175,7 @@ func RawPushConsumerConfig(name string) *PushConsumerConfig {
 }
 
 // RawPullConsumerConfig 返回pull consume配置
+// nolint:dupl
 func RawPullConsumerConfig(name string) *PullConsumerConfig {
 	var defaultConfig = DefaultConfig()
 	var pullConsumerConfig = defaultConfig.PullConsumer
@@ -204,6 +206,7 @@ func RawPullConsumerConfig(name string) *PullConsumerConfig {
 }
 
 // RawProducerConfig 返回produce配置
+// nolint:dupl
 func RawProducerConfig(name string) *ProducerConfig {
 	var defaultConfig = DefaultConfig()
 	var producerConfig = defaultConfig.Producer
