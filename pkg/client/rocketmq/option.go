@@ -17,6 +17,7 @@ package rocketmq
 import (
 	"crypto/md5"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -162,7 +163,7 @@ func RawPushConsumerConfig(name string) *PushConsumerConfig {
 	// 这里根据mq集群地址的md5，生成默认InstanceName
 	// 实现自动支持多集群，解决官方库默认不支持多集群消费的问题
 	if pushConsumerConfig.InstanceName == "" {
-		pushConsumerConfig.InstanceName = fmt.Sprintf("%x", md5.Sum([]byte(strings.Join(pushConsumerConfig.Addr, ","))))
+		pushConsumerConfig.InstanceName = fmt.Sprintf("%x@%d", md5.Sum([]byte(strings.Join(pushConsumerConfig.Addr, ","))), os.Getpid())
 	}
 
 	if xdebug.IsDevelopmentMode() {
@@ -190,7 +191,7 @@ func RawPullConsumerConfig(name string) *PullConsumerConfig {
 	// 这里根据mq集群地址的md5，生成默认InstanceName
 	// 实现自动支持多集群，解决官方库默认不支持多集群消费的问题
 	if pullConsumerConfig.InstanceName == "" {
-		pullConsumerConfig.InstanceName = fmt.Sprintf("%x", md5.Sum([]byte(strings.Join(pullConsumerConfig.Addr, ","))))
+		pullConsumerConfig.InstanceName = fmt.Sprintf("%x@%d", md5.Sum([]byte(strings.Join(pullConsumerConfig.Addr, ","))), os.Getpid())
 	}
 
 	if xdebug.IsDevelopmentMode() {
@@ -217,7 +218,7 @@ func RawProducerConfig(name string) *ProducerConfig {
 	// 这里根据mq集群地址的md5，生成默认InstanceName
 	// 实现自动支持多集群，解决官方库默认不支持多集群消费的问题
 	if producerConfig.InstanceName == "" {
-		producerConfig.InstanceName = fmt.Sprintf("%x", md5.Sum([]byte(strings.Join(producerConfig.Addr, ","))))
+		producerConfig.InstanceName = fmt.Sprintf("%x@%d", md5.Sum([]byte(strings.Join(producerConfig.Addr, ","))), os.Getpid())
 	}
 
 	if xdebug.IsDevelopmentMode() {
