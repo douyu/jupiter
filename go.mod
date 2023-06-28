@@ -7,7 +7,7 @@ require (
 	github.com/BurntSushi/toml v1.2.1
 	github.com/alibaba/sentinel-golang v1.0.4
 	github.com/aliyun/aliyun-tablestore-go-sdk v1.7.7
-	github.com/apache/rocketmq-client-go/v2 v2.0.0-20230518020902-2a8172bb9174
+	github.com/apache/rocketmq-client-go/v2 v2.1.2-0.20230628073434-533de03048e1
 	github.com/codegangsta/inject v0.0.0-20150114235600-33e0aa1cb7c0
 	github.com/coocood/freecache v1.2.3
 	github.com/cosmtrek/air v1.43.0
