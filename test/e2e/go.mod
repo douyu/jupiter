@@ -17,7 +17,7 @@ require (
 	github.com/samber/lo v1.38.1
 	github.com/stretchr/testify v1.8.4
 	github.com/valyala/fasthttp v1.48.0
-	google.golang.org/grpc v1.55.0
+	google.golang.org/grpc v1.56.2
 	google.golang.org/protobuf v1.31.0
 )
 
@@ -25,7 +25,7 @@ require (
 	github.com/StackExchange/wmi v1.2.1 // indirect
 	github.com/alibaba/sentinel-golang v1.0.4 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
-	github.com/apache/rocketmq-client-go/v2 v2.1.2-0.20221202035048-f56a2dba2af8 // indirect
+	github.com/apache/rocketmq-client-go/v2 v2.1.2-0.20230628073434-533de03048e1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bytedance/sonic v1.9.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
