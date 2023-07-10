@@ -149,7 +149,7 @@ func TestGinGreeterService_SayHello_0(t *testing.T) {
 			router.ServeHTTP(res, tt.args.createReq())
 
 			var body bytes.Buffer
-			err := json.Compact(&body, []byte(res.Body.String()))
+			err := json.Compact(&body, res.Body.Bytes())
 			// 如果Compact失败，则说明不是json格式
 			if err != nil {
 				body.WriteString(res.Body.String())
