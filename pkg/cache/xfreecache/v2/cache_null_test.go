@@ -1,7 +1,10 @@
 package xfreecache
 
 import (
+	"bytes"
 	"fmt"
+	"github.com/BurntSushi/toml"
+	"github.com/douyu/jupiter/pkg/conf"
 	helloworldv1 "github.com/douyu/jupiter/proto/helloworld/v1"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -10,6 +13,18 @@ import (
 // 测试相关值为空的测试用例
 
 func Test_cache_proto_Null_GetAndSetCacheMap(t *testing.T) {
+	var configStr = `
+		[jupiter.cache]
+			size = "64m"
+			sizeLru = 2000
+			[jupiter.cache.test1]
+				expire = "60s"
+			[jupiter.cache.test2]
+				expire = "60s"
+				cacheType = "lru"
+	`
+	assert.Nil(t, conf.LoadFromReader(bytes.NewBufferString(configStr), toml.Unmarshal))
+
 	type args struct {
 		ids []int64
 	}
@@ -45,35 +60,50 @@ func Test_cache_proto_Null_GetAndSetCacheMap(t *testing.T) {
 		},
 	}
 
-	missCount := 0
-	for _, tt := range tests {
-		c := New[int64, *helloworldv1.SayHiRequest](DefaultConfig())
-		gotV, err := c.GetAndSetCacheMap("Test_cache_proto_Null_GetAndSetCacheMap", tt.args.ids, func(in []int64) (map[int64]*helloworldv1.SayHiRequest, error) {
-			missCount++
-			res := make(map[int64]*helloworldv1.SayHiRequest)
-			for _, uid := range in {
-				if val, ok := data[uid]; ok {
-					res[uid] = val
+	for i := 1; i <= 2; i++ {
+		fmt.Printf("\n======== %d =========\n", i)
+		missCount := 0
+		for _, tt := range tests {
+			c := StdNew[int64, *helloworldv1.SayHiRequest](fmt.Sprintf("test%d", i))
+			gotV, err := c.GetAndSetCacheMap("Test_cache_proto_Null_GetAndSetCacheMap", tt.args.ids, func(in []int64) (map[int64]*helloworldv1.SayHiRequest, error) {
+				missCount++
+				res := make(map[int64]*helloworldv1.SayHiRequest)
+				for _, uid := range in {
+					if val, ok := data[uid]; ok {
+						res[uid] = val
+					}
 				}
+				fmt.Println("======== in =========")
+				fmt.Println(res)
+				return res, nil
+			})
+			fmt.Println("======== out =========")
+			fmt.Println(gotV)
+			assert.Nil(t, err, fmt.Sprintf("GetAndSetCacheMap(%v)", tt.args.ids))
+			assert.Equalf(t, len(gotV), len(tt.wantV), "GetAndSetCacheMap(%v) len", tt.args.ids)
+			for k, v := range gotV {
+				val, ok := tt.wantV[k]
+				assert.Equalf(t, ok, true, "GetAndSetCacheMap(%v) ok", tt.args.ids)
+				assert.Equalf(t, v.GetName(), val.GetName(), "GetAndSetCacheMap(%v) val", tt.args.ids)
 			}
-			fmt.Println("======== in =========")
-			fmt.Println(res)
-			return res, nil
-		})
-		fmt.Println("======== out =========")
-		fmt.Println(gotV)
-		assert.Nil(t, err, fmt.Sprintf("GetAndSetCacheMap(%v)", tt.args.ids))
-		assert.Equalf(t, len(gotV), len(tt.wantV), "GetAndSetCacheMap(%v) len", tt.args.ids)
-		for k, v := range gotV {
-			val, ok := tt.wantV[k]
-			assert.Equalf(t, ok, true, "GetAndSetCacheMap(%v) ok", tt.args.ids)
-			assert.Equalf(t, v.GetName(), val.GetName(), "GetAndSetCacheMap(%v) val", tt.args.ids)
 		}
+		assert.Equalf(t, missCount, 3, "GetAndSetCacheMap miss count error")
 	}
-	assert.Equalf(t, missCount, 3, "GetAndSetCacheMap miss count error")
 }
 
 func Test_cache_json_Null_GetAndSetCacheMap(t *testing.T) {
+	var configStr = `
+		[jupiter.cache]
+			size = "64m"
+			sizeLru = 2000
+			[jupiter.cache.test1]
+				expire = "60s"
+			[jupiter.cache.test2]
+				expire = "60s"
+				cacheType = "lru"
+	`
+	assert.Nil(t, conf.LoadFromReader(bytes.NewBufferString(configStr), toml.Unmarshal))
+
 	type args struct {
 		ids []int64
 	}
@@ -109,35 +139,50 @@ func Test_cache_json_Null_GetAndSetCacheMap(t *testing.T) {
 		},
 	}
 
-	missCount := 0
-	for _, tt := range tests {
-		c := New[int64, *Student](DefaultConfig())
-		gotV, err := c.GetAndSetCacheMap("Test_cache_json_Null_GetAndSetCacheMap", tt.args.ids, func(in []int64) (map[int64]*Student, error) {
-			missCount++
-			res := make(map[int64]*Student)
-			for _, uid := range in {
-				if val, ok := data[uid]; ok {
-					res[uid] = val
+	for i := 1; i <= 2; i++ {
+		fmt.Printf("\n======== %d =========\n", i)
+		missCount := 0
+		for _, tt := range tests {
+			c := StdNew[int64, *Student](fmt.Sprintf("test%d", i))
+			gotV, err := c.GetAndSetCacheMap("Test_cache_json_Null_GetAndSetCacheMap", tt.args.ids, func(in []int64) (map[int64]*Student, error) {
+				missCount++
+				res := make(map[int64]*Student)
+				for _, uid := range in {
+					if val, ok := data[uid]; ok {
+						res[uid] = val
+					}
 				}
+				fmt.Println("======== in =========")
+				fmt.Println(res)
+				return res, nil
+			})
+			fmt.Println("======== out =========")
+			fmt.Println(gotV)
+			assert.Nil(t, err, fmt.Sprintf("GetAndSetCacheMap(%v)", tt.args.ids))
+			assert.Equalf(t, len(gotV), len(tt.wantV), "GetAndSetCacheMap(%v) len", tt.args.ids)
+			for k, v := range gotV {
+				val, ok := tt.wantV[k]
+				assert.Equalf(t, ok, true, "GetAndSetCacheMap(%v) ok", tt.args.ids)
+				assert.Equalf(t, v.Name, val.Name, "GetAndSetCacheMap(%v) val", tt.args.ids)
 			}
-			fmt.Println("======== in =========")
-			fmt.Println(res)
-			return res, nil
-		})
-		fmt.Println("======== out =========")
-		fmt.Println(gotV)
-		assert.Nil(t, err, fmt.Sprintf("GetAndSetCacheMap(%v)", tt.args.ids))
-		assert.Equalf(t, len(gotV), len(tt.wantV), "GetAndSetCacheMap(%v) len", tt.args.ids)
-		for k, v := range gotV {
-			val, ok := tt.wantV[k]
-			assert.Equalf(t, ok, true, "GetAndSetCacheMap(%v) ok", tt.args.ids)
-			assert.Equalf(t, v.Name, val.Name, "GetAndSetCacheMap(%v) val", tt.args.ids)
 		}
+		assert.Equalf(t, missCount, 3, "GetAndSetCacheMap miss count error")
 	}
-	assert.Equalf(t, missCount, 3, "GetAndSetCacheMap miss count error")
 }
 
 func Test_cache_struct_Null_GetAndSetCacheMap(t *testing.T) {
+	var configStr = `
+		[jupiter.cache]
+			size = "64m"
+			sizeLru = 2000
+			[jupiter.cache.test1]
+				expire = "60s"
+			[jupiter.cache.test2]
+				expire = "60s"
+				cacheType = "lru"
+	`
+	assert.Nil(t, conf.LoadFromReader(bytes.NewBufferString(configStr), toml.Unmarshal))
+
 	type args struct {
 		ids []int64
 	}
@@ -173,30 +218,33 @@ func Test_cache_struct_Null_GetAndSetCacheMap(t *testing.T) {
 		},
 	}
 
-	missCount := 0
-	for _, tt := range tests {
-		c := New[int64, Student](DefaultConfig())
-		gotV, err := c.GetAndSetCacheMap("Test_cache_struct_Null_GetAndSetCacheMap", tt.args.ids, func(in []int64) (map[int64]Student, error) {
-			missCount++
-			res := make(map[int64]Student)
-			for _, uid := range in {
-				if val, ok := data[uid]; ok {
-					res[uid] = val
+	for i := 1; i <= 2; i++ {
+		fmt.Printf("\n======== %d =========\n", i)
+		missCount := 0
+		for _, tt := range tests {
+			c := StdNew[int64, Student](fmt.Sprintf("test%d", i))
+			gotV, err := c.GetAndSetCacheMap("Test_cache_struct_Null_GetAndSetCacheMap", tt.args.ids, func(in []int64) (map[int64]Student, error) {
+				missCount++
+				res := make(map[int64]Student)
+				for _, uid := range in {
+					if val, ok := data[uid]; ok {
+						res[uid] = val
+					}
 				}
+				fmt.Println("======== in =========")
+				fmt.Println(res)
+				return res, nil
+			})
+			fmt.Println("======== out =========")
+			fmt.Println(gotV)
+			assert.Nil(t, err, fmt.Sprintf("GetAndSetCacheMap(%v)", tt.args.ids))
+			assert.Equalf(t, len(gotV), len(tt.wantV), "GetAndSetCacheMap(%v) len", tt.args.ids)
+			for k, v := range gotV {
+				val, ok := tt.wantV[k]
+				assert.Equalf(t, ok, true, "GetAndSetCacheMap(%v) ok", tt.args.ids)
+				assert.Equalf(t, v.Name, val.Name, "GetAndSetCacheMap(%v) val", tt.args.ids)
 			}
-			fmt.Println("======== in =========")
-			fmt.Println(res)
-			return res, nil
-		})
-		fmt.Println("======== out =========")
-		fmt.Println(gotV)
-		assert.Nil(t, err, fmt.Sprintf("GetAndSetCacheMap(%v)", tt.args.ids))
-		assert.Equalf(t, len(gotV), len(tt.wantV), "GetAndSetCacheMap(%v) len", tt.args.ids)
-		for k, v := range gotV {
-			val, ok := tt.wantV[k]
-			assert.Equalf(t, ok, true, "GetAndSetCacheMap(%v) ok", tt.args.ids)
-			assert.Equalf(t, v.Name, val.Name, "GetAndSetCacheMap(%v) val", tt.args.ids)
 		}
+		assert.Equalf(t, missCount, 3, "GetAndSetCacheMap miss count error")
 	}
-	assert.Equalf(t, missCount, 3, "GetAndSetCacheMap miss count error")
 }

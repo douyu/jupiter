@@ -2,26 +2,19 @@ package xfreecache
 
 import (
 	"fmt"
-	"sync"
 	"time"
 
-	"github.com/coocood/freecache"
 	cfg "github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"go.uber.org/zap"
 )
 
 type Config struct {
-	Cache         *freecache.Cache `json:"-" toml:"-"`                         // 本地缓存实例【必填】
-	Expire        time.Duration    `json:"expire" toml:"expire"`               // 失效时间 【必填】
-	DisableMetric bool             `json:"disableMetric" toml:"disableMetric"` // metric上报 false 开启  ture 关闭【选填，默认开启】
-	Name          string           `json:"-" toml:"-"`                         // 本地缓存名称，用于日志标识&metric上报【选填】
+	CacheType     string        `json:"cacheType" toml:"cacheType"`         // 本地缓存类型 例如：freecache、lru等，默认使用freeCache
+	Expire        time.Duration `json:"expire" toml:"expire"`               // 失效时间 【必填】
+	DisableMetric bool          `json:"disableMetric" toml:"disableMetric"` // metric上报 false 开启  ture 关闭【选填，默认开启】
+	Name          string        `json:"-" toml:"-"`                         // 本地缓存名称，用于日志标识&metric上报【选填】
 }
-
-var (
-	innerCache *freecache.Cache
-	once       sync.Once
-)
 
 // DefaultConfig 返回默认配置
 func DefaultConfig() *Config {
@@ -44,13 +37,17 @@ func StdConfig(name string) *Config {
 	return config
 }
 
-// StdNew 构建本地缓存实例 The entry size need less than 1/1024 of cache size
+type LocalCache[K comparable, V any] struct {
+	cache[K, V]
+}
+
+// StdNew 构建本地缓存实例
 func StdNew[K comparable, V any](name string) (localCache *LocalCache[K, V]) {
 	c := StdConfig(name)
 	return New[K, V](c)
 }
 
-// New 构建本地缓存实例 缓存容量默认256MB 最小512KB 最大8GB
+// New 构建本地缓存实例
 func New[K comparable, V any](c *Config) (localCache *LocalCache[K, V]) {
 	// 校验参数
 	if c.Expire == 0 {
@@ -59,23 +56,16 @@ func New[K comparable, V any](c *Config) (localCache *LocalCache[K, V]) {
 	if len(c.Name) == 0 {
 		c.Name = fmt.Sprintf("cache-%d", time.Now().UnixNano())
 	}
-	if c.Cache == nil {
-		// 初始化缓存实例
-		once.Do(func() {
-			size, err := ParseSize(cfg.GetString("jupiter.cache.size"))
-			if err != nil {
-				xlog.Jupiter().Warn("localCache StdConfig ParseSize err", zap.Error(err))
-			}
-			if size < 512*KB || size > 8*GB {
-				size = 256 * MB
-			}
-			innerCache = freecache.NewCache(int(size))
-		})
-		c.Cache = innerCache
+
+	// 根据配置选择不同的缓存类型
+	switch c.CacheType {
+	case cacheTypeFreeCache:
+		localCache = newFreeCache[K, V](c)
+	case cacheTypeLruCache:
+		localCache = newLruCache[K, V](c)
+	default:
+		localCache = newFreeCache[K, V](c)
 	}
 
-	localCache = &LocalCache[K, V]{
-		cache: cache[K, V]{&localStorage{c}},
-	}
 	return
 }
