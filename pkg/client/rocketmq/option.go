@@ -17,6 +17,7 @@ package rocketmq
 import (
 	"crypto/md5"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -144,13 +145,15 @@ func StdProducerConfig(name string) *ProducerConfig {
 }
 
 // RawPushConsumerConfig 返push consume回配置
+// nolint:dupl
 func RawPushConsumerConfig(name string) *PushConsumerConfig {
 	var defaultConfig = DefaultConfig()
 	var pushConsumerConfig = defaultConfig.PushConsumer
-	if err := conf.UnmarshalKey(name, &defaultConfig, conf.TagName("toml")); err != nil {
-		xlog.Jupiter().Panic("unmarshal config", xlog.FieldErr(err), xlog.String("key", name), xlog.Any("config", pushConsumerConfig))
+	if err := conf.UnmarshalKey(name, &defaultConfig, conf.TagName("toml")); err != nil ||
+		(len(pushConsumerConfig.Addr) == 0 && len(defaultConfig.Addresses) == 0) ||
+		len(pushConsumerConfig.Topic) == 0 {
+		xlog.Jupiter().Panic("pushConsumerConfig fail", xlog.FieldErr(err), xlog.String("key", name), xlog.Any("config", pushConsumerConfig))
 	}
-
 	// 兼容rocket_client_mq变更，addr需要携带shceme
 	if len(pushConsumerConfig.Addr) == 0 {
 		pushConsumerConfig.Addr = defaultConfig.Addresses
@@ -162,7 +165,7 @@ func RawPushConsumerConfig(name string) *PushConsumerConfig {
 	// 这里根据mq集群地址的md5，生成默认InstanceName
 	// 实现自动支持多集群，解决官方库默认不支持多集群消费的问题
 	if pushConsumerConfig.InstanceName == "" {
-		pushConsumerConfig.InstanceName = fmt.Sprintf("%x", md5.Sum([]byte(strings.Join(pushConsumerConfig.Addr, ","))))
+		pushConsumerConfig.InstanceName = fmt.Sprintf("%x@%d", md5.Sum([]byte(strings.Join(pushConsumerConfig.Addr, ","))), os.Getpid())
 	}
 
 	if xdebug.IsDevelopmentMode() {
@@ -172,11 +175,14 @@ func RawPushConsumerConfig(name string) *PushConsumerConfig {
 }
 
 // RawPullConsumerConfig 返回pull consume配置
+// nolint:dupl
 func RawPullConsumerConfig(name string) *PullConsumerConfig {
 	var defaultConfig = DefaultConfig()
 	var pullConsumerConfig = defaultConfig.PullConsumer
-	if err := conf.UnmarshalKey(name, &defaultConfig, conf.TagName("toml")); err != nil {
-		xlog.Jupiter().Panic("unmarshal config", xlog.FieldErr(err), xlog.String("key", name), xlog.Any("config", pullConsumerConfig))
+	if err := conf.UnmarshalKey(name, &defaultConfig, conf.TagName("toml")); err != nil ||
+		(len(pullConsumerConfig.Addr) == 0 && len(defaultConfig.Addresses) == 0) ||
+		len(pullConsumerConfig.Topic) == 0 {
+		xlog.Jupiter().Panic("PullConsumerConfig fail", xlog.FieldErr(err), xlog.String("key", name), xlog.Any("config", pullConsumerConfig))
 	}
 
 	// 兼容rocket_client_mq变更，addr需要携带shceme
@@ -190,7 +196,7 @@ func RawPullConsumerConfig(name string) *PullConsumerConfig {
 	// 这里根据mq集群地址的md5，生成默认InstanceName
 	// 实现自动支持多集群，解决官方库默认不支持多集群消费的问题
 	if pullConsumerConfig.InstanceName == "" {
-		pullConsumerConfig.InstanceName = fmt.Sprintf("%x", md5.Sum([]byte(strings.Join(pullConsumerConfig.Addr, ","))))
+		pullConsumerConfig.InstanceName = fmt.Sprintf("%x@%d", md5.Sum([]byte(strings.Join(pullConsumerConfig.Addr, ","))), os.Getpid())
 	}
 
 	if xdebug.IsDevelopmentMode() {
@@ -200,11 +206,14 @@ func RawPullConsumerConfig(name string) *PullConsumerConfig {
 }
 
 // RawProducerConfig 返回produce配置
+// nolint:dupl
 func RawProducerConfig(name string) *ProducerConfig {
 	var defaultConfig = DefaultConfig()
 	var producerConfig = defaultConfig.Producer
-	if err := conf.UnmarshalKey(name, &defaultConfig, conf.TagName("toml")); err != nil {
-		xlog.Jupiter().Panic("unmarshal config", xlog.FieldErr(err), xlog.String("key", name), xlog.Any("config", defaultConfig))
+	if err := conf.UnmarshalKey(name, &defaultConfig, conf.TagName("toml")); err != nil ||
+		(len(producerConfig.Addr) == 0 && len(defaultConfig.Addresses) == 0) ||
+		len(producerConfig.Topic) == 0 {
+		xlog.Jupiter().Panic("RawProducerConfig fail", xlog.FieldErr(err), xlog.String("key", name), xlog.Any("config", producerConfig))
 	}
 
 	// 兼容rocket_client_mq变更，addr需要携带shceme
@@ -217,7 +226,7 @@ func RawProducerConfig(name string) *ProducerConfig {
 	// 这里根据mq集群地址的md5，生成默认InstanceName
 	// 实现自动支持多集群，解决官方库默认不支持多集群消费的问题
 	if producerConfig.InstanceName == "" {
-		producerConfig.InstanceName = fmt.Sprintf("%x", md5.Sum([]byte(strings.Join(producerConfig.Addr, ","))))
+		producerConfig.InstanceName = fmt.Sprintf("%x@%d", md5.Sum([]byte(strings.Join(producerConfig.Addr, ","))), os.Getpid())
 	}
 
 	if xdebug.IsDevelopmentMode() {
