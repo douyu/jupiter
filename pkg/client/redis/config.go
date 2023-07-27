@@ -115,8 +115,8 @@ func RawConfig(key string) *Config {
 	if config.Master.Addr != "" && config.ReadOnMaster {
 		config.Slaves.Addr = append(config.Slaves.Addr, config.Master.Addr)
 	}
-	if config.Master.Addr == "" && len(config.Slaves.Addr) == 0 {
-		config.logger.Panic("no master or slaves addr set:"+key, xlog.FieldName(key), xlog.FieldExtMessage(config))
+	if config.Master.Addr == "" && len(config.Slaves.Addr) == 0 && len(config.Cluster.Addr) == 0 {
+		config.logger.Panic("no cluster master or slaves addr set:"+key, xlog.FieldName(key), xlog.FieldExtMessage(config))
 	}
 	config.name = key
 	if xdebug.IsDevelopmentMode() {

@@ -186,14 +186,15 @@ func (config *Config) buildCluster() (*redis.ClusterClient, error) {
 		if config.EnableSentinel {
 			stubClient.AddHook(sentinelInterceptor(config.name, addr, config, config.logger))
 		}
+	}
 
-		if err := stubClient.Ping(context.Background()).Err(); err != nil {
-			if config.OnDialError == "panic" {
-				config.logger.Panic("redis stub client start err: " + err.Error())
-			}
-			config.logger.Error("redis stub client start err", xlog.FieldErr(err))
-			return nil, err
+	stubClient.Ping(context.Background())
+	if err := stubClient.Ping(context.Background()).Err(); err != nil {
+		if config.OnDialError == "panic" {
+			config.logger.Panic("redis stub client start err: " + err.Error())
 		}
+		config.logger.Error("redis stub client start err", xlog.FieldErr(err))
+		return nil, err
 	}
 
 	instances.Store(config.name, &storeRedis{
