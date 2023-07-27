@@ -16,6 +16,13 @@ import (
 
 // Config ...
 type Config struct {
+	// Cluster host:port addresses of Master node
+	Cluster struct {
+		Addr     []string `json:"addr" toml:"addr"`
+		User     string   `json:"user" toml:"user"`
+		Password string   `json:"password" toml:"password"`
+	} `json:"cluster" toml:"cluster"`
+
 	// Master host:port addresses of Master node
 	Master struct {
 		Addr string `json:"addr" toml:"addr"`
