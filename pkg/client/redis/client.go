@@ -155,7 +155,7 @@ func (config *Config) build(addr, user, pass string) (*redis.Client, error) {
 }
 
 func (config *Config) buildCluster() (*redis.ClusterClient, error) {
-	stubClient := redis.NewClusterClient(&redis.ClusterOptions{
+	clusterClient := redis.NewClusterClient(&redis.ClusterOptions{
 		Addrs:        config.Addr,
 		Username:     config.Username,
 		Password:     config.Password,
@@ -169,27 +169,27 @@ func (config *Config) buildCluster() (*redis.ClusterClient, error) {
 	})
 
 	for _, addr := range config.Addr {
-		stubClient.AddHook(fixedInterceptor(config.name, addr, config, config.logger))
+		clusterClient.AddHook(fixedInterceptor(config.name, addr, config, config.logger))
 		if config.EnableMetricInterceptor {
-			stubClient.AddHook(metricInterceptor(config.name, addr, config, config.logger))
+			clusterClient.AddHook(metricInterceptor(config.name, addr, config, config.logger))
 		}
 		if config.Debug {
-			stubClient.AddHook(debugInterceptor(config.name, addr, config, config.logger))
+			clusterClient.AddHook(debugInterceptor(config.name, addr, config, config.logger))
 		}
 		if config.EnableTraceInterceptor {
-			stubClient.AddHook(traceInterceptor(config.name, addr, config, config.logger))
+			clusterClient.AddHook(traceInterceptor(config.name, addr, config, config.logger))
 		}
 		if config.EnableAccessLogInterceptor {
-			stubClient.AddHook(accessInterceptor(config.name, addr, config, config.logger))
+			clusterClient.AddHook(accessInterceptor(config.name, addr, config, config.logger))
 		}
 
 		if config.EnableSentinel {
-			stubClient.AddHook(sentinelInterceptor(config.name, addr, config, config.logger))
+			clusterClient.AddHook(sentinelInterceptor(config.name, addr, config, config.logger))
 		}
 	}
 
-	stubClient.Ping(context.Background())
-	if err := stubClient.Ping(context.Background()).Err(); err != nil {
+	clusterClient.Ping(context.Background())
+	if err := clusterClient.Ping(context.Background()).Err(); err != nil {
 		if config.OnDialError == "panic" {
 			config.logger.Panic("redis stub client start err: " + err.Error())
 		}
@@ -198,7 +198,7 @@ func (config *Config) buildCluster() (*redis.ClusterClient, error) {
 	}
 
 	instances.Store(config.name, &storeRedis{
-		ClientCluster: stubClient,
+		ClientCluster: clusterClient,
 	})
-	return stubClient, nil
+	return clusterClient, nil
 }
