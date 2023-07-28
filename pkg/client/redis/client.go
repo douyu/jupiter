@@ -75,7 +75,7 @@ func (config *Config) Build() (*Client, error) {
 		xdebug.PrettyJsonPrint("redis's config: "+config.name, config)
 	}
 
-	if len(config.Cluster.Addr) > 0 {
+	if len(config.Addr) > 0 {
 		ins.cluster, err = config.buildCluster()
 		if err != nil {
 			return ins, err
@@ -156,9 +156,9 @@ func (config *Config) build(addr, user, pass string) (*redis.Client, error) {
 
 func (config *Config) buildCluster() (*redis.ClusterClient, error) {
 	stubClient := redis.NewClusterClient(&redis.ClusterOptions{
-		Addrs:        config.Cluster.Addr,
-		Username:     config.Cluster.User,
-		Password:     config.Cluster.Password,
+		Addrs:        config.Addr,
+		Username:     config.Username,
+		Password:     config.Password,
 		MaxRetries:   config.MaxRetries,
 		DialTimeout:  config.DialTimeout,
 		ReadTimeout:  config.ReadTimeout,
@@ -168,7 +168,7 @@ func (config *Config) buildCluster() (*redis.ClusterClient, error) {
 		IdleTimeout:  config.IdleTimeout,
 	})
 
-	for _, addr := range config.Cluster.Addr {
+	for _, addr := range config.Addr {
 		stubClient.AddHook(fixedInterceptor(config.name, addr, config, config.logger))
 		if config.EnableMetricInterceptor {
 			stubClient.AddHook(metricInterceptor(config.name, addr, config, config.logger))

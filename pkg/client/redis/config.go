@@ -16,13 +16,6 @@ import (
 
 // Config ...
 type Config struct {
-	// Cluster host:port addresses of Master node
-	Cluster struct {
-		Addr     []string `json:"addr" toml:"addr"`
-		User     string   `json:"user" toml:"user"`
-		Password string   `json:"password" toml:"password"`
-	} `json:"cluster" toml:"cluster"`
-
 	// Master host:port addresses of Master node
 	Master struct {
 		Addr string `json:"addr" toml:"addr"`
@@ -32,6 +25,9 @@ type Config struct {
 		Addr []string `json:"addr" toml:"addr"`
 	} `json:"slaves" toml:"slaves"`
 
+	Addr     []string `json:"addr" toml:"addr"`
+	Username string   `json:"username" toml:"username"`
+	Password string   `json:"password" toml:"password"`
 	/****** for github.com/go-redis/redis/v8 ******/
 	// DB default 0,not recommend
 	DB int `json:"db" toml:"db"`
@@ -101,10 +97,16 @@ func DefaultConfig() *Config {
 	}
 }
 
-// StdConfig ...
+// StdConfig 哨兵模式，支持主从结构redis集群
 func StdConfig(name string) *Config {
 	return RawConfig(constant.ConfigKey("redis", name, "stub"))
 }
+
+// ClusterConfig 集群模式
+func ClusterConfig(name string) *Config {
+	return RawConfig(constant.ConfigKey("redis", name, "cluster"))
+}
+
 func RawConfig(key string) *Config {
 	var config = DefaultConfig()
 
@@ -115,7 +117,7 @@ func RawConfig(key string) *Config {
 	if config.Master.Addr != "" && config.ReadOnMaster {
 		config.Slaves.Addr = append(config.Slaves.Addr, config.Master.Addr)
 	}
-	if config.Master.Addr == "" && len(config.Slaves.Addr) == 0 && len(config.Cluster.Addr) == 0 {
+	if config.Master.Addr == "" && len(config.Slaves.Addr) == 0 && len(config.Addr) == 0 {
 		config.logger.Panic("no cluster master or slaves addr set:"+key, xlog.FieldName(key), xlog.FieldExtMessage(config))
 	}
 	config.name = key
