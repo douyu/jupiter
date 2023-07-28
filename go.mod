@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	cirello.io/pglock v1.12.0
-	github.com/BurntSushi/toml v1.2.1
+	github.com/BurntSushi/toml v1.3.2
 	github.com/alibaba/sentinel-golang v1.0.4
 	github.com/aliyun/aliyun-tablestore-go-sdk v1.7.7
 	github.com/apache/rocketmq-client-go/v2 v2.1.2-0.20230628073434-533de03048e1
