@@ -23,21 +23,38 @@ const (
 )
 
 type (
-	loggerKey struct{}
+	defaultLoggerKey struct{}
+	jupiterLoggerKey struct{}
 )
 
-func NewContext(ctx context.Context, l *Logger, traceID string) context.Context {
-	return context.WithValue(ctx, loggerKey{}, l.With(String(traceIDField, traceID)))
+func NewContextWithDefaultLogger(ctx context.Context, l *Logger, traceID string) context.Context {
+	return context.WithValue(ctx, defaultLoggerKey{}, l.With(String(traceIDField, traceID)))
 }
 
-func FromContext(ctx context.Context) *Logger {
+func NewContextWithJupiterLogger(ctx context.Context, l *Logger, traceID string) context.Context {
+	return context.WithValue(ctx, jupiterLoggerKey{}, l.With(String(traceIDField, traceID)))
+}
+
+func GetDefaultLoggerFromContext(ctx context.Context) *Logger {
 	if ctx == nil {
 		return defaultLogger
 	}
 
-	l, ok := ctx.Value(loggerKey{}).(*Logger)
+	l, ok := ctx.Value(defaultLoggerKey{}).(*Logger)
 	if !ok {
 		return defaultLogger // default logger
+	}
+	return l
+}
+
+func GetJupiterLoggerFromContext(ctx context.Context) *Logger {
+	if ctx == nil {
+		return jupiterLogger
+	}
+
+	l, ok := ctx.Value(jupiterLoggerKey{}).(*Logger)
+	if !ok {
+		return jupiterLogger // jupiter logger
 	}
 	return l
 }

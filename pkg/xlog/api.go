@@ -22,7 +22,12 @@ import (
 
 // L returns the standard logger.
 func L(ctx context.Context) *Logger {
-	return FromContext(ctx)
+	return GetDefaultLoggerFromContext(ctx)
+}
+
+// J returns the jupiter logger.
+func J(ctx context.Context) *Logger {
+	return GetJupiterLoggerFromContext(ctx)
 }
 
 // Jupiter returns framework logger

@@ -46,7 +46,7 @@ func recoverMiddleware(slowQueryThresholdInMilli int64) echo.MiddlewareFunc {
 			var fields = make([]xlog.Field, 0, 8)
 
 			defer func() {
-				logger := xlog.FromContext(ctx.Request().Context())
+				logger := xlog.J(ctx.Request().Context())
 				fields = append(fields, xlog.FieldCost(time.Since(beg)))
 				if rec := recover(); rec != nil {
 					switch rec := rec.(type) {
@@ -112,7 +112,8 @@ func traceServerInterceptor() echo.MiddlewareFunc {
 			ctx, span := tracer.Start(c.Request().Context(), c.Request().URL.Path, propagation.HeaderCarrier(c.Request().Header), trace.WithAttributes(attrs...))
 			span.SetAttributes(semconv.HTTPServerAttributesFromHTTPRequest(pkg.Name(), c.Request().URL.Path, c.Request())...)
 
-			ctx = xlog.NewContext(ctx, xlog.Jupiter(), span.SpanContext().TraceID().String())
+			ctx = xlog.NewContextWithDefaultLogger(ctx, xlog.Default(), span.SpanContext().TraceID().String())
+			ctx = xlog.NewContextWithJupiterLogger(ctx, xlog.Jupiter(), span.SpanContext().TraceID().String())
 
 			c.SetRequest(c.Request().WithContext(ctx))
 			defer span.End()

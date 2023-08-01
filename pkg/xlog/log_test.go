@@ -62,13 +62,13 @@ func Test_log(t *testing.T) {
 func Test_trace(t *testing.T) {
 
 	log := Jupiter()
-	ctx := NewContext(context.TODO(), log, "a:b:c:1")
+	ctx := NewContextWithJupiterLogger(context.TODO(), log, "a:b:c:1")
 
-	stdlog := FromContext(ctx)
-	stdlog.Debug("debug", Any("a", "b"))
-	stdlog.Info("info", Any("a", "b"))
-	stdlog.Warn("warn", Any("a", "b"))
-	stdlog.Error("error", Any("a", "b"))
+	jlog := GetJupiterLoggerFromContext(ctx)
+	jlog.Debug("debug", Any("a", "b"))
+	jlog.Info("info", Any("a", "b"))
+	jlog.Warn("warn", Any("a", "b"))
+	jlog.Error("error", Any("a", "b"))
 
 	data, err := prometheus.DefaultGatherer.Gather()
 	assert.Nil(t, err)
