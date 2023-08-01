@@ -28,7 +28,7 @@ require (
 	github.com/iancoleman/strcase v0.3.0
 	github.com/json-iterator/go v1.1.12
 	github.com/juju/ratelimit v1.0.2
-	github.com/labstack/echo/v4 v4.10.2
+	github.com/labstack/echo/v4 v4.11.1
 	github.com/mattn/go-colorable v0.1.13
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/modern-go/reflect2 v1.0.2
@@ -63,7 +63,7 @@ require (
 	go.uber.org/zap v1.24.0
 	golang.org/x/mod v0.10.0
 	golang.org/x/sync v0.3.0
-	golang.org/x/text v0.9.0
+	golang.org/x/text v0.11.0
 	google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1
 	google.golang.org/grpc v1.56.2
 	google.golang.org/protobuf v1.30.0
@@ -162,10 +162,10 @@ require (
 	go.opentelemetry.io/proto/otlp v0.19.0 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	golang.org/x/arch v0.3.0 // indirect
-	golang.org/x/crypto v0.9.0 // indirect
+	golang.org/x/crypto v0.11.0 // indirect
 	golang.org/x/exp v0.0.0-20221031165847-c99f073a8326 // indirect
-	golang.org/x/net v0.10.0 // indirect
-	golang.org/x/sys v0.9.0 // indirect
+	golang.org/x/net v0.12.0 // indirect
+	golang.org/x/sys v0.10.0 // indirect
 	golang.org/x/tools v0.9.3 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
