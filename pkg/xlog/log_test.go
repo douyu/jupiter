@@ -62,9 +62,9 @@ func Test_log(t *testing.T) {
 func Test_trace(t *testing.T) {
 
 	log := Jupiter()
-	ctx := NewContextWithJupiterLogger(context.TODO(), log, "a:b:c:1")
+	ctx := NewContext(context.TODO(), log, "a:b:c:1")
 
-	jlog := GetJupiterLoggerFromContext(ctx)
+	jlog := J(ctx)
 	jlog.Debug("debug", Any("a", "b"))
 	jlog.Info("info", Any("a", "b"))
 	jlog.Warn("warn", Any("a", "b"))

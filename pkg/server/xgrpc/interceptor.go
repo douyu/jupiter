@@ -93,8 +93,8 @@ func NewTraceUnaryServerInterceptor() grpc.UnaryServerInterceptor {
 			span.End()
 		}()
 
-		ctx = xlog.NewContextWithDefaultLogger(ctx, xlog.Default(), span.SpanContext().TraceID().String())
-		ctx = xlog.NewContextWithJupiterLogger(ctx, xlog.Jupiter(), span.SpanContext().TraceID().String())
+		ctx = xlog.NewContext(ctx, xlog.Default(), span.SpanContext().TraceID().String())
+		ctx = xlog.NewContext(ctx, xlog.Jupiter(), span.SpanContext().TraceID().String())
 
 		return handler(ctx, req)
 	}
@@ -136,8 +136,8 @@ func NewTraceStreamServerInterceptor() grpc.StreamServerInterceptor {
 		ctx, span := tracer.Start(ss.Context(), operation, xtrace.MetadataReaderWriter(md), trace.WithAttributes(attrs...))
 		defer span.End()
 
-		ctx = xlog.NewContextWithDefaultLogger(ctx, xlog.Default(), span.SpanContext().TraceID().String())
-		ctx = xlog.NewContextWithJupiterLogger(ctx, xlog.Jupiter(), span.SpanContext().TraceID().String())
+		ctx = xlog.NewContext(ctx, xlog.Default(), span.SpanContext().TraceID().String())
+		ctx = xlog.NewContext(ctx, xlog.Jupiter(), span.SpanContext().TraceID().String())
 
 		return handler(srv, contextedServerStream{
 			ServerStream: ss,
