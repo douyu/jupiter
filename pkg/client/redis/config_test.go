@@ -30,40 +30,12 @@ func TestStdConfig(t *testing.T) {
 		var config *Config
 		defer func() {
 			if r := recover(); r != nil {
-				assert.Equal(t, r.(string), "no master or slaves addr set:jupiter.redis.test.stub")
+				assert.Equal(t, r.(string), "no cluster master or slaves addr set:jupiter.redis.test.stub")
 				assert.Nil(t, config)
 			}
 		}()
 		config = StdConfig("test")
 		assert.Nil(t, config) //不会执行到这里
-	})
-
-}
-
-func TestClusterConfig(t *testing.T) {
-	assert.Equal(t, constant.ConfigKey("redis", "test", "cluster"), "jupiter.redis.test.cluster")
-
-	var configStr = `
-[jupiter.redis]
-    [jupiter.redis.test.cluster]
-            dialTimeout="2s"
-            readTimeout="5s"
-            idleTimeout="60s"
-            username="root"
-            password="123"
-			addr = ["r-bp1zxszhcgatnx****.redis.rds.aliyuncs.com:6379"]
-	`
-	assert.Nil(t, conf.LoadFromReader(bytes.NewBufferString(configStr), toml.Unmarshal))
-	t.Run("cluster config on addr nil", func(t *testing.T) {
-		var config *Config
-		defer func() {
-			if r := recover(); r != nil {
-				assert.Equal(t, r.(string), "no cluster addr set:jupiter.redis.test.cluster")
-				assert.Nil(t, config)
-			}
-		}()
-		config = ClusterConfig("test")
-		assert.Equal(t, len(config.Addr), 1)
 	})
 
 }
