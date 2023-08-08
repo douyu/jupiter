@@ -1,5 +1,5 @@
-cirello.io/pglock v1.12.0 h1:F35/QTf2nRFdWYA7mLsFp6Xpl57pBZ5o3/k+z+ihu3Q=
-cirello.io/pglock v1.12.0/go.mod h1:pB8ArN2BG9xId9j9w4stwuuW+zOCd+IfQy3lUv1awAs=
+cirello.io/pglock v1.13.0 h1:Owr6ulf9hu3P0Y3oLyA3Y0K7zAz/+rb/Fcq5THeutCA=
+cirello.io/pglock v1.13.0/go.mod h1:pB8ArN2BG9xId9j9w4stwuuW+zOCd+IfQy3lUv1awAs=
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.38.0/go.mod h1:990N+gfupTy94rShfmMCWGDn0LpTmnzTp2qbd1dvSRU=
