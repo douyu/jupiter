@@ -8,6 +8,16 @@ services:
     command: redis-server
     # volumes:
     #   - ./data/cache:/data
+  redis-cluster:
+    image: redis:6.2-alpine
+    restart: always
+    ports:
+      - 7000:7000
+      - 7001:7001
+      - 7002:7002
+    volumes:
+      - ./data/cluster/conf/nodes.conf:/data/cluster/conf/nodes.conf
+    command: redis-server --cluster-enabled yes --cluster-config-file /data/cluster/conf/nodes.conf --cluster-node-timeout 5000 --appendonly yes
   db:
     image: mysql:5.7
     # volumes:

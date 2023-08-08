@@ -2,6 +2,7 @@ package redis
 
 import (
 	"bytes"
+	"context"
 	"github.com/BurntSushi/toml"
 	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/core/constant"
@@ -29,6 +30,16 @@ func Test_Cluster(t *testing.T) {
 		assert.NotNil(t, err)
 		assert.Nil(t, client.cluster)
 
+	})
+	t.Run("normal start", func(t *testing.T) {
+		config.Addr = []string{"127.0.0.1:7000", "127.0.0.1:7001", "127.0.0.1:7002"}
+		client, err := config.BuildCluster()
+		assert.Nil(t, err)
+		assert.NotNil(t, client)
+		err = client.CmdOnCluster().Ping(context.Background()).Err()
+		if err != nil {
+			t.Errorf("Test_Cluster ping err %v", err)
+		}
 	})
 
 }
