@@ -17,13 +17,6 @@ type ClusterClient struct {
 	config  *Config
 }
 
-func (ins *ClusterClient) CmdOnCluster() *redis.ClusterClient {
-	if ins.cluster == nil {
-		ins.config.logger.Panic("redis:no cluster for "+ins.config.name, xlog.FieldExtMessage(ins.config))
-	}
-	return ins.cluster
-}
-
 // ClusterSingleton returns a singleton client conn.
 func (config *Config) ClusterSingleton() (*ClusterClient, error) {
 	if val, ok := singleton.Load(constant.ModuleClusterRedis, config.name); ok && val != nil {

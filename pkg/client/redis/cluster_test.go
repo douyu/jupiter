@@ -36,7 +36,7 @@ func Test_Cluster(t *testing.T) {
 		client, err := config.BuildCluster()
 		assert.Nil(t, err)
 		assert.NotNil(t, client)
-		err = client.CmdOnCluster().Ping(context.Background()).Err()
+		err = client.cluster.Ping(context.Background()).Err()
 		if err != nil {
 			t.Errorf("Test_Cluster ping err %v", err)
 		}
