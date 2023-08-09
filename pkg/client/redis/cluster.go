@@ -14,7 +14,6 @@ import (
 
 type ClusterClient struct {
 	cluster *redis.ClusterClient
-	config  *Config
 	redis.ClusterClient
 }
 
