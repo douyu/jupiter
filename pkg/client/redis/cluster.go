@@ -15,6 +15,7 @@ import (
 type ClusterClient struct {
 	cluster *redis.ClusterClient
 	config  *Config
+	redis.ClusterClient
 }
 
 // ClusterSingleton returns a singleton client conn.
