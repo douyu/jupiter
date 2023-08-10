@@ -28,6 +28,7 @@ type Config struct {
 	Addr     []string `json:"addr" toml:"addr"`
 	Username string   `json:"username" toml:"username"`
 	Password string   `json:"password" toml:"password"`
+
 	/****** for github.com/go-redis/redis/v8 ******/
 	// DB default 0,not recommend
 	DB int `json:"db" toml:"db"`
@@ -102,11 +103,6 @@ func StdConfig(name string) *Config {
 	return RawConfig(constant.ConfigKey("redis", name, "stub"))
 }
 
-// ClusterConfig 集群模式
-func ClusterConfig(name string) *Config {
-	return RawConfig(constant.ConfigKey("redis", name, "cluster"))
-}
-
 func RawConfig(key string) *Config {
 	var config = DefaultConfig()
 
@@ -117,26 +113,8 @@ func RawConfig(key string) *Config {
 	if config.Master.Addr != "" && config.ReadOnMaster {
 		config.Slaves.Addr = append(config.Slaves.Addr, config.Master.Addr)
 	}
-	if config.Master.Addr == "" && len(config.Slaves.Addr) == 0 && len(config.Addr) == 0 {
-		config.logger.Panic("no cluster master or slaves addr set:"+key, xlog.FieldName(key), xlog.FieldExtMessage(config))
-	}
-	config.name = key
-	if xdebug.IsDevelopmentMode() {
-		xdebug.PrettyJsonPrint(key, config)
-	}
-
-	return config
-}
-
-func RawClusterConfig(key string) *Config {
-	var config = DefaultConfig()
-
-	if err := cfg.UnmarshalKey(key, &config, cfg.TagName("toml")); err != nil {
-		config.logger.Panic("unmarshal config:"+key, xlog.FieldErr(err), xlog.FieldName(key), xlog.FieldExtMessage(config))
-	}
-
-	if len(config.Addr) == 0 {
-		config.logger.Panic("no cluster addr set:"+key, xlog.FieldName(key), xlog.FieldExtMessage(config))
+	if config.Master.Addr == "" && len(config.Slaves.Addr) == 0 {
+		config.logger.Panic("no master or slaves addr set:"+key, xlog.FieldName(key), xlog.FieldExtMessage(config))
 	}
 	config.name = key
 	if xdebug.IsDevelopmentMode() {

@@ -13,12 +13,11 @@ import (
 )
 
 type ClusterClient struct {
-	cluster *redis.ClusterClient
 	redis.ClusterClient
 }
 
 // ClusterSingleton returns a singleton client conn.
-func (config *Config) ClusterSingleton() (*ClusterClient, error) {
+func (config *ClusterOptions) ClusterSingleton() (*ClusterClient, error) {
 	if val, ok := singleton.Load(constant.ModuleClusterRedis, config.name); ok && val != nil {
 		return val.(*ClusterClient), nil
 	}
@@ -33,17 +32,17 @@ func (config *Config) ClusterSingleton() (*ClusterClient, error) {
 }
 
 // MustClusterSingleton panics when error found.
-func (config *Config) MustClusterSingleton() *ClusterClient {
+func (config *ClusterOptions) MustClusterSingleton() *ClusterClient {
 	return lo.Must(config.ClusterSingleton())
 }
 
 // MustClusterBuild panics when error found.
-func (config *Config) MustClusterBuild() *ClusterClient {
+func (config *ClusterOptions) MustClusterBuild() *ClusterClient {
 	return lo.Must(config.BuildCluster())
 }
 
 // BuildCluster ..
-func (config *Config) BuildCluster() (*ClusterClient, error) {
+func (config *ClusterOptions) BuildCluster() (*ClusterClient, error) {
 	ins := new(ClusterClient)
 	var err error
 	if xdebug.IsDevelopmentMode() {
@@ -51,20 +50,20 @@ func (config *Config) BuildCluster() (*ClusterClient, error) {
 	}
 
 	if len(config.Addr) > 0 {
-		ins.cluster, err = config.buildCluster()
+		ins, err = config.buildCluster()
 		if err != nil {
 			return ins, err
 		}
 		return ins, nil
 	}
 
-	if ins.cluster == nil {
+	if ins == nil {
 		return ins, errors.New("no cluster for " + config.name)
 	}
 	return ins, nil
 }
 
-func (config *Config) buildCluster() (*redis.ClusterClient, error) {
+func (config *ClusterOptions) buildCluster() (*ClusterClient, error) {
 	clusterClient := redis.NewClusterClient(&redis.ClusterOptions{
 		Addrs:        config.Addr,
 		Username:     config.Username,
@@ -78,23 +77,24 @@ func (config *Config) buildCluster() (*redis.ClusterClient, error) {
 		IdleTimeout:  config.IdleTimeout,
 	})
 
+	cfg := &config.Config
 	for _, addr := range config.Addr {
-		clusterClient.AddHook(fixedInterceptor(config.name, addr, config, config.logger))
+		clusterClient.AddHook(fixedInterceptor(config.name, addr, cfg, config.logger))
 		if config.EnableMetricInterceptor {
-			clusterClient.AddHook(metricInterceptor(config.name, addr, config, config.logger))
+			clusterClient.AddHook(metricInterceptor(config.name, addr, cfg, config.logger))
 		}
 		if config.Debug {
-			clusterClient.AddHook(debugInterceptor(config.name, addr, config, config.logger))
+			clusterClient.AddHook(debugInterceptor(config.name, addr, cfg, config.logger))
 		}
 		if config.EnableTraceInterceptor {
-			clusterClient.AddHook(traceInterceptor(config.name, addr, config, config.logger))
+			clusterClient.AddHook(traceInterceptor(config.name, addr, cfg, config.logger))
 		}
 		if config.EnableAccessLogInterceptor {
-			clusterClient.AddHook(accessInterceptor(config.name, addr, config, config.logger))
+			clusterClient.AddHook(accessInterceptor(config.name, addr, cfg, config.logger))
 		}
 
 		if config.EnableSentinel {
-			clusterClient.AddHook(sentinelInterceptor(config.name, addr, config, config.logger))
+			clusterClient.AddHook(sentinelInterceptor(config.name, addr, cfg, config.logger))
 		}
 	}
 
@@ -110,5 +110,5 @@ func (config *Config) buildCluster() (*redis.ClusterClient, error) {
 	instances.Store(config.name, &storeRedis{
 		ClientCluster: clusterClient,
 	})
-	return clusterClient, nil
+	return &ClusterClient{ClusterClient: *clusterClient}, nil
 }
