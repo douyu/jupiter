@@ -2,7 +2,6 @@ package redis
 
 import (
 	"context"
-	"errors"
 	"github.com/douyu/jupiter/pkg/core/constant"
 	"github.com/douyu/jupiter/pkg/core/singleton"
 	"github.com/douyu/jupiter/pkg/util/xdebug"
@@ -54,12 +53,8 @@ func (config *ClusterOptions) BuildCluster() (*ClusterClient, error) {
 		if err != nil {
 			return ins, err
 		}
-		return ins, nil
 	}
 
-	if ins == nil {
-		return ins, errors.New("no cluster for " + config.name)
-	}
 	return ins, nil
 }
 
