@@ -18,7 +18,7 @@ func ClusterConfig(name string) *ClusterOptions {
 }
 
 func RawClusterConfig(key string) *ClusterOptions {
-	option := DefaultOption()
+	option := DefaultClusterOption()
 	if err := cfg.UnmarshalKey(key, &option, cfg.TagName("toml")); err != nil {
 		option.logger.Panic("unmarshal config:"+key, xlog.FieldErr(err), xlog.FieldName(key), xlog.FieldExtMessage(option))
 	}
@@ -34,7 +34,7 @@ func RawClusterConfig(key string) *ClusterOptions {
 	return option
 }
 
-// DefaultOption default option ...
-func DefaultOption() *ClusterOptions {
+// DefaultClusterOption default option ...
+func DefaultClusterOption() *ClusterOptions {
 	return &ClusterOptions{Config: *DefaultConfig()}
 }

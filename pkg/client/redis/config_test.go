@@ -30,7 +30,7 @@ func TestStdConfig(t *testing.T) {
 		var config *Config
 		defer func() {
 			if r := recover(); r != nil {
-				assert.Equal(t, r.(string), "no cluster master or slaves addr set:jupiter.redis.test.stub")
+				assert.Equal(t, r.(string), "no master or slaves addr set:jupiter.redis.test.stub")
 				assert.Nil(t, config)
 			}
 		}()

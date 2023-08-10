@@ -7,7 +7,7 @@ import (
 )
 
 func Test_Cluster(t *testing.T) {
-	config := DefaultOption()
+	config := DefaultClusterOption()
 	t.Run("should panic when addr nil", func(t *testing.T) {
 		var client *ClusterClient
 		defer func() {
