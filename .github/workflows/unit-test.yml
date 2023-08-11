@@ -35,8 +35,9 @@ jobs:
       - name: docker-compose
         run: docker-compose -f test/docker-compose.yaml up -d
 
-      - uses: actions/cache@v3
+      - uses: actions/checkout@v3
         with:
+          ref: ${{ github.event.pull_request.head.sha }}
           path: |
             ~/.cache/go-build
             ~/go/pkg/mod
