@@ -35,7 +35,8 @@ jobs:
       - name: docker-compose
         run: docker-compose -f test/docker-compose.yaml up -d
 
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v2
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           path: |
