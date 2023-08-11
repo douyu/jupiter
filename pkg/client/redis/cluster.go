@@ -43,17 +43,15 @@ func (config *ClusterOptions) MustClusterBuild() *ClusterClient {
 
 // BuildCluster ..
 func (config *ClusterOptions) BuildCluster() (*ClusterClient, error) {
-	ins := new(ClusterClient)
-	var err error
 	if xdebug.IsDevelopmentMode() {
 		xdebug.PrettyJsonPrint("redis's config: "+config.name, config)
 	}
 
 	if len(config.Addr) <= 0 {
-		return ins, errors.New("cluster redis addr is empty")
+		return nil, errors.New("cluster redis addr is empty")
 	}
 
-	ins, err = config.buildCluster()
+	ins, err := config.buildCluster()
 	if err != nil {
 		return ins, err
 	}
