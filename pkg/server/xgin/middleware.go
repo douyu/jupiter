@@ -176,11 +176,11 @@ func metricServerInterceptor() gin.HandlerFunc {
 }
 
 func traceServerInterceptor() gin.HandlerFunc {
-	tracer := xtrace.NewTracer(trace.SpanKindServer)
-	attrs := []attribute.KeyValue{
-		semconv.RPCSystemKey.String("http"),
-	}
 	return func(c *gin.Context) {
+		tracer := xtrace.NewTracer(trace.SpanKindServer)
+		attrs := []attribute.KeyValue{
+			semconv.RPCSystemKey.String("http"),
+		}
 
 		ctx, span := tracer.Start(c.Request.Context(), c.Request.URL.Path, propagation.HeaderCarrier(c.Request.Header), trace.WithAttributes(attrs...))
 		span.SetAttributes(

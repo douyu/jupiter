@@ -110,12 +110,12 @@ func (css contextedServerStream) Context() context.Context {
 }
 
 func NewTraceStreamServerInterceptor() grpc.StreamServerInterceptor {
-	tracer := xtrace.NewTracer(trace.SpanKindServer)
-	attrs := []attribute.KeyValue{
-		semconv.RPCSystemGRPC,
-	}
-
 	return func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+		tracer := xtrace.NewTracer(trace.SpanKindServer)
+		attrs := []attribute.KeyValue{
+			semconv.RPCSystemGRPC,
+		}
+
 		var remote string
 		md, ok := metadata.FromIncomingContext(ss.Context())
 		if ok {

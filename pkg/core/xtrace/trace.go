@@ -18,7 +18,9 @@ import (
 	"context"
 
 	"github.com/douyu/jupiter/pkg/xlog"
+	"github.com/opentracing/opentracing-go"
 	"go.opentelemetry.io/otel"
+	otelOpentracing "go.opentelemetry.io/otel/bridge/opentracing"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -26,7 +28,11 @@ import (
 // SetGlobalTracer ...
 func SetGlobalTracer(tp trace.TracerProvider) {
 	xlog.Jupiter().Info("set global tracer", xlog.FieldMod("trace"))
-	otel.SetTracerProvider(tp)
+
+	// be compatible with opentracing
+	bridge, wrapperTracerProvider := otelOpentracing.NewTracerPair(tp.Tracer(""))
+	opentracing.SetGlobalTracer(bridge)
+	otel.SetTracerProvider(wrapperTracerProvider)
 }
 
 type options struct {
