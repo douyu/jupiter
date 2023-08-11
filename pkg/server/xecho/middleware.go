@@ -101,13 +101,13 @@ func metricServerInterceptor() echo.MiddlewareFunc {
 }
 
 func traceServerInterceptor() echo.MiddlewareFunc {
-	tracer := xtrace.NewTracer(trace.SpanKindServer)
-	attrs := []attribute.KeyValue{
-		semconv.RPCSystemKey.String("http"),
-	}
-
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) (err error) {
+			tracer := xtrace.NewTracer(trace.SpanKindServer)
+			attrs := []attribute.KeyValue{
+				semconv.RPCSystemKey.String("http"),
+			}
+
 			ctx, span := tracer.Start(c.Request().Context(), c.Request().URL.Path, propagation.HeaderCarrier(c.Request().Header), trace.WithAttributes(attrs...))
 			span.SetAttributes(semconv.HTTPServerAttributesFromHTTPRequest(pkg.Name(), c.Request().URL.Path, c.Request())...)
 

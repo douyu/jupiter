@@ -95,6 +95,7 @@ func (config *ClusterOptions) buildCluster() (*ClusterClient, error) {
 		}
 	}
 
+
 	if err := clusterClient.Ping(context.Background()).Err(); err != nil {
 		if config.OnDialError == "panic" {
 			config.logger.Panic("redis cluster client start err: " + err.Error())
