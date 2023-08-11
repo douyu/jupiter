@@ -43,6 +43,7 @@ func (config *ClusterOptions) MustClusterBuild() *ClusterClient {
 
 // BuildCluster ..
 func (config *ClusterOptions) BuildCluster() (*ClusterClient, error) {
+
 	if xdebug.IsDevelopmentMode() {
 		xdebug.PrettyJsonPrint("redis's config: "+config.name, config)
 	}
