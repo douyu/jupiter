@@ -2,6 +2,7 @@ package redis
 
 import (
 	"context"
+	"errors"
 	"github.com/douyu/jupiter/pkg/core/constant"
 	"github.com/douyu/jupiter/pkg/core/singleton"
 	"github.com/douyu/jupiter/pkg/util/xdebug"
@@ -48,13 +49,14 @@ func (config *ClusterOptions) BuildCluster() (*ClusterClient, error) {
 		xdebug.PrettyJsonPrint("redis's config: "+config.name, config)
 	}
 
-	if len(config.Addr) > 0 {
-		ins, err = config.buildCluster()
-		if err != nil {
-			return ins, err
-		}
+	if len(config.Addr) <= 0 {
+		return ins, errors.New("cluster redis addr is empty")
 	}
 
+	ins, err = config.buildCluster()
+	if err != nil {
+		return ins, err
+	}
 	return ins, nil
 }
 
@@ -93,7 +95,6 @@ func (config *ClusterOptions) buildCluster() (*ClusterClient, error) {
 		}
 	}
 
-	clusterClient.Ping(context.Background())
 	if err := clusterClient.Ping(context.Background()).Err(); err != nil {
 		if config.OnDialError == "panic" {
 			config.logger.Panic("redis cluster client start err: " + err.Error())

@@ -12,7 +12,7 @@ func Test_Cluster(t *testing.T) {
 		var client *ClusterClient
 		defer func() {
 			if r := recover(); r != nil {
-				assert.Equal(t, "no cluster for default", r.(string))
+				assert.Equal(t, "cluster redis addr is empty", r.(string))
 				assert.Nil(t, client)
 			}
 		}()
@@ -29,6 +29,7 @@ func Test_Cluster(t *testing.T) {
 	})
 	t.Run("normal start", func(t *testing.T) {
 		config.Addr = []string{"127.0.0.1:7000", "127.0.0.1:7001", "127.0.0.1:7002"}
+		config.name = "test"
 		client, err := config.BuildCluster()
 		assert.Nil(t, err)
 		assert.NotNil(t, client)
