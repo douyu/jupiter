@@ -12,7 +12,7 @@ services:
     image: redis:6.2-alpine
     restart: always
     ports:
-      - 7111:6379
+      - 7111:7111
     volumes:
       - ./data/cluster/conf/nodes.conf:/data/cluster/conf/nodes.conf
     command: redis-server --cluster-enabled yes --cluster-config-file /data/cluster/conf/nodes.conf --cluster-node-timeout 5000 --appendonly yes
