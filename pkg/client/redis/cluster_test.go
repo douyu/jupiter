@@ -28,7 +28,7 @@ func Test_Cluster(t *testing.T) {
 
 	})
 	t.Run("normal start", func(t *testing.T) {
-		config.Addr = []string{"127.0.0.1:7000", "127.0.0.1:7001", "127.0.0.1:7002"}
+		config.Addr = []string{"localhost:7111"}
 		config.name = "test"
 		client, err := config.BuildCluster()
 		if err != nil {
