@@ -12,8 +12,8 @@ services:
     image: redis:6.2-alpine
     restart: always
     ports:
-      - 7111:6380
-    command: redis-server --port=6380 --cluster-enabled yes --cluster-node-timeout 5000 --appendonly yes
+      - 7111:6388
+    command: redis-server --port=6388 --cluster-enabled yes --cluster-node-timeout 5000 --appendonly yes
   db:
     image: mysql:5.7
     # volumes:
