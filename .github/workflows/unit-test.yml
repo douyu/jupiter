@@ -50,6 +50,7 @@ jobs:
 
       - name: Test
         run: |
+          docker ps
           make unit-test
 
       - name: Codecov
