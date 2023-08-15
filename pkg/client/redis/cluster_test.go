@@ -27,7 +27,7 @@ func Test_Cluster(t *testing.T) {
 		assert.Nil(t, client)
 
 	})
-	t.Run("normal start", func(t *testing.T) {
+	t.Run("cluster normal start", func(t *testing.T) {
 		config.Addr = []string{"localhost:7111"}
 		config.name = "test"
 		client, err := config.BuildCluster()
