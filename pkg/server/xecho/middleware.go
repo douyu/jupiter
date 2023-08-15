@@ -39,13 +39,14 @@ func extractAID(c echo.Context) string {
 }
 
 // RecoverMiddleware ...
-func recoverMiddleware(logger *xlog.Logger, slowQueryThresholdInMilli int64) echo.MiddlewareFunc {
+func recoverMiddleware(slowQueryThresholdInMilli int64) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(ctx echo.Context) (err error) {
 			var beg = time.Now()
 			var fields = make([]xlog.Field, 0, 8)
 
 			defer func() {
+				logger := xlog.J(ctx.Request().Context())
 				fields = append(fields, xlog.FieldCost(time.Since(beg)))
 				if rec := recover(); rec != nil {
 					switch rec := rec.(type) {
@@ -112,6 +113,7 @@ func traceServerInterceptor() echo.MiddlewareFunc {
 			span.SetAttributes(semconv.HTTPServerAttributesFromHTTPRequest(pkg.Name(), c.Request().URL.Path, c.Request())...)
 
 			ctx = xlog.NewContext(ctx, xlog.Default(), span.SpanContext().TraceID().String())
+			ctx = xlog.NewContext(ctx, xlog.Jupiter(), span.SpanContext().TraceID().String())
 
 			c.SetRequest(c.Request().WithContext(ctx))
 			defer span.End()

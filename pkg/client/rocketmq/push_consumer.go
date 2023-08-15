@@ -123,6 +123,7 @@ func (cc *PushConsumer) RegisterSingleMessage(f func(context.Context, *primitive
 				)
 
 				ctx = xlog.NewContext(ctx, xlog.Default(), span.SpanContext().TraceID().String())
+				ctx = xlog.NewContext(ctx, xlog.Jupiter(), span.SpanContext().TraceID().String())
 
 				defer span.End()
 			}

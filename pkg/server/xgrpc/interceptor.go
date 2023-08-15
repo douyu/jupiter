@@ -94,6 +94,7 @@ func NewTraceUnaryServerInterceptor() grpc.UnaryServerInterceptor {
 		}()
 
 		ctx = xlog.NewContext(ctx, xlog.Default(), span.SpanContext().TraceID().String())
+		ctx = xlog.NewContext(ctx, xlog.Jupiter(), span.SpanContext().TraceID().String())
 
 		return handler(ctx, req)
 	}
@@ -136,6 +137,7 @@ func NewTraceStreamServerInterceptor() grpc.StreamServerInterceptor {
 		defer span.End()
 
 		ctx = xlog.NewContext(ctx, xlog.Default(), span.SpanContext().TraceID().String())
+		ctx = xlog.NewContext(ctx, xlog.Jupiter(), span.SpanContext().TraceID().String())
 
 		return handler(srv, contextedServerStream{
 			ServerStream: ss,

@@ -106,7 +106,7 @@ func (config *Config) Build() (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	server.Use(recoverMiddleware(config.logger, config.SlowQueryThresholdInMilli))
+	server.Use(recoverMiddleware(config.SlowQueryThresholdInMilli))
 
 	if !config.DisableMetric {
 		server.Use(metricServerInterceptor())
