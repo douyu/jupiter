@@ -75,7 +75,9 @@ func New[K comparable, V any](c *Config) (localCache *cache.Cache[K, V]) {
 		c.Cache = innerCache
 	}
 
-	return &cache.Cache[K, V]{&localStorage[K, V]{
-		config: c,
-	}}
+	return &cache.Cache[K, V]{
+		Storage: &localStorage[K, V]{
+			config: c,
+		},
+	}
 }

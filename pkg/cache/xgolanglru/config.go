@@ -58,8 +58,10 @@ func New[K comparable, V any](c *Config) (localCache *cache.Cache[K, V]) {
 	if c.Size == 0 {
 		c.Size = 200000
 	}
-	return &cache.Cache[K, V]{&localStorage[K, V]{
-		config: c,
-		Cache:  expirable.NewLRU[string, V](c.Size, nil, c.Expire),
-	}}
+	return &cache.Cache[K, V]{
+		Storage: &localStorage[K, V]{
+			config: c,
+			Cache:  expirable.NewLRU[string, V](c.Size, nil, c.Expire),
+		},
+	}
 }
