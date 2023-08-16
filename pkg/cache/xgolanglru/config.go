@@ -1,11 +1,10 @@
-package xfreecache
+package xgolanglru
 
 import (
 	"fmt"
-	"sync"
+	"github.com/hashicorp/golang-lru/v2/expirable"
 	"time"
 
-	"github.com/coocood/freecache"
 	"github.com/douyu/jupiter/pkg/cache"
 	cfg "github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/xlog"
@@ -13,16 +12,11 @@ import (
 )
 
 type Config struct {
-	Cache         *freecache.Cache `json:"-" toml:"-"`                         // 本地缓存实例【必填】
-	Expire        time.Duration    `json:"expire" toml:"expire"`               // 失效时间 【必填】
-	DisableMetric bool             `json:"disableMetric" toml:"disableMetric"` // metric上报 false 开启  ture 关闭【选填，默认开启】
-	Name          string           `json:"-" toml:"-"`                         // 本地缓存名称，用于日志标识&metric上报【选填】
+	Expire        time.Duration `json:"expire" toml:"expire"`               // 失效时间 【必填】
+	DisableMetric bool          `json:"disableMetric" toml:"disableMetric"` // metric上报 false 开启  ture 关闭【选填，默认开启】
+	Size          int           `json:"size" toml:"size"`                   // 缓存大小【选填，默认200000】
+	Name          string        `json:"-" toml:"-"`                         // 本地缓存名称，用于日志标识&metric上报【选填】
 }
-
-var (
-	innerCache *freecache.Cache
-	once       sync.Once
-)
 
 // DefaultConfig 返回默认配置
 func DefaultConfig() *Config {
@@ -36,7 +30,7 @@ func DefaultConfig() *Config {
 // StdConfig 返回标准配置
 func StdConfig(name string) *Config {
 	config := DefaultConfig()
-	key := "jupiter.cache." + name
+	key := "jupiter.xgolanglru." + name
 	if err := cfg.UnmarshalKey(key, &config, cfg.TagName("toml")); err != nil {
 		xlog.Jupiter().Warn("localCache StdConfig unmarshal config",
 			zap.Error(err), zap.Any("key", key))
@@ -60,22 +54,12 @@ func New[K comparable, V any](c *Config) (localCache *cache.Cache[K, V]) {
 	if len(c.Name) == 0 {
 		c.Name = fmt.Sprintf("cache-%d", time.Now().UnixNano())
 	}
-	if c.Cache == nil {
-		// 初始化缓存实例
-		once.Do(func() {
-			size, err := ParseSize(cfg.GetString("jupiter.cache.size"))
-			if err != nil {
-				xlog.Jupiter().Warn("localCache StdConfig ParseSize err", zap.Error(err))
-			}
-			if size < 512*KB || size > 8*GB {
-				size = 256 * MB
-			}
-			innerCache = freecache.NewCache(int(size))
-		})
-		c.Cache = innerCache
+	// 如果没有配置大小，默认200000
+	if c.Size == 0 {
+		c.Size = 200000
 	}
-
 	return &cache.Cache[K, V]{&localStorage[K, V]{
 		config: c,
+		Cache:  expirable.NewLRU[string, V](c.Size, nil, c.Expire),
 	}}
 }

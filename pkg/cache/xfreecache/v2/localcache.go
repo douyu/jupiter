@@ -7,15 +7,11 @@ import (
 	"go.uber.org/zap"
 )
 
-type LocalCache[K comparable, V any] struct {
-	cache[K, V]
-}
-
-type localStorage struct {
+type localStorage[K comparable, V any] struct {
 	config *Config
 }
 
-func (l *localStorage) SetCacheData(key string, data []byte) (err error) {
+func (l *localStorage[K, V]) setCacheData(key string, data []byte) (err error) {
 	err = l.config.Cache.Set([]byte(key), data, int(l.config.Expire.Seconds()))
 	// metric report
 	if !l.config.DisableMetric {
@@ -35,7 +31,7 @@ func (l *localStorage) SetCacheData(key string, data []byte) (err error) {
 	return
 }
 
-func (l *localStorage) GetCacheData(key string) (data []byte, err error) {
+func (l *localStorage[K, V]) getCacheData(key string) (data []byte, err error) {
 	data, err = l.config.Cache.Get([]byte(key))
 	// metric report
 	if !l.config.DisableMetric {
