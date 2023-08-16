@@ -16,4 +16,5 @@ const (
 	ModuleStoreMongoDB
 	ModuleStoreGorm
 	ModuleStoreTableStore
+	ModuleClusterRedis
 )

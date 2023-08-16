@@ -48,11 +48,17 @@ func (conf *PushConsumerConfig) Build() *PushConsumer {
 
 	xlog.Jupiter().Debug("rocketmq's config: ", xlog.String("name", name), xlog.Any("conf", conf))
 
+	var bucket *ratelimit.Bucket
+	if conf.Rate > 0 && conf.Capacity > 0 {
+		bucket = ratelimit.NewBucketWithRate(conf.Rate, conf.Capacity)
+	}
+
 	cc := &PushConsumer{
 		name:               name,
 		PushConsumerConfig: *conf,
 		subscribers:        make(map[string]func(context.Context, ...*primitive.MessageExt) (consumer.ConsumeResult, error)),
 		interceptors:       []primitive.Interceptor{},
+		bucket:             bucket,
 	}
 	cc.interceptors = append(cc.interceptors,
 		consumerMetricInterceptor(),
@@ -117,6 +123,7 @@ func (cc *PushConsumer) RegisterSingleMessage(f func(context.Context, *primitive
 				)
 
 				ctx = xlog.NewContext(ctx, xlog.Default(), span.SpanContext().TraceID().String())
+				ctx = xlog.NewContext(ctx, xlog.Jupiter(), span.SpanContext().TraceID().String())
 
 				defer span.End()
 			}

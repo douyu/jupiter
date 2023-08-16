@@ -25,6 +25,10 @@ type Config struct {
 		Addr []string `json:"addr" toml:"addr"`
 	} `json:"slaves" toml:"slaves"`
 
+	Addr     []string `json:"addr" toml:"addr"`
+	Username string   `json:"username" toml:"username"`
+	Password string   `json:"password" toml:"password"`
+
 	/****** for github.com/go-redis/redis/v8 ******/
 	// DB default 0,not recommend
 	DB int `json:"db" toml:"db"`
@@ -94,10 +98,11 @@ func DefaultConfig() *Config {
 	}
 }
 
-// StdConfig ...
+// StdConfig 哨兵模式，支持主从结构redis集群
 func StdConfig(name string) *Config {
 	return RawConfig(constant.ConfigKey("redis", name, "stub"))
 }
+
 func RawConfig(key string) *Config {
 	var config = DefaultConfig()
 

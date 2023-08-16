@@ -39,13 +39,14 @@ func extractAID(c echo.Context) string {
 }
 
 // RecoverMiddleware ...
-func recoverMiddleware(logger *xlog.Logger, slowQueryThresholdInMilli int64) echo.MiddlewareFunc {
+func recoverMiddleware(slowQueryThresholdInMilli int64) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(ctx echo.Context) (err error) {
 			var beg = time.Now()
 			var fields = make([]xlog.Field, 0, 8)
 
 			defer func() {
+				logger := xlog.J(ctx.Request().Context())
 				fields = append(fields, xlog.FieldCost(time.Since(beg)))
 				if rec := recover(); rec != nil {
 					switch rec := rec.(type) {
@@ -101,17 +102,18 @@ func metricServerInterceptor() echo.MiddlewareFunc {
 }
 
 func traceServerInterceptor() echo.MiddlewareFunc {
-	tracer := xtrace.NewTracer(trace.SpanKindServer)
-	attrs := []attribute.KeyValue{
-		semconv.RPCSystemKey.String("http"),
-	}
-
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) (err error) {
+			tracer := xtrace.NewTracer(trace.SpanKindServer)
+			attrs := []attribute.KeyValue{
+				semconv.RPCSystemKey.String("http"),
+			}
+
 			ctx, span := tracer.Start(c.Request().Context(), c.Request().URL.Path, propagation.HeaderCarrier(c.Request().Header), trace.WithAttributes(attrs...))
 			span.SetAttributes(semconv.HTTPServerAttributesFromHTTPRequest(pkg.Name(), c.Request().URL.Path, c.Request())...)
 
 			ctx = xlog.NewContext(ctx, xlog.Default(), span.SpanContext().TraceID().String())
+			ctx = xlog.NewContext(ctx, xlog.Jupiter(), span.SpanContext().TraceID().String())
 
 			c.SetRequest(c.Request().WithContext(ctx))
 			defer span.End()

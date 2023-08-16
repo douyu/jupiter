@@ -1,10 +1,10 @@
 module github.com/douyu/jupiter
 
-go 1.18
+go 1.19
 
 require (
 	cirello.io/pglock v1.12.0
-	github.com/BurntSushi/toml v1.2.1
+	github.com/BurntSushi/toml v1.3.2
 	github.com/alibaba/sentinel-golang v1.0.4
 	github.com/aliyun/aliyun-tablestore-go-sdk v1.7.7
 	github.com/apache/rocketmq-client-go/v2 v2.1.2-0.20230628073434-533de03048e1
@@ -23,49 +23,52 @@ require (
 	github.com/golang/protobuf v1.5.3
 	github.com/gorilla/websocket v1.5.0
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.15.2
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.16.2
 	github.com/hashicorp/golang-lru/v2 v2.0.5
 	github.com/hnlq715/struct2interface v0.1.5
-	github.com/iancoleman/strcase v0.2.0
+	github.com/iancoleman/strcase v0.3.0
 	github.com/json-iterator/go v1.1.12
 	github.com/juju/ratelimit v1.0.2
-	github.com/labstack/echo/v4 v4.10.2
+	github.com/labstack/echo/v4 v4.11.1
 	github.com/mattn/go-colorable v0.1.13
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/modern-go/reflect2 v1.0.2
-	github.com/onsi/ginkgo/v2 v2.9.5
-	github.com/onsi/gomega v1.27.7
+	github.com/onsi/ginkgo/v2 v2.11.0
+	github.com/onsi/gomega v1.27.10
+	github.com/opentracing/opentracing-go v1.2.0
 	github.com/philchia/agollo/v4 v4.1.5
 	github.com/pkg/errors v0.9.1
-	github.com/prometheus/client_golang v1.15.1
+	github.com/prometheus/client_golang v1.16.0
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/samber/lo v1.38.1
 	github.com/smallnest/weighted v0.0.0-20200122032019-adf21c9b8bd1
-	github.com/smartystreets/goconvey v1.8.0
+	github.com/smartystreets/goconvey v1.8.1
 	github.com/spf13/cast v1.5.1
 	github.com/srikrsna/protoc-gen-gotag v0.6.2
-	github.com/stretchr/testify v1.8.3
+	github.com/stretchr/testify v1.8.4
 	github.com/tidwall/pretty v1.2.1
-	github.com/urfave/cli v1.22.13
-	github.com/valyala/fasthttp v1.47.0
+	github.com/urfave/cli v1.22.14
+	github.com/valyala/fasthttp v1.48.0
 	github.com/xlab/treeprint v1.2.0
 	go.etcd.io/etcd/api/v3 v3.5.9
 	go.etcd.io/etcd/client/v3 v3.5.9
 	go.mongodb.org/mongo-driver v1.11.6
-	go.opentelemetry.io/otel v1.15.1
-	go.opentelemetry.io/otel/exporters/jaeger v1.15.1
-	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.15.1
-	go.opentelemetry.io/otel/sdk v1.15.1
-	go.opentelemetry.io/otel/trace v1.15.1
-	go.uber.org/automaxprocs v1.5.2
+	go.opentelemetry.io/otel v1.16.0
+	go.opentelemetry.io/otel/bridge/opentracing v1.16.0
+	go.opentelemetry.io/otel/exporters/jaeger v1.16.0
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.16.0
+	go.opentelemetry.io/otel/sdk v1.16.0
+	go.opentelemetry.io/otel/trace v1.16.0
+	go.uber.org/automaxprocs v1.5.3
 	go.uber.org/multierr v1.11.0
 	go.uber.org/zap v1.24.0
-	golang.org/x/mod v0.10.0
-	golang.org/x/sync v0.2.0
-	golang.org/x/text v0.9.0
-	google.golang.org/genproto v0.0.0-20230223222841-637eb2293923
-	google.golang.org/grpc v1.54.0
-	google.golang.org/protobuf v1.30.0
+	golang.org/x/mod v0.12.0
+	golang.org/x/sync v0.3.0
+	golang.org/x/text v0.12.0
+	google.golang.org/genproto/googleapis/api v0.0.0-20230726155614-23370e0ffb3e
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20230726155614-23370e0ffb3e
+	google.golang.org/grpc v1.57.0
+	google.golang.org/protobuf v1.31.0
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/driver/mysql v1.4.7
 	gorm.io/gorm v1.24.6
@@ -134,11 +137,11 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_model v0.3.0 // indirect
 	github.com/prometheus/common v0.42.0 // indirect
-	github.com/prometheus/procfs v0.9.0 // indirect
+	github.com/prometheus/procfs v0.10.1 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/shirou/gopsutil/v3 v3.21.7 // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
-	github.com/smartystreets/assertions v1.13.1 // indirect
+	github.com/smarty/assertions v1.15.0 // indirect
 	github.com/spf13/afero v1.9.3 // indirect
 	github.com/stretchr/objx v0.5.0 // indirect
 	github.com/tdewolff/parse/v2 v2.6.5 // indirect
@@ -155,16 +158,18 @@ require (
 	github.com/xdg-go/stringprep v1.0.3 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d // indirect
 	go.etcd.io/etcd/client/pkg/v3 v3.5.9 // indirect
-	go.opentelemetry.io/otel/exporters/otlp/internal/retry v1.15.1 // indirect
-	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.15.1 // indirect
+	go.opentelemetry.io/otel/exporters/otlp/internal/retry v1.16.0 // indirect
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.16.0 // indirect
+	go.opentelemetry.io/otel/metric v1.16.0 // indirect
 	go.opentelemetry.io/proto/otlp v0.19.0 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	golang.org/x/arch v0.3.0 // indirect
-	golang.org/x/crypto v0.9.0 // indirect
+	golang.org/x/crypto v0.11.0 // indirect
 	golang.org/x/exp v0.0.0-20221031165847-c99f073a8326 // indirect
-	golang.org/x/net v0.10.0 // indirect
-	golang.org/x/sys v0.8.0 // indirect
-	golang.org/x/tools v0.9.1 // indirect
+	golang.org/x/net v0.12.0 // indirect
+	golang.org/x/sys v0.10.0 // indirect
+	golang.org/x/tools v0.9.3 // indirect
+	google.golang.org/genproto v0.0.0-20230706204954-ccb25ca9f130 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	stathat.com/c/consistent v1.0.0 // indirect
