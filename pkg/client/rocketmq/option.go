@@ -107,6 +107,7 @@ func DefaultConfig() *Config {
 		},
 		PushConsumer: &PushConsumerConfig{
 			ConsumerDefaultConfig: ConsumerDefaultConfig{
+				Enable:       true,
 				DialTimeout:  time.Second * 3,
 				Reconsume:    16,
 				EnableTrace:  true,
@@ -118,6 +119,7 @@ func DefaultConfig() *Config {
 		},
 		PullConsumer: &PullConsumerConfig{
 			ConsumerDefaultConfig: ConsumerDefaultConfig{
+				Enable:       true,
 				DialTimeout:  time.Second * 3,
 				Reconsume:    16,
 				EnableTrace:  true,
