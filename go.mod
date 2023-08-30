@@ -10,7 +10,7 @@ require (
 	github.com/apache/rocketmq-client-go/v2 v2.1.2-0.20230628073434-533de03048e1
 	github.com/codegangsta/inject v0.0.0-20150114235600-33e0aa1cb7c0
 	github.com/coocood/freecache v1.2.3
-	github.com/cosmtrek/air v1.44.0
+	github.com/cosmtrek/air v1.45.0
 	github.com/davecgh/go-spew v1.1.1
 	github.com/dimiro1/banner v1.1.0
 	github.com/fatih/color v1.15.0
@@ -74,6 +74,7 @@ require (
 )
 
 require (
+	dario.cat/mergo v1.0.0 // indirect
 	github.com/StackExchange/wmi v1.2.1 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -115,7 +116,6 @@ require (
 	github.com/gopherjs/gopherjs v1.17.2 // indirect
 	github.com/grokify/html-strip-tags-go v0.0.1 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
-	github.com/imdario/mergo v0.3.13 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/jtolds/gls v4.20.0+incompatible // indirect
