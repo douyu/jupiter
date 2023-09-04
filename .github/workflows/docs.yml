@@ -13,7 +13,7 @@ jobs:
   docs-lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3.5.3
+      - uses: actions/checkout@v4
 
       - name: Run markdown linter
         uses: nosborn/github-action-markdown-cli@v3.3.0
@@ -27,7 +27,7 @@ jobs:
     needs: docs-lint
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v3.5.3
+      - uses: actions/checkout@v4
 
       # 首先生成拉取node文件
       - name: Node install
