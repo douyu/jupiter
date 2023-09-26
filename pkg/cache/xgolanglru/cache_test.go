@@ -1,4 +1,4 @@
-package xfreecache
+package xgolanglru
 
 import (
 	"bytes"
@@ -19,14 +19,15 @@ type Student struct {
 
 func Test_cache_GetAndSetCacheData(t *testing.T) {
 	var configStr = `
-		[jupiter.cache]
-			size = "64m"
-			[jupiter.cache.test1]
+		[jupiter.xgolanglru]
+			[jupiter.xgolanglru.test1]
 				expire = "60s"
+			[jupiter.xgolanglru.test2]
+				expire = "10s"
 	`
 	assert.Nil(t, conf.LoadFromReader(bytes.NewBufferString(configStr), toml.Unmarshal))
 
-	for i := 1; i <= 1; i++ {
+	for i := 1; i <= 2; i++ {
 		oneCache := StdNew[string, Student](fmt.Sprintf("test%d", i))
 		missCount := 0
 
@@ -101,14 +102,15 @@ func Test_cache_GetAndSetCacheData(t *testing.T) {
 
 func Test_cache_GetAndSetCacheData_proto(t *testing.T) {
 	var configStr = `
-		[jupiter.cache]
-			size = "128m"
-			[jupiter.cache.test1]
+		[jupiter.xgolanglru]
+			[jupiter.xgolanglru.test1]
 				expire = "60s"
+			[jupiter.xgolanglru.test2]
+				expire = "10s"
 	`
 	assert.Nil(t, conf.LoadFromReader(bytes.NewBufferString(configStr), toml.Unmarshal))
 
-	for i := 1; i <= 1; i++ {
+	for i := 1; i <= 2; i++ {
 		oneCache := StdNew[string, *helloworldv1.SayHiRequest](fmt.Sprintf("test%d", i))
 		missCount := 0
 
@@ -217,8 +219,8 @@ func Test_cache_GetAndSetCacheMap(t *testing.T) {
 	}
 
 	missCount := 0
+	c := New[int64, int64](DefaultConfig())
 	for _, tt := range tests {
-		c := New[int64, int64](DefaultConfig())
 		gotV, err := c.GetAndSetCacheMap("mytest2", tt.args.ids, func(in []int64) (map[int64]int64, error) {
 			missCount++
 			res := make(map[int64]int64)
@@ -239,9 +241,8 @@ func Test_cache_GetAndSetCacheMap(t *testing.T) {
 
 func TestStdConfig(t *testing.T) {
 	var configStr = `
-		[jupiter.cache]
-			size = "100MB"
-			[jupiter.cache.test]
+		[jupiter.xgolanglru]
+			[jupiter.xgolanglru.test]
 				expire = "1m"
 				disableMetric = true
 	`

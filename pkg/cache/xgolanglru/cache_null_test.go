@@ -1,4 +1,4 @@
-package xfreecache
+package xgolanglru
 
 import (
 	"bytes"
@@ -14,10 +14,11 @@ import (
 
 func Test_cache_proto_Null_GetAndSetCacheMap(t *testing.T) {
 	var configStr = `
-		[jupiter.cache]
-			size = "64m"
-			[jupiter.cache.test1]
+		[jupiter.xgolanglru]
+			[jupiter.xgolanglru.test1]
 				expire = "60s"
+			[jupiter.xgolanglru.test2]
+				expire = "10s"
 	`
 	assert.Nil(t, conf.LoadFromReader(bytes.NewBufferString(configStr), toml.Unmarshal))
 
@@ -56,7 +57,7 @@ func Test_cache_proto_Null_GetAndSetCacheMap(t *testing.T) {
 		},
 	}
 
-	for i := 1; i <= 1; i++ {
+	for i := 1; i <= 2; i++ {
 		fmt.Printf("\n======== %d =========\n", i)
 		missCount := 0
 		c := StdNew[int64, *helloworldv1.SayHiRequest](fmt.Sprintf("test%d", i))
@@ -89,10 +90,13 @@ func Test_cache_proto_Null_GetAndSetCacheMap(t *testing.T) {
 
 func Test_cache_json_Null_GetAndSetCacheMap(t *testing.T) {
 	var configStr = `
-		[jupiter.cache]
+		[jupiter.xgolanglru]
 			size = "64m"
-			[jupiter.cache.test1]
+			sizeLru = 2000
+			[jupiter.xgolanglru.test1]
 				expire = "60s"
+			[jupiter.xgolanglru.test2]
+				expire = "10s"
 	`
 	assert.Nil(t, conf.LoadFromReader(bytes.NewBufferString(configStr), toml.Unmarshal))
 
@@ -131,7 +135,7 @@ func Test_cache_json_Null_GetAndSetCacheMap(t *testing.T) {
 		},
 	}
 
-	for i := 1; i <= 1; i++ {
+	for i := 1; i <= 2; i++ {
 		fmt.Printf("\n======== %d =========\n", i)
 		missCount := 0
 		c := StdNew[int64, *Student](fmt.Sprintf("test%d", i))
@@ -164,10 +168,13 @@ func Test_cache_json_Null_GetAndSetCacheMap(t *testing.T) {
 
 func Test_cache_struct_Null_GetAndSetCacheMap(t *testing.T) {
 	var configStr = `
-		[jupiter.cache]
+		[jupiter.xgolanglru]
 			size = "64m"
-			[jupiter.cache.test1]
+			sizeLru = 2000
+			[jupiter.xgolanglru.test1]
 				expire = "60s"
+			[jupiter.xgolanglru.test2]
+				expire = "10s"
 	`
 	assert.Nil(t, conf.LoadFromReader(bytes.NewBufferString(configStr), toml.Unmarshal))
 
@@ -206,7 +213,7 @@ func Test_cache_struct_Null_GetAndSetCacheMap(t *testing.T) {
 		},
 	}
 
-	for i := 1; i <= 1; i++ {
+	for i := 1; i <= 2; i++ {
 		fmt.Printf("\n======== %d =========\n", i)
 		missCount := 0
 		c := StdNew[int64, Student](fmt.Sprintf("test%d", i))
