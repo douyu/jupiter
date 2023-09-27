@@ -16,7 +16,7 @@ require (
 	github.com/onsi/gomega v1.27.10
 	github.com/samber/lo v1.38.1
 	github.com/stretchr/testify v1.8.4
-	github.com/valyala/fasthttp v1.48.0
+	github.com/valyala/fasthttp v1.50.0
 	google.golang.org/grpc v1.58.2
 	google.golang.org/protobuf v1.31.0
 )
