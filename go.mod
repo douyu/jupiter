@@ -48,7 +48,7 @@ require (
 	github.com/stretchr/testify v1.8.4
 	github.com/tidwall/pretty v1.2.1
 	github.com/urfave/cli v1.22.14
-	github.com/valyala/fasthttp v1.48.0
+	github.com/valyala/fasthttp v1.50.0
 	github.com/xlab/treeprint v1.2.0
 	go.etcd.io/etcd/api/v3 v3.5.9
 	go.etcd.io/etcd/client/v3 v3.5.9
