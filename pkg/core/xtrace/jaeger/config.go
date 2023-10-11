@@ -15,6 +15,8 @@
 package jaeger
 
 import (
+	"context"
+
 	"github.com/douyu/jupiter/pkg"
 	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/xlog"
@@ -22,7 +24,7 @@ import (
 	"go.opentelemetry.io/otel/exporters/jaeger"
 	"go.opentelemetry.io/otel/sdk/resource"
 	tracesdk "go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -55,19 +57,30 @@ func (config *Config) Build() trace.TracerProvider {
 	// Create the Jaeger exporter
 	exp, err := jaeger.New(jaeger.WithCollectorEndpoint(jaeger.WithEndpoint(config.Endpoint)))
 	if err != nil {
-		xlog.Jupiter().Panic("new jaeger", xlog.FieldMod("build"), xlog.FieldErr(err))
+		xlog.Jupiter().Panic("new jaeger", xlog.FieldErr(err))
 		return nil
 	}
+
+	resource, err := resource.New(context.TODO(),
+		resource.WithHost(),
+		resource.WithFromEnv(),
+		resource.WithTelemetrySDK(),
+		resource.WithAttributes(
+			semconv.ServiceNameKey.String(config.Name),
+		),
+	)
+	if err != nil {
+		xlog.Jupiter().Panic("new resource", xlog.FieldErr(err))
+		return nil
+	}
+
 	tp := tracesdk.NewTracerProvider(
 		// Set the sampling rate based on the parent span to 100%
 		tracesdk.WithSampler(tracesdk.ParentBased(tracesdk.TraceIDRatioBased(config.Sampler))),
 		// Always be sure to batch in production.
 		tracesdk.WithBatcher(exp),
 		// Record information about this application in an Resource.
-		tracesdk.WithResource(resource.NewSchemaless(
-			semconv.TelemetrySDKLanguageGo,
-			semconv.ServiceNameKey.String(config.Name),
-		)),
+		tracesdk.WithResource(resource),
 	)
 	otel.SetTracerProvider(tp)
 	return tp
