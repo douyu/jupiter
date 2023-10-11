@@ -1,6 +1,6 @@
 module github.com/douyu/jupiter
 
-go 1.21
+go 1.19
 
 require (
 	cirello.io/pglock v1.14.0
