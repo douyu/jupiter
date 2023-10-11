@@ -19,6 +19,7 @@ import (
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/plugin/opentelemetry/tracing"
 )
 
 type (
@@ -35,6 +36,10 @@ func open(options *Config) (*gorm.DB, error) {
 	inner, err := gorm.Open(mysql.Open(options.DSN), &options.gormConfig)
 	if err != nil {
 		return nil, err
+	}
+
+	if err := inner.Use(tracing.NewPlugin(tracing.WithoutMetrics())); err != nil {
+		panic(err)
 	}
 
 	// inner.(options.Debug)
@@ -58,7 +63,6 @@ func open(options *Config) (*gorm.DB, error) {
 
 	registerInterceptor(inner, options,
 		metricInterceptor(),
-		traceInterceptor(),
 		sentinelInterceptor(),
 	)
 

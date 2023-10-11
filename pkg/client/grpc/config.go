@@ -24,6 +24,7 @@ import (
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/samber/lo"
 	"github.com/spf13/cast"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/balancer/roundrobin"
@@ -125,7 +126,7 @@ func (config *Config) Build() (*grpc.ClientConn, error) {
 
 	if !config.DisableTraceInterceptor {
 		config.dialOptions = append(config.dialOptions,
-			grpc.WithChainUnaryInterceptor(TraceUnaryClientInterceptor()),
+			grpc.WithChainUnaryInterceptor(otelgrpc.UnaryClientInterceptor()),
 		)
 	}
 

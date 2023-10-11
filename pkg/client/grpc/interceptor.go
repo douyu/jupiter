@@ -27,14 +27,9 @@ import (
 	"github.com/douyu/jupiter/pkg/core/ecode"
 	"github.com/douyu/jupiter/pkg/core/metric"
 	"github.com/douyu/jupiter/pkg/core/sentinel"
-	"github.com/douyu/jupiter/pkg/core/xtrace"
 	"github.com/douyu/jupiter/pkg/util/xstring"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/fatih/color"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/codes"
-	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
-	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
@@ -111,41 +106,6 @@ func debugUnaryClientInterceptor(addr string) grpc.UnaryClientInterceptor {
 		} else {
 			fmt.Printf("%-50s[%s] => %s\n", color.GreenString(prefix), time.Now().Format("04:05.000"), color.GreenString("Recv: "+xstring.Json(reply)))
 		}
-
-		return err
-	}
-}
-
-func TraceUnaryClientInterceptor() grpc.UnaryClientInterceptor {
-	tracer := xtrace.NewTracer(trace.SpanKindClient)
-	attrs := []attribute.KeyValue{
-		semconv.RPCSystemGRPC,
-	}
-
-	return func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) (err error) {
-		md, ok := metadata.FromOutgoingContext(ctx)
-		if !ok {
-			md = metadata.New(nil)
-		} else {
-			md = md.Copy()
-		}
-
-		ctx, span := tracer.Start(ctx, method, xtrace.MetadataReaderWriter(md), trace.WithAttributes(attrs...))
-		ctx = metadata.NewOutgoingContext(ctx, md)
-		span.SetAttributes(
-			semconv.RPCMethodKey.String(method),
-		)
-
-		err = invoker(ctx, method, req, reply, cc, opts...)
-
-		span.SetStatus(codes.Ok, "ok")
-
-		if err != nil {
-			span.RecordError(err)
-			span.SetStatus(codes.Error, err.Error())
-		}
-
-		span.End()
 
 		return err
 	}

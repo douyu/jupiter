@@ -1,6 +1,6 @@
 module github.com/douyu/jupiter
 
-go 1.19
+go 1.21
 
 require (
 	cirello.io/pglock v1.14.0
@@ -53,6 +53,7 @@ require (
 	go.etcd.io/etcd/api/v3 v3.5.9
 	go.etcd.io/etcd/client/v3 v3.5.9
 	go.mongodb.org/mongo-driver v1.12.1
+	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.45.0
 	go.opentelemetry.io/otel v1.19.0
 	go.opentelemetry.io/otel/bridge/opentracing v1.16.0
 	go.opentelemetry.io/otel/exporters/jaeger v1.16.0
@@ -64,14 +65,15 @@ require (
 	go.uber.org/zap v1.25.0
 	golang.org/x/mod v0.12.0
 	golang.org/x/sync v0.3.0
-	golang.org/x/text v0.12.0
+	golang.org/x/text v0.13.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20230822172742-b8732ec3820d
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230822172742-b8732ec3820d
 	google.golang.org/grpc v1.58.2
 	google.golang.org/protobuf v1.31.0
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/driver/mysql v1.4.7
-	gorm.io/gorm v1.24.6
+	gorm.io/gorm v1.25.1
+	gorm.io/plugin/opentelemetry v0.1.4
 )
 
 require (
@@ -140,7 +142,7 @@ require (
 	github.com/prometheus/procfs v0.10.1 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/shirou/gopsutil/v3 v3.21.7 // indirect
-	github.com/sirupsen/logrus v1.8.1 // indirect
+	github.com/sirupsen/logrus v1.9.2 // indirect
 	github.com/smarty/assertions v1.15.0 // indirect
 	github.com/spf13/afero v1.9.3 // indirect
 	github.com/stretchr/objx v0.5.0 // indirect
@@ -163,9 +165,9 @@ require (
 	go.opentelemetry.io/proto/otlp v1.0.0 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	golang.org/x/arch v0.3.0 // indirect
-	golang.org/x/crypto v0.12.0 // indirect
+	golang.org/x/crypto v0.13.0 // indirect
 	golang.org/x/exp v0.0.0-20221031165847-c99f073a8326 // indirect
-	golang.org/x/net v0.14.0 // indirect
+	golang.org/x/net v0.15.0 // indirect
 	golang.org/x/sys v0.12.0 // indirect
 	golang.org/x/tools v0.12.0 // indirect
 	google.golang.org/genproto v0.0.0-20230803162519-f966b187b2e5 // indirect
