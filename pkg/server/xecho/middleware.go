@@ -90,12 +90,8 @@ func metricServerInterceptor() echo.MiddlewareFunc {
 			beg := time.Now()
 			err = next(c)
 			method := c.Request().Method + "_" + c.Path()
-			peer := c.RealIP()
-			if aid := extractAID(c); aid != "" {
-				peer += "?aid=" + aid
-			}
-			metric.ServerHandleHistogram.Observe(time.Since(beg).Seconds(), metric.TypeHTTP, method, peer)
-			metric.ServerHandleCounter.Inc(metric.TypeHTTP, method, peer, http.StatusText(c.Response().Status))
+			metric.ServerHandleHistogram.Observe(time.Since(beg).Seconds(), metric.TypeHTTP, method, extractAID(c))
+			metric.ServerHandleCounter.Inc(metric.TypeHTTP, method, extractAID(c), http.StatusText(c.Response().Status))
 			return err
 		}
 	}
