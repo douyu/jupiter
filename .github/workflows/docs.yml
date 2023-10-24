@@ -31,7 +31,7 @@ jobs:
 
       # 首先生成拉取node文件
       - name: Node install
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: "16.x"
 
