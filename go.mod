@@ -48,7 +48,7 @@ require (
 	github.com/stretchr/testify v1.8.4
 	github.com/tidwall/pretty v1.2.1
 	github.com/urfave/cli v1.22.14
-	github.com/valyala/fasthttp v1.48.0
+	github.com/valyala/fasthttp v1.51.0
 	github.com/xlab/treeprint v1.2.0
 	go.etcd.io/etcd/api/v3 v3.5.9
 	go.etcd.io/etcd/client/v3 v3.5.9
@@ -120,7 +120,7 @@ require (
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/jtolds/gls v4.20.0+incompatible // indirect
-	github.com/klauspost/compress v1.16.3 // indirect
+	github.com/klauspost/compress v1.17.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.4 // indirect
 	github.com/labstack/gommon v0.4.0 // indirect
 	github.com/leodido/go-urn v1.2.4 // indirect
