@@ -57,7 +57,7 @@ jobs:
 
       # 提交
       - name: Deploy 🚀
-        uses: JamesIves/github-pages-deploy-action@v4.4.3
+        uses: JamesIves/github-pages-deploy-action@v4.5.0
         with:
           branch: pages
           folder: ./website/docs/.vuepress/dist
