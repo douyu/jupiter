@@ -144,8 +144,7 @@ func (cc *PushConsumer) RegisterSingleMessage(f func(context.Context, *primitive
 				}
 			}
 
-			err := f(ctx, msg)
-			if err != nil {
+			if err := f(ctx, msg); err != nil {
 				xlog.Jupiter().Error("consumer message", zap.Error(err), zap.String("field", cc.name), zap.Any("ext", msg))
 				if cc.EnableTrace && span != nil {
 					span.RecordError(err)
@@ -201,8 +200,7 @@ func (cc *PushConsumer) RegisterBatchMessage(f func(context.Context, ...*primiti
 			}
 		}
 
-		err := f(ctx, msgs...)
-		if err != nil {
+		if err := f(ctx, msgs...); err != nil {
 			xlog.Jupiter().Error("consumer batch message", zap.Error(err), zap.String("field", cc.name))
 			return consumer.ConsumeRetryLater, err
 		}
