@@ -16,6 +16,8 @@ package rocketmq
 
 import (
 	"context"
+	"errors"
+	"runtime/debug"
 
 	"github.com/apache/rocketmq-client-go/v2"
 	"github.com/apache/rocketmq-client-go/v2/consumer"
@@ -102,7 +104,14 @@ func (cc *PushConsumer) RegisterSingleMessage(f func(context.Context, *primitive
 		semconv.MessagingRocketmqConsumptionModelKey.String(cc.MessageModel),
 	}
 
-	fn := func(ctx context.Context, msgs ...*primitive.MessageExt) (consumer.ConsumeResult, error) {
+	fn := func(ctx context.Context, msgs ...*primitive.MessageExt) (result consumer.ConsumeResult, err error) {
+		// the recover to prevent panic from causing the coroutine to exit when processing msg.
+		defer func() {
+			if r := recover(); r != nil {
+				xlog.Jupiter().Error("consumer message panic", zap.String("stack", string(debug.Stack())))
+				result, err = consumer.ConsumeRetryLater, errors.New("consumer message panic")
+			}
+		}()
 		for _, msg := range msgs {
 			var (
 				span trace.Span
@@ -158,8 +167,14 @@ func (cc *PushConsumer) RegisterBatchMessage(f func(context.Context, ...*primiti
 
 	tracer := xtrace.NewTracer(trace.SpanKindConsumer)
 
-	fn := func(ctx context.Context, msgs ...*primitive.MessageExt) (consumer.ConsumeResult, error) {
-
+	fn := func(ctx context.Context, msgs ...*primitive.MessageExt) (result consumer.ConsumeResult, err error) {
+		// the recover to prevent panic from causing the coroutine to exit when processing msg.
+		defer func() {
+			if r := recover(); r != nil {
+				xlog.Jupiter().Error("consumer message panic", zap.String("stack", string(debug.Stack())))
+				result, err = consumer.ConsumeRetryLater, errors.New("consumer message panic")
+			}
+		}()
 		if cc.EnableTrace {
 			for _, msg := range msgs {
 				var (
