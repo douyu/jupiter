@@ -34,14 +34,14 @@ jobs:
 
       - name: golangci-lint
         if: runner.os != 'Windows'
-        uses: golangci/golangci-lint-action@v3.7.0
+        uses: golangci/golangci-lint-action@v4.0.0
         with:
           version: v1.50.1
           args: "--out-${NO_FUTURE}format colored-line-number"
 
       - name: golangci-lint
         if: runner.os == 'Windows'
-        uses: golangci/golangci-lint-action@v3.7.0
+        uses: golangci/golangci-lint-action@v4.0.0
         env:
           nofuture: out-format
         with:
