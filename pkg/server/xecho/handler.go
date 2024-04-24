@@ -19,7 +19,6 @@ import (
 	"net/http"
 	"reflect"
 	"strings"
-	"sync"
 
 	"github.com/codegangsta/inject"
 	"github.com/douyu/jupiter/pkg/util/xerror"
@@ -77,6 +76,8 @@ func ProtoJSON(c echo.Context, code int, i interface{}) error {
 	return err
 }
 
+var grpcBinder = &ProtoBinder{}
+
 // GRPCProxyWrapper ...
 func GRPCProxyWrapper(h interface{}) echo.HandlerFunc {
 	t := reflect.TypeOf(h)
@@ -84,15 +85,10 @@ func GRPCProxyWrapper(h interface{}) echo.HandlerFunc {
 		panic("reflect error: handler must be func")
 	}
 
-	once := sync.Once{}
-
 	return func(c echo.Context) error {
-		once.Do(func() {
-			c.Echo().Binder = &ProtoBinder{}
-		})
 
 		var req = reflect.New(t.In(1).Elem()).Interface()
-		if err := c.Bind(req); err != nil {
+		if err := grpcBinder.Bind(req, c); err != nil {
 			return ProtoError(c, http.StatusBadRequest, errBadRequest)
 		}
 
