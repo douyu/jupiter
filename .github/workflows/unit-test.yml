@@ -6,7 +6,7 @@ on:
       - "website/**"
     branches:
       - "master"
-  pull_request_target:
+  pull_request:
     paths-ignore:
       - "website/**"
     branches:
@@ -25,17 +25,15 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        go: ["1.19.x"]
+        go: ["stable"]
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
 
-      - name: docker-compose
-        run: docker-compose -f test/docker-compose.yaml up -d
+      - name: docker compose
+        run: docker compose -f test/docker-compose.yaml up -d
 
       - name: Set up Go ${{ matrix.go }}
         uses: actions/setup-go@v4

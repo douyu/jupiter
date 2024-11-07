@@ -43,7 +43,7 @@ go install github.com/douyu/jupiter/cmd/jupiter@latest
 jupiter new example-go
 cd example-go
 go mod tidy
-docker-compose -f test/docker-compose.yml up -d
+docker compose -f test/docker-compose.yml up -d
 jupiter run -c cmd/exampleserver/.jupiter.toml
 ```
 

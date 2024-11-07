@@ -18,15 +18,15 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        go: ["1.19.x"]
+        go: ["stable"]
     runs-on: ubuntu-latest
 
     steps:
       - name: Check out code into the Go module directory
         uses: actions/checkout@v4
 
-      - name: docker-compose
-        run: docker-compose -f test/docker-compose.yaml up -d
+      - name: docker compose
+        run: docker compose -f test/docker-compose.yaml up -d
 
       - name: Set up Go ${{ matrix.go }}
         uses: actions/setup-go@v4
