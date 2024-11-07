@@ -15,8 +15,6 @@ on:
 jobs:
   test:
     name: Test on ubuntu
-    environment:
-      name: tablestore-live
     env:
       TABLESTORE_ACCESSKEYID_ENV: ${{ secrets.TABLESTORE_ACCESSKEYID_ENV }}
       TABLESTORE_ACCESSKEYSECRET_ENV: ${{ secrets.TABLESTORE_ACCESSKEYSECRET_ENV }}
