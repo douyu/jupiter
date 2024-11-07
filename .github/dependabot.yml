@@ -2,22 +2,29 @@ version: 2
 
 updates:
   - package-ecosystem: gomod
-    directory: /
+    directories:
+      - /
+      - /test/e2e
     labels:
       - dependencies
     schedule:
-      interval: daily
-
-  - package-ecosystem: gomod
-    directory: /test/e2e
-    labels:
-      - dependencies
-    schedule:
-      interval: daily
+      interval: "weekly"
+    groups:
+      gomod-normal-deps:
+        update-types:
+          - patch
+          - minor
+      gomod-breaking-deps:
+        update-types:
+          - major
 
   - package-ecosystem: "github-actions"
     directory: "/"
     labels:
       - dependencies
     schedule:
-      interval: "daily"
+      interval: "weekly"
+    groups:
+      actions-deps:
+        patterns:
+          - "*"
