@@ -37,7 +37,7 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go }}
-        id: go
+          cache: true
 
       - name: Get dependencies
         run: |
