@@ -27,6 +27,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: print env
+        run: env
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -34,10 +37,10 @@ jobs:
         run: docker compose -f test/docker-compose.yaml up -d
 
       - name: Set up Go ${{ matrix.go }}
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go }}
-        id: go
+          cache: true
 
       - name: Get dependencies
         run: |

@@ -29,10 +29,10 @@ jobs:
         run: docker compose -f test/docker-compose.yaml up -d
 
       - name: Set up Go ${{ matrix.go }}
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go }}
-        id: go
+          cache: true
 
       - name: Install ginkgo
         run: |
