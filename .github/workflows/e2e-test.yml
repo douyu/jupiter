@@ -26,7 +26,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: docker compose
-        run: docker compose -f test/docker compose.yaml up -d
+        run: docker compose -f test/docker-compose.yaml up -d
 
       - name: Set up Go ${{ matrix.go }}
         uses: actions/setup-go@v4

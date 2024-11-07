@@ -35,7 +35,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
 
       - name: docker compose
-        run: docker compose -f test/docker compose.yaml up -d
+        run: docker compose -f test/docker-compose.yaml up -d
 
       - name: Set up Go ${{ matrix.go }}
         uses: actions/setup-go@v4
