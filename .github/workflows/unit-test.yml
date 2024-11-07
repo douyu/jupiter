@@ -25,7 +25,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        go: ["stable"]
+        go: ["stable", "oldstable"]
     runs-on: ubuntu-latest
 
     steps:
