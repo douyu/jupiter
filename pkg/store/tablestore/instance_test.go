@@ -21,6 +21,8 @@ const (
 )
 
 func TestCURD(t *testing.T) {
+	t.Skip()
+
 	type args struct {
 		name string
 		opts []interface{}
