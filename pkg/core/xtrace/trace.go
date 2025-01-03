@@ -32,6 +32,7 @@ func SetGlobalTracer(tp trace.TracerProvider) {
 	// be compatible with opentracing
 	bridge, wrapperTracerProvider := otelOpentracing.NewTracerPair(tp.Tracer(""))
 	opentracing.SetGlobalTracer(bridge)
+	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, Jaeger{}))
 	otel.SetTracerProvider(wrapperTracerProvider)
 }
 
