@@ -29,10 +29,14 @@ import (
 func SetGlobalTracer(tp trace.TracerProvider) {
 	xlog.Jupiter().Info("set global tracer", xlog.FieldMod("trace"))
 
+	propagator := propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, Jaeger{})
+
 	// be compatible with opentracing
 	bridge, wrapperTracerProvider := otelOpentracing.NewTracerPair(tp.Tracer(""))
+	bridge.SetTextMapPropagator(propagator)
 	opentracing.SetGlobalTracer(bridge)
-	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, Jaeger{}))
+
+	otel.SetTextMapPropagator(propagator)
 	otel.SetTracerProvider(wrapperTracerProvider)
 }
 
