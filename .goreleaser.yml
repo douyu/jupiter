@@ -1,4 +1,5 @@
 project_name: jupiter
+version: 2
 
 builds:
 - main: ./cmd/jupiter
