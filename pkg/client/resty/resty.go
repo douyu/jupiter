@@ -90,7 +90,7 @@ func StdConfig(name string) *Config {
 
 // RawConfig 返回配置
 func RawConfig(key string) *Config {
-	var config = DefaultConfig()
+	config := DefaultConfig()
 	config.Name = key
 
 	if err := conf.UnmarshalKey(key, &config, conf.TagName("toml")); err != nil {
@@ -162,7 +162,6 @@ func (config *Config) Build() (*resty.Client, error) {
 				entry.Exit(base.WithError(err))
 			}
 		}
-
 	})
 
 	tracer := xtrace.NewTracer(trace.SpanKindClient)
@@ -191,12 +190,10 @@ func (config *Config) Build() (*resty.Client, error) {
 	})
 
 	client.SetPreRequestHook(func(c *resty.Client, r *http.Request) error {
-
 		return nil
 	})
 
 	client.OnAfterResponse(func(c *resty.Client, r *resty.Response) error {
-
 		cost := r.Time()
 
 		if config.EnableMetric {
@@ -210,6 +207,12 @@ func (config *Config) Build() (*resty.Client, error) {
 			span.SetAttributes(
 				semconv.HTTPStatusCodeKey.Int64(int64(r.StatusCode())),
 			)
+
+			if r.IsError() {
+				span.RecordError(errors.New(r.Status()))
+				span.SetStatus(codes.Error, r.Status())
+			}
+
 			span.End()
 		}
 

@@ -155,9 +155,9 @@ func extractAID(ctx context.Context) string {
 
 func defaultStreamServerInterceptor(logger *xlog.Logger, c *Config) grpc.StreamServerInterceptor {
 	return func(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) (err error) {
-		var beg = time.Now()
-		var fields = make([]xlog.Field, 0, 8)
-		var event = "normal"
+		beg := time.Now()
+		fields := make([]xlog.Field, 0, 8)
+		event := "normal"
 		defer func() {
 			if c.SlowQueryThresholdInMilli > 0 {
 				if int64(time.Since(beg))/1e6 > c.SlowQueryThresholdInMilli {
@@ -205,9 +205,9 @@ func defaultStreamServerInterceptor(logger *xlog.Logger, c *Config) grpc.StreamS
 
 func defaultUnaryServerInterceptor(logger *xlog.Logger, c *Config) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
-		var beg = time.Now()
-		var fields = make([]xlog.Field, 0, 8)
-		var event = "normal"
+		beg := time.Now()
+		fields := make([]xlog.Field, 0, 8)
+		event := "normal"
 		defer func() {
 			if c.SlowQueryThresholdInMilli > 0 {
 				if int64(time.Since(beg))/1e6 > c.SlowQueryThresholdInMilli {
@@ -266,7 +266,7 @@ func getClientIP(ctx context.Context) (string, error) {
 }
 
 func getPeer(ctx context.Context) map[string]string {
-	var peerMeta = make(map[string]string)
+	peerMeta := make(map[string]string)
 	if md, ok := metadata.FromIncomingContext(ctx); ok {
 		if val, ok := md["aid"]; ok {
 			peerMeta["aid"] = strings.Join(val, ";")
@@ -286,7 +286,6 @@ func getPeer(ctx context.Context) map[string]string {
 		}
 	}
 	return peerMeta
-
 }
 
 func NewSentinelUnaryServerInterceptor() grpc.UnaryServerInterceptor {

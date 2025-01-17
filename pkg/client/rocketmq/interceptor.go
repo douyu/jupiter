@@ -92,7 +92,6 @@ func consumerMetricInterceptor() primitive.Interceptor {
 					xlog.String("host", host),
 					xlog.String("result", result),
 					xlog.Any("err", err))
-
 			} else {
 				xlog.Jupiter().Debug("push consumer",
 					xlog.String("topic", topic),
@@ -186,9 +185,7 @@ func producerDefaultInterceptor(producer *Producer) primitive.Interceptor {
 		realReq := req.(*primitive.Message)
 		realReply := reply.(*primitive.SendResult)
 
-		var (
-			span trace.Span
-		)
+		var span trace.Span
 
 		if producer.EnableTrace {
 
@@ -200,7 +197,6 @@ func producerDefaultInterceptor(producer *Producer) primitive.Interceptor {
 			for k, v := range md {
 				realReq.WithProperty(strings.ToLower(k), strings.Join(v, ","))
 			}
-
 		}
 
 		err := next(ctx, realReq, realReply)
@@ -217,11 +213,8 @@ func producerDefaultInterceptor(producer *Producer) primitive.Interceptor {
 		if producer.EnableTrace {
 			if err != nil {
 				span := trace.SpanFromContext(ctx)
-				if err != nil {
-					span.RecordError(err)
-					span.SetStatus(codes.Error, err.Error())
-				}
-				span.End()
+				span.RecordError(err)
+				span.SetStatus(codes.Error, err.Error())
 			}
 		}
 

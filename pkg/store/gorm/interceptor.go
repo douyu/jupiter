@@ -24,6 +24,7 @@ import (
 	"github.com/douyu/jupiter/pkg/core/xtrace"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/propagation"
 	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
 	"go.opentelemetry.io/otel/trace"
@@ -31,8 +32,10 @@ import (
 	"gorm.io/gorm"
 )
 
-type Handler func(*gorm.DB)
-type Interceptor func(dsn *DSN, op string, options *Config, next Handler) Handler
+type (
+	Handler     func(*gorm.DB)
+	Interceptor func(dsn *DSN, op string, options *Config, next Handler) Handler
+)
 
 var errSlowCommand = errors.New("mysql slow command")
 
@@ -88,7 +91,6 @@ func traceInterceptor() Interceptor {
 
 	return func(dsn *DSN, op string, options *Config, next Handler) Handler {
 		return func(scope *gorm.DB) {
-
 			if ctx := scope.Statement.Context; ctx != nil {
 				md := metadata.New(nil)
 
@@ -104,11 +106,15 @@ func traceInterceptor() Interceptor {
 
 				next(scope)
 
+				if scope.Error != nil {
+					span.RecordError(scope.Error)
+					span.SetStatus(codes.Error, scope.Error.Error())
+				}
+
 				return
 			}
 
 			next(scope)
-
 		}
 	}
 }

@@ -28,6 +28,7 @@ import (
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/labstack/echo/v4"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/propagation"
 	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
 	"go.opentelemetry.io/otel/trace"
@@ -42,8 +43,8 @@ func extractAID(c echo.Context) string {
 func recoverMiddleware(slowQueryThresholdInMilli int64) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(ctx echo.Context) (err error) {
-			var beg = time.Now()
-			var fields = make([]xlog.Field, 0, 8)
+			beg := time.Now()
+			fields := make([]xlog.Field, 0, 8)
 
 			defer func() {
 				logger := xlog.J(ctx.Request().Context())
@@ -112,7 +113,15 @@ func traceServerInterceptor() echo.MiddlewareFunc {
 			ctx = xlog.NewContext(ctx, xlog.Jupiter(), span.SpanContext().TraceID().String())
 
 			c.SetRequest(c.Request().WithContext(ctx))
-			defer span.End()
+			defer func() {
+				if err != nil {
+					span.SetStatus(codes.Error, err.Error())
+					span.RecordError(err)
+				}
+
+				span.End()
+			}()
+
 			return next(c)
 		}
 	}
