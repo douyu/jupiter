@@ -4,6 +4,7 @@ updates:
   - package-ecosystem: gomod
     directories:
       - /
+      - /tools
       - /test/e2e
     labels:
       - dependencies
