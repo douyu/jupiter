@@ -14,10 +14,10 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.15.2
 	github.com/onsi/ginkgo/v2 v2.9.1
 	github.com/spf13/cast v1.5.0
-	github.com/srikrsna/protoc-gen-gotag v0.6.2
+	github.com/srikrsna/protoc-gen-gotag v1.0.2
 	github.com/vektra/mockery/v2 v2.19.0
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.2.0
-	google.golang.org/protobuf v1.30.0
+	google.golang.org/protobuf v1.34.1
 	gorm.io/gen v0.3.21
 )
 
@@ -104,6 +104,7 @@ require (
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/lyft/protoc-gen-star v0.6.1 // indirect
+	github.com/lyft/protoc-gen-star/v2 v2.0.3 // indirect
 	github.com/magiconair/properties v1.8.6 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
