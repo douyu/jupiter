@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Run markdown linter
-        uses: nosborn/github-action-markdown-cli@v3.3.0
+        uses: nosborn/github-action-markdown-cli@v3.4.0
         with:
           files: website/docs,README.md,pkg
           config_file: ".github/markdown_lint_config.json"
