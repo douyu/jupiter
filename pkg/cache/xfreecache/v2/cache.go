@@ -46,7 +46,7 @@ func (l *localStorage[K, V]) SetCacheMapOrigin(key string, idsNone []K, fn func(
 
 	// 执行函数
 	resMap, err := fn(idsNone)
-	// 填入返回中
+	// 先填入返回值，再判断错误返回
 	if v != nil {
 		for k, value := range resMap {
 			v[k] = value
