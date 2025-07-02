@@ -2,6 +2,7 @@ package xgolanglru
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	helloworldv1 "github.com/douyu/jupiter/proto/helloworld/v1"
 	"testing"
@@ -257,4 +258,68 @@ func TestStdConfig(t *testing.T) {
 		assert.Equalf(t, config.DisableMetric, true, "StdConfig DisableMetric")
 	})
 
+}
+
+func TestGetAndSetDataWithError(t *testing.T) {
+	var configStr = `
+		[jupiter.cache]
+			size = "128m"
+			[jupiter.cache.test1]
+				expire = "60s"
+	`
+	assert.Nil(t, conf.LoadFromReader(bytes.NewBufferString(configStr), toml.Unmarshal))
+
+	for i := 1; i <= 1; i++ {
+		oneCache := StdNew[string, *helloworldv1.SayHiRequest](fmt.Sprintf("test%d", i))
+		missCount := 0
+
+		tests := []struct {
+			stu *helloworldv1.SayHiRequest
+		}{
+			{
+				stu: &helloworldv1.SayHiRequest{
+					Name: "Student 1",
+				},
+			},
+			{
+				stu: &helloworldv1.SayHiRequest{
+					Name: "Student 2",
+				},
+			},
+			{
+				stu: &helloworldv1.SayHiRequest{
+					Name: "Student 1",
+				},
+			},
+			{
+				stu: &helloworldv1.SayHiRequest{
+					Name: "Student 3",
+				},
+			},
+			{
+				stu: &helloworldv1.SayHiRequest{
+					Name: "Student 2",
+				},
+			},
+			{
+				stu: nil,
+			},
+			{
+				stu: nil,
+			},
+		}
+
+		for _, tt := range tests {
+			key := tt.stu.GetName()
+			result, _ := oneCache.GetAndSetCacheData(key, tt.stu.GetName(), func() (*helloworldv1.SayHiRequest, error) {
+				missCount++
+				fmt.Println("local cache miss hit")
+				return tt.stu, errors.New("this is a test error")
+			})
+			fmt.Println(result)
+			assert.Equalf(t, tt.stu.GetName(), result.GetName(), "GetAndSetCacheData(%v) cache value error", key)
+		}
+		// 因为接口报错了，所以全部没有命中缓存
+		assert.Equalf(t, missCount, 7, "GetAndSetCacheData miss count error")
+	}
 }
