@@ -309,7 +309,7 @@ func TestGetAndSetDataWithError(t *testing.T) {
 		}
 
 		for _, tt := range tests {
-			key := tt.stu.GetName()
+			key := "errTest" + tt.stu.GetName()
 			result, _ := oneCache.GetAndSetCacheData(key, tt.stu.GetName(), func() (*helloworldv1.SayHiRequest, error) {
 				missCount++
 				fmt.Println("local cache miss hit")
