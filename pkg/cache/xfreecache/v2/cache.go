@@ -46,16 +46,15 @@ func (l *localStorage[K, V]) SetCacheMapOrigin(key string, idsNone []K, fn func(
 
 	// 执行函数
 	resMap, err := fn(idsNone)
-	if err != nil {
-		xlog.Jupiter().Error("GetAndSetCacheMap doMap", append(args, zap.Error(err))...)
-		return
-	}
-
-	// 填入返回中
+	// 先填入返回值，再判断错误返回
 	if v != nil {
 		for k, value := range resMap {
 			v[k] = value
 		}
+	}
+	if err != nil {
+		xlog.Jupiter().Error("GetAndSetCacheMap doMap", append(args, zap.Error(err))...)
+		return
 	}
 
 	// 写入缓存
