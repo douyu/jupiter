@@ -31,7 +31,7 @@ jobs:
         run: env
 
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: docker compose
         run: docker compose -f test/docker-compose.yaml up -d

@@ -13,10 +13,10 @@ jobs:
   docs-lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Run markdown linter
-        uses: nosborn/github-action-markdown-cli@v3.3.0
+        uses: nosborn/github-action-markdown-cli@v3.5.0
         with:
           files: website/docs,README.md,pkg
           config_file: ".github/markdown_lint_config.json"
@@ -27,7 +27,7 @@ jobs:
     needs: docs-lint
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       # 首先生成拉取node文件
       - name: Node install
@@ -57,7 +57,7 @@ jobs:
 
       # 提交
       - name: Deploy 🚀
-        uses: JamesIves/github-pages-deploy-action@v4.7.2
+        uses: JamesIves/github-pages-deploy-action@v4.7.3
         with:
           branch: pages
           folder: ./website/docs/.vuepress/dist
