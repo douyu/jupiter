@@ -20,8 +20,11 @@ import (
 	"github.com/alibaba/sentinel-golang/core/base"
 )
 
+// sentinelEntryKeyType 定义自定义类型用作 context key
+type sentinelEntryKeyType struct{}
+
 var (
-	sentinelEntryKey = struct{}{}
+	sentinelEntryKey = sentinelEntryKeyType{}
 )
 
 func WithContext(ctx context.Context, val *base.SentinelEntry) context.Context {
