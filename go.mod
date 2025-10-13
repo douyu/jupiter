@@ -2,8 +2,6 @@ module github.com/douyu/jupiter
 
 go 1.23.0
 
-toolchain go1.23.1
-
 require (
 	cirello.io/pglock v1.14.0
 	github.com/BurntSushi/toml v1.3.2
