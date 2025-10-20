@@ -51,6 +51,11 @@ func (conf *PushConsumerConfig) Build() *PushConsumer {
 	xlog.Jupiter().Debug("rocketmq's config: ", xlog.String("name", name), xlog.Any("conf", conf))
 
 	var bucket *ratelimit.Bucket
+
+	if conf.Rate > 0 && conf.Capacity <= 0 {
+		conf.Capacity = int64(conf.Rate)
+	}
+
 	if conf.Rate > 0 && conf.Capacity > 0 {
 		bucket = ratelimit.NewBucketWithRate(conf.Rate, conf.Capacity)
 	}
@@ -113,9 +118,7 @@ func (cc *PushConsumer) RegisterSingleMessage(f func(context.Context, *primitive
 			}
 		}()
 		for _, msg := range msgs {
-			var (
-				span trace.Span
-			)
+			var span trace.Span
 
 			if cc.EnableTrace {
 				carrier := propagation.MapCarrier{}
@@ -176,9 +179,7 @@ func (cc *PushConsumer) RegisterBatchMessage(f func(context.Context, ...*primiti
 		}()
 		if cc.EnableTrace {
 			for _, msg := range msgs {
-				var (
-					span trace.Span
-				)
+				var span trace.Span
 
 				carrier := propagation.MapCarrier{}
 				attrs := []attribute.KeyValue{
@@ -216,7 +217,7 @@ func (cc *PushConsumer) Start() error {
 		return nil
 	}
 
-	var opts = []consumer.Option{
+	opts := []consumer.Option{
 		consumer.WithGroupName(cc.Group),
 		consumer.WithInstance(cc.InstanceName),
 		consumer.WithNameServer(cc.Addr),
@@ -238,7 +239,6 @@ func (cc *PushConsumer) Start() error {
 	client, err := rocketmq.NewPushConsumer(
 		opts...,
 	)
-
 	if err != nil {
 		xlog.Jupiter().Panic("create push consumer panic",
 			xlog.FieldName(cc.name),
