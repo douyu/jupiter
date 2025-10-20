@@ -30,7 +30,7 @@ services:
     ports:
       - 8080:8080
   etcd:
-    image: "bitnami/etcd:latest"
+    image: bitnami/etcd:latest
     environment:
       ETCD_ADVERTISE_CLIENT_URLS: "http://0.0.0.0:2379"
       ETCD_LISTEN_CLIENT_URLS: "http://0.0.0.0:2379"
