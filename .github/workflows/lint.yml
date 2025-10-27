@@ -18,7 +18,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        go: ["1.19.x"]
+        go: ["1.23.x"]
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
 
@@ -33,17 +33,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: golangci-lint
-        if: runner.os != 'Windows'
         uses: golangci/golangci-lint-action@v6
         with:
-          version: v1.50.1
-          args: "--out-${NO_FUTURE}format colored-line-number"
-
-      - name: golangci-lint
-        if: runner.os == 'Windows'
-        uses: golangci/golangci-lint-action@v6
-        env:
-          nofuture: out-format
-        with:
-          version: v1.50.1
-          args: "--%nofuture% colored-line-number"
+          version: v1.62
+          args: --out-format colored-line-number

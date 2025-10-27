@@ -27,7 +27,7 @@ import (
 
 func init() {
 
-	primitive.PanicHandler = func(i interface{}) {
+	primitive.DefaultPanicHandler = func(i interface{}) {
 		stack := make([]byte, 1024)
 		length := runtime.Stack(stack, true)
 		fmt.Fprint(os.Stderr, "[rocketmq panic recovery]\n", string(stack[:length]))

@@ -34,7 +34,7 @@ func TestConfigBlockTrue(t *testing.T) {
 
 		assert.NotNil(t, err)
 		assert.Nil(t, conn)
-		assert.Equal(t, "failed to build resolver: passthrough: received empty target in Build()", err.Error())
+		assert.Equal(t, "failed to exit idle mode: passthrough: received empty target in Build()", err.Error())
 	})
 }
 

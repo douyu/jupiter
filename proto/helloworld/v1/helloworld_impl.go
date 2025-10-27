@@ -25,7 +25,7 @@ func (s *FooServer) SetHook(f func(context.Context)) {
 var ErrFoo = errors.New("error foo")
 
 // StatusFoo ...
-var StatusFoo = status.Errorf(codes.DataLoss, ErrFoo.Error())
+var StatusFoo = status.Errorf(codes.DataLoss, "%s", ErrFoo.Error())
 
 // SayHello ...
 func (s *FooServer) SayHello(ctx context.Context, in *SayHelloRequest) (out *SayHelloResponse, err error) {
