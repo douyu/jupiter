@@ -1,6 +1,8 @@
 package xfreecache
 
 import (
+	"errors"
+
 	"github.com/coocood/freecache"
 	prome "github.com/douyu/jupiter/pkg/core/metric"
 	"github.com/douyu/jupiter/pkg/xlog"
@@ -20,10 +22,11 @@ func (l *localStorage[K, V]) setCacheData(key string, data []byte) (err error) {
 		} else {
 			prome.CacheHandleCounter.WithLabelValues(prome.TypeLocalCache, l.config.Name, "SetSuccess", "").Inc()
 		}
+		prome.CacheHandleCounter.WithLabelValues(prome.TypeLocalCache, l.config.Name, "Evacuate").Add(float64(l.config.Cache.EvacuateCount()))
 	}
 	if err != nil {
 		xlog.Jupiter().Error("cache SetCacheData", zap.String("data", string(data)), zap.Error(err))
-		if err == freecache.ErrLargeEntry || err == freecache.ErrLargeKey {
+		if errors.Is(err, freecache.ErrLargeEntry) || errors.Is(err, freecache.ErrLargeKey) {
 			err = nil
 		}
 		return
@@ -41,7 +44,7 @@ func (l *localStorage[K, V]) getCacheData(key string) (data []byte, err error) {
 			prome.CacheHandleCounter.WithLabelValues(prome.TypeLocalCache, l.config.Name, "HitCount", "").Inc()
 		}
 	}
-	if err != nil && err != freecache.ErrNotFound {
+	if err != nil && !errors.Is(err, freecache.ErrNotFound) {
 		xlog.Jupiter().Error("cache GetCacheData", zap.String("key", key), zap.Error(err))
 		return
 	}
