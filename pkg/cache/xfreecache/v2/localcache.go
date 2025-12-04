@@ -22,7 +22,7 @@ func (l *localStorage[K, V]) setCacheData(key string, data []byte) (err error) {
 		} else {
 			prome.CacheHandleCounter.WithLabelValues(prome.TypeLocalCache, l.config.Name, "SetSuccess", "").Inc()
 		}
-		prome.CacheHandleCounter.WithLabelValues(prome.TypeLocalCache, l.config.Name, "Evacuate").Add(float64(l.config.Cache.EvacuateCount()))
+		prome.CacheHandleCounter.WithLabelValues(prome.TypeLocalCache, l.config.Name, "Evacuate", "").Add(float64(l.config.Cache.EvacuateCount()))
 	}
 	if err != nil {
 		xlog.Jupiter().Error("cache SetCacheData", zap.String("data", string(data)), zap.Error(err))
