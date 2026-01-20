@@ -15,7 +15,9 @@
 package xgoframe
 
 import (
+	"fmt"
 	"net/http"
+	"runtime"
 	"time"
 
 	"github.com/douyu/jupiter/pkg/core/metric"
@@ -24,34 +26,54 @@ import (
 	"go.uber.org/zap"
 )
 
-// recoverMiddleware ...
-func recoverMiddleware(logger *xlog.Logger, slowQueryThresholdInMilli int64) ghttp.HandlerFunc {
+// recoveryMiddleware handles panic recovery
+func recoveryMiddleware(logger *xlog.Logger) ghttp.HandlerFunc {
 	return func(r *ghttp.Request) {
 		defer func() {
-			var beg = time.Now()
-			var fields = make([]xlog.Field, 0, 8)
-
-			fields = append(fields, zap.Float64("cost", time.Since(beg).Seconds()))
-
-			if slowQueryThresholdInMilli > 0 {
-				if cost := int64(time.Since(beg)) / 1e6; cost > slowQueryThresholdInMilli {
-					fields = append(fields, zap.Int64("slow", cost))
+			if rec := recover(); rec != nil {
+				var err error
+				switch rec := rec.(type) {
+				case error:
+					err = rec
+				default:
+					err = fmt.Errorf("%v", rec)
 				}
-			}
 
-			fields = append(fields,
+				stack := make([]byte, 4096)
+				length := runtime.Stack(stack, false)
+
+				logger.Error("recovery",
+					zap.ByteString("stack", stack[:length]),
+					zap.String("method", r.Method),
+					zap.Int("code", r.Response.Status),
+					zap.String("host", r.Host),
+					zap.String("path", r.URL.Path),
+					zap.String("ip", r.GetClientIp()),
+					zap.Any("err", err),
+				)
+			}
+		}()
+		r.Middleware.Next()
+	}
+}
+
+// slowLogMiddleware logs slow requests
+func slowLogMiddleware(logger *xlog.Logger, slowThreshold time.Duration) ghttp.HandlerFunc {
+	return func(r *ghttp.Request) {
+		beg := time.Now()
+		r.Middleware.Next()
+		cost := time.Since(beg)
+
+		if slowThreshold > 0 && cost >= slowThreshold {
+			logger.Error("slow",
 				zap.String("method", r.Method),
 				zap.Int("code", r.Response.Status),
-				zap.Int("size", r.Response.BufferLength()),
 				zap.String("host", r.Host),
 				zap.String("path", r.URL.Path),
 				zap.String("ip", r.GetClientIp()),
-				zap.String("remote_addr", r.RemoteAddr),
+				xlog.FieldCost(cost),
 			)
-
-			logger.Info("access", fields...)
-		}()
-		r.Middleware.Next()
+		}
 	}
 }
 

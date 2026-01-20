@@ -153,18 +153,10 @@ func extractAID(ctx context.Context) string {
 	return "unknown"
 }
 
-func defaultStreamServerInterceptor(logger *xlog.Logger, c *Config) grpc.StreamServerInterceptor {
+// recoveryStreamServerInterceptor handles panic recovery for stream
+func recoveryStreamServerInterceptor(logger *xlog.Logger) grpc.StreamServerInterceptor {
 	return func(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) (err error) {
-		beg := time.Now()
-		fields := make([]xlog.Field, 0, 8)
-		event := "normal"
 		defer func() {
-			if c.SlowQueryThresholdInMilli > 0 {
-				if int64(time.Since(beg))/1e6 > c.SlowQueryThresholdInMilli {
-					event = "slow"
-				}
-			}
-
 			if rec := recover(); rec != nil {
 				switch rec := rec.(type) {
 				case error:
@@ -172,48 +164,26 @@ func defaultStreamServerInterceptor(logger *xlog.Logger, c *Config) grpc.StreamS
 				default:
 					err = fmt.Errorf("%v", rec)
 				}
+
 				stack := make([]byte, 4096)
-				stack = stack[:runtime.Stack(stack, true)]
-				fields = append(fields, xlog.FieldStack(stack))
-				event = "recover"
-			}
+				stack = stack[:runtime.Stack(stack, false)]
 
-			fields = append(fields,
-				xlog.Any("grpc interceptor type", "unary"),
-				xlog.FieldMethod(info.FullMethod),
-				xlog.FieldCost(time.Since(beg)),
-				xlog.FieldEvent(event),
-			)
-
-			for key, val := range getPeer(stream.Context()) {
-				fields = append(fields, xlog.Any(key, val))
-			}
-
-			if err != nil {
-				fields = append(fields, zap.String("err", err.Error()))
-				logger.Error("access", fields...)
-				return
-			}
-
-			if c.EnableAccessLog {
-				logger.Info("access", fields...)
+				logger.Error("recovery",
+					xlog.Any("grpc interceptor type", "stream"),
+					xlog.FieldMethod(info.FullMethod),
+					xlog.FieldStack(stack),
+					zap.Any("err", err),
+				)
 			}
 		}()
 		return handler(srv, stream)
 	}
 }
 
-func defaultUnaryServerInterceptor(logger *xlog.Logger, c *Config) grpc.UnaryServerInterceptor {
+// recoveryUnaryServerInterceptor handles panic recovery for unary
+func recoveryUnaryServerInterceptor(logger *xlog.Logger) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
-		beg := time.Now()
-		fields := make([]xlog.Field, 0, 8)
-		event := "normal"
 		defer func() {
-			if c.SlowQueryThresholdInMilli > 0 {
-				if int64(time.Since(beg))/1e6 > c.SlowQueryThresholdInMilli {
-					event = "slow"
-				}
-			}
 			if rec := recover(); rec != nil {
 				switch rec := rec.(type) {
 				case error:
@@ -223,33 +193,53 @@ func defaultUnaryServerInterceptor(logger *xlog.Logger, c *Config) grpc.UnarySer
 				}
 
 				stack := make([]byte, 4096)
-				stack = stack[:runtime.Stack(stack, true)]
-				fields = append(fields, xlog.FieldStack(stack))
-				event = "recover"
-			}
+				stack = stack[:runtime.Stack(stack, false)]
 
-			fields = append(fields,
-				xlog.Any("grpc interceptor type", "unary"),
-				xlog.FieldMethod(info.FullMethod),
-				xlog.FieldCost(time.Since(beg)),
-				xlog.FieldEvent(event),
-			)
-
-			for key, val := range getPeer(ctx) {
-				fields = append(fields, xlog.Any(key, val))
-			}
-
-			if err != nil {
-				fields = append(fields, zap.String("err", err.Error()))
-				logger.Error("access", fields...)
-				return
-			}
-
-			if c.EnableAccessLog {
-				logger.Info("access", fields...)
+				logger.Error("recovery",
+					xlog.Any("grpc interceptor type", "unary"),
+					xlog.FieldMethod(info.FullMethod),
+					xlog.FieldStack(stack),
+					zap.Any("err", err),
+				)
 			}
 		}()
 		return handler(ctx, req)
+	}
+}
+
+// slowLogStreamServerInterceptor logs slow requests for stream
+func slowLogStreamServerInterceptor(logger *xlog.Logger, slowThreshold time.Duration) grpc.StreamServerInterceptor {
+	return func(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+		beg := time.Now()
+		err := handler(srv, stream)
+		cost := time.Since(beg)
+
+		if slowThreshold > 0 && cost >= slowThreshold {
+			logger.Error("slow",
+				xlog.Any("grpc interceptor type", "stream"),
+				xlog.FieldMethod(info.FullMethod),
+				xlog.FieldCost(cost),
+			)
+		}
+		return err
+	}
+}
+
+// slowLogUnaryServerInterceptor logs slow requests for unary
+func slowLogUnaryServerInterceptor(logger *xlog.Logger, slowThreshold time.Duration) grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+		beg := time.Now()
+		resp, err = handler(ctx, req)
+		cost := time.Since(beg)
+
+		if slowThreshold > 0 && cost >= slowThreshold {
+			logger.Error("slow",
+				xlog.Any("grpc interceptor type", "unary"),
+				xlog.FieldMethod(info.FullMethod),
+				xlog.FieldCost(cost),
+			)
+		}
+		return resp, err
 	}
 }
 

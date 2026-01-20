@@ -27,17 +27,13 @@ import (
 
 type Middleware func(h fasthttp.RequestHandler) fasthttp.RequestHandler
 
-// recoverMiddleware ...
-func recoverMiddleware(c *Config) Middleware {
+// recoveryMiddleware handles panic recovery
+func recoveryMiddleware(c *Config) Middleware {
 	return func(next fasthttp.RequestHandler) fasthttp.RequestHandler {
 		return func(ctx *fasthttp.RequestCtx) {
-			var err error
-			var beg = time.Now()
-			var fields = make([]xlog.Field, 0, 8)
-
 			defer func() {
-				fields = append(fields, zap.Float64("cost", time.Since(beg).Seconds()))
 				if rec := recover(); rec != nil {
+					var err error
 					switch rec := rec.(type) {
 					case error:
 						err = rec
@@ -46,31 +42,46 @@ func recoverMiddleware(c *Config) Middleware {
 					}
 
 					stack := make([]byte, 4096)
-					length := runtime.Stack(stack, true)
-					fields = append(fields, zap.ByteString("stack", stack[:length]))
+					length := runtime.Stack(stack, false)
 
 					if !c.DisablePrintStack {
 						fmt.Fprintln(os.Stderr, "[PANIC RECOVER]", err)
-						fmt.Fprintln(os.Stderr, string(stack))
+						fmt.Fprintln(os.Stderr, string(stack[:length]))
 					}
-				}
 
-				fields = append(fields,
+					c.logger.Error("recovery",
+						zap.ByteString("stack", stack[:length]),
+						zap.String("method", string(ctx.Request.Header.Method())),
+						zap.Int("code", ctx.Response.StatusCode()),
+						zap.String("host", string(ctx.Host())),
+						zap.String("path", string(ctx.Path())),
+						zap.Any("err", err),
+					)
+				}
+			}()
+
+			next(ctx)
+		}
+	}
+}
+
+// slowLogMiddleware logs slow requests
+func slowLogMiddleware(c *Config, slowThreshold time.Duration) Middleware {
+	return func(next fasthttp.RequestHandler) fasthttp.RequestHandler {
+		return func(ctx *fasthttp.RequestCtx) {
+			beg := time.Now()
+			next(ctx)
+			cost := time.Since(beg)
+
+			if slowThreshold > 0 && cost >= slowThreshold {
+				c.logger.Error("slow",
 					zap.String("method", string(ctx.Request.Header.Method())),
 					zap.Int("code", ctx.Response.StatusCode()),
 					zap.String("host", string(ctx.Host())),
 					zap.String("path", string(ctx.Path())),
+					xlog.FieldCost(cost),
 				)
-				if err != nil {
-					fields = append(fields, zap.String("err", err.Error()))
-					c.logger.Error("access", fields...)
-					return
-				}
-
-				c.logger.Info("access", fields...)
-			}()
-
-			next(ctx)
+			}
 		}
 	}
 }

@@ -16,6 +16,7 @@ package xecho
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/core/constant"
@@ -106,7 +107,8 @@ func (config *Config) Build() (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	server.Use(recoverMiddleware(config.SlowQueryThresholdInMilli))
+	server.Use(recoveryMiddleware())
+	server.Use(slowLogMiddleware(time.Duration(config.SlowQueryThresholdInMilli) * time.Millisecond))
 
 	if !config.DisableMetric {
 		server.Use(metricServerInterceptor())

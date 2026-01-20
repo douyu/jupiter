@@ -4,9 +4,13 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	helloworldv1 "github.com/douyu/jupiter/proto/helloworld/v1"
+	"os"
+	"os/exec"
+	"sync"
 	"testing"
 	"time"
+
+	helloworldv1 "github.com/douyu/jupiter/proto/helloworld/v1"
 
 	"github.com/BurntSushi/toml"
 	"github.com/douyu/jupiter/pkg/conf"
@@ -321,4 +325,43 @@ func TestGetAndSetDataWithError(t *testing.T) {
 		// 因为接口报错了，所以全部没有命中缓存
 		assert.Equalf(t, missCount, 7, "GetAndSetCacheData miss count error")
 	}
+}
+
+func TestCache_GetAndSetCacheMap_ConcurrentWrite(t *testing.T) {
+	if os.Getenv("XFREECACHE_CONCURRENT_TEST") == "1" {
+		runConcurrentWriter(t)
+		return
+	}
+
+	cmd := exec.Command("go", "test", "./pkg/cache/xfreecache/v2", "-run", "TestCache_GetAndSetCacheMap_ConcurrentWrite", "-count=1", "-race")
+	cmd.Env = append(os.Environ(), "XFREECACHE_CONCURRENT_TEST=1")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	if err := cmd.Run(); err == nil {
+		t.Fatalf("expect concurrent map write panic, but test passed")
+	}
+}
+
+func runConcurrentWriter(t *testing.T) {
+	c := New[int64, int64](DefaultConfig())
+
+	var wg sync.WaitGroup
+	shared := make(map[int64]int64)
+
+	const goroutines = 32
+	for g := 0; g < goroutines; g++ {
+		wg.Add(1)
+		go func(seed int64) {
+			defer wg.Done()
+			_, _ = c.GetAndSetCacheMap("concurrent_case", []int64{1, 2, 3, 4}, func(ids []int64) (map[int64]int64, error) {
+				for _, id := range ids {
+					shared[id+seed] = seed
+				}
+				return shared, nil
+			})
+		}(int64(g * 10))
+	}
+
+	wg.Wait()
 }
