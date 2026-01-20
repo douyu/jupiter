@@ -72,7 +72,8 @@ func recoveryMiddleware(logger *xlog.Logger) gin.HandlerFunc {
 				}
 
 				stack := make([]byte, 4096)
-				stack = stack[:runtime.Stack(stack, false)]
+				length := runtime.Stack(stack, false)
+				stack = stack[:length]
 
 				logger.Error("recovery",
 					zap.ByteString("stack", stack),

@@ -166,7 +166,8 @@ func recoveryStreamServerInterceptor(logger *xlog.Logger) grpc.StreamServerInter
 				}
 
 				stack := make([]byte, 4096)
-				stack = stack[:runtime.Stack(stack, false)]
+				length := runtime.Stack(stack, false)
+				stack = stack[:length]
 
 				logger.Error("recovery",
 					xlog.Any("grpc interceptor type", "stream"),
@@ -193,7 +194,8 @@ func recoveryUnaryServerInterceptor(logger *xlog.Logger) grpc.UnaryServerInterce
 				}
 
 				stack := make([]byte, 4096)
-				stack = stack[:runtime.Stack(stack, false)]
+				length := runtime.Stack(stack, false)
+				stack = stack[:length]
 
 				logger.Error("recovery",
 					xlog.Any("grpc interceptor type", "unary"),
