@@ -31,9 +31,53 @@ jobs:
 
       - name: Check out code into the Go module directory
         uses: actions/checkout@v4
+        with:
+          # PR 时需要获取目标分支（origin/master），使用较大的 fetch-depth
+          # Push 时使用 SHA 对比，fetch-depth: 1 即可
+          fetch-depth: ${{ github.event_name == 'pull_request' && 0 || 1 }}
+
+      # Push 事件时，确定对比基准
+      - name: Determine comparison ref for push event
+        if: github.event_name == 'push'
+        id: compare-ref
+        shell: bash
+        run: |
+          CURRENT_BRANCH="${{ github.ref_name }}"
+          BEFORE_SHA="${{ github.event.before }}"
+          echo "当前分支: $CURRENT_BRANCH"
+          echo "Push 前的 SHA: $BEFORE_SHA"
+          
+          # 检查是否是全新分支（before SHA 为 40 个零的 Git null SHA-1）
+          if [[ "$BEFORE_SHA" =~ ^0{40}$ ]]; then
+            echo "检测到全新分支（null SHA），对比 origin/master"
+            git fetch --depth=1 origin master:refs/remotes/origin/master
+            COMPARE_REF="origin/master"
+          # 如果是 push 到 master 分支，使用 github.event.before (push 前的 SHA)
+          elif [ "$CURRENT_BRANCH" = "master" ]; then
+            COMPARE_REF="$BEFORE_SHA"
+            echo "Push 到 master，对比 push 前的提交: $COMPARE_REF"
+          else
+            # 检查远端是否存在该分支（git ls-remote 不需要 fetch-depth）
+            if git ls-remote --heads origin "$CURRENT_BRANCH" | grep -q "$CURRENT_BRANCH"; then
+              # 远端分支存在，获取远端分支的最新 SHA
+              REMOTE_SHA=$(git ls-remote --heads origin "$CURRENT_BRANCH" | cut -f1)
+              COMPARE_REF="$REMOTE_SHA"
+              echo "远端分支存在，对比远端 SHA: $COMPARE_REF"
+            else
+              # 远端分支不存在（第一次 push），需要 fetch origin/master
+              git fetch --depth=1 origin master:refs/remotes/origin/master
+              COMPARE_REF="origin/master"
+              echo "远端分支不存在（第一次 push），对比: $COMPARE_REF"
+            fi
+          fi
+          
+          echo "compare-ref=$COMPARE_REF" >> $GITHUB_OUTPUT
+          echo "最终对比基准: $COMPARE_REF"
 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
           version: v1.62
-          args: --out-format colored-line-number
+          # PR 时: 对比目标分支 (github.base_ref)
+          # Push 时: 对比远端分支最新提交，如果远端分支不存在则对比 origin/master
+          args: --out-format colored-line-number --new-from-rev=${{ github.base_ref && format('origin/{0}', github.base_ref) || steps.compare-ref.outputs.compare-ref }}
