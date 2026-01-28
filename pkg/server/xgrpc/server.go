@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net"
+	"time"
 
 	"github.com/douyu/jupiter/pkg/core/constant"
 	"github.com/douyu/jupiter/pkg/server"
@@ -39,13 +40,21 @@ type Server struct {
 }
 
 func newServer(config *Config) (*Server, error) {
+	slowThreshold := time.Duration(config.SlowQueryThresholdInMilli) * time.Millisecond
+
 	var streamInterceptors = append(
-		[]grpc.StreamServerInterceptor{defaultStreamServerInterceptor(config.logger, config)},
+		[]grpc.StreamServerInterceptor{
+			recoveryStreamServerInterceptor(config.logger),
+			slowLogStreamServerInterceptor(config.logger, slowThreshold),
+		},
 		config.streamInterceptors...,
 	)
 
 	var unaryInterceptors = append(
-		[]grpc.UnaryServerInterceptor{defaultUnaryServerInterceptor(config.logger, config)},
+		[]grpc.UnaryServerInterceptor{
+			recoveryUnaryServerInterceptor(config.logger),
+			slowLogUnaryServerInterceptor(config.logger, slowThreshold),
+		},
 		config.unaryInterceptors...,
 	)
 

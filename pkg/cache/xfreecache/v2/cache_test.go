@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	helloworldv1 "github.com/douyu/jupiter/proto/helloworld/v1"
 	"testing"
 	"time"
+
+	helloworldv1 "github.com/douyu/jupiter/proto/helloworld/v1"
 
 	"github.com/BurntSushi/toml"
 	"github.com/douyu/jupiter/pkg/conf"

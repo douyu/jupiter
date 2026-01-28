@@ -39,16 +39,11 @@ func extractAID(c echo.Context) string {
 	return c.Request().Header.Get("AID")
 }
 
-// RecoverMiddleware ...
-func recoverMiddleware(slowQueryThresholdInMilli int64) echo.MiddlewareFunc {
+// recoveryMiddleware handles panic recovery
+func recoveryMiddleware() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(ctx echo.Context) (err error) {
-			beg := time.Now()
-			fields := make([]xlog.Field, 0, 8)
-
 			defer func() {
-				logger := xlog.J(ctx.Request().Context())
-				fields = append(fields, xlog.FieldCost(time.Since(beg)))
 				if rec := recover(); rec != nil {
 					switch rec := rec.(type) {
 					case error:
@@ -58,29 +53,43 @@ func recoverMiddleware(slowQueryThresholdInMilli int64) echo.MiddlewareFunc {
 					}
 
 					stack := make([]byte, 4096)
-					length := runtime.Stack(stack, true)
-					fields = append(fields, zap.ByteString("stack", stack[:length]))
+					length := runtime.Stack(stack, false)
+
+					xlog.J(ctx.Request().Context()).Error("recovery",
+						zap.ByteString("stack", stack[:length]),
+						zap.String("method", ctx.Request().Method),
+						zap.Int("code", ctx.Response().Status),
+						zap.String("host", ctx.Request().Host),
+						zap.String("path", ctx.Request().URL.Path),
+						zap.Any("err", err),
+					)
 				}
-				fields = append(fields,
+			}()
+
+			return next(ctx)
+		}
+	}
+}
+
+// slowLogMiddleware logs slow requests
+func slowLogMiddleware(slowThreshold time.Duration) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(ctx echo.Context) (err error) {
+			beg := time.Now()
+			err = next(ctx)
+			cost := time.Since(beg)
+
+			if slowThreshold > 0 && cost >= slowThreshold {
+				xlog.J(ctx.Request().Context()).Error("slow",
 					zap.String("method", ctx.Request().Method),
 					zap.Int("code", ctx.Response().Status),
 					zap.String("host", ctx.Request().Host),
 					zap.String("path", ctx.Request().URL.Path),
+					xlog.FieldCost(cost),
 				)
-				if slowQueryThresholdInMilli > 0 {
-					if cost := int64(time.Since(beg)) / 1e6; cost > slowQueryThresholdInMilli {
-						fields = append(fields, zap.Int64("slow", cost))
-					}
-				}
-				if err != nil {
-					fields = append(fields, zap.String("err", err.Error()))
-					logger.Error("access", fields...)
-					return
-				}
-				logger.Info("access", fields...)
-			}()
+			}
 
-			return next(ctx)
+			return err
 		}
 	}
 }

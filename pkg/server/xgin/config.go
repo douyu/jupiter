@@ -16,6 +16,7 @@ package xgin
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/core/constant"
@@ -92,7 +93,8 @@ func (config *Config) WithPort(port int) *Config {
 // Build create server instance, then initialize it with necessary interceptor
 func (config *Config) MustBuild() *Server {
 	server := newServer(config)
-	server.Use(recoverMiddleware(config.logger, config.SlowQueryThresholdInMilli))
+	server.Use(recoveryMiddleware(config.logger))
+	server.Use(slowLogMiddleware(config.logger, time.Duration(config.SlowQueryThresholdInMilli)*time.Millisecond))
 
 	if !config.DisableMetric {
 		server.Use(metricServerInterceptor())

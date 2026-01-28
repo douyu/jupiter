@@ -20,6 +20,7 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"time"
 
 	"github.com/douyu/jupiter/pkg/core/constant"
 	"github.com/douyu/jupiter/pkg/server"
@@ -91,7 +92,8 @@ func (s *Server) Healthz() bool {
 func (s *Server) Serve() error {
 	var err error
 
-	s.Handler = recoverMiddleware(s.config)(s.Handler)
+	s.Handler = recoveryMiddleware(s.config)(s.Handler)
+	s.Handler = slowLogMiddleware(s.config, time.Duration(s.config.SlowQueryThresholdInMilli)*time.Millisecond)(s.Handler)
 
 	if s.config.EnableTLS {
 		err = s.Server.ServeTLS(s.listener, s.config.CertFile, s.config.PrivateFile)

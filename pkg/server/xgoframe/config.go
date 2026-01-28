@@ -16,6 +16,7 @@ package xgoframe
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/core/constant"
@@ -91,7 +92,8 @@ func (config *Config) WithPort(port int) *Config {
 func (config *Config) MustBuild() *Server {
 	serve := newServer(config)
 
-	serve.Use(recoverMiddleware(config.logger, config.SlowQueryThresholdInMilli))
+	serve.Use(recoveryMiddleware(config.logger))
+	serve.Use(slowLogMiddleware(config.logger, time.Duration(config.SlowQueryThresholdInMilli)*time.Millisecond))
 	//
 	if !config.DisableMetric {
 		serve.Use(metricServerInterceptor())

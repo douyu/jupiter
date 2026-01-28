@@ -49,19 +49,12 @@ func extractAID(ctx *gin.Context) string {
 	return ctx.Request.Header.Get("AID")
 }
 
-func recoverMiddleware(logger *xlog.Logger, slowQueryThresholdInMilli int64) gin.HandlerFunc {
+// recoveryMiddleware handles panic recovery
+func recoveryMiddleware(logger *xlog.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var beg = time.Now()
-		var fields = make([]xlog.Field, 0, 8)
 		var brokenPipe bool
+		var err error
 		defer func() {
-			//Latency
-			fields = append(fields, zap.Float64("cost", time.Since(beg).Seconds()))
-			if slowQueryThresholdInMilli > 0 {
-				if cost := int64(time.Since(beg)) / 1e6; cost > slowQueryThresholdInMilli {
-					fields = append(fields, zap.Int64("slow", cost))
-				}
-			}
 			if rec := recover(); rec != nil {
 				if ne, ok := rec.(*net.OpError); ok {
 					if se, ok := ne.Err.(*os.SyscallError); ok {
@@ -70,10 +63,28 @@ func recoverMiddleware(logger *xlog.Logger, slowQueryThresholdInMilli int64) gin
 						}
 					}
 				}
-				var err = rec.(error)
-				fields = append(fields, zap.ByteString("stack", stack(3)))
-				fields = append(fields, zap.String("err", err.Error()))
-				logger.Error("access", fields...)
+
+				switch rec := rec.(type) {
+				case error:
+					err = rec
+				default:
+					err = fmt.Errorf("%v", rec)
+				}
+
+				stack := make([]byte, 4096)
+				length := runtime.Stack(stack, false)
+				stack = stack[:length]
+
+				logger.Error("recovery",
+					zap.ByteString("stack", stack),
+					zap.String("method", c.Request.Method),
+					zap.Int("code", c.Writer.Status()),
+					zap.String("host", c.Request.Host),
+					zap.String("path", c.Request.URL.Path),
+					zap.String("ip", c.ClientIP()),
+					zap.Any("err", err),
+				)
+
 				// If the connection is dead, we can't write a status to it.
 				if brokenPipe {
 					c.Error(err) // nolint: errcheck
@@ -81,22 +92,29 @@ func recoverMiddleware(logger *xlog.Logger, slowQueryThresholdInMilli int64) gin
 					return
 				}
 				c.AbortWithStatus(http.StatusInternalServerError)
-				return
 			}
-			// httpRequest, _ := httputil.DumpRequest(c.Request, false)
-			// fields = append(fields, zap.ByteString("request", httpRequest))
-			fields = append(fields,
+		}()
+		c.Next()
+	}
+}
+
+// slowLogMiddleware logs slow requests
+func slowLogMiddleware(logger *xlog.Logger, slowThreshold time.Duration) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		beg := time.Now()
+		c.Next()
+		cost := time.Since(beg)
+
+		if slowThreshold > 0 && cost >= slowThreshold {
+			logger.Error("slow",
 				zap.String("method", c.Request.Method),
 				zap.Int("code", c.Writer.Status()),
-				zap.Int("size", c.Writer.Size()),
 				zap.String("host", c.Request.Host),
 				zap.String("path", c.Request.URL.Path),
 				zap.String("ip", c.ClientIP()),
-				zap.String("err", c.Errors.ByType(gin.ErrorTypePrivate).String()),
+				xlog.FieldCost(cost),
 			)
-			logger.Info("access", fields...)
-		}()
-		c.Next()
+		}
 	}
 }
 
