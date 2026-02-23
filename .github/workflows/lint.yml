@@ -24,13 +24,13 @@ jobs:
 
     steps:
       - name: Set up Go ${{ matrix.go }}
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ matrix.go }}
         id: go
 
       - name: Check out code into the Go module directory
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           # PR 时需要获取目标分支（origin/master），使用较大的 fetch-depth
           # Push 时使用 SHA 对比，fetch-depth: 1 即可
@@ -75,7 +75,7 @@ jobs:
           echo "最终对比基准: $COMPARE_REF"
 
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v9
         with:
           version: v1.62
           # PR 时: 对比目标分支 (github.base_ref)
