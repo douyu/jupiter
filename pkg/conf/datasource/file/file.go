@@ -19,6 +19,7 @@ import (
 	"log"
 	"path/filepath"
 
+	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/util/xfile"
 	"github.com/douyu/jupiter/pkg/util/xgo"
 	"github.com/douyu/jupiter/pkg/xlog"
@@ -33,8 +34,8 @@ type fileDataSource struct {
 	changed     chan struct{}
 }
 
-// NewDataSource returns new fileDataSource.
-func NewDataSource(path string, watch bool) *fileDataSource {
+// NewDataSource returns a file-backed configuration data source.
+func NewDataSource(path string, watch bool) conf.DataSource {
 	absolutePath, err := filepath.Abs(path)
 	if err != nil {
 		xlog.Jupiter().Panic("new datasource", xlog.Any("err", err))

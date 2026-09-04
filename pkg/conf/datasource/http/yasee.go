@@ -22,6 +22,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/douyu/jupiter/pkg/conf"
 	"github.com/douyu/jupiter/pkg/util/xgo"
 	"github.com/douyu/jupiter/pkg/xlog"
 	"github.com/go-resty/resty/v2"
@@ -52,8 +53,8 @@ type ConfigData struct {
 	LastRevision int64  `json:"last_revision"`
 }
 
-// NewDataSource ...
-func NewDataSource(addr string, enableWatch bool) *yaseeDataSource {
+// NewDataSource returns an HTTP-backed configuration data source.
+func NewDataSource(addr string, enableWatch bool) conf.DataSource {
 	yasee := &yaseeDataSource{
 		client:      resty.New(),
 		addr:        addr,
