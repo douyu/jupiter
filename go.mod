@@ -21,7 +21,7 @@ require (
 	github.com/go-resty/resty/v2 v2.11.0
 	github.com/gogf/gf v1.16.9
 	github.com/golang/protobuf v1.5.4
-	github.com/gorilla/websocket v1.5.0
+	github.com/gorilla/websocket v1.5.3
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.1
 	github.com/hashicorp/golang-lru/v2 v2.0.7
